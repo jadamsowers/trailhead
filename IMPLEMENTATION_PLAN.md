@@ -616,7 +616,7 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: scout_trips
+      POSTGRES_DB: scouting_outings
       POSTGRES_USER: scout_admin
       POSTGRES_PASSWORD: scout_password
     ports:
@@ -630,7 +630,7 @@ services:
       - "8000:8000"
     environment:
       POSTGRES_SERVER: postgres
-      POSTGRES_DB: scout_trips
+      POSTGRES_DB: scouting_outings
       POSTGRES_USER: scout_admin
       POSTGRES_PASSWORD: scout_password
     depends_on:

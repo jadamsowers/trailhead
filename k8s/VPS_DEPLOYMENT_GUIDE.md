@@ -295,10 +295,10 @@ kubectl rollout restart deployment/frontend -n scouting-outing-manager
 
 ```bash
 # Create backup
-kubectl exec postgres-0 -n scouting-outing-manager -- pg_dump -U postgres scout_trips > backup.sql
+kubectl exec postgres-0 -n scouting-outing-manager -- pg_dump -U postgres scouting_outings > backup.sql
 
 # Restore backup
-kubectl exec -i postgres-0 -n scouting-outing-manager -- psql -U postgres scout_trips < backup.sql
+kubectl exec -i postgres-0 -n scouting-outing-manager -- psql -U postgres scouting_outings < backup.sql
 ```
 
 ### View logs

@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: scouttrips
       POSTGRES_PASSWORD: scouttrips123
-      POSTGRES_DB: scout_trip_manager
+      POSTGRES_DB: scouting_outing_manager
     ports:
       - "5432:5432"
     volumes:
@@ -29,7 +29,7 @@ services:
       POSTGRES_SERVER: postgres
       POSTGRES_USER: scouttrips
       POSTGRES_PASSWORD: scouttrips123
-      POSTGRES_DB: scout_trip_manager
+      POSTGRES_DB: scouting_outing_manager
       POSTGRES_PORT: 5432
       SECRET_KEY: "dev-secret-key-change-in-production-use-openssl-rand-hex-32"
       ALGORITHM: HS256

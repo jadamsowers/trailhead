@@ -144,7 +144,7 @@ kubectl exec -it deployment/backend -n scouting-outing-manager -- python -m app.
 POD=$(kubectl get pod -l app=postgres -n scouting-outing-manager -o jsonpath='{.items[0].metadata.name}')
 
 # Create backup
-kubectl exec -n scouting-outing-manager $POD -- pg_dump -U postgres scout_trips > backup.sql
+kubectl exec -n scouting-outing-manager $POD -- pg_dump -U postgres scouting_outings > backup.sql
 ```
 
 ### Restore Database
@@ -154,7 +154,7 @@ kubectl exec -n scouting-outing-manager $POD -- pg_dump -U postgres scout_trips 
 POD=$(kubectl get pod -l app=postgres -n scouting-outing-manager -o jsonpath='{.items[0].metadata.name}')
 
 # Restore from backup
-kubectl exec -i -n scouting-outing-manager $POD -- psql -U postgres scout_trips < backup.sql
+kubectl exec -i -n scouting-outing-manager $POD -- psql -U postgres scouting_outings < backup.sql
 ```
 
 ## Scaling

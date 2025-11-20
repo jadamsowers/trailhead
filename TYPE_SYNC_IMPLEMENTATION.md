@@ -371,7 +371,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: scout_trips_test
+          POSTGRES_DB: scouting_outings_test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -399,7 +399,7 @@ jobs:
           uvicorn app.main:app --host 0.0.0.0 --port 8000 &
           sleep 10
         env:
-          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/scout_trips_test
+          DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/scouting_outings_test
       
       - name: Set up Node.js
         uses: actions/setup-node@v3

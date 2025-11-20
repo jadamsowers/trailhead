@@ -175,7 +175,7 @@ npm test
 POSTGRES_SERVER=localhost
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
-POSTGRES_DB=scout_trips
+POSTGRES_DB=scouting_outings
 
 # Security
 SECRET_KEY=your-secret-key-here

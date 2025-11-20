@@ -26,7 +26,7 @@ cp .env.example .env
 # - POSTGRES_SERVER (e.g., localhost)
 # - POSTGRES_USER (e.g., scouttrips)
 # - POSTGRES_PASSWORD (your secure password)
-# - POSTGRES_DB (e.g., scout_trip_manager)
+# - POSTGRES_DB (e.g., scouting_outing_manager)
 # - SECRET_KEY (generate with: openssl rand -hex 32)
 ```
 
@@ -37,9 +37,9 @@ cp .env.example .env
 psql -U postgres
 
 # Create database and user
-CREATE DATABASE scout_trip_manager;
+CREATE DATABASE scouting_outing_manager;
 CREATE USER scouttrips WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE scout_trip_manager TO scouttrips;
+GRANT ALL PRIVILEGES ON DATABASE scouting_outing_manager TO scouttrips;
 \q
 ```
 
@@ -143,7 +143,7 @@ flake8 app/
 pg_isready
 
 # Test connection
-psql -h localhost -U scouttrips -d scout_trip_manager
+psql -h localhost -U scouttrips -d scouting_outing_manager
 
 # Check environment variables
 echo $POSTGRES_SERVER

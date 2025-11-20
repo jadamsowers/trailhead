@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-scouttrips}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      POSTGRES_DB: ${POSTGRES_DB:-scout_trip_manager}
+      POSTGRES_DB: ${POSTGRES_DB:-scouting_outing_manager}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -29,7 +29,7 @@ services:
       POSTGRES_SERVER: postgres
       POSTGRES_USER: ${POSTGRES_USER:-scouttrips}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      POSTGRES_DB: ${POSTGRES_DB:-scout_trip_manager}
+      POSTGRES_DB: ${POSTGRES_DB:-scouting_outing_manager}
       POSTGRES_PORT: 5432
       SECRET_KEY: ${SECRET_KEY}
       ALGORITHM: HS256

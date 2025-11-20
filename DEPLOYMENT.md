@@ -191,10 +191,10 @@ docker exec -it scouting-outing-backend alembic upgrade head
 ### Backup Database
 ```bash
 # Create backup
-docker exec scouting-outing-db pg_dump -U scouttrips scout_trip_manager > backup_$(date +%Y%m%d_%H%M%S).sql
+docker exec scouting-outing-db pg_dump -U scouttrips scouting_outing_manager > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Restore from backup
-docker exec -i scouting-outing-db psql -U scouttrips scout_trip_manager < backup_20240101_120000.sql
+docker exec -i scouting-outing-db psql -U scouttrips scouting_outing_manager < backup_20240101_120000.sql
 ```
 
 ### Stop Application
@@ -243,7 +243,7 @@ docker-compose -f docker-compose.prod.yml ps postgres
 docker-compose -f docker-compose.prod.yml logs postgres
 
 # Test database connection
-docker exec -it scouting-outing-db psql -U scouttrips -d scout_trip_manager -c '\l'
+docker exec -it scouting-outing-db psql -U scouttrips -d scouting_outing_manager -c '\l'
 ```
 
 ### Frontend not loading
