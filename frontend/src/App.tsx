@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import BackendHealthCheck from './components/Shared/BackendHealthCheck';
+import TopographicBackground from './components/Shared/TopographicBackground';
 import AdminPage from './pages/AdminPage';
 import ParticipantPage from './pages/ParticipantPage';
 import LoginPage from './pages/LoginPage';
@@ -208,7 +209,8 @@ const App: React.FC = () => {
         <BackendHealthCheck>
             <AuthProvider>
                 <Router>
-                    <div style={{ minHeight: '100vh', backgroundColor: '#fafafa' }}>
+                    <TopographicBackground />
+                    <div style={{ minHeight: '100vh', position: 'relative' }}>
                         {/* Navigation Bar */}
                         <Navigation />
 
