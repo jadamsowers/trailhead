@@ -3,47 +3,28 @@
   "version": "1.0.0",
   "description": "A single-page web application to manage trips for a scout troop.",
   "private": true,
+  "type": "module",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.0",
-    "web-vitals": "^2.1.4"
+    "react-router-dom": "^6.20.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "generate-types": "bash scripts/generate-types.sh",
     "prebuild": "npm run generate-types",
     "type-check": "tsc --noEmit"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
   "devDependencies": {
-    "@types/node": "^16.18.0",
+    "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
     "openapi-typescript": "^7.10.1",
-    "typescript": "^5.9.3"
-  },
-  "overrides": {
-    "ajv": "^6.12.6"
+    "typescript": "^5.9.3",
+    "vite": "^5.0.0"
   }
 }
