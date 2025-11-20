@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -12,18 +12,18 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build argument for API URL
+# Build argument for API URL (default to relative path for nginx proxy)
 ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
 
-# Build the application
+# Build the application for production
 RUN npm run build
 
 # Production stage
 FROM nginx:alpine
 
 # Copy built assets from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/build /usr/share/nginx/html
 
 # Copy custom nginx config for SPA
 RUN echo 'server { \
