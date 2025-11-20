@@ -84,10 +84,10 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 3. Click "Try it out"
 4. Edit the request body:
    {
-     "name": "Summer Camp 2024",
+     "name": "Summer Camp 2026",
      "description": "Week-long summer camp at Camp Wilderness",
-     "start_date": "2024-07-15T09:00:00",
-     "end_date": "2024-07-21T16:00:00",
+     "start_date": "2026-07-15T09:00:00",
+     "end_date": "2026-07-21T16:00:00",
      "location": "Camp Wilderness",
      "max_participants": 50,
      "is_overnight": true
@@ -245,8 +245,8 @@ async def create_trip(trip: TripCreate):
     ```json
     {
       "id": "123e4567-e89b-12d3-a456-426614174000",
-      "name": "Summer Camp 2024",
-      "start_date": "2024-07-15T09:00:00",
+      "name": "Summer Camp 2026",
+      "start_date": "2026-07-15T09:00:00",
       "max_participants": 50
     }
     ```

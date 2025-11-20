@@ -306,7 +306,7 @@ def sample_signup_data(test_trip: Trip) -> dict:
 def sample_trip_data() -> dict:
     """Sample trip data for testing"""
     return {
-        "name": "Summer Camp 2024",
+        "name": "Summer Camp 2026",
         "trip_date": (date.today() + timedelta(days=60)).isoformat(),
         "end_date": (date.today() + timedelta(days=67)).isoformat(),
         "location": "Camp Wilderness",

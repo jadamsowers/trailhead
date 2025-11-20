@@ -161,8 +161,8 @@ erDiagram
 - Request Body:
 ```json
 {
-  "name": "Summer Camp 2024",
-  "trip_date": "2024-07-15",
+  "name": "Summer Camp 2026",
+  "trip_date": "2026-07-15",
   "location": "Camp Wilderness",
   "description": "Week-long summer camp",
   "max_participants": 50,
