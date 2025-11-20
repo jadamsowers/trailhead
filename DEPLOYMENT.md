@@ -142,15 +142,26 @@ docker-compose -f docker-compose.prod.yml start nginx
 ## Step 9: Create Admin User
 
 ```bash
-# Access the backend container
-docker exec -it scouting-outing-backend bash
+# Create the initial admin user
+docker exec -it scouting-outing-backend python -m app.db.init_db
+```
 
-# Run the admin creation script
-python -m scripts.create_admin
+**Admin User Configuration:**
 
-# Follow the prompts to create your admin user
-# Exit the container
-exit
+The initial admin user can be configured via environment variables in your `.env` file:
+
+- `INITIAL_ADMIN_EMAIL` - Email address (default: `soadmin@scouthacks.net`)
+- `INITIAL_ADMIN_PASSWORD` - Password (optional; if not set, a random password will be generated)
+
+**Important:**
+- If `INITIAL_ADMIN_PASSWORD` is not set, a random password will be generated and displayed in the terminal
+- **Save the generated password** - it will be shown in the command output!
+- Change the admin password immediately after first login
+
+**Example configuration in `.env`:**
+```env
+INITIAL_ADMIN_EMAIL=admin@yourdomain.com
+INITIAL_ADMIN_PASSWORD=your_secure_password_here
 ```
 
 ## Maintenance Commands

@@ -702,7 +702,7 @@ async def create_initial_admin():
     async with AsyncSessionLocal() as db:
         admin = User(
             id=uuid.uuid4(),
-            email="admin@scouttrips.com",
+            email="soadmin@scouthacks.net",
             hashed_password=get_password_hash("changeme123"),
             full_name="Admin User",
             role="admin",
@@ -771,7 +771,7 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 ## Testing Authentication
 
 ### Test Admin Credentials
-- Email: admin@scouttrips.com
+- Email: soadmin@scouthacks.net
 - Password: changeme123 (change immediately in production)
 
 ### API Testing with curl
@@ -779,7 +779,7 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 # Login
 curl -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@scouttrips.com","password":"changeme123"}'
+  -d '{"email":"soadmin@scouthacks.net","password":"changeme123"}'
 
 # Use token
 curl -X GET http://localhost:8000/api/trips \

@@ -47,7 +47,37 @@ A comprehensive web application for managing scout troop trips, participant sign
 - Node.js 16+ (for local frontend development)
 - Python 3.11+ (for local backend development)
 
-### Using Docker Compose (Recommended)
+### Bootstrap Script (Easiest Way to Get Started)
+
+The easiest way to set up the project for the first time is using the bootstrap script:
+
+```bash
+./bootstrap.sh
+```
+
+This interactive script will:
+- Ask you to choose between development or production mode
+- Prompt for configuration values (admin email/password, database settings, etc.)
+- Optionally auto-generate secure passwords
+- Clean up any existing containers and volumes (with confirmation)
+- Create all necessary `.env` files automatically
+- Start all services with Docker Compose
+- Initialize the database and create the admin user
+
+**Features:**
+- **Interactive Configuration**: Prompts for all necessary settings
+- **Auto-generation**: Can auto-generate secure passwords for database and admin user
+- **Smart Cleanup**: Safely removes containers and asks before deleting volumes
+- **Mode Selection**: Choose between development (localhost) or production (custom domain)
+- **Complete Setup**: Handles both backend and frontend environment configuration
+
+After running the bootstrap script, you'll have:
+- All containers running
+- Database initialized
+- Admin user created (password will be displayed if auto-generated)
+- Ready to use application
+
+### Using Docker Compose (Manual Setup)
 
 1. **Clone the repository**
 ```bash

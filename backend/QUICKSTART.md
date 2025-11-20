@@ -28,6 +28,10 @@ cp .env.example .env
 # - POSTGRES_PASSWORD (your secure password)
 # - POSTGRES_DB (e.g., scouting_outing_manager)
 # - SECRET_KEY (generate with: openssl rand -hex 32)
+#
+# Optional variables for initial admin user:
+# - INITIAL_ADMIN_EMAIL (default: soadmin@scouthacks.net)
+# - INITIAL_ADMIN_PASSWORD (if not set, a random password will be generated)
 ```
 
 ## Step 3: Create Database
@@ -38,8 +42,8 @@ psql -U postgres
 
 # Create database and user
 CREATE DATABASE scouting_outing_manager;
-CREATE USER scouttrips WITH PASSWORD 'your_password';
-GRANT ALL PRIVILEGES ON DATABASE scouting_outing_manager TO scouttrips;
+CREATE USER scouting_outing WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE scouting_outing_manager TO scouting_outing;
 \q
 ```
 
@@ -62,12 +66,27 @@ cd backend
 
 # Create default admin user
 python -m app.db.init_db
-
-# Default credentials:
-# Username: admin
-# Password: admin123
-# ⚠️ Change this password after first login!
 ```
+
+**Admin User Configuration:**
+
+The initial admin user credentials are configurable via environment variables:
+
+1. **Set a specific password** (recommended for production):
+   ```bash
+   # Add to your .env file
+   INITIAL_ADMIN_EMAIL=admin@yourdomain.com
+   INITIAL_ADMIN_PASSWORD=your_secure_password_here
+   ```
+
+2. **Use defaults** (development/testing):
+   - Email: `soadmin@scouthacks.net` (default, can be changed via `INITIAL_ADMIN_EMAIL`)
+   - Password: Randomly generated and displayed in the terminal
+   - **Save the generated password** - it will be shown in the terminal output!
+
+**⚠️ IMPORTANT:** 
+- If you don't set `INITIAL_ADMIN_PASSWORD`, a random password will be generated - make sure to save it!
+- Change the admin password immediately after first login!
 
 ## Step 6: Start the Server
 
@@ -94,10 +113,13 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 
 3. **Test Authentication**
    ```bash
+   # Replace with your actual admin email and password
    curl -X POST http://localhost:8000/api/auth/login \
      -H "Content-Type: application/x-www-form-urlencoded" \
-     -d "username=admin&password=admin123"
+     -d "username=soadmin@scouthacks.net&password=YOUR_ADMIN_PASSWORD"
    ```
+   
+   Use the password you set in `INITIAL_ADMIN_PASSWORD` or the randomly generated password shown when you ran `init_db`.
 
 ## Common Commands
 
@@ -143,7 +165,7 @@ flake8 app/
 pg_isready
 
 # Test connection
-psql -h localhost -U scouttrips -d scouting_outing_manager
+psql -h localhost -U scouting_outing -d scouting_outing_manager
 
 # Check environment variables
 echo $POSTGRES_SERVER

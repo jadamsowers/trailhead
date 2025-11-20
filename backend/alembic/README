@@ -47,6 +47,10 @@ alembic current
    cd backend
    python -m app.db.init_db
    ```
+   
+   **Note:** The admin user email and password can be configured via environment variables:
+   - `INITIAL_ADMIN_EMAIL` (default: `soadmin@scouthacks.net`)
+   - `INITIAL_ADMIN_PASSWORD` (optional; if not set, a random password will be generated and displayed)
 
 ## Environment Variables Required
 
@@ -56,3 +60,7 @@ alembic current
 - POSTGRES_DB
 - POSTGRES_PORT (default: 5432)
 - SECRET_KEY (for password hashing)
+
+Optional (for initial admin user):
+- INITIAL_ADMIN_EMAIL (default: `soadmin@scouthacks.net`)
+- INITIAL_ADMIN_PASSWORD (if not set, a random password will be generated)

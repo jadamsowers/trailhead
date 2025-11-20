@@ -30,7 +30,25 @@ After deployment completes, access your app at:
 ## Create Admin User
 
 ```bash
-docker exec -it scouting-outing-backend python -m scripts.create_admin
+docker exec -it scouting-outing-backend python -m app.db.init_db
+```
+
+**Admin User Configuration:**
+
+The initial admin user can be configured via environment variables in your `.env` file:
+
+- `INITIAL_ADMIN_EMAIL` - Email address (default: `soadmin@scouthacks.net`)
+- `INITIAL_ADMIN_PASSWORD` - Password (optional; if not set, a random password will be generated)
+
+**Important:**
+- If `INITIAL_ADMIN_PASSWORD` is not set, a random password will be generated and displayed in the terminal
+- **Save the generated password** - it will be shown in the command output!
+- Change the admin password immediately after first login
+
+**Example configuration in `.env`:**
+```env
+INITIAL_ADMIN_EMAIL=admin@yourdomain.com
+INITIAL_ADMIN_PASSWORD=your_secure_password_here
 ```
 
 ## What Gets Deployed?

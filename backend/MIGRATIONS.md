@@ -5,6 +5,7 @@ This guide explains how to manage database schema changes using Alembic for the 
 ## Overview
 
 We use Alembic for database migrations, which provides:
+
 - Version control for database schema
 - Automatic migration generation from SQLAlchemy models
 - Safe upgrade and downgrade paths
@@ -29,12 +30,18 @@ cp .env.example .env
 ```
 
 Required environment variables:
+
 - `POSTGRES_SERVER` - Database host (e.g., localhost)
 - `POSTGRES_USER` - Database username
 - `POSTGRES_PASSWORD` - Database password
 - `POSTGRES_DB` - Database name
 - `POSTGRES_PORT` - Database port (default: 5432)
 - `SECRET_KEY` - Secret key for password hashing
+
+Optional environment variables for initial admin user:
+
+- `INITIAL_ADMIN_EMAIL` - Email for initial admin user (default: `soadmin@scouthacks.net`)
+- `INITIAL_ADMIN_PASSWORD` - Password for initial admin user (if not set, a random password will be generated)
 
 ### 2. Create Initial Migration
 
@@ -65,12 +72,32 @@ cd backend
 python -m app.db.init_db
 ```
 
-This creates an admin user with:
-- Username: `admin`
-- Password: `admin123`
-- Email: `admin@scouttrips.local`
+**Admin User Configuration:**
 
-**⚠️ IMPORTANT:** Change the admin password immediately after first login!
+The initial admin user can be configured via environment variables in your `.env` file:
+
+- `INITIAL_ADMIN_EMAIL` - Email address for the admin user (default: `soadmin@scouthacks.net`)
+- `INITIAL_ADMIN_PASSWORD` - Password for the admin user (optional)
+
+**Behavior:**
+- If `INITIAL_ADMIN_PASSWORD` is set in `.env`, that password will be used
+- If `INITIAL_ADMIN_PASSWORD` is not set, a random password will be generated and displayed in the terminal
+- The email defaults to `soadmin@scouthacks.net` but can be changed via `INITIAL_ADMIN_EMAIL`
+
+**Example `.env` configuration:**
+```env
+# Use a specific password
+INITIAL_ADMIN_EMAIL=admin@yourdomain.com
+INITIAL_ADMIN_PASSWORD=your_secure_password_here
+
+# Or let the system generate a random password (leave INITIAL_ADMIN_PASSWORD unset)
+INITIAL_ADMIN_EMAIL=admin@yourdomain.com
+# INITIAL_ADMIN_PASSWORD will be randomly generated
+```
+
+**⚠️ IMPORTANT:** 
+- Save the password shown in the terminal output if you let it generate randomly
+- Change the admin password immediately after first login!
 
 ## Common Migration Tasks
 
@@ -84,6 +111,7 @@ alembic revision --autogenerate -m "Add new field to trips table"
 ```
 
 Alembic will:
+
 1. Compare your models to the current database schema
 2. Generate a migration file with the differences
 3. Save it in `alembic/versions/`
@@ -229,16 +257,19 @@ def upgrade() -> None:
 ### Migration Fails to Apply
 
 1. Check database connection:
+
    ```bash
    psql -h $POSTGRES_SERVER -U $POSTGRES_USER -d $POSTGRES_DB
    ```
 
 2. Check current migration state:
+
    ```bash
    alembic current
    ```
 
 3. Check for conflicting changes:
+
    ```bash
    alembic history
    ```
@@ -256,6 +287,7 @@ If auto-generate doesn't detect your model changes:
 If your database schema doesn't match migrations:
 
 1. **Development**: Drop and recreate:
+
    ```bash
    # Drop all tables
    alembic downgrade base
@@ -270,6 +302,7 @@ If your database schema doesn't match migrations:
 If multiple developers create migrations:
 
 1. Use `alembic merge` to create a merge migration:
+
    ```bash
    alembic merge -m "Merge migrations" <rev1> <rev2>
    ```
@@ -289,17 +322,20 @@ If multiple developers create migrations:
 ### Deployment Steps
 
 1. **Backup database**:
+
    ```bash
    pg_dump -h $POSTGRES_SERVER -U $POSTGRES_USER $POSTGRES_DB > backup.sql
    ```
 
 2. **Apply migrations**:
+
    ```bash
    cd backend
    alembic upgrade head
    ```
 
 3. **Verify success**:
+
    ```bash
    alembic current
    # Should show the latest revision
@@ -315,11 +351,13 @@ If multiple developers create migrations:
 If migration fails:
 
 1. **Rollback migration**:
+
    ```bash
    alembic downgrade -1
    ```
 
 2. **Restore from backup** (if needed):
+
    ```bash
    psql -h $POSTGRES_SERVER -U $POSTGRES_USER $POSTGRES_DB < backup.sql
    ```
@@ -367,6 +405,7 @@ kubectl apply -f k8s/backend-deployment.yaml
 ## Support
 
 For issues or questions:
+
 1. Check the migration history: `alembic history`
 2. Review the generated migration files
 3. Check application logs for errors

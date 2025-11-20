@@ -99,22 +99,35 @@ sudo certbot --apache -d outings.ivyscouts.org
 ## Step 6: Create Admin User
 
 ```bash
-# Access the backend container
-docker exec -it scouting-outing-backend bash
+# Create the initial admin user
+docker exec -it scouting-outing-backend python -m app.db.init_db
+```
 
-# Run the admin creation script
-python -m scripts.create_admin
+**Admin User Configuration:**
 
-# Follow the prompts to create your admin user
-exit
+The initial admin user can be configured via environment variables in your `.env` file:
+
+- `INITIAL_ADMIN_EMAIL` - Email address (default: `soadmin@scouthacks.net`)
+- `INITIAL_ADMIN_PASSWORD` - Password (optional; if not set, a random password will be generated)
+
+**Important:**
+- If `INITIAL_ADMIN_PASSWORD` is not set, a random password will be generated and displayed in the terminal
+- **Save the generated password** - it will be shown in the command output!
+- Change the admin password immediately after first login
+
+**Example configuration in `.env`:**
+```env
+INITIAL_ADMIN_EMAIL=admin@yourdomain.com
+INITIAL_ADMIN_PASSWORD=your_secure_password_here
 ```
 
 ## Step 7: Verify Deployment
 
 Visit your domain:
-- **Frontend**: https://outings.ivyscouts.org
-- **API Docs**: https://outings.ivyscouts.org/docs
-- **Health Check**: https://outings.ivyscouts.org/health
+
+- **Frontend**: <https://outings.ivyscouts.org>
+- **API Docs**: <https://outings.ivyscouts.org/docs>
+- **Health Check**: <https://outings.ivyscouts.org/health>
 
 ## Port Mapping
 
@@ -127,6 +140,7 @@ Visit your domain:
 ## Maintenance Commands
 
 ### View Logs
+
 ```bash
 # All services
 docker-compose -f docker-compose.apache.yml logs -f
@@ -141,6 +155,7 @@ sudo tail -f /var/log/apache2/scouting-outing-error.log
 ```
 
 ### Restart Services
+
 ```bash
 # Restart Docker containers
 docker-compose -f docker-compose.apache.yml restart
@@ -150,6 +165,7 @@ sudo systemctl restart apache2
 ```
 
 ### Update Application
+
 ```bash
 cd ~/scouting-outing-manager
 git pull
@@ -165,6 +181,7 @@ sudo systemctl reload apache2
 ```
 
 ### Backup Database
+
 ```bash
 # Create backup
 docker exec scouting-outing-db pg_dump -U scouttrips scouting_outing_manager > backup_$(date +%Y%m%d_%H%M%S).sql
@@ -174,6 +191,7 @@ docker exec -i scouting-outing-db psql -U scouttrips scouting_outing_manager < b
 ```
 
 ### Stop Application
+
 ```bash
 # Stop Docker containers
 docker-compose -f docker-compose.apache.yml down
@@ -185,6 +203,7 @@ docker-compose -f docker-compose.apache.yml down -v
 ## Troubleshooting
 
 ### Apache Can't Connect to Backend
+
 ```bash
 # Check if backend is running
 docker-compose -f docker-compose.apache.yml ps backend
@@ -197,6 +216,7 @@ curl http://localhost:8000/api/health
 ```
 
 ### Apache Can't Connect to Frontend
+
 ```bash
 # Check if frontend is running
 docker-compose -f docker-compose.apache.yml ps frontend
@@ -206,6 +226,7 @@ curl http://localhost:3001/
 ```
 
 ### 502 Bad Gateway
+
 ```bash
 # Check if containers are running
 docker-compose -f docker-compose.apache.yml ps
@@ -218,6 +239,7 @@ sudo netstat -tlnp | grep -E ':(3001|8000)'
 ```
 
 ### SSL Certificate Issues
+
 ```bash
 # Renew certificate
 sudo certbot renew
@@ -229,6 +251,7 @@ sudo certbot certificates
 ## Security Recommendations
 
 1. **Firewall Configuration**:
+
    ```bash
    sudo ufw enable
    sudo ufw allow 22/tcp   # SSH
@@ -237,6 +260,7 @@ sudo certbot certificates
    ```
 
 2. **Restrict Docker Ports**: The docker-compose.apache.yml only exposes ports to localhost by default. If you need to restrict further:
+
    ```yaml
    ports:
      - "127.0.0.1:8000:8000"  # Only accessible from localhost
@@ -244,6 +268,7 @@ sudo certbot certificates
    ```
 
 3. **Regular Updates**:
+
    ```bash
    # Update system
    sudo apt-get update && sudo apt-get upgrade -y
@@ -260,7 +285,9 @@ sudo certbot certificates
 ## Performance Optimization
 
 ### Apache Configuration
+
 Add to your Apache config for better performance:
+
 ```apache
 # Enable compression
 <IfModule mod_deflate.c>
@@ -280,7 +307,9 @@ Add to your Apache config for better performance:
 ```
 
 ### Docker Resource Limits
+
 Add to docker-compose.apache.yml if needed:
+
 ```yaml
 services:
   backend:
@@ -294,6 +323,7 @@ services:
 ## Getting Help
 
 If you encounter issues:
+
 1. Check Docker logs: `docker-compose -f docker-compose.apache.yml logs`
 2. Check Apache logs: `sudo tail -f /var/log/apache2/scouting-outing-error.log`
 3. Verify all containers are running: `docker-compose -f docker-compose.apache.yml ps`

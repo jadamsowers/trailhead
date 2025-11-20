@@ -7,7 +7,7 @@ This guide will help you set up and test the simple password-based authenticatio
 The authentication system includes:
 - **Frontend**: Login page, protected routes, authentication context
 - **Backend**: JWT-based authentication with login/logout endpoints
-- **Default Admin User**: Email: `admin@scouttrips.com`, Password: `changeme123`
+- **Initial Admin User**: Configurable via environment variables (see below)
 
 ## Setup Instructions
 
@@ -26,17 +26,36 @@ alembic upgrade head
 ```
 
 #### Create Admin User
+
 ```bash
 # From the backend directory
-python3 -m scripts.create_admin
+python -m app.db.init_db
 ```
 
-This will create an admin user with:
-- Email: `admin@scouttrips.com`
-- Password: `changeme123`
-- Role: `admin`
+This will create an admin user. The email and password are configurable via environment variables:
+
+**Configuration Options:**
+
+1. **Set via environment variables** (recommended for production):
+   ```bash
+   # In your .env file
+   INITIAL_ADMIN_EMAIL=admin@yourdomain.com
+   INITIAL_ADMIN_PASSWORD=your_secure_password_here
+   ```
+
+2. **Use defaults** (development/testing):
+   - Email: `soadmin@scouthacks.net` (default, can be changed via `INITIAL_ADMIN_EMAIL`)
+   - Password: Randomly generated and displayed in the terminal
+   - Role: `admin`
+
+**Important Notes:**
+- If `INITIAL_ADMIN_PASSWORD` is not set, a random password will be generated and displayed in the terminal output
+- **Save the generated password** if you don't set one manually!
+- The password will be shown in the terminal when the admin user is created
+- Change the admin password immediately after first login
 
 #### Start the Backend Server
+
 ```bash
 # From the backend directory
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -47,12 +66,14 @@ The API will be available at `http://localhost:8000`
 ### 2. Frontend Setup
 
 #### Install Dependencies (if not already done)
+
 ```bash
 # From the project root
 npm install
 ```
 
 #### Start the Frontend Development Server
+
 ```bash
 npm start
 ```
@@ -66,8 +87,8 @@ The frontend will be available at `http://localhost:3000`
 1. Navigate to `http://localhost:3000`
 2. Click on "Login" in the navigation bar or go to `http://localhost:3000/login`
 3. Enter credentials:
-   - Email: `admin@scouttrips.com`
-   - Password: `changeme123`
+   - Email: The email you configured (or `soadmin@scouthacks.net` if using defaults)
+   - Password: The password you set in `INITIAL_ADMIN_PASSWORD` or the randomly generated password shown when you ran `init_db`
 4. Click "Login"
 5. You should be redirected to the Admin page
 
@@ -89,14 +110,17 @@ The frontend will be available at `http://localhost:3000`
 ### 4. Test API Endpoints Directly
 
 #### Login Endpoint
+
 ```bash
 curl -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin@scouttrips.com",
-    "password": "changeme123"
+    "email": "soadmin@scouthacks.net",
+    "password": "YOUR_ADMIN_PASSWORD"
   }'
 ```
+
+Replace `YOUR_ADMIN_PASSWORD` with the password you set in `INITIAL_ADMIN_PASSWORD` or the randomly generated password shown when you ran `init_db`.
 
 Expected response:
 ```json
@@ -105,7 +129,7 @@ Expected response:
   "token_type": "bearer",
   "user": {
     "id": "...",
-    "email": "admin@scouttrips.com",
+    "email": "soadmin@scouthacks.net",
     "full_name": "Admin User",
     "role": "admin"
   }
@@ -191,6 +215,11 @@ Create `backend/.env`:
 ```env
 SECRET_KEY=your-super-secret-key-change-in-production
 DATABASE_URL=postgresql+asyncpg://user:password@localhost/scouttrips
+
+# Initial Admin User Configuration (optional)
+# If INITIAL_ADMIN_PASSWORD is not set, a random password will be generated
+INITIAL_ADMIN_EMAIL=soadmin@scouthacks.net
+# INITIAL_ADMIN_PASSWORD=your_admin_password_here  # Optional: leave unset to generate random password
 ```
 
 ## Troubleshooting
