@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import BackendHealthCheck from './components/Shared/BackendHealthCheck';
 import AdminPage from './pages/AdminPage';
 import ParticipantPage from './pages/ParticipantPage';
 import LoginPage from './pages/LoginPage';
@@ -204,43 +205,45 @@ const Navigation: React.FC = () => {
 
 const App: React.FC = () => {
     return (
-        <AuthProvider>
-            <Router>
-                <div style={{ minHeight: '100vh', backgroundColor: '#fafafa' }}>
-                    {/* Navigation Bar */}
-                    <Navigation />
+        <BackendHealthCheck>
+            <AuthProvider>
+                <Router>
+                    <div style={{ minHeight: '100vh', backgroundColor: '#fafafa' }}>
+                        {/* Navigation Bar */}
+                        <Navigation />
 
-                    {/* Main Content */}
-                    <Routes>
-                        <Route path="/" element={<HomePage />} />
-                        <Route path="/login" element={<LoginPage />} />
-                        <Route
-                            path="/admin"
-                            element={
-                                <ProtectedRoute requireAdmin>
-                                    <AdminPage />
-                                </ProtectedRoute>
-                            }
-                        />
-                        <Route path="/participant" element={<ParticipantPage />} />
-                    </Routes>
+                        {/* Main Content */}
+                        <Routes>
+                            <Route path="/" element={<HomePage />} />
+                            <Route path="/login" element={<LoginPage />} />
+                            <Route
+                                path="/admin"
+                                element={
+                                    <ProtectedRoute requireAdmin>
+                                        <AdminPage />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route path="/participant" element={<ParticipantPage />} />
+                        </Routes>
 
-                {/* Footer */}
-                <footer style={{ 
-                    backgroundColor: '#333', 
-                    color: 'white',
-                    padding: '20px',
-                    textAlign: 'center',
-                    marginTop: '60px'
-                }}>
-                    <p>Scouting Outing Manager - Built for Scouting America Troops</p>
-                    <p style={{ fontSize: '14px', color: '#999', marginTop: '10px' }}>
-                        API Documentation: <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" style={{ color: '#64b5f6' }}>http://localhost:8000/docs</a>
-                    </p>
-                </footer>
-            </div>
-        </Router>
-        </AuthProvider>
+                    {/* Footer */}
+                    <footer style={{
+                        backgroundColor: '#333',
+                        color: 'white',
+                        padding: '20px',
+                        textAlign: 'center',
+                        marginTop: '60px'
+                    }}>
+                        <p>Scouting Outing Manager - Built for Scouting America Troops</p>
+                        <p style={{ fontSize: '14px', color: '#999', marginTop: '10px' }}>
+                            API Documentation: <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" style={{ color: '#64b5f6' }}>http://localhost:8000/docs</a>
+                        </p>
+                    </footer>
+                </div>
+            </Router>
+            </AuthProvider>
+        </BackendHealthCheck>
     );
 };
 

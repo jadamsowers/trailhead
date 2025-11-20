@@ -12,6 +12,26 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
+// Health check API
+export const healthAPI = {
+    async check(): Promise<{ status: string; message: string }> {
+        try {
+            const response = await fetch(`${API_BASE_URL.replace('/api', '')}/health`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Health check failed');
+            }
+            return response.json();
+        } catch (error) {
+            throw new Error('Unable to connect to backend server');
+        }
+    },
+};
+
 export class APIError extends Error {
     constructor(public status: number, message: string) {
         super(message);
