@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
+    # Initial Admin User (for database initialization)
+    INITIAL_ADMIN_EMAIL: str = "soadmin@scouthacks.net"
+    INITIAL_ADMIN_PASSWORD: Optional[str] = None  # If None, a random password will be generated
+    
     # CORS - will be parsed from string to list
     BACKEND_CORS_ORIGINS: Union[str, list[str]] = "http://localhost:3000,http://localhost:8000"
     

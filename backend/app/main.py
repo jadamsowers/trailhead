@@ -40,7 +40,7 @@ For detailed documentation, see the individual endpoint descriptions below.
     openapi_url="/openapi.json",
     contact={
         "name": "Scouting Outing Manager Support",
-        "url": "https://github.com/scouttrips/manager",
+        "url": "https://github.com/jadamsowers/scouting-outing-manager",
     },
     license_info={
         "name": "MIT License",

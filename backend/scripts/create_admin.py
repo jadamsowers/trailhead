@@ -26,7 +26,7 @@ async def create_initial_admin():
     async with AsyncSessionLocal() as db:
         # Check if admin already exists
         result = await db.execute(
-            select(User).where(User.email == "admin@scouttrips.com")
+            select(User).where(User.email == "soadmin@scouthacks.net")
         )
         existing_user = result.scalar_one_or_none()
         
@@ -39,7 +39,7 @@ async def create_initial_admin():
         # Create new admin user
         admin = User(
             id=uuid.uuid4(),
-            email="admin@scouttrips.com",
+            email="soadmin@scouthacks.net",
             hashed_password=get_password_hash("changeme123"),
             full_name="Admin User",
             role="admin",

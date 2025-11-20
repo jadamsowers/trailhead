@@ -5,13 +5,13 @@ services:
     container_name: scouting-outing-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-scouttrips}
+      POSTGRES_USER: ${POSTGRES_USER:-scouting_outing}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       POSTGRES_DB: ${POSTGRES_DB:-scouting_outing_manager}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-scouttrips}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-scouting_outing}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -37,6 +37,8 @@ services:
       REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
       DEBUG: "false"
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://localhost}
+      INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-soadmin@scouthacks.net}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD:-}
     depends_on:
       postgres:
         condition: service_healthy

@@ -9,6 +9,7 @@ Usage:
 """
 import asyncio
 import sys
+from secrets import token_urlsafe
 from uuid import uuid4
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -35,10 +36,18 @@ async def init_db() -> None:
     
     async with async_session() as session:
         try:
+            # Get admin email and password from settings
+            initial_admin_email = settings.INITIAL_ADMIN_EMAIL
+            initial_admin_password = settings.INITIAL_ADMIN_PASSWORD
+            
+            # Generate random password if not provided in settings
+            if not initial_admin_password:
+                initial_admin_password = token_urlsafe(16)
+            
             # Check if admin user already exists
             from sqlalchemy import select
             result = await session.execute(
-                select(User).where(User.email == "admin@scouttrips.local")
+                select(User).where(User.email == initial_admin_email)
             )
             existing_user = result.scalar_one_or_none()
             
@@ -51,8 +60,8 @@ async def init_db() -> None:
             # Create default admin user
             admin_user = User(
                 id=uuid4(),
-                email="admin@scouttrips.local",
-                hashed_password=get_password_hash("admin123"),  # Change this in production!
+                email=initial_admin_email,
+                hashed_password=get_password_hash(initial_admin_password),
                 full_name="System Administrator",
                 role="admin",
                 is_active=True,
@@ -66,7 +75,11 @@ async def init_db() -> None:
             print("="*60)
             print("\nDefault Admin User Created:")
             print(f"  Email: {admin_user.email}")
-            print(f"  Password: admin123")
+            print(f"  Password: {initial_admin_password}")
+            if settings.INITIAL_ADMIN_PASSWORD:
+                print("  (Password was set from INITIAL_ADMIN_PASSWORD environment variable)")
+            else:
+                print("  (Password was randomly generated - save this password!)")
             print(f"  Name: {admin_user.full_name}")
             print("\n⚠️  IMPORTANT: Change the admin password immediately after first login!")
             print("="*60 + "\n")

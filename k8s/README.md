@@ -134,7 +134,16 @@ kubectl exec -it deployment/backend -n scouting-outing-manager -- alembic upgrad
 ### Create Admin User
 
 ```bash
-kubectl exec -it deployment/backend -n scouting-outing-manager -- python -m app.scripts.create_admin
+kubectl exec -it deployment/backend -n scouting-outing-manager -- python -m app.db.init_db
+```
+
+**Note:** The admin user email and password can be configured via environment variables in your ConfigMap or Secrets:
+- `INITIAL_ADMIN_EMAIL` (default: `soadmin@scouthacks.net`)
+- `INITIAL_ADMIN_PASSWORD` (optional; if not set, a random password will be generated and displayed in the pod logs)
+
+To view the generated password, check the pod logs:
+```bash
+kubectl logs deployment/backend -n scouting-outing-manager | grep -A 10 "Admin User Created"
 ```
 
 ### Backup Database
