@@ -44,6 +44,15 @@ services:
         condition: service_healthy
     command: >
       sh -c "
+        echo 'Waiting for database...' &&
+        for i in 1 2 3 4 5 6 7 8 9 10; do
+          if pg_isready -h postgres -U scouttrips; then
+            echo 'Database is ready!' &&
+            break
+          fi
+          echo 'Waiting for database... attempt' $$i &&
+          sleep 2
+        done &&
         echo 'Running migrations...' &&
         alembic upgrade head &&
         echo 'Starting server...' &&
