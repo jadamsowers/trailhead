@@ -1,0 +1,172 @@
+/* Global Styles - Scouting Outing Manager */
+
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #333;
+  background-color: #f5f5f5;
+}
+
+/* Typography - h1 and h2 use Roboto Slab, others use Roboto */
+h1, h2,
+h1[style], h2[style] {
+  font-family: 'Roboto Slab', serif !important;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5em;
+  color: #1a1a1a;
+}
+
+h3, h4, h5, h6,
+h3[style], h4[style], h5[style], h6[style] {
+  font-family: 'Roboto Slab', sans-serif !important;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.5em;
+  color: #1a1a1a;
+}
+
+h1, h1[style] {
+  font-size: 2.5rem;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em;
+}
+
+h2, h2[style] {
+  font-size: 2rem;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em;
+}
+
+h3, h3[style] {
+  font-size: 1.5rem;
+  font-weight: 700 !important;
+}
+
+h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+h5 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+h6 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Body text uses Inter */
+p, span, div, label, input, textarea, select, button,
+p[style], span[style], div[style], label[style], input[style], textarea[style], select[style], button[style] {
+  font-family: 'Inter', sans-serif !important;
+}
+
+p {
+  margin-bottom: 1em;
+  line-height: 1.6;
+}
+
+/* Buttons */
+button {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Form Elements */
+input, textarea, select {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+label {
+  font-weight: 500;
+  color: #333;
+}
+
+/* Links */
+a {
+  color: #1976d2;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #1565c0;
+  text-decoration: underline;
+}
+
+/* Utility Classes */
+.font-heading {
+  font-family: 'Roboto Slab', serif;
+}
+
+.font-heading-alt {
+  font-family: 'Roboto', sans-serif;
+}
+
+.font-body {
+  font-family: 'Inter', sans-serif;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.font-regular {
+  font-weight: 400;
+}
+
+/* Code */
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}

@@ -1,0 +1,72 @@
+# Pre-commit hooks for Scouting Outing Manager
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Local hooks for type synchronization
+  - repo: local
+    hooks:
+      # Regenerate TypeScript types when backend schemas change
+      - id: regenerate-types
+        name: Regenerate TypeScript types from OpenAPI
+        entry: bash -c 'cd frontend && npm run generate-types'
+        language: system
+        files: ^backend/app/schemas/.*\.py$
+        pass_filenames: false
+        stages: [commit]
+        verbose: true
+      
+      # Run contract tests when schemas change
+      - id: contract-tests
+        name: Run contract tests
+        entry: bash -c 'cd backend && python -m pytest tests/test_contracts.py -v'
+        language: system
+        files: ^backend/app/schemas/.*\.py$
+        pass_filenames: false
+        stages: [commit]
+        verbose: true
+      
+      # Stage generated types if they changed
+      - id: stage-generated-types
+        name: Stage generated TypeScript types
+        entry: bash -c 'if [ -f frontend/src/types/generated.ts ]; then git add frontend/src/types/generated.ts 2>/dev/null || true; fi'
+        language: system
+        files: ^backend/app/schemas/.*\.py$
+        pass_filenames: false
+        stages: [commit]
+        always_run: false
+
+  # Python code quality
+  - repo: https://github.com/psf/black
+    rev: 24.3.0
+    hooks:
+      - id: black
+        language_version: python3
+        files: ^backend/.*\.py$
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+        files: ^backend/.*\.py$
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: ["--max-line-length=100", "--extend-ignore=E203,W503"]
+        files: ^backend/.*\.py$
+
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        exclude: ^k8s/.*\.yaml$
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: detect-private-key

@@ -1,0 +1,1 @@
+"""Test package for Scouting Outing Manager backend"""

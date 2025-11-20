@@ -1,0 +1,147 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: scouting-outing-migrations
+  namespace: scouting-outing-manager
+  labels:
+    app: scouting-outing-manager
+    component: migrations
+spec:
+  # Keep completed jobs for 1 hour for debugging
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: scouting-outing-manager
+        component: migrations
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: migrations
+        image: scouting-outing-backend:latest
+        imagePullPolicy: Always
+        command: ["alembic", "upgrade", "head"]
+        env:
+        # Database Configuration
+        - name: POSTGRES_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: scouting-outing-config
+              key: postgres-server
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: scouting-outing-config
+              key: postgres-port
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: scouting-outing-config
+              key: postgres-db
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: scouting-outing-secrets
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: scouting-outing-secrets
+              key: postgres-password
+        # Security Configuration
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: scouting-outing-secrets
+              key: secret-key
+        - name: ALGORITHM
+          value: "HS256"
+        # Application Configuration
+        - name: PROJECT_NAME
+          value: "Scouting Outing Manager"
+        - name: API_V1_STR
+          value: "/api"
+        - name: DEBUG
+          value: "false"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: scouting-outing-init-db
+  namespace: scouting-outing-manager
+  labels:
+    app: scouting-outing-manager
+    component: init-db
+spec:
+  # Keep completed jobs for 1 hour for debugging
+  ttlSecondsAfterFinished: 3600
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: scouting-outing-manager
+        component: init-db
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: init-db
+        image: scouting-outing-backend:latest
+        imagePullPolicy: Always
+        command: ["python", "-m", "app.db.init_db"]
+        env:
+        # Database Configuration
+        - name: POSTGRES_SERVER
+          valueFrom:
+            configMapKeyRef:
+              name: scouting-outing-config
+              key: postgres-server
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: scouting-outing-config
+              key: postgres-port
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: scouting-outing-config
+              key: postgres-db
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: scouting-outing-secrets
+              key: postgres-user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: scouting-outing-secrets
+              key: postgres-password
+        # Security Configuration
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: scouting-outing-secrets
+              key: secret-key
+        - name: ALGORITHM
+          value: "HS256"
+        # Application Configuration
+        - name: PROJECT_NAME
+          value: "Scouting Outing Manager"
+        - name: API_V1_STR
+          value: "/api"
+        - name: DEBUG
+          value: "false"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"

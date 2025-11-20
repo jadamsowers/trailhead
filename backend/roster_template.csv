@@ -1,0 +1,7 @@
+name,age,participant_type,gender,troop_number,patrol_name,has_youth_protection,vehicle_capacity,dietary_restrictions,allergies,medical_notes,family_contact_name,family_contact_email,family_contact_phone
+John Scout,14,scout,male,123,Eagle Patrol,false,0,"vegetarian,dairy-free","peanuts","Carries EpiPen",Jane Doe,jane@example.com,555-1234
+Sarah Scout,13,scout,female,123,Eagle Patrol,false,0,"","","",Jane Doe,jane@example.com,555-1234
+Jane Leader,35,adult,female,,,true,5,"","","",Jane Leader,jane@example.com,555-1234
+Mike Scout,15,scout,male,456,Wolf Patrol,false,0,"gluten-free","tree-nuts","",Bob Smith,bob@example.com,555-5678
+Bob Smith,42,adult,male,,,true,7,"","","",Bob Smith,bob@example.com,555-5678
+Emily Scout,12,scout,female,456,Wolf Patrol,false,0,"vegan","soy","",Bob Smith,bob@example.com,555-5678
