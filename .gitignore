@@ -131,6 +131,7 @@ dmypy.json
 # ===========================
 
 # Dependencies
+frontend/package.json
 frontend/node_modules/
 node_modules/
 /.pnp
