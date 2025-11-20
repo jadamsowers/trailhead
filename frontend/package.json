@@ -15,7 +15,6 @@
     "build": "vite build",
     "preview": "vite preview",
     "generate-types": "bash scripts/generate-types.sh",
-    "prebuild": "npm run generate-types",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {

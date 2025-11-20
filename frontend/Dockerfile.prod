@@ -3,6 +3,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install bash for scripts
+RUN apk add --no-cache bash
+
 # Copy package files
 COPY package*.json ./
 
