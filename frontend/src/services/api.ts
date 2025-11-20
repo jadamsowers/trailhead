@@ -12,21 +12,52 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
+// Log API configuration on load
+console.log('🔧 API Configuration:', {
+    VITE_API_URL: import.meta.env.VITE_API_URL,
+    API_BASE_URL,
+    mode: import.meta.env.MODE,
+    dev: import.meta.env.DEV,
+    prod: import.meta.env.PROD,
+});
+
 // Health check API
 export const healthAPI = {
     async check(): Promise<{ status: string; message: string }> {
+        const healthUrl = `${API_BASE_URL}/health`;
+        console.log('🏥 Health Check:', {
+            url: healthUrl,
+            timestamp: new Date().toISOString(),
+        });
+        
         try {
-            const response = await fetch(`${API_BASE_URL.replace('/api', '')}/health`, {
+            const response = await fetch(healthUrl, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
+            
+            console.log('✅ Health Check Response:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok,
+                url: response.url,
+            });
+            
             if (!response.ok) {
-                throw new Error('Health check failed');
+                throw new Error(`Health check failed: ${response.status} ${response.statusText}`);
             }
-            return response.json();
+            
+            const data = await response.json();
+            console.log('📦 Health Check Data:', data);
+            return data;
         } catch (error) {
+            console.error('❌ Health Check Error:', {
+                error: error instanceof Error ? error.message : 'Unknown error',
+                url: healthUrl,
+                timestamp: new Date().toISOString(),
+            });
             throw new Error('Unable to connect to backend server');
         }
     },
@@ -40,10 +71,22 @@ export class APIError extends Error {
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
+    console.log('📨 API Response:', {
+        url: response.url,
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+    });
+    
     if (!response.ok) {
         const error: APIErrorResponse = await response.json().catch(() => ({
             detail: `HTTP ${response.status}: ${response.statusText}`
         }));
+        console.error('❌ API Error:', {
+            url: response.url,
+            status: response.status,
+            error: error.detail,
+        });
         throw new APIError(response.status, error.detail);
     }
     return response.json();
@@ -64,20 +107,26 @@ function getAuthHeaders(): HeadersInit {
 // Trip API
 export const tripAPI = {
     async getAll(): Promise<Trip[]> {
-        const response = await fetch(`${API_BASE_URL}/trips`);
+        const url = `${API_BASE_URL}/trips`;
+        console.log('🚀 API Request: GET', url);
+        const response = await fetch(url);
         const data = await handleResponse<{ trips: Trip[]; total: number }>(response);
         return data.trips;
     },
 
     async getAvailable(): Promise<Trip[]> {
-        const response = await fetch(`${API_BASE_URL}/trips/available`);
+        const url = `${API_BASE_URL}/trips/available`;
+        console.log('🚀 API Request: GET', url);
+        const response = await fetch(url);
         const data = await handleResponse<{ trips: Trip[]; total: number }>(response);
         return data.trips;
     },
 
     async getById(id: string): Promise<Trip> {
+        const url = `${API_BASE_URL}/trips/${id}`;
+        console.log('🚀 API Request: GET', url);
         const token = localStorage.getItem('access_token');
-        const response = await fetch(`${API_BASE_URL}/trips/${id}`, {
+        const response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`,
             },
@@ -86,7 +135,9 @@ export const tripAPI = {
     },
 
     async create(trip: TripCreate): Promise<Trip> {
-        const response = await fetch(`${API_BASE_URL}/trips`, {
+        const url = `${API_BASE_URL}/trips`;
+        console.log('🚀 API Request: POST', url, trip);
+        const response = await fetch(url, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(trip),
@@ -95,7 +146,9 @@ export const tripAPI = {
     },
 
     async update(id: string, trip: Partial<TripCreate>): Promise<Trip> {
-        const response = await fetch(`${API_BASE_URL}/trips/${id}`, {
+        const url = `${API_BASE_URL}/trips/${id}`;
+        console.log('🚀 API Request: PUT', url, trip);
+        const response = await fetch(url, {
             method: 'PUT',
             headers: getAuthHeaders(),
             body: JSON.stringify(trip),
@@ -104,8 +157,10 @@ export const tripAPI = {
     },
 
     async delete(id: string): Promise<void> {
+        const url = `${API_BASE_URL}/trips/${id}`;
+        console.log('🚀 API Request: DELETE', url);
         const token = localStorage.getItem('access_token');
-        const response = await fetch(`${API_BASE_URL}/trips/${id}`, {
+        const response = await fetch(url, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`,

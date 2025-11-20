@@ -159,7 +159,7 @@ const LoginPage: React.FC = () => {
                     color: '#666'
                 }}>
                     <strong>Default Credentials:</strong><br />
-                    Email: admin@scouttrips.com<br />
+                    Email: soadmin@scouthacks.net<br />
                     Password: changeme123
                 </div>
             </div>
