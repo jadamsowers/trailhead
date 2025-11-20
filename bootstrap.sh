@@ -56,12 +56,47 @@ print_header "Scouting Outing Manager - Bootstrap"
 print_header "=========================================="
 echo ""
 
+# Ask if user wants quick setup with defaults
+print_question "Setup mode:"
+echo "  1) Quick setup (use all default values)"
+echo "  2) Custom setup (configure all options)"
+read -p "Enter choice [1-2] (default: 1): " SETUP_MODE
+SETUP_MODE=${SETUP_MODE:-1}
+
+if [ "$SETUP_MODE" = "1" ]; then
+    print_info "Using quick setup with default values..."
+    USE_DEFAULTS=true
+else
+    USE_DEFAULTS=false
+fi
+echo ""
+
+# Ask if user wants to save credentials to a file
+print_question "Save credentials to file?"
+echo "  This will create a 'credentials.txt' file with all generated passwords and secrets."
+echo "  The file will be automatically added to .gitignore to prevent accidental commits."
+read -p "Save credentials? [Y/n]: " SAVE_CREDENTIALS
+SAVE_CREDENTIALS=${SAVE_CREDENTIALS:-Y}
+if [[ "$SAVE_CREDENTIALS" =~ ^[Yy]$ ]]; then
+    SAVE_CREDS=true
+    CREDENTIALS_FILE="credentials.txt"
+else
+    SAVE_CREDS=false
+fi
+echo ""
+
 # Determine mode (dev or production)
-print_question "Select deployment mode:"
-echo "  1) Development (localhost, hot-reload, frontend dev server)"
-echo "  2) Production (custom domain, optimized build)"
-read -p "Enter choice [1-2] (default: 1): " MODE_CHOICE
-MODE_CHOICE=${MODE_CHOICE:-1}
+if [ "$USE_DEFAULTS" = true ]; then
+    MODE="development"
+    MODE_CHOICE=1
+    print_info "Selected mode: development"
+else
+    print_question "Select deployment mode:"
+    echo "  1) Development (localhost, hot-reload, frontend dev server)"
+    echo "  2) Production (custom domain, optimized build)"
+    read -p "Enter choice [1-2] (default: 1): " MODE_CHOICE
+    MODE_CHOICE=${MODE_CHOICE:-1}
+fi
 
 if [ "$MODE_CHOICE" = "2" ]; then
     MODE="production"
@@ -71,11 +106,19 @@ else
     COMPOSE_FILE="docker-compose.yml"
 fi
 
-print_info "Selected mode: $MODE"
+if [ "$MODE_CHOICE" = "2" ]; then
+    MODE="production"
+else
+    MODE="development"
+fi
+
+if [ "$USE_DEFAULTS" = false ]; then
+    print_info "Selected mode: $MODE"
+fi
 echo ""
 
 # Get host URI
-if [ "$MODE" = "production" ]; then
+if [ "$MODE" = "production" ] && [ "$USE_DEFAULTS" = false ]; then
     print_question "Enter the host URI where this will be deployed (e.g., https://outings.example.com):"
     read -p "Host URI: " HOST_URI
     
@@ -95,74 +138,148 @@ fi
 echo ""
 
 # Database configuration
-print_question "Database Configuration:"
-read -p "PostgreSQL User (default: scouting_outing): " POSTGRES_USER
-POSTGRES_USER=${POSTGRES_USER:-scouting_outing}
-
-read -p "PostgreSQL Password (default: auto-generated): " POSTGRES_PASSWORD
-if [ -z "$POSTGRES_PASSWORD" ]; then
+if [ "$USE_DEFAULTS" = true ]; then
+    POSTGRES_USER="scouting_outing"
     POSTGRES_PASSWORD=$(openssl rand -hex 16)
-    print_info "Generated PostgreSQL password: $POSTGRES_PASSWORD"
+    POSTGRES_DB="scouting_outing_manager"
+    POSTGRES_PORT=5432
+    print_info "Database: Using defaults (user: $POSTGRES_USER, db: $POSTGRES_DB)"
+else
+    print_question "Database Configuration:"
+    read -p "PostgreSQL User (default: scouting_outing): " POSTGRES_USER
+    POSTGRES_USER=${POSTGRES_USER:-scouting_outing}
+
+    read -p "PostgreSQL Password (default: auto-generated): " POSTGRES_PASSWORD
+    if [ -z "$POSTGRES_PASSWORD" ]; then
+        POSTGRES_PASSWORD=$(openssl rand -hex 16)
+        print_info "Generated PostgreSQL password: $POSTGRES_PASSWORD"
+    fi
+
+    read -p "PostgreSQL Database Name (default: scouting_outing_manager): " POSTGRES_DB
+    POSTGRES_DB=${POSTGRES_DB:-scouting_outing_manager}
+
+    read -p "PostgreSQL Port (default: 5432): " POSTGRES_PORT
+    POSTGRES_PORT=${POSTGRES_PORT:-5432}
+    echo ""
 fi
-
-read -p "PostgreSQL Database Name (default: scouting_outing_manager): " POSTGRES_DB
-POSTGRES_DB=${POSTGRES_DB:-scouting_outing_manager}
-
-read -p "PostgreSQL Port (default: 5432): " POSTGRES_PORT
-POSTGRES_PORT=${POSTGRES_PORT:-5432}
-echo ""
 
 # Security configuration
-print_question "Security Configuration:"
-read -p "Secret Key (default: auto-generated): " SECRET_KEY
-if [ -z "$SECRET_KEY" ]; then
+if [ "$USE_DEFAULTS" = true ]; then
     SECRET_KEY=$(openssl rand -hex 32)
-    print_info "Generated secret key"
+    ACCESS_TOKEN_EXPIRE_MINUTES=15
+    REFRESH_TOKEN_EXPIRE_DAYS=7
+    print_info "Security: Using defaults (token expiry: 15 min / 7 days)"
+else
+    print_question "Security Configuration:"
+    read -p "Secret Key (default: auto-generated): " SECRET_KEY
+    if [ -z "$SECRET_KEY" ]; then
+        SECRET_KEY=$(openssl rand -hex 32)
+        print_info "Generated secret key"
+    fi
+
+    read -p "Access Token Expire Minutes (default: 15): " ACCESS_TOKEN_EXPIRE_MINUTES
+    ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+
+    read -p "Refresh Token Expire Days (default: 7): " REFRESH_TOKEN_EXPIRE_DAYS
+    REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+    echo ""
 fi
-
-read -p "Access Token Expire Minutes (default: 15): " ACCESS_TOKEN_EXPIRE_MINUTES
-ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
-
-read -p "Refresh Token Expire Days (default: 7): " REFRESH_TOKEN_EXPIRE_DAYS
-REFRESH_TOKEN_EXPIRE_DAYS=${REFRESH_TOKEN_EXPIRE_DAYS:-7}
-echo ""
 
 # Admin user configuration
-print_question "Initial Admin User Configuration:"
-read -p "Admin Email (default: soadmin@scouthacks.net): " INITIAL_ADMIN_EMAIL
-INITIAL_ADMIN_EMAIL=${INITIAL_ADMIN_EMAIL:-soadmin@scouthacks.net}
-
-print_question "Admin Password:"
-echo "  1) Auto-generate (recommended)"
-echo "  2) Set manually"
-read -p "Enter choice [1-2] (default: 1): " ADMIN_PASSWORD_CHOICE
-ADMIN_PASSWORD_CHOICE=${ADMIN_PASSWORD_CHOICE:-1}
-
-if [ "$ADMIN_PASSWORD_CHOICE" = "2" ]; then
-    read -sp "Enter admin password: " INITIAL_ADMIN_PASSWORD
-    echo ""
-    if [ -z "$INITIAL_ADMIN_PASSWORD" ]; then
-        print_error "Password cannot be empty"
-        exit 1
-    fi
-    print_info "Using manually set password"
-else
-    # Generate a secure random password (URL-safe base64, 16 bytes = 22 characters)
+if [ "$USE_DEFAULTS" = true ]; then
+    print_question "Initial Admin User Configuration:"
+    read -p "Admin Email (default: soadmin@scouthacks.net): " INITIAL_ADMIN_EMAIL
+    INITIAL_ADMIN_EMAIL=${INITIAL_ADMIN_EMAIL:-soadmin@scouthacks.net}
     INITIAL_ADMIN_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
-    print_success "Generated secure admin password"
+    ADMIN_PASSWORD_CHOICE=1
+    print_info "Admin password will be auto-generated"
+    echo ""
+else
+    print_question "Initial Admin User Configuration:"
+    read -p "Admin Email (default: soadmin@scouthacks.net): " INITIAL_ADMIN_EMAIL
+    INITIAL_ADMIN_EMAIL=${INITIAL_ADMIN_EMAIL:-soadmin@scouthacks.net}
+
+    print_question "Admin Password:"
+    echo "  1) Auto-generate (recommended)"
+    echo "  2) Set manually"
+    read -p "Enter choice [1-2] (default: 1): " ADMIN_PASSWORD_CHOICE
+    ADMIN_PASSWORD_CHOICE=${ADMIN_PASSWORD_CHOICE:-1}
+
+    if [ "$ADMIN_PASSWORD_CHOICE" = "2" ]; then
+        read -sp "Enter admin password: " INITIAL_ADMIN_PASSWORD
+        echo ""
+        if [ -z "$INITIAL_ADMIN_PASSWORD" ]; then
+            print_error "Password cannot be empty"
+            exit 1
+        fi
+        print_info "Using manually set password"
+    else
+        # Generate a secure random password (URL-safe base64, 16 bytes = 22 characters)
+        INITIAL_ADMIN_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
+        print_success "Generated secure admin password"
+    fi
+    echo ""
 fi
-echo ""
 
 # CORS configuration
-print_question "CORS Configuration:"
-if [ "$MODE" = "production" ]; then
-    read -p "Allowed CORS Origins (comma-separated, default: $HOST_URI): " BACKEND_CORS_ORIGINS
-    BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-$HOST_URI}
+if [ "$USE_DEFAULTS" = true ]; then
+    if [ "$MODE" = "production" ]; then
+        BACKEND_CORS_ORIGINS="$HOST_URI"
+    else
+        BACKEND_CORS_ORIGINS="http://localhost:3000,http://localhost:8000,http://localhost:8080"
+    fi
+    print_info "CORS: Using defaults"
 else
-    BACKEND_CORS_ORIGINS="http://localhost:3000,http://localhost:8000"
-    print_info "Using default CORS origins for development: $BACKEND_CORS_ORIGINS"
+    print_question "CORS Configuration:"
+    if [ "$MODE" = "production" ]; then
+        read -p "Allowed CORS Origins (comma-separated, default: $HOST_URI): " BACKEND_CORS_ORIGINS
+        BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-$HOST_URI}
+    else
+        BACKEND_CORS_ORIGINS="http://localhost:3000,http://localhost:8000,http://localhost:8080"
+        print_info "Using default CORS origins for development: $BACKEND_CORS_ORIGINS"
+    fi
+    echo ""
 fi
-echo ""
+
+# Keycloak configuration
+if [ "$USE_DEFAULTS" = true ]; then
+    KEYCLOAK_ADMIN_USER="admin"
+    KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
+    KEYCLOAK_CLIENT_SECRET=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
+    KEYCLOAK_REALM="scouting-outing"
+    KEYCLOAK_DB_USER="keycloak"
+    KEYCLOAK_DB_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
+    print_info "Keycloak: Using defaults (admin: $KEYCLOAK_ADMIN_USER, realm: $KEYCLOAK_REALM)"
+else
+    print_question "Keycloak OAuth Configuration:"
+    read -p "Keycloak Admin User (default: admin): " KEYCLOAK_ADMIN_USER
+    KEYCLOAK_ADMIN_USER=${KEYCLOAK_ADMIN_USER:-admin}
+
+    read -p "Keycloak Admin Password (default: auto-generated): " KEYCLOAK_ADMIN_PASSWORD
+    if [ -z "$KEYCLOAK_ADMIN_PASSWORD" ]; then
+        KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
+        print_info "Generated Keycloak admin password: $KEYCLOAK_ADMIN_PASSWORD"
+    fi
+
+    read -p "Keycloak Client Secret (default: auto-generated): " KEYCLOAK_CLIENT_SECRET
+    if [ -z "$KEYCLOAK_CLIENT_SECRET" ]; then
+        KEYCLOAK_CLIENT_SECRET=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
+        print_info "Generated Keycloak client secret"
+    fi
+
+    read -p "Keycloak Realm Name (default: scouting-outing): " KEYCLOAK_REALM
+    KEYCLOAK_REALM=${KEYCLOAK_REALM:-scouting-outing}
+
+    read -p "Keycloak Database User (default: keycloak): " KEYCLOAK_DB_USER
+    KEYCLOAK_DB_USER=${KEYCLOAK_DB_USER:-keycloak}
+
+    read -p "Keycloak Database Password (default: auto-generated): " KEYCLOAK_DB_PASSWORD
+    if [ -z "$KEYCLOAK_DB_PASSWORD" ]; then
+        KEYCLOAK_DB_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
+        print_info "Generated Keycloak database password"
+    fi
+    echo ""
+fi
 
 # Summary
 print_header "=========================================="
@@ -179,6 +296,8 @@ if [ "$ADMIN_PASSWORD_CHOICE" = "2" ]; then
 else
     echo "Admin Password: [AUTO-GENERATED]"
 fi
+echo "Keycloak Realm: $KEYCLOAK_REALM"
+echo "Keycloak Admin User: $KEYCLOAK_ADMIN_USER"
 echo ""
 
 read -p "Continue with this configuration? [y/N]: " CONFIRM
@@ -187,6 +306,79 @@ if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
     exit 0
 fi
 echo ""
+
+# Initialize credentials file if requested
+if [ "$SAVE_CREDS" = true ]; then
+    print_header "Creating credentials file..."
+    cat > "$CREDENTIALS_FILE" << EOF
+# Scouting Outing Manager - Credentials
+# Generated by bootstrap.sh on $(date)
+#
+# ⚠️  IMPORTANT: Keep this file secure and do not commit it to version control!
+# This file is automatically added to .gitignore
+
+========================================
+DEPLOYMENT CONFIGURATION
+========================================
+Mode: $MODE
+Host URI: $HOST_URI
+Domain: $DOMAIN
+
+========================================
+DATABASE CREDENTIALS
+========================================
+PostgreSQL User: $POSTGRES_USER
+PostgreSQL Password: $POSTGRES_PASSWORD
+PostgreSQL Database: $POSTGRES_DB
+PostgreSQL Port: $POSTGRES_PORT
+
+========================================
+SECURITY CONFIGURATION
+========================================
+Secret Key: $SECRET_KEY
+Access Token Expire Minutes: $ACCESS_TOKEN_EXPIRE_MINUTES
+Refresh Token Expire Days: $REFRESH_TOKEN_EXPIRE_DAYS
+
+========================================
+ADMIN USER CREDENTIALS
+========================================
+Admin Email: $INITIAL_ADMIN_EMAIL
+Admin Password: $INITIAL_ADMIN_PASSWORD
+
+========================================
+KEYCLOAK CONFIGURATION
+========================================
+Keycloak Admin User: $KEYCLOAK_ADMIN_USER
+Keycloak Admin Password: $KEYCLOAK_ADMIN_PASSWORD
+Keycloak Realm: $KEYCLOAK_REALM
+Keycloak Client Secret: $KEYCLOAK_CLIENT_SECRET
+Keycloak Database User: $KEYCLOAK_DB_USER
+Keycloak Database Password: $KEYCLOAK_DB_PASSWORD
+
+========================================
+ACCESS URLS
+========================================
+EOF
+
+    if [ "$MODE" = "development" ]; then
+        cat >> "$CREDENTIALS_FILE" << EOF
+Frontend: http://localhost:3000
+Backend API: http://localhost:8000
+API Docs (Swagger): http://localhost:8000/docs
+API Docs (ReDoc): http://localhost:8000/redoc
+Keycloak Admin: http://localhost:8080
+EOF
+    else
+        cat >> "$CREDENTIALS_FILE" << EOF
+Application: $HOST_URI
+API Docs: $HOST_URI/docs
+Keycloak Admin: ${HOST_URI%/*}:8080
+EOF
+    fi
+
+    print_success "Credentials saved to $CREDENTIALS_FILE"
+    echo ""
+fi
 
 # Cleanup existing containers and volumes
 print_header "Cleaning up existing containers..."
@@ -248,6 +440,15 @@ BACKEND_CORS_ORIGINS=$BACKEND_CORS_ORIGINS
 # Initial Admin User Configuration
 INITIAL_ADMIN_EMAIL=$INITIAL_ADMIN_EMAIL
 INITIAL_ADMIN_PASSWORD=$INITIAL_ADMIN_PASSWORD
+
+# Keycloak OAuth/OIDC Configuration
+KEYCLOAK_URL=http://keycloak:8080
+KEYCLOAK_REALM=$KEYCLOAK_REALM
+KEYCLOAK_CLIENT_ID=scouting-outing-backend
+KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
+KEYCLOAK_ADMIN_USER=$KEYCLOAK_ADMIN_USER
+KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD
+FRONTEND_URL=$([ "$MODE" = "development" ] && echo "http://localhost:3000" || echo "$HOST_URI")
 EOF
 
 print_success "Backend .env file created"
@@ -276,10 +477,9 @@ EOF
 print_success "Frontend .env file created"
 echo ""
 
-# Create root .env file for docker-compose (for production build args)
-if [ "$MODE" = "production" ]; then
-    print_header "Creating root .env file for docker-compose..."
-    cat > .env << EOF
+# Create root .env file for docker-compose
+print_header "Creating root .env file for docker-compose..."
+cat > .env << EOF
 # Docker Compose Environment Variables
 # Generated by bootstrap.sh on $(date)
 
@@ -299,15 +499,29 @@ BACKEND_CORS_ORIGINS=$BACKEND_CORS_ORIGINS
 # Initial Admin User (for database initialization)
 INITIAL_ADMIN_EMAIL=$INITIAL_ADMIN_EMAIL
 INITIAL_ADMIN_PASSWORD=$INITIAL_ADMIN_PASSWORD
+
+# Keycloak Configuration
+KEYCLOAK_ADMIN_USER=$KEYCLOAK_ADMIN_USER
+KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD
+KEYCLOAK_DB_USER=$KEYCLOAK_DB_USER
+KEYCLOAK_DB_PASSWORD=$KEYCLOAK_DB_PASSWORD
+KC_DB_USERNAME=$KEYCLOAK_DB_USER
+KC_DB_PASSWORD=$KEYCLOAK_DB_PASSWORD
+KEYCLOAK_REALM=$KEYCLOAK_REALM
+KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
+FRONTEND_URL=$([ "$MODE" = "development" ] && echo "http://localhost:3000" || echo "$HOST_URI")
 EOF
+
+if [ "$MODE" = "production" ]; then
     cat >> .env << EOF
 
 # Frontend Build
 VITE_API_URL=$VITE_API_URL_FOR_BUILD
 EOF
-    print_success "Root .env file created"
-    echo ""
 fi
+
+print_success "Root .env file created"
+echo ""
 
 # Build and start services
 print_header "Building and starting services..."
@@ -327,6 +541,66 @@ if $DOCKER_COMPOSE -f $COMPOSE_FILE ps | grep -q "Up\|running"; then
     # Wait for database to be ready and initialize
     print_info "Waiting for database to be ready..."
     sleep 5
+    
+    # Wait for Keycloak to be ready
+    print_info "Waiting for Keycloak to be ready..."
+    sleep 10  # Keycloak takes longer to start
+    
+    # Initialize Keycloak
+    print_header "Initializing Keycloak..."
+    if command -v jq &> /dev/null; then
+        # Use the init script if jq is available
+        export KEYCLOAK_URL="http://localhost:8080"
+        export KEYCLOAK_ADMIN="$KEYCLOAK_ADMIN_USER"
+        export KEYCLOAK_ADMIN_PASSWORD="$KEYCLOAK_ADMIN_PASSWORD"
+        export REALM_NAME="$KEYCLOAK_REALM"
+        export KEYCLOAK_CLIENT_SECRET="$KEYCLOAK_CLIENT_SECRET"
+        export FRONTEND_URL="$([ "$MODE" = "development" ] && echo "http://localhost:3000" || echo "$HOST_URI")"
+        export BACKEND_URL="$([ "$MODE" = "development" ] && echo "http://localhost:8000" || echo "${HOST_URI%/*}:8000")"
+        
+        # Wait a bit more for Keycloak to be fully ready
+        print_info "Waiting for Keycloak to be fully ready..."
+        for i in {1..30}; do
+            if curl -f -s "${KEYCLOAK_URL}/realms/master" > /dev/null 2>&1; then
+                print_success "Keycloak is ready!"
+                break
+            fi
+            echo -n "."
+            sleep 2
+        done
+        echo ""
+        
+        if [ -f "./keycloak/init-keycloak.sh" ]; then
+            chmod +x ./keycloak/init-keycloak.sh
+            ./keycloak/init-keycloak.sh && {
+                print_success "Keycloak configured successfully!"
+                print_info "Realm: $KEYCLOAK_REALM"
+                print_info "Backend Client: scouting-outing-backend"
+                print_info "Frontend Client: scouting-outing-frontend"
+            } || {
+                print_error "Keycloak initialization script failed."
+                print_info "You may need to configure Keycloak manually."
+                print_info "Access Keycloak Admin Console at: http://localhost:8080"
+                print_info "Login with: $KEYCLOAK_ADMIN_USER / $KEYCLOAK_ADMIN_PASSWORD"
+            }
+        else
+            print_error "Keycloak initialization script not found at ./keycloak/init-keycloak.sh"
+            print_info "Please configure Keycloak manually."
+            print_info "Access Keycloak Admin Console at: http://localhost:8080"
+        fi
+    else
+        print_error "jq is not installed. Skipping automatic Keycloak initialization."
+        print_info "Please install jq (brew install jq on macOS) or configure Keycloak manually:"
+        print_info "  Access Keycloak Admin Console at: http://localhost:8080"
+        print_info "  Login with: $KEYCLOAK_ADMIN_USER / $KEYCLOAK_ADMIN_PASSWORD"
+        print_info ""
+        print_info "Manual configuration steps:"
+        print_info "  1. Create realm: $KEYCLOAK_REALM"
+        print_info "  2. Create backend client: scouting-outing-backend (confidential)"
+        print_info "  3. Create frontend client: scouting-outing-frontend (public)"
+        print_info "  4. Create roles: parent, admin"
+    fi
+    echo ""
     
     # Run database initialization
     print_header "Initializing database..."
@@ -364,20 +638,26 @@ if $DOCKER_COMPOSE -f $COMPOSE_FILE ps | grep -q "Up\|running"; then
         echo "   Swagger UI: http://localhost:8000/docs"
         echo "   ReDoc:      http://localhost:8000/redoc"
         echo ""
+        echo "🔐 Keycloak Admin Console:"
+        echo "   URL: http://localhost:8080"
+        echo "   Username: $KEYCLOAK_ADMIN_USER"
+        echo "   Password: $KEYCLOAK_ADMIN_PASSWORD"
+        echo ""
         echo "🌐 Frontend:"
         echo "   To start the frontend dev server, run:"
         echo "   cd frontend && npm install && npm start"
         echo "   Then access at: http://localhost:3000"
         echo ""
         echo "🔐 Admin Credentials:"
-        echo "   Email: $INITIAL_ADMIN_EMAIL"
         if [ "$ADMIN_PASSWORD_CHOICE" = "2" ]; then
+            echo "   Email: $INITIAL_ADMIN_EMAIL"
             echo "   Password: [As configured]"
         else
             echo ""
             echo -e "${YELLOW}   ╔════════════════════════════════════════════════════════╗${NC}"
-            echo -e "${YELLOW}   ║  GENERATED ADMIN PASSWORD (SAVE THIS!):                 ║${NC}"
-            echo -e "${YELLOW}   ║  $INITIAL_ADMIN_PASSWORD${NC}"
+            echo -e "${YELLOW}   ║  ADMIN CREDENTIALS (SAVE THESE!):                       ║${NC}"
+            echo -e "${YELLOW}   ║  Email:    $INITIAL_ADMIN_EMAIL${NC}"
+            echo -e "${YELLOW}   ║  Password: $INITIAL_ADMIN_PASSWORD${NC}"
             echo -e "${YELLOW}   ╚════════════════════════════════════════════════════════╝${NC}"
             echo ""
         fi
@@ -398,15 +678,21 @@ if $DOCKER_COMPOSE -f $COMPOSE_FILE ps | grep -q "Up\|running"; then
         echo "📚 API Documentation:"
         echo "   $HOST_URI/docs"
         echo ""
+        echo "🔐 Keycloak Admin Console:"
+        echo "   URL: ${HOST_URI%/*}:8080"  # Remove path, add :8080
+        echo "   Username: $KEYCLOAK_ADMIN_USER"
+        echo "   Password: $KEYCLOAK_ADMIN_PASSWORD"
+        echo ""
         echo "🔐 Admin Credentials:"
-        echo "   Email: $INITIAL_ADMIN_EMAIL"
         if [ "$ADMIN_PASSWORD_CHOICE" = "2" ]; then
+            echo "   Email: $INITIAL_ADMIN_EMAIL"
             echo "   Password: [As configured]"
         else
             echo ""
             echo -e "${YELLOW}   ╔════════════════════════════════════════════════════════╗${NC}"
-            echo -e "${YELLOW}   ║  GENERATED ADMIN PASSWORD (SAVE THIS!):                 ║${NC}"
-            echo -e "${YELLOW}   ║  $INITIAL_ADMIN_PASSWORD${NC}"
+            echo -e "${YELLOW}   ║  ADMIN CREDENTIALS (SAVE THESE!):                       ║${NC}"
+            echo -e "${YELLOW}   ║  Email:    $INITIAL_ADMIN_EMAIL${NC}"
+            echo -e "${YELLOW}   ║  Password: $INITIAL_ADMIN_PASSWORD${NC}"
             echo -e "${YELLOW}   ╚════════════════════════════════════════════════════════╝${NC}"
             echo ""
         fi
@@ -428,8 +714,16 @@ if $DOCKER_COMPOSE -f $COMPOSE_FILE ps | grep -q "Up\|running"; then
         echo "   - backend/.env"
         echo "   - frontend/.env"
     fi
-    echo ""
-    print_info "⚠️  IMPORTANT: Change the admin password after first login!"
+    
+    if [ "$SAVE_CREDS" = true ]; then
+        echo ""
+        print_success "Credentials file saved:"
+        echo "   - $CREDENTIALS_FILE"
+        echo ""
+        print_info "⚠️  IMPORTANT: Keep this file secure!"
+        echo "   This file contains sensitive passwords and secrets."
+        echo "   It has been added to .gitignore to prevent accidental commits."
+    fi
     
 else
     print_error "Failed to start services. Check logs with:"

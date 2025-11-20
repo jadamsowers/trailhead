@@ -185,6 +185,26 @@ const TripAdmin: React.FC = () => {
         }
     };
 
+    const handleExportRosterPDF = async (tripId: string, tripName: string) => {
+        try {
+            setLoading(true);
+            setError(null);
+            const blob = await csvAPI.exportRosterPDF(tripId);
+            csvAPI.downloadPDF(blob, `${tripName.replace(/\s+/g, '_')}_roster.pdf`);
+        } catch (err) {
+            console.error('Error exporting roster PDF:', err);
+            if (err instanceof APIError) {
+                setError(err.message);
+            } else if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('Failed to export roster PDF');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -683,6 +703,26 @@ const TripAdmin: React.FC = () => {
                                 {expandedTripId === trip.id && renderTripSignups(trip.id)}
 
                                 <div style={{ padding: '15px 20px', backgroundColor: '#fff', borderTop: '1px solid #ddd' }}>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleExportRosterPDF(trip.id, trip.name);
+                                        }}
+                                        disabled={loading}
+                                        style={{
+                                            padding: '8px 16px',
+                                            marginRight: '10px',
+                                            backgroundColor: '#2196f3',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: loading ? 'not-allowed' : 'pointer',
+                                            fontWeight: 'bold'
+                                        }}
+                                        title="Download printable PDF roster with checkboxes for check-in"
+                                    >
+                                        📄 Export Roster (PDF)
+                                    </button>
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();

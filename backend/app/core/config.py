@@ -30,8 +30,19 @@ class Settings(BaseSettings):
     INITIAL_ADMIN_EMAIL: str = "soadmin@scouthacks.net"
     INITIAL_ADMIN_PASSWORD: Optional[str] = None  # If None, a random password will be generated
     
+    # Keycloak OAuth/OIDC Configuration
+    KEYCLOAK_URL: str = "http://localhost:8080"
+    KEYCLOAK_REALM: str = "scouting-outing"
+    KEYCLOAK_CLIENT_ID: str = "scouting-outing-backend"
+    KEYCLOAK_CLIENT_SECRET: str = "dev-client-secret-change-in-production"
+    KEYCLOAK_ADMIN_USER: str = "admin"
+    KEYCLOAK_ADMIN_PASSWORD: str = "admin123"
+    
+    # Frontend URL for OAuth redirects
+    FRONTEND_URL: str = "http://localhost:3000"
+    
     # CORS - will be parsed from string to list
-    BACKEND_CORS_ORIGINS: Union[str, list[str]] = "http://localhost:3000,http://localhost:8000"
+    BACKEND_CORS_ORIGINS: Union[str, list[str]] = "http://localhost:3000,http://localhost:8000,http://localhost:8080"
     
     @model_validator(mode='before')
     @classmethod

@@ -7,7 +7,7 @@ const LoginPage: React.FC = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const { login, loginWithOAuth } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -49,8 +49,48 @@ const LoginPage: React.FC = () => {
                     marginBottom: '30px',
                     color: '#1976d2'
                 }}>
-                    Admin Login
+                    Login
                 </h1>
+
+                <button
+                    type="button"
+                    onClick={loginWithOAuth}
+                    disabled={loading}
+                    style={{
+                        width: '100%',
+                        padding: '12px',
+                        backgroundColor: loading ? '#ccc' : '#4caf50',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        marginBottom: '20px',
+                        transition: 'background-color 0.2s'
+                    }}
+                    onMouseOver={(e) => {
+                        if (!loading) {
+                            e.currentTarget.style.backgroundColor = '#45a049';
+                        }
+                    }}
+                    onMouseOut={(e) => {
+                        if (!loading) {
+                            e.currentTarget.style.backgroundColor = '#4caf50';
+                        }
+                    }}
+                >
+                    Login with OAuth (Recommended)
+                </button>
+
+                <div style={{
+                    textAlign: 'center',
+                    marginBottom: '20px',
+                    color: '#666',
+                    fontSize: '14px'
+                }}>
+                    or
+                </div>
 
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: '20px' }}>
@@ -158,9 +198,8 @@ const LoginPage: React.FC = () => {
                     fontSize: '14px',
                     color: '#666'
                 }}>
-                    <strong>Default Credentials:</strong><br />
-                    Email: soadmin@scouthacks.net<br />
-                    Password: changeme123
+                    <strong>Admin Login (Legacy):</strong><br />
+                    For admin accounts only. Parents should use OAuth login above.
                 </div>
             </div>
         </div>

@@ -1,13 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authAPI } from '../services/api';
+import { oauthAPI, authAPI } from '../services/api';
 import { User } from '../types';
 
 interface AuthContextType {
     user: User | null;
     login: (email: string, password: string) => Promise<void>;
+    loginWithOAuth: () => void;
     logout: () => void;
     isAuthenticated: boolean;
     isAdmin: boolean;
+    isParent: boolean;
     loading: boolean;
 }
 
@@ -22,44 +24,142 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Check for existing token on mount
-        const token = localStorage.getItem('access_token');
-        if (token) {
-            verifyToken(token);
+        // Check for OAuth callback
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const accessToken = urlParams.get('access_token');
+        const refreshToken = urlParams.get('refresh_token');
+
+        if (code && state) {
+            // OAuth callback - exchange code for tokens
+            handleOAuthCallback(code, state);
+        } else if (accessToken && refreshToken) {
+            // Direct token in URL (from backend redirect)
+            handleOAuthTokens(accessToken, refreshToken);
         } else {
-            setLoading(false);
+            // Check for existing token
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                verifyToken(token);
+            } else {
+                setLoading(false);
+            }
         }
     }, []);
 
     const verifyToken = async (token: string) => {
         try {
-            const userData = await authAPI.getCurrentUser(token);
-            setUser(userData);
+            // Try OAuth endpoint first, fall back to legacy
+            try {
+                const userData = await oauthAPI.getCurrentUser(token);
+                setUser(userData);
+            } catch {
+                const userData = await authAPI.getCurrentUser(token);
+                setUser(userData);
+            }
         } catch (error) {
             console.error('Token verification failed:', error);
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
+            // Try to refresh token
+            const refreshToken = localStorage.getItem('refresh_token');
+            if (refreshToken) {
+                try {
+                    await refreshAccessToken(refreshToken);
+                } catch {
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    setLoading(false);
+                }
+            } else {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                setLoading(false);
+            }
         } finally {
             setLoading(false);
         }
     };
 
+    const handleOAuthCallback = async (code: string, state: string) => {
+        if (!oauthAPI.verifyState(state)) {
+            console.error('Invalid state parameter');
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const redirectUri = `${window.location.origin}${window.location.pathname}`;
+            const response = await oauthAPI.exchangeCode(code, redirectUri);
+            handleOAuthTokens(response.access_token, response.refresh_token || '');
+        } catch (error) {
+            console.error('OAuth callback failed:', error);
+            setLoading(false);
+        }
+    };
+
+    const handleOAuthTokens = async (accessToken: string, refreshToken: string) => {
+        localStorage.setItem('access_token', accessToken);
+        if (refreshToken) {
+            localStorage.setItem('refresh_token', refreshToken);
+        }
+        
+        // Get user info
+        const userData = await oauthAPI.getCurrentUser(accessToken);
+        setUser(userData);
+        setLoading(false);
+        
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    };
+
+    const refreshAccessToken = async (refreshToken: string) => {
+        try {
+            const response = await oauthAPI.refreshToken(refreshToken);
+            localStorage.setItem('access_token', response.access_token);
+            if (response.refresh_token) {
+                localStorage.setItem('refresh_token', response.refresh_token);
+            }
+            const userData = await oauthAPI.getCurrentUser(response.access_token);
+            setUser(userData);
+            return response;
+        } catch {
+            // Try legacy refresh
+            const response = await authAPI.refreshToken(refreshToken);
+            localStorage.setItem('access_token', response.access_token);
+            if (response.refresh_token) {
+                localStorage.setItem('refresh_token', response.refresh_token);
+            }
+            const userData = await authAPI.getCurrentUser(response.access_token);
+            setUser(userData);
+            return response;
+        }
+    };
+
     const login = async (email: string, password: string) => {
+        // Legacy login for admin accounts
         const response = await authAPI.login({ email, password });
         localStorage.setItem('access_token', response.access_token);
         if (response.refresh_token) {
             localStorage.setItem('refresh_token', response.refresh_token);
         }
         
-        // Get user info from token response or fetch it
         const userData = await authAPI.getCurrentUser(response.access_token);
         setUser(userData);
     };
 
-    const logout = () => {
-        const token = localStorage.getItem('access_token');
-        if (token) {
-            authAPI.logout(token).catch(console.error);
+    const loginWithOAuth = () => {
+        const redirectUri = `${window.location.origin}/auth/callback`;
+        oauthAPI.initiateLogin(redirectUri);
+    };
+
+    const logout = async () => {
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (refreshToken) {
+            try {
+                await oauthAPI.logout(refreshToken);
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
         }
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
@@ -71,9 +171,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             value={{
                 user,
                 login,
+                loginWithOAuth,
                 logout,
                 isAuthenticated: !!user,
                 isAdmin: user?.role === 'admin',
+                isParent: user?.role === 'parent',
                 loading,
             }}
         >

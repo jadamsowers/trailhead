@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 import csv
@@ -11,6 +12,7 @@ from app.models.user import User
 from app.schemas.signup import SignupCreate, ParticipantCreate, FamilyContact
 from app.crud import signup as crud_signup
 from app.crud import trip as crud_trip
+from app.utils.pdf_generator import generate_trip_roster_pdf
 
 router = APIRouter()
 
@@ -228,5 +230,75 @@ async def export_roster_csv(
         media_type="text/csv",
         headers={
             "Content-Disposition": f"attachment; filename=trip_{trip_id}_roster.csv"
+        }
+    )
+
+
+@router.get("/trips/{trip_id}/export-roster-pdf")
+async def export_roster_pdf(
+    trip_id: UUID,
+    current_user: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Export trip roster as PDF file with checkboxes for check-in (admin only).
+    Returns an attractive, printable PDF document for trip leaders.
+    """
+    # Verify trip exists
+    db_trip = await crud_trip.get_trip(db, trip_id)
+    if not db_trip:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Trip not found"
+        )
+    
+    # Get all signups
+    signups = await crud_signup.get_trip_signups(db, trip_id)
+    
+    # Prepare trip data
+    trip_data = {
+        'name': db_trip.name,
+        'trip_date': db_trip.trip_date.isoformat(),
+        'end_date': db_trip.end_date.isoformat() if db_trip.end_date else None,
+        'location': db_trip.location,
+        'description': db_trip.description,
+        'trip_lead_name': db_trip.trip_lead_name,
+        'trip_lead_email': db_trip.trip_lead_email,
+        'trip_lead_phone': db_trip.trip_lead_phone
+    }
+    
+    # Prepare signups data
+    signups_data = []
+    for signup in signups:
+        participants_data = []
+        for participant in signup.participants:
+            participants_data.append({
+                'name': participant.name,
+                'age': participant.age,
+                'participant_type': participant.participant_type,
+                'gender': participant.gender,
+                'troop_number': participant.troop_number,
+                'patrol_name': participant.patrol_name,
+                'has_youth_protection': participant.has_youth_protection,
+                'vehicle_capacity': participant.vehicle_capacity,
+                'dietary_restrictions': [dr.restriction_type for dr in participant.dietary_restrictions],
+                'allergies': [a.allergy_type for a in participant.allergies]
+            })
+        
+        signups_data.append({
+            'family_contact_name': signup.family_contact_name,
+            'family_contact_phone': signup.family_contact_phone,
+            'participants': participants_data
+        })
+    
+    # Generate PDF
+    pdf_buffer = generate_trip_roster_pdf(trip_data, signups_data)
+    
+    # Return as downloadable file
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=trip_{db_trip.name.replace(' ', '_')}_roster.pdf"
         }
     )

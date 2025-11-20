@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.endpoints import trips, signups, csv_import, auth
+from app.api.endpoints import trips, signups, csv_import, auth, oauth, registration, family
 
 # Create FastAPI application with enhanced documentation
 app = FastAPI(
@@ -81,6 +81,24 @@ app.include_router(
     tags=["authentication"]
 )
 
+app.include_router(
+    oauth.router,
+    prefix=f"{settings.API_V1_STR}/oauth",
+    tags=["oauth"]
+)
+
+app.include_router(
+    registration.router,
+    prefix=f"{settings.API_V1_STR}/register",
+    tags=["registration"]
+)
+
+app.include_router(
+    family.router,
+    prefix=f"{settings.API_V1_STR}/family",
+    tags=["family-management"]
+)
+
 
 @app.get("/")
 async def root():
@@ -98,7 +116,8 @@ async def root():
             "auth": f"{settings.API_V1_STR}/auth",
             "trips": f"{settings.API_V1_STR}/trips",
             "signups": f"{settings.API_V1_STR}/signups",
-            "csv": f"{settings.API_V1_STR}/csv"
+            "csv": f"{settings.API_V1_STR}/csv",
+            "family": f"{settings.API_V1_STR}/family"
         }
     }
 

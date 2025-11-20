@@ -7,6 +7,7 @@ import TopographicBackground from './components/Shared/TopographicBackground';
 import AdminPage from './pages/AdminPage';
 import ParticipantPage from './pages/ParticipantPage';
 import LoginPage from './pages/LoginPage';
+import OAuthCallbackPage from './pages/OAuthCallbackPage';
 
 const HomePage: React.FC = () => {
     return (
@@ -218,6 +219,7 @@ const App: React.FC = () => {
                         <Routes>
                             <Route path="/" element={<HomePage />} />
                             <Route path="/login" element={<LoginPage />} />
+                            <Route path="/auth/callback" element={<OAuthCallbackPage />} />
                             <Route
                                 path="/admin"
                                 element={

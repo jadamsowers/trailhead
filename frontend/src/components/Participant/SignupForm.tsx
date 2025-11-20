@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import {
     Trip,
     SignupFormData,
+    FamilyMemberSummary,
     DIETARY_RESTRICTIONS,
     ALLERGY_TYPES,
     ALLERGY_SEVERITIES
 } from '../../types';
-import { tripAPI, signupAPI, APIError } from '../../services/api';
+import { tripAPI, signupAPI, familyAPI, APIError } from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SignupForm: React.FC = () => {
+    const { user, isAuthenticated, isParent } = useAuth();
     const [trips, setTrips] = useState<Trip[]>([]);
     const [selectedTripId, setSelectedTripId] = useState<string>('');
     const [loading, setLoading] = useState(false);
@@ -16,6 +19,10 @@ const SignupForm: React.FC = () => {
     const [success, setSuccess] = useState(false);
     const [warnings, setWarnings] = useState<string[]>([]);
     const [showTripLeadInfo, setShowTripLeadInfo] = useState<{[key: string]: boolean}>({});
+    const [familyMembers, setFamilyMembers] = useState<FamilyMemberSummary[]>([]);
+    const [selectedFamilyMemberId, setSelectedFamilyMemberId] = useState<string | null>(null);
+    const [saveToFamily, setSaveToFamily] = useState<boolean>(false);
+    const [showFamilySelection, setShowFamilySelection] = useState<boolean>(true);
     
     const [formData, setFormData] = useState<SignupFormData>({
         trip_id: '',
@@ -40,7 +47,17 @@ const SignupForm: React.FC = () => {
 
     useEffect(() => {
         loadTrips();
-    }, []);
+        if (isAuthenticated && isParent) {
+            loadFamilyMembers();
+            // Pre-fill contact info from user profile
+            if (user) {
+                setFormData(prev => ({
+                    ...prev,
+                    email: user.email || prev.email
+                }));
+            }
+        }
+    }, [isAuthenticated, isParent, user]);
 
     const loadTrips = async () => {
         try {
@@ -53,6 +70,15 @@ const SignupForm: React.FC = () => {
             setError(err instanceof APIError ? err.message : 'Failed to load trips');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadFamilyMembers = async () => {
+        try {
+            const data = await familyAPI.getSummary();
+            setFamilyMembers(data);
+        } catch (err) {
+            console.error('Failed to load family members:', err);
         }
     };
 
@@ -135,6 +161,82 @@ const SignupForm: React.FC = () => {
             const updatedParticipants = formData.participants.filter((_, i) => i !== index);
             setFormData({ ...formData, participants: updatedParticipants });
         }
+    };
+
+    const handleSelectFamilyMember = async (memberId: string) => {
+        setSelectedFamilyMemberId(memberId);
+        try {
+            // Fetch full family member details
+            const member = await familyAPI.getById(memberId);
+            
+            // Calculate age from date of birth
+            let age = '';
+            if (member.date_of_birth) {
+                const birthDate = new Date(member.date_of_birth);
+                const today = new Date();
+                const calculatedAge = today.getFullYear() - birthDate.getFullYear();
+                age = calculatedAge.toString();
+            }
+
+            // Convert family member to participant form data
+            const participantData = {
+                full_name: member.name,
+                participant_type: member.member_type === 'scout' ? 'scout' as const : 'adult' as const,
+                gender: 'male' as const, // Default, user can change
+                age: age,
+                troop_number: member.troop_number || '',
+                patrol: member.patrol_name || '',
+                has_youth_protection_training: member.has_youth_protection,
+                vehicle_capacity: member.vehicle_capacity?.toString() || '',
+                dietary_restrictions: member.dietary_preferences.reduce((acc, pref) => {
+                    acc[pref.preference] = true;
+                    return acc;
+                }, {} as { [key: string]: boolean }),
+                dietary_notes: member.medical_notes || '',
+                allergies: member.allergies.map(allergy => ({
+                    type: allergy.allergy,
+                    severity: (allergy.severity || 'mild') as 'mild' | 'moderate' | 'severe',
+                    notes: ''
+                }))
+            };
+
+            // Update the first participant with family member data
+            setFormData(prev => ({
+                ...prev,
+                participants: [participantData, ...prev.participants.slice(1)]
+            }));
+
+            setShowFamilySelection(false);
+        } catch (err) {
+            setError(err instanceof APIError ? err.message : 'Failed to load family member details');
+        }
+    };
+
+    const handleAddNewParticipant = () => {
+        setSelectedFamilyMemberId(null);
+        setShowFamilySelection(false);
+    };
+
+    const handleBackToFamilySelection = () => {
+        setShowFamilySelection(true);
+        setSelectedFamilyMemberId(null);
+        // Reset first participant
+        setFormData(prev => ({
+            ...prev,
+            participants: [{
+                full_name: '',
+                participant_type: 'scout',
+                gender: 'male',
+                age: '',
+                troop_number: '',
+                patrol: '',
+                has_youth_protection_training: false,
+                vehicle_capacity: '',
+                dietary_restrictions: {},
+                dietary_notes: '',
+                allergies: []
+            }, ...prev.participants.slice(1)]
+        }));
     };
 
     const validateForm = (): string | null => {
@@ -224,6 +326,39 @@ const SignupForm: React.FC = () => {
             };
 
             const response = await signupAPI.create(signupData);
+            
+            // If authenticated parent and "save to family" is checked, save new participants
+            if (isAuthenticated && isParent && saveToFamily && !selectedFamilyMemberId) {
+                try {
+                    for (const participant of formData.participants) {
+                        const familyMemberData = {
+                            name: participant.full_name,
+                            member_type: participant.participant_type === 'scout' ? 'scout' as const : 'parent' as const,
+                            troop_number: participant.troop_number || undefined,
+                            patrol_name: participant.patrol || undefined,
+                            has_youth_protection: participant.has_youth_protection_training,
+                            vehicle_capacity: participant.vehicle_capacity ? parseInt(participant.vehicle_capacity) : undefined,
+                            medical_notes: participant.dietary_notes || undefined,
+                            dietary_preferences: Object.entries(participant.dietary_restrictions)
+                                .filter(([_, checked]) => checked)
+                                .map(([type]) => type),
+                            allergies: participant.allergies
+                                .filter(a => a.type)
+                                .map(a => ({
+                                    allergy: a.type,
+                                    severity: a.severity
+                                }))
+                        };
+                        await familyAPI.create(familyMemberData);
+                    }
+                    // Reload family members
+                    await loadFamilyMembers();
+                } catch (err) {
+                    console.error('Failed to save to family:', err);
+                    // Don't fail the signup if saving to family fails
+                }
+            }
+            
             setSuccess(true);
             setWarnings(response.warnings || []);
             
@@ -252,6 +387,9 @@ const SignupForm: React.FC = () => {
                 });
                 setSelectedTripId('');
                 setSuccess(false);
+                setSelectedFamilyMemberId(null);
+                setSaveToFamily(false);
+                setShowFamilySelection(true);
             }, 3000);
         } catch (err) {
             setError(err instanceof APIError ? err.message : 'Failed to submit signup');
@@ -482,6 +620,86 @@ const SignupForm: React.FC = () => {
 
                 {selectedTrip && (
                     <>
+                        {/* Family Member Selection (for authenticated parents) */}
+                        {isAuthenticated && isParent && familyMembers.length > 0 && showFamilySelection && (
+                            <div style={{ marginBottom: '30px', padding: '20px', border: '2px solid #4caf50', borderRadius: '8px', backgroundColor: '#f1f8f4' }}>
+                                <h2>Select from Your Family</h2>
+                                <p style={{ marginBottom: '15px', color: '#555' }}>
+                                    Choose a saved family member or add a new participant
+                                </p>
+                                
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px', marginBottom: '15px' }}>
+                                    {familyMembers.map(member => (
+                                        <div
+                                            key={member.id}
+                                            onClick={() => handleSelectFamilyMember(member.id)}
+                                            style={{
+                                                padding: '15px',
+                                                border: selectedFamilyMemberId === member.id ? '2px solid #4caf50' : '1px solid #ddd',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                backgroundColor: selectedFamilyMemberId === member.id ? '#e8f5e9' : 'white',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        >
+                                            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{member.name}</h3>
+                                            <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
+                                                <strong>Type:</strong> {member.member_type === 'scout' ? 'Scout' : 'Parent'}
+                                            </p>
+                                            {member.age && (
+                                                <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
+                                                    <strong>Age:</strong> {member.age}
+                                                </p>
+                                            )}
+                                            {member.troop_number && (
+                                                <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
+                                                    <strong>Troop:</strong> {member.troop_number}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                
+                                <button
+                                    type="button"
+                                    onClick={handleAddNewParticipant}
+                                    style={{
+                                        padding: '10px 20px',
+                                        backgroundColor: '#2196f3',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '14px',
+                                        fontWeight: 'bold'
+                                    }}
+                                >
+                                    + Add New Participant Instead
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Back to Family Selection Button */}
+                        {isAuthenticated && isParent && familyMembers.length > 0 && !showFamilySelection && (
+                            <div style={{ marginBottom: '20px' }}>
+                                <button
+                                    type="button"
+                                    onClick={handleBackToFamilySelection}
+                                    style={{
+                                        padding: '8px 16px',
+                                        backgroundColor: '#757575',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '14px'
+                                    }}
+                                >
+                                    ← Back to Family Selection
+                                </button>
+                            </div>
+                        )}
+
                         {/* Family Contact Information */}
                         <div style={{ marginBottom: '30px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
                             <h2>Family Contact Information</h2>
@@ -804,6 +1022,26 @@ const SignupForm: React.FC = () => {
                         >
                             + Add Another Participant
                         </button>
+
+                        {/* Save to Family Option (for authenticated parents adding new participants) */}
+                        {isAuthenticated && isParent && !selectedFamilyMemberId && (
+                            <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #4caf50', borderRadius: '8px', backgroundColor: '#f1f8f4' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={saveToFamily}
+                                        onChange={(e) => setSaveToFamily(e.target.checked)}
+                                        style={{ marginRight: '10px', width: '18px', height: '18px' }}
+                                    />
+                                    <span style={{ fontWeight: 'bold', fontSize: '16px' }}>
+                                        💾 Save these participants to my family for future trips
+                                    </span>
+                                </label>
+                                <p style={{ margin: '8px 0 0 28px', fontSize: '14px', color: '#555' }}>
+                                    This will save their information so you can quickly sign them up for future trips without re-entering details.
+                                </p>
+                            </div>
+                        )}
 
                         <div>
                             <button

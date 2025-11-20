@@ -203,6 +203,93 @@ export interface User {
     id: string;
     email: string;
     full_name: string;
-    role: 'admin' | 'user';
+    role: 'admin' | 'user' | 'parent';
     is_active: boolean;
+}
+
+// Family Management Types
+export interface DietaryPreference {
+    id: string;
+    preference: string;
+}
+
+export interface FamilyMemberAllergy {
+    id: string;
+    allergy: string;
+    severity?: string;
+}
+
+export interface FamilyMember {
+    id: string;
+    user_id: string;
+    name: string;
+    member_type: 'parent' | 'scout';
+    date_of_birth?: string;
+    troop_number?: string;
+    patrol_name?: string;
+    has_youth_protection: boolean;
+    vehicle_capacity: number;
+    medical_notes?: string;
+    dietary_preferences: DietaryPreference[];
+    allergies: FamilyMemberAllergy[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface FamilyMemberCreate {
+    name: string;
+    member_type: 'parent' | 'scout';
+    date_of_birth?: string;
+    troop_number?: string;
+    patrol_name?: string;
+    has_youth_protection?: boolean;
+    vehicle_capacity?: number;
+    medical_notes?: string;
+    dietary_preferences?: string[];
+    allergies?: {
+        allergy: string;
+        severity?: string;
+    }[];
+}
+
+export interface FamilyMemberUpdate {
+    name?: string;
+    date_of_birth?: string;
+    troop_number?: string;
+    patrol_name?: string;
+    has_youth_protection?: boolean;
+    vehicle_capacity?: number;
+    medical_notes?: string;
+    dietary_preferences?: string[];
+    allergies?: {
+        allergy: string;
+        severity?: string;
+    }[];
+}
+
+export interface FamilyMemberSummary {
+    id: string;
+    name: string;
+    member_type: 'parent' | 'scout';
+    troop_number?: string;
+    age?: number;
+}
+
+export interface FamilyMemberListResponse {
+    members: FamilyMember[];
+    total: number;
+}
+
+// Registration types
+export interface ParentRegistrationRequest {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+}
+
+export interface RegistrationResponse {
+    message: string;
+    user_id: string;
+    email: string;
 }
