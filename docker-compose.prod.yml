@@ -13,18 +13,30 @@ services:
       KC_HTTP_ENABLED: true
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-changeme}
+      # Performance optimizations
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: false
+      KC_LOG_LEVEL: info
+      JAVA_OPTS_APPEND: "-Xms512m -Xmx1024m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true"
     depends_on:
       postgres:
         condition: service_healthy
-    command: start
+    volumes:
+      - ./keycloak/realm-config.json:/opt/keycloak/data/import/realm-config.json:ro
+    command:
+      - start
+      - --import-realm
+      - --db-pool-initial-size=5
+      - --db-pool-min-size=5
+      - --db-pool-max-size=20
     networks:
       - scouting-outing-network
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 90s
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 45s
 
   # PostgreSQL Database
   postgres:
