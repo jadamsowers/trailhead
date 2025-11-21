@@ -1,13 +1,16 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ClerkProvider, SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
 import ProtectedRoute from './components/ProtectedRoute';
 import BackendHealthCheck from './components/Shared/BackendHealthCheck';
 import TopographicBackground from './components/Shared/TopographicBackground';
 import AdminPage from './pages/AdminPage';
 import ParticipantPage from './pages/ParticipantPage';
 import LoginPage from './pages/LoginPage';
-import OAuthCallbackPage from './pages/OAuthCallbackPage';
+import AdminSetupPage from './pages/AdminSetupPage';
+
+// Get Clerk publishable key from environment
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_your_clerk_publishable_key_here';
 
 const HomePage: React.FC = () => {
     return (
@@ -105,7 +108,7 @@ const HomePage: React.FC = () => {
 };
 
 const Navigation: React.FC = () => {
-    const { isAuthenticated, logout, user } = useAuth();
+    const { user } = useUser();
 
     return (
         <nav style={{
@@ -146,43 +149,27 @@ const Navigation: React.FC = () => {
                     >
                         Sign Up
                     </Link>
-                    {isAuthenticated ? (
-                        <>
-                            <Link
-                                to="/admin"
-                                style={{
-                                    color: 'white',
-                                    textDecoration: 'none',
-                                    padding: '8px 16px',
-                                    borderRadius: '4px',
-                                    transition: 'background-color 0.2s'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                            >
-                                Admin
-                            </Link>
-                            <span style={{ color: 'white', fontSize: '14px' }}>
-                                {user?.email}
-                            </span>
-                            <button
-                                onClick={logout}
-                                style={{
-                                    color: 'white',
-                                    backgroundColor: 'transparent',
-                                    border: '1px solid white',
-                                    padding: '8px 16px',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    transition: 'background-color 0.2s'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                            >
-                                Logout
-                            </button>
-                        </>
-                    ) : (
+                    <SignedIn>
+                        <Link
+                            to="/admin"
+                            style={{
+                                color: 'white',
+                                textDecoration: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '4px',
+                                transition: 'background-color 0.2s'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                            Admin
+                        </Link>
+                        <span style={{ color: 'white', fontSize: '14px' }}>
+                            {user?.primaryEmailAddress?.emailAddress}
+                        </span>
+                        <UserButton afterSignOutUrl="/" />
+                    </SignedIn>
+                    <SignedOut>
                         <Link
                             to="/login"
                             style={{
@@ -198,7 +185,7 @@ const Navigation: React.FC = () => {
                         >
                             Login
                         </Link>
-                    )}
+                    </SignedOut>
                 </div>
             </div>
         </nav>
@@ -207,8 +194,8 @@ const Navigation: React.FC = () => {
 
 const App: React.FC = () => {
     return (
-        <BackendHealthCheck>
-            <AuthProvider>
+        <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+            <BackendHealthCheck>
                 <Router>
                     <TopographicBackground />
                     <div style={{ minHeight: '100vh', position: 'relative' }}>
@@ -219,14 +206,10 @@ const App: React.FC = () => {
                         <Routes>
                             <Route path="/" element={<HomePage />} />
                             <Route path="/login" element={<LoginPage />} />
-                            <Route path="/auth/callback" element={<OAuthCallbackPage />} />
+                            <Route path="/admin-setup" element={<AdminSetupPage />} />
                             <Route
                                 path="/admin"
-                                element={
-                                    <ProtectedRoute requireAdmin>
-                                        <AdminPage />
-                                    </ProtectedRoute>
-                                }
+                                element={<AdminPage />}
                             />
                             <Route path="/participant" element={<ParticipantPage />} />
                         </Routes>
@@ -246,8 +229,8 @@ const App: React.FC = () => {
                     </footer>
                 </div>
             </Router>
-            </AuthProvider>
-        </BackendHealthCheck>
+            </BackendHealthCheck>
+        </ClerkProvider>
     );
 };
 

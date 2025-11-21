@@ -1,362 +1,227 @@
 # Scouting Outing Manager
 
-A comprehensive web application for managing scout troop trips, participant signups, and Scouting America compliance requirements.
-
-## 🎯 Features
-
-### For Participants
-- **Multi-Participant Signups** - Register multiple scouts and adults per family
-- **Dietary Tracking** - Manage dietary restrictions and allergies with severity levels
-- **Scouting America Compliance** - Track youth protection training and two-deep leadership requirements
-- **Transportation Planning** - Record vehicle capacity for trip logistics
-
-### For Administrators
-- **Trip Management** - Create and manage trips with capacity tracking
-- **Signup Oversight** - View all signups with detailed participant information
-- **CSV Import/Export** - Bulk roster management capabilities
-- **Real-time Capacity** - Monitor trip capacity and prevent overbooking
-
-## 🏗️ Architecture
-
-### Backend (FastAPI + PostgreSQL)
-- **FastAPI** - Modern async Python web framework
-- **PostgreSQL** - Relational database with UUID primary keys
-- **SQLAlchemy 2.0** - Async ORM with type hints
-- **Alembic** - Database migration management
-- **Pydantic v2** - Data validation and serialization
-
-### Frontend (React + TypeScript)
-- **React 18** - Modern UI library with hooks
-- **TypeScript** - Type-safe development
-- **React Router** - Client-side routing
-- **Fetch API** - RESTful API integration
-
-### Database Schema
-- **users** - Admin and user accounts
-- **trips** - Trip information with capacity tracking
-- **signups** - Family signup records
-- **participants** - Individual participant details
-- **dietary_restrictions** - Dietary preferences
-- **allergies** - Allergy information with severity
-- **refresh_tokens** - JWT token management
+A comprehensive web application for managing scout troop trips, signups, and participant information with family management capabilities.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Docker and Docker Compose
-- Node.js 16+ (for local frontend development)
-- Python 3.11+ (for local backend development)
+- Node.js 18+ (for local development)
+- Python 3.11+ (for local development)
+- Clerk account (free at [clerk.com](https://clerk.com))
 
-### Bootstrap Script (Easiest Way to Get Started)
-
-The easiest way to set up the project for the first time is using the bootstrap script:
-
-```bash
-./bootstrap.sh
-```
-
-This interactive script will:
-- Ask you to choose between development or production mode
-- Prompt for configuration values (admin email/password, database settings, etc.)
-- Optionally auto-generate secure passwords
-- Clean up any existing containers and volumes (with confirmation)
-- Create all necessary `.env` files automatically
-- Start all services with Docker Compose
-- Initialize the database and create the admin user
-
-**Features:**
-- **Interactive Configuration**: Prompts for all necessary settings
-- **Auto-generation**: Can auto-generate secure passwords for database and admin user
-- **Smart Cleanup**: Safely removes containers and asks before deleting volumes
-- **Mode Selection**: Choose between development (localhost) or production (custom domain)
-- **Complete Setup**: Handles both backend and frontend environment configuration
-
-After running the bootstrap script, you'll have:
-- All containers running
-- Database initialized
-- Admin user created (password will be displayed if auto-generated)
-- Ready to use application
-
-### Using Docker Compose (Manual Setup)
+### Setup
 
 1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd scouting-outing-manager
+   ```bash
+   git clone <repository-url>
+   cd scouting-outing-manager
+   ```
+
+2. **Get Clerk API Keys**
+   - Sign up at [clerk.com](https://clerk.com)
+   - Create a new application
+   - Copy your API keys from the dashboard
+
+3. **Configure environment variables**
+   ```bash
+   # Copy example files
+   cp .env.example .env
+   cp frontend/.env.example frontend/.env.development
+   
+   # Edit .env and add your Clerk keys
+   CLERK_SECRET_KEY=sk_test_your_key_here
+   CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
+   
+   # Edit frontend/.env.development
+   VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
+   ```
+
+4. **Start with Docker Compose**
+   ```bash
+   docker-compose up -d
+   ```
+
+5. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - API Docs: http://localhost:8000/docs
+
+## 📚 Documentation
+
+- [Clerk Migration Guide](CLERK_MIGRATION_GUIDE.md) - Complete guide for Clerk authentication setup
+- [Architecture](ARCHITECTURE.md) - System architecture and design
+- [API Documentation](backend/API_DOCUMENTATION.md) - Backend API reference
+- [Deployment Guide](DEPLOYMENT.md) - Production deployment instructions
+
+## ✨ Features
+
+### Trip Management
+- Create and manage scouting outings
+- Set capacity limits (youth and adult)
+- Track trip dates and locations
+- Export rosters to PDF
+
+### Family Signups
+- Multi-participant registration per family
+- Youth and adult participant tracking
+- Dietary restrictions and allergy management
+- Emergency contact information
+
+### Scouting America Compliance
+- Two-deep leadership tracking
+- Youth protection requirements
+- Adult qualification tracking
+- Transportation capacity planning
+
+### Administration
+- Role-based access control (admin, parent, user)
+- CSV roster import/export
+- Real-time signup tracking
+- Family management dashboard
+
+## 🔐 Authentication
+
+This project uses **Clerk** for authentication, providing:
+- Modern, secure authentication
+- Built-in user management
+- Social login support
+- Beautiful pre-built UI components
+- No infrastructure to manage
+
+See [CLERK_MIGRATION_GUIDE.md](CLERK_MIGRATION_GUIDE.md) for detailed setup instructions.
+
+## 🛠️ Technology Stack
+
+### Frontend
+- React 18 with TypeScript
+- React Router for navigation
+- Clerk React for authentication
+- Vite for build tooling
+
+### Backend
+- FastAPI (Python)
+- PostgreSQL database
+- SQLAlchemy ORM
+- Alembic for migrations
+- Clerk Backend API for auth
+
+### Infrastructure
+- Docker & Docker Compose
+- Nginx (production)
+- Apache (alternative deployment)
+
+## 📦 Project Structure
+
+```
+scouting-outing-manager/
+├── backend/              # FastAPI backend
+│   ├── app/
+│   │   ├── api/         # API endpoints
+│   │   ├── core/        # Core functionality (auth, config)
+│   │   ├── models/      # Database models
+│   │   ├── schemas/     # Pydantic schemas
+│   │   └── utils/       # Utilities
+│   ├── alembic/         # Database migrations
+│   └── tests/           # Backend tests
+├── frontend/            # React frontend
+│   ├── src/
+│   │   ├── components/  # React components
+│   │   ├── pages/       # Page components
+│   │   ├── services/    # API services
+│   │   └── types/       # TypeScript types
+│   └── public/          # Static assets
+├── postgres/            # PostgreSQL initialization
+├── nginx/               # Nginx configuration
+└── docker-compose.yml   # Docker orchestration
 ```
 
-2. **Start the backend services**
-```bash
-cd backend
-docker-compose up -d
-```
-
-This will start:
-- PostgreSQL database on port 5432
-- FastAPI backend on port 8000
-
-3. **Install frontend dependencies**
-```bash
-npm install
-```
-
-4. **Create environment file**
-```bash
-cp .env.example .env
-```
-
-5. **Start the frontend**
-```bash
-npm start
-```
-
-The application will be available at:
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8000
-- **API Documentation**: http://localhost:8000/docs
-
-### Default Admin Credentials
-- **Email**: admin@scouttrips.local
-- **Password**: admin123
-
-## 📚 API Documentation
-
-### Interactive Documentation
-Visit http://localhost:8000/docs for interactive Swagger UI documentation with:
-- All API endpoints
-- Request/response schemas
-- Try-it-out functionality
-- Authentication flows
-
-### Key Endpoints
-
-#### Trips
-- `GET /api/trips` - List all trips
-- `POST /api/trips` - Create new trip
-- `GET /api/trips/{id}` - Get trip details
-- `PUT /api/trips/{id}` - Update trip
-- `DELETE /api/trips/{id}` - Delete trip
-
-#### Signups
-- `POST /api/signups` - Create family signup
-- `GET /api/signups/{id}` - Get signup details
-- `GET /api/signups/trip/{trip_id}` - List signups for a trip
-
-#### CSV Operations
-- `POST /api/csv/import` - Bulk import participants
-- `GET /api/csv/export/{trip_id}` - Export roster
-
-## 🗄️ Database Management
-
-### Migrations
-
-```bash
-# Create a new migration
-cd backend
-docker-compose exec backend alembic revision --autogenerate -m "Description"
-
-# Apply migrations
-docker-compose exec backend alembic upgrade head
-
-# Rollback one migration
-docker-compose exec backend alembic downgrade -1
-```
-
-### Initialize Database
-```bash
-docker-compose exec backend python -m app.db.init_db
-```
-
-## 🧪 Development
+## 🔧 Development
 
 ### Backend Development
 
 ```bash
 cd backend
 
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
 # Install dependencies
 pip install -r requirements.txt
 
-# Run development server
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# Run migrations
+alembic upgrade head
+
+# Start development server
+uvicorn app.main:app --reload
 ```
 
 ### Frontend Development
 
 ```bash
+cd frontend
+
 # Install dependencies
 npm install
 
 # Start development server
-npm start
+npm run dev
+```
 
-# Build for production
-npm run build
+### Running Tests
 
-# Run tests
+```bash
+# Backend tests
+cd backend
+pytest
+
+# Frontend tests (if configured)
+cd frontend
 npm test
 ```
 
-### Environment Variables
+## 🚢 Deployment
 
-#### Backend (.env)
-```env
-# Database
-POSTGRES_SERVER=localhost
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-POSTGRES_DB=scouting_outings
+See [DEPLOYMENT.md](DEPLOYMENT.md) for production deployment instructions.
 
-# Security
-SECRET_KEY=your-secret-key-here
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-REFRESH_TOKEN_EXPIRE_DAYS=7
-
-# CORS
-BACKEND_CORS_ORIGINS=http://localhost:3000,http://localhost:8000
-```
-
-#### Frontend (.env)
-```env
-VITE_API_URL=http://localhost:8000/api
-```
-
-## 📋 Scouting America-Specific Features
-
-### Two-Deep Leadership
-- Automatically tracks male/female participant ratios
-- Enforces two-deep leadership requirements for overnight trips
-- Validates adult supervision requirements
-
-### Youth Protection Training
-- Tracks Scouting America youth protection training status for adults
-- Required for overnight trip participation
-- Validates training requirements during signup
-
-### Participant Types
-- **Scouts** - Requires age, troop number, optional patrol
-- **Adults** - Requires youth protection training status, optional vehicle capacity
-
-### Dietary & Medical
-- Common dietary restrictions (vegetarian, vegan, gluten-free, etc.)
-- Allergy tracking with severity levels (mild, moderate, severe)
-- Additional notes for special requirements
-
-## 🐳 Docker Deployment
-
-### Backend Dockerfile
+Quick production start:
 ```bash
-cd backend
-docker build -t scouting-outing-backend .
-docker run -p 8000:8000 scouting-outing-backend
+docker-compose -f docker-compose.prod.yml up -d
 ```
-
-### Frontend Dockerfile
-```bash
-docker build -t scouting-outing-frontend .
-docker run -p 3000:80 scouting-outing-frontend
-```
-
-## ☸️ Kubernetes Deployment
-
-Kubernetes manifests are available in the `k8s/` directory (coming soon):
-- Deployments for frontend and backend
-- StatefulSet for PostgreSQL
-- Services for internal communication
-- Ingress for external access
-- ConfigMaps and Secrets
-
-## 📖 Additional Documentation
-
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture and design decisions
-- **[SECURITY_AUTH.md](SECURITY_AUTH.md)** - Authentication and authorization design
-- **[TYPE_SYNC_IMPLEMENTATION.md](TYPE_SYNC_IMPLEMENTATION.md)** - Type synchronization between backend and frontend
-- **[PRE_COMMIT_SETUP.md](PRE_COMMIT_SETUP.md)** - Pre-commit hooks for automatic type regeneration
-- **[backend/MIGRATIONS.md](backend/MIGRATIONS.md)** - Database migration guide
-- **[backend/API_DOCUMENTATION.md](backend/API_DOCUMENTATION.md)** - Comprehensive API reference
-- **[backend/QUICKSTART.md](backend/QUICKSTART.md)** - 5-minute setup guide
-
-## 🔒 Security
-
-- JWT-based authentication (models ready, endpoints pending)
-- Password hashing with bcrypt
-- CORS protection
-- SQL injection prevention via SQLAlchemy ORM
-- Input validation with Pydantic
-
-## 🧩 Technology Stack
-
-### Backend
-- Python 3.11
-- FastAPI 0.104.1
-- SQLAlchemy 2.0.23
-- PostgreSQL 15
-- Alembic 1.12.1
-- Pydantic 2.5.0
-- python-jose (JWT)
-- passlib (password hashing)
-
-### Frontend
-- React 18
-- TypeScript 4.9+
-- React Router 6
-- Modern CSS (no framework)
-
-### DevOps
-- Docker & Docker Compose
-- Kubernetes (manifests pending)
-- GitHub Actions (CI/CD pending)
-
-## 📝 License
-
-MIT License - See LICENSE file for details
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 👤 Author
+
+**Adam Sowers**
+- Website: [scouthacks.net](https://scouthacks.net)
+- GitHub: [@jadamsowers](https://github.com/jadamsowers)
+
+## 🙏 Acknowledgments
+
+- Built for scout troops to simplify trip management
+- Designed with Scouting America youth protection in mind
+- Vibe-coded with ⚜️❤️
 
 ## 📞 Support
 
 For issues and questions:
-- GitHub Issues: [Create an issue]
-- API Documentation: http://localhost:8000/docs
-- Email: support@scouttrips.local
-
-## 🎯 Roadmap
-
-### Completed ✅
-- [x] Database schema and migrations
-- [x] Core API endpoints (trips, signups, CSV)
-- [x] React frontend with TypeScript
-- [x] Participant signup form with Scouting America features
-- [x] Admin dashboard
-- [x] Docker Compose setup
-- [x] Comprehensive documentation
-
-### In Progress 🚧
-- [ ] JWT authentication endpoints
-- [ ] Protected routes in frontend
-- [ ] Login/logout UI
-
-### Planned 📋
-- [ ] Email notifications
-- [ ] Payment integration
-- [ ] Mobile app
-- [ ] Advanced reporting
-- [ ] Calendar integration
-- [ ] Weather API integration
-- [ ] Equipment tracking
-- [ ] Permission slips
-- [ ] Medical forms management
-
-## 🙏 Acknowledgments
-
-Built for Scouting America troops to simplify trip management and ensure compliance with youth protection requirements.
+- Check the [documentation](CLERK_MIGRATION_GUIDE.md)
+- Open an issue on GitHub
+- Contact via [scouthacks.net](https://scouthacks.net)
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: 2024
+**Note**: This project uses Clerk for modern, secure authentication. See [CLERK_MIGRATION_GUIDE.md](CLERK_MIGRATION_GUIDE.md) for setup details.

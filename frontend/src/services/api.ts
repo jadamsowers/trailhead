@@ -269,7 +269,7 @@ export const csvAPI = {
 // OAuth API
 export const oauthAPI = {
     /**
-     * Initiate OAuth flow - redirects to Keycloak
+     * Initiate OAuth flow
      */
     initiateLogin(redirectUri: string, state?: string): void {
         const stateParam = state || this.generateState();
@@ -413,6 +413,31 @@ export const authAPI = {
         if (!response.ok) {
             throw new APIError(response.status, 'Failed to logout');
         }
+    },
+
+    async checkSetupStatus(): Promise<{ setup_complete: boolean }> {
+        const response = await fetch(`${API_BASE_URL}/auth/setup-status`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return handleResponse<{ setup_complete: boolean }>(response);
+    },
+
+    async setupAdmin(data: {
+        email: string;
+        password: string;
+        full_name: string;
+    }): Promise<{ message: string; user_id: string }> {
+        const response = await fetch(`${API_BASE_URL}/auth/setup-admin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+        return handleResponse<{ message: string; user_id: string }>(response);
     },
 };
 

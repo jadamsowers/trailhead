@@ -7,7 +7,7 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 
 from app.db.session import get_db
-from app.core.keycloak import get_keycloak_client
+from app.core.clerk import get_clerk_client
 from app.models.user import User
 from app.core.security import get_password_hash
 from sqlalchemy import select
@@ -37,7 +37,7 @@ async def register_parent(
 ):
     """
     Register a new parent account.
-    Creates user in Keycloak and syncs to local database.
+    Creates user in Clerk and syncs to local database.
     """
     # Check if user already exists in our database
     result = await db.execute(select(User).where(User.email == registration.email))
@@ -49,36 +49,21 @@ async def register_parent(
             detail="User with this email already exists"
         )
     
-    # Create user in Keycloak
-    try:
-        keycloak = get_keycloak_client()
-        keycloak_user_id = keycloak.create_user(
-            email=registration.email,
-            password=registration.password,
-            first_name=registration.first_name,
-            last_name=registration.last_name,
-            roles=["parent"]  # Assign parent role by default
-        )
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
-    
-    # Create user in local database
+    # Create user in local database with hashed password
+    # Clerk handles authentication, but we store user info locally
     user = User(
         email=registration.email,
         full_name=f"{registration.first_name} {registration.last_name}",
         role="parent",
         is_active=True,
-        hashed_password=""  # No password needed, authentication via Keycloak
+        hashed_password=get_password_hash(registration.password)
     )
     db.add(user)
     await db.commit()
     await db.refresh(user)
     
     return RegistrationResponse(
-        message="Parent account created successfully",
+        message="Parent account created successfully. Please sign in with Clerk.",
         user_id=str(user.id),
         email=user.email
     )

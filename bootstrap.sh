@@ -85,30 +85,34 @@ else
 fi
 echo ""
 
-# Determine mode (dev or production) - always ask, even in quick setup
+# Determine mode (dev or production)
 print_question "Select deployment mode:"
 echo "  1) Development (localhost, hot-reload, frontend dev server)"
-echo "  2) Production (custom domain, optimized build)"
+echo "  2) Production (custom domain, optimized build, nginx)"
 read -p "Enter choice [1-2] (default: 1): " MODE_CHOICE
 MODE_CHOICE=${MODE_CHOICE:-1}
 
 if [ "$MODE_CHOICE" = "2" ]; then
     MODE="production"
-    COMPOSE_FILE="docker-compose.prod.yml"
+    COMPOSE_PROFILE="--profile production"
+    RESTART_POLICY="unless-stopped"
+    DEBUG="false"
+    HEALTHCHECK_INTERVAL="10s"
+    BACKEND_COMMAND="sh -c 'echo \"Running migrations...\" && alembic upgrade head && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000'"
+    BACKEND_VOLUME_MOUNT=""
+    BACKEND_PORT=""
 else
     MODE="development"
-    COMPOSE_FILE="docker-compose.yml"
+    COMPOSE_PROFILE=""
+    RESTART_POLICY="no"
+    DEBUG="true"
+    HEALTHCHECK_INTERVAL="5s"
+    BACKEND_COMMAND="sh -c 'echo \"Waiting for database...\" && sleep 5 && echo \"Generating initial migration...\" && alembic revision --autogenerate -m \"Initial migration\" || echo \"Migration already exists\" && echo \"Running migrations...\" && alembic upgrade head && echo \"Initializing database...\" && python -m app.db.init_db || echo \"Database already initialized\" && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'"
+    BACKEND_VOLUME_MOUNT="./backend:/app"
+    BACKEND_PORT="8000"
 fi
 
-if [ "$MODE_CHOICE" = "2" ]; then
-    MODE="production"
-else
-    MODE="development"
-fi
-
-if [ "$USE_DEFAULTS" = false ]; then
-    print_info "Selected mode: $MODE"
-fi
+print_info "Selected mode: $MODE"
 echo ""
 
 # Get host URI
@@ -122,6 +126,17 @@ if [ "$MODE" = "production" ] && [ "$USE_DEFAULTS" = false ]; then
     fi
     
     # Extract domain from URI (remove protocol)
+    DOMAIN=$(echo "$HOST_URI" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+    print_info "Using domain: $DOMAIN"
+elif [ "$MODE" = "production" ]; then
+    print_question "Enter the host URI where this will be deployed (e.g., https://outings.example.com):"
+    read -p "Host URI: " HOST_URI
+    
+    if [ -z "$HOST_URI" ]; then
+        print_error "Host URI is required for production mode"
+        exit 1
+    fi
+    
     DOMAIN=$(echo "$HOST_URI" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
     print_info "Using domain: $DOMAIN"
 else
@@ -208,7 +223,6 @@ else
         fi
         print_info "Using manually set password"
     else
-        # Generate a secure random password (URL-safe base64, 16 bytes = 22 characters)
         INITIAL_ADMIN_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
         print_success "Generated secure admin password"
     fi
@@ -218,58 +232,85 @@ fi
 # CORS configuration
 print_question "CORS Configuration:"
 if [ "$MODE" = "production" ]; then
-    # Always ask for CORS origins in production, even in quick setup
     read -p "Allowed CORS Origins (comma-separated, default: $HOST_URI): " BACKEND_CORS_ORIGINS
     BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-$HOST_URI}
 else
-    # For development, use defaults but allow override in custom mode
     if [ "$USE_DEFAULTS" = false ]; then
-        read -p "Allowed CORS Origins (comma-separated, default: http://localhost:3000,http://localhost:8000,http://localhost:8080): " BACKEND_CORS_ORIGINS
+        read -p "Allowed CORS Origins (comma-separated, default: http://localhost:3000,http://localhost:8000): " BACKEND_CORS_ORIGINS
     fi
-    BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-http://localhost:3000,http://localhost:8000,http://localhost:8080}
+    BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-http://localhost:3000,http://localhost:8000}
     print_info "Using CORS origins: $BACKEND_CORS_ORIGINS"
 fi
 echo ""
 
-# Keycloak configuration
-if [ "$USE_DEFAULTS" = true ]; then
-    KEYCLOAK_ADMIN_USER="admin"
-    KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
-    KEYCLOAK_CLIENT_SECRET=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
-    KEYCLOAK_REALM="scouting-outing"
-    KEYCLOAK_DB_USER="keycloak"
-    KEYCLOAK_DB_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
-    print_info "Keycloak: Using defaults (admin: $KEYCLOAK_ADMIN_USER, realm: $KEYCLOAK_REALM)"
-else
-    print_question "Keycloak OAuth Configuration:"
-    read -p "Keycloak Admin User (default: admin): " KEYCLOAK_ADMIN_USER
-    KEYCLOAK_ADMIN_USER=${KEYCLOAK_ADMIN_USER:-admin}
+# Clerk configuration
+print_header "Clerk Authentication Configuration"
+print_info "Clerk provides modern, secure authentication for your application."
+print_info "Get your API keys from: https://dashboard.clerk.com"
+echo ""
 
-    read -p "Keycloak Admin Password (default: auto-generated): " KEYCLOAK_ADMIN_PASSWORD
-    if [ -z "$KEYCLOAK_ADMIN_PASSWORD" ]; then
-        KEYCLOAK_ADMIN_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
-        print_info "Generated Keycloak admin password: $KEYCLOAK_ADMIN_PASSWORD"
+# Check if clerk-keys.txt exists
+if [ -f "clerk-keys.txt" ]; then
+    print_info "Found clerk-keys.txt file. Reading Clerk keys..."
+    source clerk-keys.txt
+    if [ -n "$CLERK_SECRET_KEY" ] && [ -n "$CLERK_PUBLISHABLE_KEY" ]; then
+        print_success "Loaded Clerk keys from clerk-keys.txt"
+        MASKED_SECRET="${CLERK_SECRET_KEY:0:10}...${CLERK_SECRET_KEY: -4}"
+        MASKED_PUBLIC="${CLERK_PUBLISHABLE_KEY:0:10}...${CLERK_PUBLISHABLE_KEY: -4}"
+        print_info "Secret Key: $MASKED_SECRET"
+        print_info "Publishable Key: $MASKED_PUBLIC"
+        echo ""
+        read -p "Use these keys? [Y/n]: " USE_CLERK_FILE
+        USE_CLERK_FILE=${USE_CLERK_FILE:-Y}
+        if [[ ! "$USE_CLERK_FILE" =~ ^[Yy]$ ]]; then
+            CLERK_SECRET_KEY=""
+            CLERK_PUBLISHABLE_KEY=""
+        fi
+    else
+        print_error "clerk-keys.txt exists but keys are missing or invalid"
+        CLERK_SECRET_KEY=""
+        CLERK_PUBLISHABLE_KEY=""
     fi
-
-    read -p "Keycloak Client Secret (default: auto-generated): " KEYCLOAK_CLIENT_SECRET
-    if [ -z "$KEYCLOAK_CLIENT_SECRET" ]; then
-        KEYCLOAK_CLIENT_SECRET=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
-        print_info "Generated Keycloak client secret"
-    fi
-
-    read -p "Keycloak Realm Name (default: scouting-outing): " KEYCLOAK_REALM
-    KEYCLOAK_REALM=${KEYCLOAK_REALM:-scouting-outing}
-
-    read -p "Keycloak Database User (default: keycloak): " KEYCLOAK_DB_USER
-    KEYCLOAK_DB_USER=${KEYCLOAK_DB_USER:-keycloak}
-
-    read -p "Keycloak Database Password (default: auto-generated): " KEYCLOAK_DB_PASSWORD
-    if [ -z "$KEYCLOAK_DB_PASSWORD" ]; then
-        KEYCLOAK_DB_PASSWORD=$(openssl rand -base64 16 | tr -d "=+/" | cut -c1-22)
-        print_info "Generated Keycloak database password"
-    fi
-    echo ""
 fi
+
+# If keys not loaded from file, ask user
+if [ -z "$CLERK_SECRET_KEY" ] || [ -z "$CLERK_PUBLISHABLE_KEY" ]; then
+    print_question "Enter your Clerk API keys:"
+    echo "  You can get these from https://dashboard.clerk.com"
+    echo "  Or press Enter to use placeholder values (you'll need to update them later)"
+    echo ""
+    
+    read -p "Clerk Secret Key (starts with sk_): " CLERK_SECRET_KEY
+    if [ -z "$CLERK_SECRET_KEY" ]; then
+        CLERK_SECRET_KEY="sk_test_your_clerk_secret_key_here"
+        print_info "Using placeholder secret key - update this before running!"
+    fi
+    
+    read -p "Clerk Publishable Key (starts with pk_): " CLERK_PUBLISHABLE_KEY
+    if [ -z "$CLERK_PUBLISHABLE_KEY" ]; then
+        CLERK_PUBLISHABLE_KEY="pk_test_your_clerk_publishable_key_here"
+        print_info "Using placeholder publishable key - update this before running!"
+    fi
+    
+    # Offer to save keys to file
+    echo ""
+    print_question "Save Clerk keys to clerk-keys.txt for future use?"
+    echo "  This file will be automatically added to .gitignore"
+    read -p "Save keys? [Y/n]: " SAVE_CLERK_KEYS
+    SAVE_CLERK_KEYS=${SAVE_CLERK_KEYS:-Y}
+    if [[ "$SAVE_CLERK_KEYS" =~ ^[Yy]$ ]]; then
+        cat > clerk-keys.txt << EOF
+# Clerk API Keys
+# Generated by bootstrap.sh on $(date)
+# Get your keys from https://dashboard.clerk.com
+
+CLERK_SECRET_KEY=$CLERK_SECRET_KEY
+CLERK_PUBLISHABLE_KEY=$CLERK_PUBLISHABLE_KEY
+EOF
+        print_success "Clerk keys saved to clerk-keys.txt"
+    fi
+fi
+echo ""
 
 # Summary
 print_header "=========================================="
@@ -286,8 +327,8 @@ if [ "$ADMIN_PASSWORD_CHOICE" = "2" ]; then
 else
     echo "Admin Password: [AUTO-GENERATED]"
 fi
-echo "Keycloak Realm: $KEYCLOAK_REALM"
-echo "Keycloak Admin User: $KEYCLOAK_ADMIN_USER"
+echo "Clerk Secret Key: ${CLERK_SECRET_KEY:0:10}...${CLERK_SECRET_KEY: -4}"
+echo "Clerk Publishable Key: ${CLERK_PUBLISHABLE_KEY:0:10}...${CLERK_PUBLISHABLE_KEY: -4}"
 echo ""
 
 read -p "Continue with this configuration? [y/N]: " CONFIRM
@@ -336,14 +377,10 @@ Admin Email: $INITIAL_ADMIN_EMAIL
 Admin Password: $INITIAL_ADMIN_PASSWORD
 
 ========================================
-KEYCLOAK CONFIGURATION
+CLERK CONFIGURATION
 ========================================
-Keycloak Admin User: $KEYCLOAK_ADMIN_USER
-Keycloak Admin Password: $KEYCLOAK_ADMIN_PASSWORD
-Keycloak Realm: $KEYCLOAK_REALM
-Keycloak Client Secret: $KEYCLOAK_CLIENT_SECRET
-Keycloak Database User: $KEYCLOAK_DB_USER
-Keycloak Database Password: $KEYCLOAK_DB_PASSWORD
+Clerk Secret Key: $CLERK_SECRET_KEY
+Clerk Publishable Key: $CLERK_PUBLISHABLE_KEY
 
 ========================================
 ACCESS URLS
@@ -356,13 +393,13 @@ Frontend: http://localhost:3000
 Backend API: http://localhost:8000
 API Docs (Swagger): http://localhost:8000/docs
 API Docs (ReDoc): http://localhost:8000/redoc
-Keycloak Admin: http://localhost:8080
+Clerk Dashboard: https://dashboard.clerk.com
 EOF
     else
         cat >> "$CREDENTIALS_FILE" << EOF
 Application: $HOST_URI
 API Docs: $HOST_URI/docs
-Keycloak Admin: ${HOST_URI%/*}:8080
+Clerk Dashboard: https://dashboard.clerk.com
 EOF
     fi
 
@@ -372,7 +409,7 @@ fi
 
 # Cleanup existing containers and volumes
 print_header "Cleaning up existing containers..."
-$DOCKER_COMPOSE -f $COMPOSE_FILE down 2>/dev/null || true
+$DOCKER_COMPOSE down 2>/dev/null || true
 
 # Check for volumes
 VOLUMES_EXIST=false
@@ -422,7 +459,7 @@ REFRESH_TOKEN_EXPIRE_DAYS=$REFRESH_TOKEN_EXPIRE_DAYS
 PROJECT_NAME=Scouting Outing Manager
 VERSION=1.0.0
 API_V1_STR=/api
-DEBUG=$([ "$MODE" = "development" ] && echo "true" || echo "false")
+DEBUG=$DEBUG
 
 # CORS Configuration
 BACKEND_CORS_ORIGINS=$BACKEND_CORS_ORIGINS
@@ -431,13 +468,9 @@ BACKEND_CORS_ORIGINS=$BACKEND_CORS_ORIGINS
 INITIAL_ADMIN_EMAIL=$INITIAL_ADMIN_EMAIL
 INITIAL_ADMIN_PASSWORD=$INITIAL_ADMIN_PASSWORD
 
-# Keycloak OAuth/OIDC Configuration
-KEYCLOAK_URL=http://keycloak:8080
-KEYCLOAK_REALM=$KEYCLOAK_REALM
-KEYCLOAK_CLIENT_ID=scouting-outing-backend
-KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
-KEYCLOAK_ADMIN_USER=$KEYCLOAK_ADMIN_USER
-KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD
+# Clerk Configuration
+CLERK_SECRET_KEY=$CLERK_SECRET_KEY
+CLERK_PUBLISHABLE_KEY=$CLERK_PUBLISHABLE_KEY
 FRONTEND_URL=$([ "$MODE" = "development" ] && echo "http://localhost:3000" || echo "$HOST_URI")
 EOF
 
@@ -449,19 +482,20 @@ print_header "Creating frontend .env file..."
 
 # Determine API URL based on mode
 if [ "$MODE" = "production" ]; then
-    # For production with nginx proxy, use relative path
-    # The frontend will be served from the same domain, so /api is correct
     API_URL="/api"
-    VITE_API_URL_FOR_BUILD="/api"
 else
     API_URL="http://localhost:8000/api"
-    VITE_API_URL_FOR_BUILD="http://localhost:8000/api"
 fi
 
 cat > frontend/.env << EOF
-# Backend API URL
+# Frontend Environment Configuration
 # Generated by bootstrap.sh on $(date)
+
+# Backend API URL
 VITE_API_URL=$API_URL
+
+# Clerk Configuration
+VITE_CLERK_PUBLISHABLE_KEY=$CLERK_PUBLISHABLE_KEY
 EOF
 
 print_success "Frontend .env file created"
@@ -473,10 +507,16 @@ cat > .env << EOF
 # Docker Compose Environment Variables
 # Generated by bootstrap.sh on $(date)
 
+# Deployment Mode
+RESTART_POLICY=$RESTART_POLICY
+DEBUG=$DEBUG
+HEALTHCHECK_INTERVAL=$HEALTHCHECK_INTERVAL
+
 # Database Configuration
 POSTGRES_USER=$POSTGRES_USER
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 POSTGRES_DB=$POSTGRES_DB
+POSTGRES_PORT=$POSTGRES_PORT
 
 # Security
 SECRET_KEY=$SECRET_KEY
@@ -486,26 +526,26 @@ REFRESH_TOKEN_EXPIRE_DAYS=$REFRESH_TOKEN_EXPIRE_DAYS
 # CORS
 BACKEND_CORS_ORIGINS=$BACKEND_CORS_ORIGINS
 
-# Initial Admin User (for database initialization)
+# Initial Admin User
 INITIAL_ADMIN_EMAIL=$INITIAL_ADMIN_EMAIL
 INITIAL_ADMIN_PASSWORD=$INITIAL_ADMIN_PASSWORD
 
-# Keycloak Configuration
-KEYCLOAK_ADMIN_USER=$KEYCLOAK_ADMIN_USER
-KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD
-KEYCLOAK_DB_USER=$KEYCLOAK_DB_USER
-KEYCLOAK_DB_PASSWORD=$KEYCLOAK_DB_PASSWORD
-KEYCLOAK_REALM=$KEYCLOAK_REALM
-KEYCLOAK_CLIENT_ID=scouting-outing-backend
-KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
+# Clerk Configuration
+CLERK_SECRET_KEY=$CLERK_SECRET_KEY
+CLERK_PUBLISHABLE_KEY=$CLERK_PUBLISHABLE_KEY
 FRONTEND_URL=$([ "$MODE" = "development" ] && echo "http://localhost:3000" || echo "$HOST_URI")
+
+# Backend Configuration
+BACKEND_COMMAND=$BACKEND_COMMAND
+BACKEND_VOLUME_MOUNT=$BACKEND_VOLUME_MOUNT
+BACKEND_PORT=$BACKEND_PORT
 EOF
 
 if [ "$MODE" = "production" ]; then
     cat >> .env << EOF
 
 # Frontend Build
-VITE_API_URL=$VITE_API_URL_FOR_BUILD
+VITE_API_URL=$API_URL
 EOF
 fi
 
@@ -517,13 +557,13 @@ print_header "Building and starting services..."
 print_info "This may take a few minutes on first run..."
 echo ""
 
-$DOCKER_COMPOSE -f $COMPOSE_FILE up --build -d
+$DOCKER_COMPOSE $COMPOSE_PROFILE up --build -d
 
 print_info "Waiting for services to be ready..."
 sleep 10
 
 # Check if services are running
-if $DOCKER_COMPOSE -f $COMPOSE_FILE ps | grep -q "Up\|running"; then
+if $DOCKER_COMPOSE ps | grep -q "Up\|running"; then
     print_success "Services are running!"
     echo ""
     
@@ -531,83 +571,21 @@ if $DOCKER_COMPOSE -f $COMPOSE_FILE ps | grep -q "Up\|running"; then
     print_info "Waiting for database to be ready..."
     sleep 5
     
-    # Wait for Keycloak to be ready
-    print_info "Waiting for Keycloak to be ready..."
-    sleep 10  # Keycloak takes longer to start
-    
-    # Initialize Keycloak
-    print_header "Initializing Keycloak..."
-    if command -v jq &> /dev/null; then
-        # Use the init script if jq is available
-        export KEYCLOAK_URL="http://localhost:8080"
-        export KEYCLOAK_ADMIN="$KEYCLOAK_ADMIN_USER"
-        export KEYCLOAK_ADMIN_PASSWORD="$KEYCLOAK_ADMIN_PASSWORD"
-        export REALM_NAME="$KEYCLOAK_REALM"
-        export KEYCLOAK_CLIENT_SECRET="$KEYCLOAK_CLIENT_SECRET"
-        export FRONTEND_URL="$([ "$MODE" = "development" ] && echo "http://localhost:3000" || echo "$HOST_URI")"
-        export BACKEND_URL="$([ "$MODE" = "development" ] && echo "http://localhost:8000" || echo "${HOST_URI%/*}:8000")"
-        
-        # Wait a bit more for Keycloak to be fully ready
-        print_info "Waiting for Keycloak to be fully ready..."
-        for i in {1..30}; do
-            if curl -f -s "${KEYCLOAK_URL}/realms/master" > /dev/null 2>&1; then
-                print_success "Keycloak is ready!"
-                break
-            fi
-            echo -n "."
-            sleep 2
-        done
-        echo ""
-        
-        if [ -f "./keycloak/init-keycloak.sh" ]; then
-            chmod +x ./keycloak/init-keycloak.sh
-            ./keycloak/init-keycloak.sh && {
-                print_success "Keycloak configured successfully!"
-                print_info "Realm: $KEYCLOAK_REALM"
-                print_info "Backend Client: scouting-outing-backend"
-                print_info "Frontend Client: scouting-outing-frontend"
-            } || {
-                print_error "Keycloak initialization script failed."
-                print_info "You may need to configure Keycloak manually."
-                print_info "Access Keycloak Admin Console at: http://localhost:8080"
-                print_info "Login with: $KEYCLOAK_ADMIN_USER / $KEYCLOAK_ADMIN_PASSWORD"
-            }
-        else
-            print_error "Keycloak initialization script not found at ./keycloak/init-keycloak.sh"
-            print_info "Please configure Keycloak manually."
-            print_info "Access Keycloak Admin Console at: http://localhost:8080"
-        fi
-    else
-        print_error "jq is not installed. Skipping automatic Keycloak initialization."
-        print_info "Please install jq (brew install jq on macOS) or configure Keycloak manually:"
-        print_info "  Access Keycloak Admin Console at: http://localhost:8080"
-        print_info "  Login with: $KEYCLOAK_ADMIN_USER / $KEYCLOAK_ADMIN_PASSWORD"
-        print_info ""
-        print_info "Manual configuration steps:"
-        print_info "  1. Create realm: $KEYCLOAK_REALM"
-        print_info "  2. Create backend client: scouting-outing-backend (confidential)"
-        print_info "  3. Create frontend client: scouting-outing-frontend (public)"
-        print_info "  4. Create roles: parent, admin"
-    fi
-    echo ""
-    
     # Run database initialization
     print_header "Initializing database..."
     
-    # For production, we need to pass env vars since .env file isn't mounted
     if [ "$MODE" = "production" ]; then
         docker exec -e INITIAL_ADMIN_EMAIL="$INITIAL_ADMIN_EMAIL" \
                    -e INITIAL_ADMIN_PASSWORD="$INITIAL_ADMIN_PASSWORD" \
                    scouting-outing-backend python -m app.db.init_db || {
             print_error "Database initialization failed. Check logs with:"
-            echo "   $DOCKER_COMPOSE -f $COMPOSE_FILE logs backend"
+            echo "   $DOCKER_COMPOSE logs backend"
             exit 1
         }
     else
-        # For development, the .env file is mounted, so it will be read automatically
-        $DOCKER_COMPOSE -f $COMPOSE_FILE exec -T backend python -m app.db.init_db || {
+        $DOCKER_COMPOSE exec -T backend python -m app.db.init_db || {
             print_error "Database initialization failed. Check logs with:"
-            echo "   $DOCKER_COMPOSE -f $COMPOSE_FILE logs backend"
+            echo "   $DOCKER_COMPOSE logs backend"
             exit 1
         }
     fi
@@ -627,10 +605,8 @@ if $DOCKER_COMPOSE -f $COMPOSE_FILE ps | grep -q "Up\|running"; then
         echo "   Swagger UI: http://localhost:8000/docs"
         echo "   ReDoc:      http://localhost:8000/redoc"
         echo ""
-        echo "🔐 Keycloak Admin Console:"
-        echo "   URL: http://localhost:8080"
-        echo "   Username: $KEYCLOAK_ADMIN_USER"
-        echo "   Password: $KEYCLOAK_ADMIN_PASSWORD"
+        echo "🔐 Clerk Dashboard:"
+        echo "   URL: https://dashboard.clerk.com"
         echo ""
         echo "🌐 Frontend:"
         echo "   To start the frontend dev server, run:"
@@ -652,12 +628,11 @@ if $DOCKER_COMPOSE -f $COMPOSE_FILE ps | grep -q "Up\|running"; then
         fi
         echo ""
         echo "📊 View logs:"
-        echo "   Backend:  $DOCKER_COMPOSE -f $COMPOSE_FILE logs -f backend"
-        echo "   Frontend: $DOCKER_COMPOSE -f $COMPOSE_FILE logs -f frontend"
-        echo "   All:      $DOCKER_COMPOSE -f $COMPOSE_FILE logs -f"
+        echo "   Backend:  $DOCKER_COMPOSE logs -f backend"
+        echo "   All:      $DOCKER_COMPOSE logs -f"
         echo ""
         echo "🛑 Stop services:"
-        echo "   $DOCKER_COMPOSE -f $COMPOSE_FILE down"
+        echo "   $DOCKER_COMPOSE down"
     else
         print_success "Production mode is active"
         echo ""
@@ -667,10 +642,8 @@ if $DOCKER_COMPOSE -f $COMPOSE_FILE ps | grep -q "Up\|running"; then
         echo "📚 API Documentation:"
         echo "   $HOST_URI/docs"
         echo ""
-        echo "🔐 Keycloak Admin Console:"
-        echo "   URL: ${HOST_URI%/*}:8080"  # Remove path, add :8080
-        echo "   Username: $KEYCLOAK_ADMIN_USER"
-        echo "   Password: $KEYCLOAK_ADMIN_PASSWORD"
+        echo "🔐 Clerk Dashboard:"
+        echo "   URL: https://dashboard.clerk.com"
         echo ""
         echo "🔐 Admin Credentials:"
         if [ "$ADMIN_PASSWORD_CHOICE" = "2" ]; then
@@ -687,22 +660,17 @@ if $DOCKER_COMPOSE -f $COMPOSE_FILE ps | grep -q "Up\|running"; then
         fi
         echo ""
         echo "📊 View logs:"
-        echo "   $DOCKER_COMPOSE -f $COMPOSE_FILE logs -f"
+        echo "   $DOCKER_COMPOSE logs -f"
         echo ""
         echo "🛑 Stop services:"
-        echo "   $DOCKER_COMPOSE -f $COMPOSE_FILE down"
+        echo "   $DOCKER_COMPOSE down"
     fi
     
     echo ""
     print_info "Configuration files saved:"
-    if [ "$MODE" = "production" ]; then
-        echo "   - .env (root, for docker-compose)"
-        echo "   - backend/.env"
-        echo "   - frontend/.env"
-    else
-        echo "   - backend/.env"
-        echo "   - frontend/.env"
-    fi
+    echo "   - .env (root, for docker-compose)"
+    echo "   - backend/.env"
+    echo "   - frontend/.env"
     
     if [ "$SAVE_CREDS" = true ]; then
         echo ""
@@ -716,7 +684,6 @@ if $DOCKER_COMPOSE -f $COMPOSE_FILE ps | grep -q "Up\|running"; then
     
 else
     print_error "Failed to start services. Check logs with:"
-    echo "   $DOCKER_COMPOSE -f $COMPOSE_FILE logs"
+    echo "   $DOCKER_COMPOSE logs"
     exit 1
 fi
-

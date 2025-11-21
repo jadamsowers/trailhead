@@ -87,9 +87,9 @@ Created parent dashboard with:
 ## Integration Points
 
 ### Authentication Flow
-1. Parents register via Keycloak OAuth (`/api/register/register`)
+1. Parents register via Clerk OAuth
 2. After registration, they're assigned the "parent" role
-3. They can log in via Keycloak OAuth flow
+3. They can log in via Clerk OAuth flow
 4. Access token is used for all family management operations
 
 ### 9. Trip Signup Integration (`frontend/src/components/Participant/SignupForm.tsx`) ✅ COMPLETED
@@ -168,11 +168,9 @@ family_member_allergies
 ## API Endpoints
 
 ### Authentication
-- `POST /api/register/register` - Register new parent account
-- `GET /api/oauth/authorize` - Initiate OAuth flow
-- `GET /api/oauth/callback` - OAuth callback
-- `POST /api/oauth/token` - Exchange code for token
-- `GET /api/oauth/me` - Get current user info
+- Clerk OAuth handles authentication
+- `/api/clerk/me` - Get current user info
+- `/api/clerk/sync-role` - Sync role from Clerk metadata
 
 ### Family Management
 - `GET /api/family/` - List all family members
@@ -197,8 +195,8 @@ python3 -m alembic upgrade head
 
 ### 2. Testing
 Test the complete flow:
-1. Register as a parent
-2. Log in via Keycloak
+1. Register as a parent via Clerk
+2. Log in via Clerk OAuth
 3. Add family members
 4. Sign up for a trip using saved family members
 5. Verify data is correctly saved and retrieved
@@ -215,6 +213,6 @@ Test the complete flow:
 
 - All family management endpoints require authentication
 - Users can only access their own family members
-- Keycloak handles authentication and user management
+- Clerk handles authentication and user management
 - JWT tokens used for API authorization
 - Cascade deletes ensure data integrity

@@ -5,7 +5,7 @@ from sqlalchemy import select
 from typing import Optional, Dict, Any
 
 from app.core.security import decode_token
-from app.core.keycloak import get_keycloak_client
+from app.core.clerk import get_clerk_client
 from app.db.session import get_db
 from app.models.user import User
 
@@ -17,25 +17,20 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """
-    Get the current authenticated user from OAuth token (Keycloak) or JWT token (legacy).
-    Tries Keycloak OAuth first, falls back to legacy JWT if that fails.
+    Get the current authenticated user from Clerk session token or JWT token (legacy).
+    Tries Clerk authentication first, falls back to legacy JWT if that fails.
     """
     token = credentials.credentials
     
-    # Try Keycloak OAuth token first
+    # Try Clerk session token first
     try:
-        keycloak = get_keycloak_client()
-        token_info = keycloak.introspect_token(token)
+        clerk = get_clerk_client()
+        token_data = await clerk.verify_token(token)
+        clerk_user_id = token_data["user_id"]
         
-        if not token_info.get("active", False):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token is not active"
-            )
-        
-        # Get user info from token
-        user_info = keycloak.get_userinfo(token)
-        email = user_info.get("email")
+        # Get user info from Clerk
+        clerk_user = await clerk.get_user(clerk_user_id)
+        email = clerk_user.get("email")
         
         if not email:
             raise HTTPException(
@@ -48,18 +43,17 @@ async def get_current_user(
         user = result.scalar_one_or_none()
         
         if user is None:
-            # Create user from Keycloak info
-            # Extract roles from token
-            realm_access = token_info.get("realm_access", {})
-            roles = realm_access.get("roles", [])
-            role = "admin" if "admin" in roles else ("parent" if "parent" in roles else "user")
+            # Create user from Clerk info
+            # Get metadata to check for role
+            metadata = await clerk.get_user_metadata(clerk_user_id)
+            role = metadata.get("public_metadata", {}).get("role", "user")
             
             user = User(
                 email=email,
-                full_name=f"{user_info.get('given_name', '')} {user_info.get('family_name', '')}".strip() or email,
+                full_name=clerk_user.get("full_name") or email,
                 role=role,
                 is_active=True,
-                hashed_password=""  # No password needed for OAuth users
+                hashed_password=""  # No password needed for Clerk users
             )
             db.add(user)
             await db.commit()
@@ -73,7 +67,9 @@ async def get_current_user(
         
         return user
         
-    except (ValueError, Exception) as e:
+    except HTTPException:
+        raise
+    except Exception as e:
         # Fall back to legacy JWT token validation
         try:
             payload = decode_token(token)

@@ -10,17 +10,18 @@ alembic==1.12.1
 greenlet==3.0.1
 
 # Data validation
-pydantic==2.5.0
-pydantic-settings==2.1.0
+pydantic>=2.11.2
+pydantic-settings>=2.1.0
 email-validator==2.1.0
 
 # Authentication
 bcrypt==4.0.1
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-# OAuth/OIDC
-httpx==0.25.2
-python-keycloak==2.10.0
+# Clerk SDK
+httpx>=0.28.1
+clerk-backend-api==4.0.0
+PyJWT[crypto]>=2.9.0
 
 # CORS
 python-dotenv==1.0.0

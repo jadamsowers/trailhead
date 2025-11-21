@@ -30,15 +30,11 @@ class Settings(BaseSettings):
     INITIAL_ADMIN_EMAIL: str = "soadmin@scouthacks.net"
     INITIAL_ADMIN_PASSWORD: Optional[str] = None  # If None, a random password will be generated
     
-    # Keycloak OAuth/OIDC Configuration
-    KEYCLOAK_URL: str = "http://localhost:8080"
-    KEYCLOAK_REALM: str = "scouting-outing"
-    KEYCLOAK_CLIENT_ID: str = "scouting-outing-backend"
-    KEYCLOAK_CLIENT_SECRET: str = "dev-client-secret-change-in-production"
-    KEYCLOAK_ADMIN_USER: str = "admin"
-    KEYCLOAK_ADMIN_PASSWORD: str = "admin123"
+    # Clerk Configuration
+    CLERK_SECRET_KEY: str = "sk_test_your_clerk_secret_key_here"
+    CLERK_PUBLISHABLE_KEY: str = "pk_test_your_clerk_publishable_key_here"
     
-    # Frontend URL for OAuth redirects
+    # Frontend URL
     FRONTEND_URL: str = "http://localhost:3000"
     
     # CORS - will be parsed from string to list

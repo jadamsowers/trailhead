@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.endpoints import trips, signups, csv_import, auth, oauth, registration, family
+from app.api.endpoints import trips, signups, csv_import, auth, registration, family, clerk_auth
 
 # Create FastAPI application with enhanced documentation
 app = FastAPI(
@@ -82,9 +82,9 @@ app.include_router(
 )
 
 app.include_router(
-    oauth.router,
-    prefix=f"{settings.API_V1_STR}/oauth",
-    tags=["oauth"]
+    clerk_auth.router,
+    prefix=f"{settings.API_V1_STR}/clerk",
+    tags=["clerk-auth"]
 )
 
 app.include_router(
