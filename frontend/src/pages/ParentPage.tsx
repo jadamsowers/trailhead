@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import { FamilyManagement } from '../components/Parent/FamilyManagement';
 import TripList from '../components/Shared/TripList';
-import { useAuth } from '../contexts/AuthContext';
 import { tripAPI } from '../services/api';
 import { Trip } from '../types';
 
 export const ParentPage: React.FC = () => {
-    const { user } = useAuth();
+    const { user } = useUser();
     const [activeTab, setActiveTab] = useState<'trips' | 'family'>('trips');
     const [trips, setTrips] = useState<Trip[]>([]);
     const [loading, setLoading] = useState(true);
@@ -31,8 +31,8 @@ export const ParentPage: React.FC = () => {
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        Welcome, {user?.full_name || 'Parent'}!
+                    <h1 className="text-3xl font-heading font-bold text-gray-900">
+                        Welcome, {user?.firstName || user?.fullName || 'Parent'}!
                     </h1>
                     <p className="text-gray-600 mt-2">
                         Manage your family and sign up for trips
@@ -70,7 +70,7 @@ export const ParentPage: React.FC = () => {
                     {activeTab === 'trips' && (
                         <div>
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                                <h3 className="font-semibold text-blue-900 mb-2">
+                                <h3 className="font-heading font-semibold text-blue-900 mb-2">
                                     💡 Tip: Add your family members first!
                                 </h3>
                                 <p className="text-blue-800 text-sm">

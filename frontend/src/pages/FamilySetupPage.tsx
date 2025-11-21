@@ -1,0 +1,205 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
+import { FamilyManagement } from '../components/Parent/FamilyManagement';
+import { familyAPI } from '../services/api';
+import TopographicBackground from '../components/Shared/TopographicBackground';
+
+const FamilySetupPage: React.FC = () => {
+    const { user } = useUser();
+    const navigate = useNavigate();
+    const [hasFamilyMembers, setHasFamilyMembers] = useState(false);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        checkFamilyMembers();
+    }, []);
+
+    const checkFamilyMembers = async () => {
+        try {
+            const data = await familyAPI.getSummary();
+            setHasFamilyMembers(data.length > 0);
+        } catch (err) {
+            console.error('Failed to check family members:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleContinue = () => {
+        navigate('/trips');
+    };
+
+    const handleMemberAdded = () => {
+        checkFamilyMembers();
+    };
+
+    if (loading) {
+        return (
+            <>
+                <TopographicBackground />
+                <div style={{
+                    minHeight: 'calc(100vh - 200px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div style={{ textAlign: 'center', color: '#666' }}>
+                        <p>Loading...</p>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    return (
+        <>
+            <TopographicBackground />
+            <div style={{
+                minHeight: 'calc(100vh - 200px)',
+                padding: '40px 20px'
+            }}>
+                <div style={{
+                    maxWidth: '1200px',
+                    margin: '0 auto'
+                }}>
+                    {/* Welcome Header Card */}
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '40px',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                        marginBottom: '30px',
+                        textAlign: 'center'
+                    }}>
+                        <h1 style={{
+                            fontSize: '32px',
+                            fontWeight: 'bold',
+                            color: '#1976d2',
+                            marginBottom: '10px'
+                        }}>
+                            Welcome, {user?.firstName || 'Parent'}!
+                        </h1>
+                        <p style={{
+                            color: '#666',
+                            fontSize: '16px',
+                            marginBottom: '0'
+                        }}>
+                            Let's set up your family members so you can easily sign up for trips
+                        </p>
+                    </div>
+
+                    {/* Instructions Card - Only show if no family members */}
+                    {!hasFamilyMembers && (
+                        <div style={{
+                            backgroundColor: '#e3f2fd',
+                            border: '1px solid #90caf9',
+                            borderRadius: '8px',
+                            padding: '30px',
+                            marginBottom: '30px'
+                        }}>
+                            <h2 style={{
+                                fontSize: '24px',
+                                fontWeight: '600',
+                                color: '#1565c0',
+                                marginBottom: '15px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px'
+                            }}>
+                                <span style={{ fontSize: '28px' }}>👨‍👩‍👧‍👦</span>
+                                Add Your Family Members
+                            </h2>
+                            <p style={{
+                                color: '#1565c0',
+                                marginBottom: '20px',
+                                fontSize: '15px',
+                                lineHeight: '1.6'
+                            }}>
+                                Before you can sign up for trips, please add at least one family member (scout or parent).
+                                This information will be saved and can be reused for future trip signups, saving you time!
+                            </p>
+                            <ul style={{
+                                color: '#1565c0',
+                                paddingLeft: '20px',
+                                margin: '0',
+                                lineHeight: '2'
+                            }}>
+                                <li>Add scouts with their troop information</li>
+                                <li>Add parents/adults with youth protection training status</li>
+                                <li>Include dietary restrictions and allergies</li>
+                                <li>Update information anytime</li>
+                            </ul>
+                        </div>
+                    )}
+
+                    {/* Family Management Section */}
+                    <div style={{
+                        backgroundColor: 'white',
+                        padding: '40px',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                        marginBottom: '30px'
+                    }}>
+                        <FamilyManagement onMemberAdded={handleMemberAdded} />
+                    </div>
+
+                    {/* Continue Button - Only show if has family members */}
+                    {hasFamilyMembers && (
+                        <div style={{
+                            textAlign: 'center',
+                            marginBottom: '30px'
+                        }}>
+                            <button
+                                onClick={handleContinue}
+                                style={{
+                                    padding: '16px 48px',
+                                    backgroundColor: '#2e7d32',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontSize: '18px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                                    transition: 'all 0.2s'
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#1b5e20';
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#2e7d32';
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+                                }}
+                            >
+                                Continue to Trip Signups →
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Help Text - Only show if no family members */}
+                    {!hasFamilyMembers && (
+                        <div style={{
+                            textAlign: 'center',
+                            padding: '20px',
+                            backgroundColor: '#f5f5f5',
+                            borderRadius: '8px',
+                            color: '#666',
+                            fontSize: '14px'
+                        }}>
+                            <p style={{ margin: '0' }}>
+                                Once you've added at least one family member, you can continue to browse and sign up for trips.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </>
+    );
+};
+
+export default FamilySetupPage;

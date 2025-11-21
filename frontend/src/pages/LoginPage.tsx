@@ -1,94 +1,50 @@
-import React from 'react';
-import { SignIn } from '@clerk/clerk-react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { SignIn, useUser } from '@clerk/clerk-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {
+    const { isSignedIn } = useUser();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // Redirect to family setup if user is signed in
+        if (isSignedIn) {
+            navigate('/family-setup');
+        }
+    }, [isSignedIn, navigate]);
+
     return (
-        <div style={{
-            minHeight: 'calc(100vh - 200px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-            flexDirection: 'column',
-            gap: '30px'
-        }}>
-            <div style={{
-                maxWidth: '450px',
-                width: '100%',
-                backgroundColor: 'white',
-                padding: '40px',
-                borderRadius: '8px',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                textAlign: 'center'
-            }}>
-                <h1 style={{
-                    marginBottom: '10px',
-                    color: '#1976d2'
-                }}>
+        <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-5 flex-col gap-8">
+            <div className="max-w-md w-full bg-white p-10 rounded-lg shadow-lg text-center">
+                <h1 className="font-heading mb-2.5 text-primary-500">
                     Welcome Back
                 </h1>
-                <p style={{
-                    marginBottom: '30px',
-                    color: '#666',
-                    fontSize: '14px'
-                }}>
-                    Sign in to manage trips and view signups
+                <p className="mb-8 text-gray-600 text-sm">
+                    Sign in to set up your family and sign up for trips
                 </p>
 
-                <SignIn 
-                    routing="path"
-                    path="/login"
+                <SignIn
+                    afterSignInUrl="/family-setup"
                     signUpUrl="/sign-up"
-                    afterSignInUrl="/admin"
                 />
             </div>
 
-            <div style={{
-                maxWidth: '450px',
-                width: '100%',
-                padding: '20px',
-                backgroundColor: '#f5f5f5',
-                borderRadius: '4px',
-                fontSize: '14px',
-                color: '#666',
-                textAlign: 'center'
-            }}>
-                <p style={{ marginBottom: '10px' }}>
+            <div className="max-w-md w-full p-5 bg-gray-100 rounded text-sm text-gray-600 text-center">
+                <p className="mb-2.5">
                     <strong>First time setup?</strong>
                 </p>
-                <p style={{ marginBottom: '15px' }}>
+                <p className="mb-4">
                     If you're setting up the system for the first time, you'll need to create an initial admin account.
                 </p>
                 <Link
                     to="/admin-setup"
-                    style={{
-                        display: 'inline-block',
-                        padding: '10px 20px',
-                        backgroundColor: '#1976d2',
-                        color: 'white',
-                        textDecoration: 'none',
-                        borderRadius: '4px',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        transition: 'background-color 0.2s'
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1565c0'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#1976d2'}
+                    className="inline-block px-5 py-2.5 bg-primary-500 text-white no-underline rounded text-sm font-bold transition-colors hover:bg-primary-600"
                 >
                     Initial Admin Setup
                 </Link>
             </div>
 
-            <div style={{
-                maxWidth: '450px',
-                width: '100%',
-                padding: '15px',
-                backgroundColor: '#e3f2fd',
-                borderRadius: '4px',
-                fontSize: '13px',
-                color: '#1565c0'
-            }}>
+            <div className="max-w-md w-full p-4 bg-blue-50 rounded text-xs text-primary-600">
                 <strong>ℹ️ About Clerk Authentication:</strong><br />
                 Clerk provides secure, modern authentication with built-in user management. Your credentials are never stored in this application.
             </div>

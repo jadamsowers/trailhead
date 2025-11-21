@@ -6,6 +6,7 @@ from typing import Optional, Dict, Any
 
 from app.core.security import decode_token
 from app.core.clerk import get_clerk_client
+from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import User
 
@@ -44,20 +45,32 @@ async def get_current_user(
         
         if user is None:
             # Create user from Clerk info
-            # Get metadata to check for role
-            metadata = await clerk.get_user_metadata(clerk_user_id)
-            role = metadata.get("public_metadata", {}).get("role", "user")
+            # Check if this is the initial admin email
+            is_initial_admin = email.lower() == settings.INITIAL_ADMIN_EMAIL.lower()
+            if is_initial_admin:
+                role = "admin"
+            else:
+                # Get metadata to check for role
+                metadata = await clerk.get_user_metadata(clerk_user_id)
+                role = metadata.get("public_metadata", {}).get("role", "user")
             
             user = User(
                 email=email,
                 full_name=clerk_user.get("full_name") or email,
                 role=role,
                 is_active=True,
+                is_initial_admin=is_initial_admin,
                 hashed_password=""  # No password needed for Clerk users
             )
             db.add(user)
             await db.commit()
             await db.refresh(user)
+        else:
+            # If user exists and matches admin email, ensure they have admin role
+            if email.lower() == settings.INITIAL_ADMIN_EMAIL.lower() and user.role != "admin":
+                user.role = "admin"
+                await db.commit()
+                await db.refresh(user)
         
         if not user.is_active:
             raise HTTPException(

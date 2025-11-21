@@ -3,14 +3,22 @@ Clerk authentication endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from typing import List
+from pydantic import BaseModel
 
 from app.db.session import get_db
 from app.core.clerk import get_clerk_client
 from app.schemas.auth import UserResponse
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_current_admin_user
 from app.models.user import User
 
 router = APIRouter()
+
+
+class UpdateUserRoleRequest(BaseModel):
+    """Schema for updating user role"""
+    role: str
 
 
 @router.get("/me", response_model=UserResponse)
@@ -48,3 +56,75 @@ async def sync_user_role(
     await db.commit()
     
     return {"message": "Role synced successfully", "role": role}
+
+
+@router.get("/users", response_model=List[UserResponse])
+async def list_users(
+    current_user: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    List all users in the system. Admin only.
+    """
+    result = await db.execute(select(User).order_by(User.created_at))
+    users = result.scalars().all()
+    
+    return [
+        UserResponse(
+            id=user.id,
+            email=user.email,
+            full_name=user.full_name,
+            role=user.role,
+            is_initial_admin=user.is_initial_admin
+        )
+        for user in users
+    ]
+
+
+@router.patch("/users/{user_id}/role", response_model=UserResponse)
+async def update_user_role(
+    user_id: str,
+    request: UpdateUserRoleRequest,
+    current_user: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update a user's role. Admin only.
+    Cannot demote the initial admin.
+    """
+    # Validate role
+    if request.role not in ["admin", "parent", "user"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid role. Must be one of: admin, parent, user"
+        )
+    
+    # Get the target user
+    result = await db.execute(select(User).where(User.id == user_id))
+    target_user = result.scalar_one_or_none()
+    
+    if not target_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Prevent demotion of initial admin
+    if target_user.is_initial_admin and request.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot demote the initial admin user"
+        )
+    
+    # Update the role
+    target_user.role = request.role
+    await db.commit()
+    await db.refresh(target_user)
+    
+    return UserResponse(
+        id=target_user.id,
+        email=target_user.email,
+        full_name=target_user.full_name,
+        role=target_user.role,
+        is_initial_admin=target_user.is_initial_admin
+    )

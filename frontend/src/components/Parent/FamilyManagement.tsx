@@ -24,12 +24,29 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
     const loadFamilyMembers = async () => {
         try {
             setLoading(true);
-            const response = await familyAPI.getAll();
-            setMembers(response.members);
             setError(null);
-        } catch (err) {
-            setError('Failed to load family members');
-            console.error(err);
+            console.log('🔄 Loading family members...');
+            const response = await familyAPI.getAll();
+            console.log('✅ Family members loaded:', response);
+            setMembers(response.members);
+        } catch (err: any) {
+            const errorMessage = err?.message || 'Failed to load family members';
+            console.error('❌ Error loading family members:', {
+                error: err,
+                message: errorMessage,
+                status: err?.status
+            });
+            
+            // Provide more specific error messages
+            if (err?.status === 401) {
+                setError('Authentication required. Please log in again.');
+            } else if (err?.status === 403) {
+                setError('You do not have permission to view family members.');
+            } else if (err?.status === 404) {
+                setError('Family members endpoint not found. Please contact support.');
+            } else {
+                setError(errorMessage);
+            }
         } finally {
             setLoading(false);
         }
@@ -81,12 +98,33 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900">Family Members</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1976d2', margin: '0' }}>Family Members</h2>
                 <button
                     onClick={handleAddMember}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                    style={{
+                        padding: '12px 24px',
+                        backgroundColor: '#1976d2',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}
+                    onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#1565c0';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                    }}
+                    onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = '#1976d2';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                    }}
                 >
                     + Add Family Member
                 </button>
@@ -99,17 +137,47 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
             )}
 
             {members.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
-                    <p className="text-gray-600 mb-4">No family members added yet</p>
+                <div style={{
+                    textAlign: 'center',
+                    padding: '48px 24px',
+                    backgroundColor: '#f5f5f5',
+                    borderRadius: '8px'
+                }}>
+                    <p style={{ color: '#666', marginBottom: '24px', fontSize: '16px' }}>No family members added yet</p>
                     <button
                         onClick={handleAddMember}
-                        className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                        style={{
+                            padding: '14px 32px',
+                            backgroundColor: '#1976d2',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor = '#1565c0';
+                            e.currentTarget.style.transform = 'translateY(-1px)';
+                            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = '#1976d2';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                        }}
                     >
                         Add Your First Family Member
                     </button>
                 </div>
             ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                    gap: '20px'
+                }}>
                     {members.map((member) => (
                         <FamilyMemberCard
                             key={member.id}
@@ -144,27 +212,87 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
         : null;
 
     return (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-3">
-                <div>
-                    <h3 className="font-semibold text-lg text-gray-900">{member.name}</h3>
-                    <span className={`inline-block px-2 py-1 text-xs rounded ${
-                        member.member_type === 'scout' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
-                    }`}>
-                        {member.member_type === 'scout' ? 'Scout' : 'Parent'}
+        <div style={{
+            backgroundColor: 'white',
+            border: '1px solid #e0e0e0',
+            borderRadius: '8px',
+            padding: '20px',
+            transition: 'box-shadow 0.2s, transform 0.2s',
+            cursor: 'default',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
+        }}
+        onMouseOver={(e) => {
+            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+            e.currentTarget.style.transform = 'translateY(-2px)';
+        }}
+        onMouseOut={(e) => {
+            e.currentTarget.style.boxShadow = 'none';
+            e.currentTarget.style.transform = 'translateY(0)';
+        }}>
+            {/* Header with name and actions */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                marginBottom: '16px',
+                paddingBottom: '12px',
+                borderBottom: '2px solid #f0f0f0'
+            }}>
+                <div style={{ flex: 1 }}>
+                    <h3 style={{
+                        fontSize: '20px',
+                        fontWeight: '600',
+                        color: '#1976d2',
+                        marginBottom: '8px',
+                        lineHeight: '1.2'
+                    }}>
+                        {member.name}
+                    </h3>
+                    <span style={{
+                        display: 'inline-block',
+                        padding: '4px 12px',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        borderRadius: '12px',
+                        backgroundColor: member.member_type === 'scout' ? '#e3f2fd' : '#f3e5f5',
+                        color: member.member_type === 'scout' ? '#1976d2' : '#7b1fa2'
+                    }}>
+                        {member.member_type === 'scout' ? '🌱 Scout' : '🌲 Parent'}
                     </span>
                 </div>
-                <div className="flex gap-2">
+                <div style={{ display: 'flex', gap: '8px', marginLeft: '12px' }}>
                     <button
                         onClick={onEdit}
-                        className="text-blue-600 hover:text-blue-800"
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            fontSize: '20px',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            opacity: 0.7,
+                            transition: 'opacity 0.2s'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
+                        onMouseOut={(e) => e.currentTarget.style.opacity = '0.7'}
                         title="Edit"
                     >
                         ✏️
                     </button>
                     <button
                         onClick={onDelete}
-                        className="text-red-600 hover:text-red-800"
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            fontSize: '20px',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            opacity: 0.7,
+                            transition: 'opacity 0.2s'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.opacity = '1'}
+                        onMouseOut={(e) => e.currentTarget.style.opacity = '0.7'}
                         title="Delete"
                     >
                         🗑️
@@ -172,31 +300,98 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                 </div>
             </div>
 
-            <div className="space-y-2 text-sm text-gray-600">
-                {age && <div>Age: {age}</div>}
-                {member.troop_number && <div>Troop: {member.troop_number}</div>}
-                {member.patrol_name && <div>Patrol: {member.patrol_name}</div>}
+            {/* Details */}
+            <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                fontSize: '14px',
+                color: '#666',
+                flex: 1
+            }}>
+                {age && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontWeight: '600', minWidth: '80px', color: '#333' }}>Age:</span>
+                        <span>{age} years old</span>
+                    </div>
+                )}
+                {member.troop_number && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontWeight: '600', minWidth: '80px', color: '#333' }}>Troop:</span>
+                        <span>{member.troop_number}</span>
+                    </div>
+                )}
+                {member.patrol_name && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontWeight: '600', minWidth: '80px', color: '#333' }}>Patrol:</span>
+                        <span>{member.patrol_name}</span>
+                    </div>
+                )}
                 
                 {member.member_type === 'parent' && (
                     <>
                         {member.has_youth_protection && (
-                            <div className="text-green-600">✓ Youth Protection Trained</div>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                color: '#2e7d32',
+                                fontWeight: '500',
+                                padding: '6px 10px',
+                                backgroundColor: '#e8f5e9',
+                                borderRadius: '4px',
+                                marginTop: '4px'
+                            }}>
+                                ✓ Youth Protection Trained
+                            </div>
                         )}
                         {member.vehicle_capacity > 0 && (
-                            <div>Vehicle Capacity: {member.vehicle_capacity} passengers</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ fontWeight: '600', minWidth: '80px', color: '#333' }}>Vehicle:</span>
+                                <span>{member.vehicle_capacity} passengers</span>
+                            </div>
                         )}
                     </>
                 )}
 
                 {member.dietary_preferences.length > 0 && (
-                    <div>
-                        <strong>Dietary:</strong> {member.dietary_preferences.map(p => p.preference).join(', ')}
+                    <div style={{ marginTop: '8px' }}>
+                        <div style={{ fontWeight: '600', color: '#333', marginBottom: '6px' }}>Dietary:</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            {member.dietary_preferences.map((p, idx) => (
+                                <span key={idx} style={{
+                                    padding: '4px 10px',
+                                    backgroundColor: '#e3f2fd',
+                                    color: '#1976d2',
+                                    borderRadius: '12px',
+                                    fontSize: '12px',
+                                    fontWeight: '500'
+                                }}>
+                                    {p.preference}
+                                </span>
+                            ))}
+                        </div>
                     </div>
                 )}
 
                 {member.allergies.length > 0 && (
-                    <div>
-                        <strong>Allergies:</strong> {member.allergies.map(a => a.allergy).join(', ')}
+                    <div style={{ marginTop: '8px' }}>
+                        <div style={{ fontWeight: '600', color: '#333', marginBottom: '6px' }}>⚠️ Allergies:</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {member.allergies.map((a, idx) => (
+                                <span key={idx} style={{
+                                    padding: '6px 10px',
+                                    backgroundColor: '#ffebee',
+                                    color: '#c62828',
+                                    borderRadius: '4px',
+                                    fontSize: '13px',
+                                    fontWeight: '500',
+                                    border: '1px solid #ef9a9a'
+                                }}>
+                                    {a.allergy}{a.severity && ` (${a.severity})`}
+                                </span>
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>
@@ -211,6 +406,20 @@ interface FamilyMemberFormProps {
 }
 
 const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, onSuccess }) => {
+    // Common dietary preferences
+    const commonDietaryPreferences = [
+        'Vegetarian',
+        'Vegan',
+        'Gluten-Free',
+        'Dairy-Free',
+        'Nut Allergy',
+        'Kosher',
+        'Halal',
+        'Pescatarian',
+        'Low-Sodium',
+        'Diabetic'
+    ];
+
     const [formData, setFormData] = useState<FamilyMemberCreate>({
         name: member?.name || '',
         member_type: member?.member_type || 'scout',
@@ -224,7 +433,6 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
         allergies: member?.allergies.map(a => ({ allergy: a.allergy, severity: a.severity })) || [],
     });
 
-    const [newDietaryPref, setNewDietaryPref] = useState('');
     const [newAllergy, setNewAllergy] = useState({ allergy: '', severity: '' });
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -233,6 +441,13 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
         e.preventDefault();
         setSubmitting(true);
         setError(null);
+
+        // Validate youth protection for parents
+        if (formData.member_type === 'parent' && !formData.has_youth_protection) {
+            setError('⚠️ Youth Protection Training is required for all parents/adults attending trips. Please complete the training at my.scouting.org and check the box to confirm.');
+            setSubmitting(false);
+            return;
+        }
 
         try {
             if (member) {
@@ -248,21 +463,19 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
         }
     };
 
-    const addDietaryPreference = () => {
-        if (newDietaryPref.trim()) {
+    const toggleDietaryPreference = (preference: string) => {
+        const current = formData.dietary_preferences || [];
+        if (current.includes(preference)) {
             setFormData({
                 ...formData,
-                dietary_preferences: [...(formData.dietary_preferences || []), newDietaryPref.trim()],
+                dietary_preferences: current.filter(p => p !== preference),
             });
-            setNewDietaryPref('');
+        } else {
+            setFormData({
+                ...formData,
+                dietary_preferences: [...current, preference],
+            });
         }
-    };
-
-    const removeDietaryPreference = (index: number) => {
-        setFormData({
-            ...formData,
-            dietary_preferences: formData.dietary_preferences?.filter((_, i) => i !== index) || [],
-        });
     };
 
     const addAllergy = () => {
@@ -283,22 +496,58 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                    <h3 className="text-2xl font-bold mb-4">
+        <div style={{
+            position: 'fixed',
+            inset: '0',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            zIndex: 1000
+        }}>
+        <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            maxWidth: '700px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
+        }}>
+            <div style={{ padding: '32px' }}>
+                <h3 style={{
+                    fontSize: '28px',
+                    fontWeight: 'bold',
+                    marginBottom: '24px',
+                    color: '#1976d2'
+                }}>
                         {member ? 'Edit Family Member' : 'Add Family Member'}
                     </h3>
 
                     {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                        <div style={{
+                            padding: '12px',
+                            backgroundColor: '#ffebee',
+                            color: '#c62828',
+                            borderRadius: '6px',
+                            marginBottom: '20px',
+                            fontSize: '14px',
+                            border: '1px solid #ef9a9a'
+                        }}>
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '8px',
+                                fontWeight: '600',
+                                color: '#333',
+                                fontSize: '15px'
+                            }}>
                                 Name *
                             </label>
                             <input
@@ -306,19 +555,41 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 required
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '6px',
+                                    fontSize: '15px',
+                                    boxSizing: 'border-box'
+                                }}
+                                placeholder="Enter full name"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '8px',
+                                fontWeight: '600',
+                                color: '#333',
+                                fontSize: '15px'
+                            }}>
                                 Member Type *
                             </label>
                             <select
                                 required
                                 value={formData.member_type}
                                 onChange={(e) => setFormData({ ...formData, member_type: e.target.value as 'scout' | 'parent' })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '6px',
+                                    fontSize: '15px',
+                                    boxSizing: 'border-box',
+                                    backgroundColor: 'white'
+                                }}
                             >
                                 <option value="scout">Scout</option>
                                 <option value="parent">Parent</option>
@@ -326,7 +597,13 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '8px',
+                                fontWeight: '600',
+                                color: '#333',
+                                fontSize: '15px'
+                            }}>
                                 Date of Birth {formData.member_type === 'scout' && '*'}
                             </label>
                             <input
@@ -334,53 +611,94 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 required={formData.member_type === 'scout'}
                                 value={formData.date_of_birth}
                                 onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '6px',
+                                    fontSize: '15px',
+                                    boxSizing: 'border-box'
+                                }}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '8px',
+                                fontWeight: '600',
+                                color: '#333',
+                                fontSize: '15px'
+                            }}>
                                 Troop Number
                             </label>
                             <input
                                 type="text"
                                 value={formData.troop_number}
                                 onChange={(e) => setFormData({ ...formData, troop_number: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '6px',
+                                    fontSize: '15px',
+                                    boxSizing: 'border-box'
+                                }}
+                                placeholder="e.g., 123"
                             />
                         </div>
 
                         {formData.member_type === 'scout' && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '8px',
+                                    fontWeight: '600',
+                                    color: '#333',
+                                    fontSize: '15px'
+                                }}>
                                     Patrol Name
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.patrol_name}
                                     onChange={(e) => setFormData({ ...formData, patrol_name: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '6px',
+                                        fontSize: '15px',
+                                        boxSizing: 'border-box'
+                                    }}
+                                    placeholder="e.g., Eagle Patrol"
                                 />
                             </div>
                         )}
 
                         {formData.member_type === 'parent' && (
                             <>
-                                <div className="flex items-center">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <input
                                         type="checkbox"
                                         id="youth_protection"
                                         checked={formData.has_youth_protection}
                                         onChange={(e) => setFormData({ ...formData, has_youth_protection: e.target.checked })}
-                                        className="mr-2"
+                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                                     />
-                                    <label htmlFor="youth_protection" className="text-sm text-gray-700">
+                                    <label htmlFor="youth_protection" style={{ fontSize: '15px', color: '#333', cursor: 'pointer' }}>
                                         Youth Protection Trained
                                     </label>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <label style={{
+                                        display: 'block',
+                                        marginBottom: '8px',
+                                        fontWeight: '600',
+                                        color: '#333',
+                                        fontSize: '15px'
+                                    }}>
                                         Vehicle Capacity (passengers)
                                     </label>
                                     <input
@@ -388,79 +706,130 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                         min="0"
                                         value={formData.vehicle_capacity}
                                         onChange={(e) => setFormData({ ...formData, vehicle_capacity: parseInt(e.target.value) || 0 })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px',
+                                            border: '1px solid #ddd',
+                                            borderRadius: '6px',
+                                            fontSize: '15px',
+                                            boxSizing: 'border-box'
+                                        }}
+                                        placeholder="0"
                                     />
                                 </div>
                             </>
                         )}
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '8px',
+                                fontWeight: '600',
+                                color: '#333',
+                                fontSize: '15px'
+                            }}>
                                 Medical Notes
                             </label>
                             <textarea
                                 value={formData.medical_notes}
                                 onChange={(e) => setFormData({ ...formData, medical_notes: e.target.value })}
                                 rows={3}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '6px',
+                                    fontSize: '15px',
+                                    boxSizing: 'border-box',
+                                    fontFamily: 'inherit',
+                                    resize: 'vertical'
+                                }}
+                                placeholder="Any medical conditions or notes..."
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '12px',
+                                fontWeight: '600',
+                                color: '#333',
+                                fontSize: '15px'
+                            }}>
                                 Dietary Preferences
                             </label>
-                            <div className="flex gap-2 mb-2">
-                                <input
-                                    type="text"
-                                    value={newDietaryPref}
-                                    onChange={(e) => setNewDietaryPref(e.target.value)}
-                                    placeholder="e.g., vegetarian, gluten-free"
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={addDietaryPreference}
-                                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-                                >
-                                    Add
-                                </button>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                                {formData.dietary_preferences?.map((pref, index) => (
-                                    <span
-                                        key={index}
-                                        className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                                gap: '12px',
+                                padding: '16px',
+                                backgroundColor: '#f5f5f5',
+                                borderRadius: '6px'
+                            }}>
+                                {commonDietaryPreferences.map((preference) => (
+                                    <label
+                                        key={preference}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            cursor: 'pointer',
+                                            padding: '8px',
+                                            backgroundColor: formData.dietary_preferences?.includes(preference) ? '#e3f2fd' : 'white',
+                                            borderRadius: '4px',
+                                            border: formData.dietary_preferences?.includes(preference) ? '2px solid #1976d2' : '1px solid #ddd',
+                                            transition: 'all 0.2s'
+                                        }}
                                     >
-                                        {pref}
-                                        <button
-                                            type="button"
-                                            onClick={() => removeDietaryPreference(index)}
-                                            className="text-blue-600 hover:text-blue-800"
-                                        >
-                                            ×
-                                        </button>
-                                    </span>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.dietary_preferences?.includes(preference) || false}
+                                            onChange={() => toggleDietaryPreference(preference)}
+                                            style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                                        />
+                                        <span style={{ fontSize: '14px', color: '#333' }}>{preference}</span>
+                                    </label>
                                 ))}
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label style={{
+                                display: 'block',
+                                marginBottom: '8px',
+                                fontWeight: '600',
+                                color: '#333',
+                                fontSize: '15px'
+                            }}>
                                 Allergies
                             </label>
-                            <div className="flex gap-2 mb-2">
+                            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' }}>
                                 <input
                                     type="text"
                                     value={newAllergy.allergy}
                                     onChange={(e) => setNewAllergy({ ...newAllergy, allergy: e.target.value })}
-                                    placeholder="Allergy type"
-                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                    placeholder="Allergy type (e.g., Peanuts)"
+                                    style={{
+                                        flex: '1',
+                                        minWidth: '200px',
+                                        padding: '12px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '6px',
+                                        fontSize: '15px',
+                                        boxSizing: 'border-box'
+                                    }}
                                 />
                                 <select
                                     value={newAllergy.severity}
                                     onChange={(e) => setNewAllergy({ ...newAllergy, severity: e.target.value })}
-                                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                    style={{
+                                        padding: '12px',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '6px',
+                                        fontSize: '15px',
+                                        backgroundColor: 'white',
+                                        minWidth: '150px'
+                                    }}
                                 >
                                     <option value="">Severity</option>
                                     <option value="mild">Mild</option>
@@ -471,25 +840,54 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 <button
                                     type="button"
                                     onClick={addAllergy}
-                                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                                    style={{
+                                        padding: '12px 24px',
+                                        backgroundColor: '#1976d2',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        fontSize: '15px',
+                                        fontWeight: 'bold',
+                                        cursor: 'pointer',
+                                        transition: 'background-color 0.2s',
+                                        whiteSpace: 'nowrap'
+                                    }}
+                                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1565c0'}
+                                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#1976d2'}
                                 >
                                     Add
                                 </button>
                             </div>
-                            <div className="space-y-2">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {formData.allergies?.map((allergy, index) => (
                                     <div
                                         key={index}
-                                        className="bg-red-50 border border-red-200 px-3 py-2 rounded-lg flex justify-between items-center"
+                                        style={{
+                                            backgroundColor: '#ffebee',
+                                            border: '1px solid #ef9a9a',
+                                            padding: '12px 16px',
+                                            borderRadius: '6px',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center'
+                                        }}
                                     >
-                                        <span className="text-sm">
+                                        <span style={{ fontSize: '14px', color: '#c62828', fontWeight: '500' }}>
                                             {allergy.allergy}
                                             {allergy.severity && ` (${allergy.severity})`}
                                         </span>
                                         <button
                                             type="button"
                                             onClick={() => removeAllergy(index)}
-                                            className="text-red-600 hover:text-red-800"
+                                            style={{
+                                                color: '#c62828',
+                                                background: 'none',
+                                                border: 'none',
+                                                fontSize: '20px',
+                                                cursor: 'pointer',
+                                                padding: '0 8px',
+                                                fontWeight: 'bold'
+                                            }}
                                         >
                                             ×
                                         </button>
@@ -498,18 +896,48 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                             </div>
                         </div>
 
-                        <div className="flex gap-3 pt-4">
+                        <div style={{ display: 'flex', gap: '12px', paddingTop: '24px' }}>
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 disabled:bg-gray-400"
+                                style={{
+                                    flex: '1',
+                                    padding: '14px',
+                                    backgroundColor: submitting ? '#ccc' : '#1976d2',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    fontSize: '16px',
+                                    fontWeight: 'bold',
+                                    cursor: submitting ? 'not-allowed' : 'pointer',
+                                    transition: 'background-color 0.2s'
+                                }}
+                                onMouseOver={(e) => {
+                                    if (!submitting) e.currentTarget.style.backgroundColor = '#1565c0';
+                                }}
+                                onMouseOut={(e) => {
+                                    if (!submitting) e.currentTarget.style.backgroundColor = '#1976d2';
+                                }}
                             >
                                 {submitting ? 'Saving...' : member ? 'Update' : 'Add'} Family Member
                             </button>
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300"
+                                style={{
+                                    flex: '1',
+                                    padding: '14px',
+                                    backgroundColor: '#e0e0e0',
+                                    color: '#333',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    fontSize: '16px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer',
+                                    transition: 'background-color 0.2s'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d0d0d0'}
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
                             >
                                 Cancel
                             </button>

@@ -33,17 +33,39 @@ class ClerkClient:
         try:
             # Get the JWKS URL from Clerk
             # Extract the publishable key to get the instance ID
-            if not settings.CLERK_PUBLISHABLE_KEY:
+            if not settings.CLERK_PUBLISHABLE_KEY or settings.CLERK_PUBLISHABLE_KEY == "pk_test_your_clerk_publishable_key_here":
+                print("❌ ERROR: Clerk publishable key not configured properly!")
+                print("   Please set CLERK_PUBLISHABLE_KEY in your backend/.env file")
+                print("   Get your keys from: https://dashboard.clerk.com")
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Clerk publishable key not configured"
+                    detail="Clerk publishable key not configured. Please set CLERK_PUBLISHABLE_KEY in backend/.env"
                 )
             
-            # Decode without verification first to get the kid
-            unverified_header = jwt.get_unverified_header(token)
+            if not settings.CLERK_SECRET_KEY or settings.CLERK_SECRET_KEY == "sk_test_your_clerk_secret_key_here":
+                print("❌ ERROR: Clerk secret key not configured properly!")
+                print("   Please set CLERK_SECRET_KEY in your backend/.env file")
+                print("   Get your keys from: https://dashboard.clerk.com")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Clerk secret key not configured. Please set CLERK_SECRET_KEY in backend/.env"
+                )
+            
+            # Decode the token to get the issuer (iss) claim which contains the frontend API URL
+            unverified_payload = jwt.decode(token, options={"verify_signature": False})
+            issuer = unverified_payload.get("iss")
+            
+            if not issuer:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Token missing issuer claim"
+                )
+            
+            # Construct JWKS URL from issuer
+            # Issuer format: https://<clerk-instance>.clerk.accounts.dev
+            jwks_url = f"{issuer}/.well-known/jwks.json"
             
             # Get JWKS from Clerk
-            jwks_url = f"https://api.clerk.com/v1/jwks"
             jwks_client = PyJWKClient(jwks_url)
             signing_key = jwks_client.get_signing_key_from_jwt(token)
             

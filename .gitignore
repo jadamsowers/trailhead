@@ -227,6 +227,9 @@ credentials.txt
 # Clerk API keys file
 clerk-keys.txt
 
+# Admin email configuration file
+admin-email.txt
+
 # Secrets
 secrets.yaml
 k8s/secrets.yaml

@@ -204,7 +204,8 @@ export interface User {
     email: string;
     full_name: string;
     role: 'admin' | 'user' | 'parent';
-    is_active: boolean;
+    is_active?: boolean;
+    is_initial_admin?: boolean;
 }
 
 // Family Management Types

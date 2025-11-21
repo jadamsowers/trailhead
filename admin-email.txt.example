@@ -1,0 +1,5 @@
+# Initial Admin Email Configuration
+# Copy this file to admin-email.txt and update with your admin email
+# The user who signs up with this email in Clerk will automatically get admin role
+
+soadmin@scouthacks.net

@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import { ClerkProvider, SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
+import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
+import { ClerkProvider, SignedIn, SignedOut, UserButton, useUser, SignUp } from '@clerk/clerk-react';
 import ProtectedRoute from './components/ProtectedRoute';
 import BackendHealthCheck from './components/Shared/BackendHealthCheck';
 import TopographicBackground from './components/Shared/TopographicBackground';
@@ -8,15 +8,24 @@ import AdminPage from './pages/AdminPage';
 import ParticipantPage from './pages/ParticipantPage';
 import LoginPage from './pages/LoginPage';
 import AdminSetupPage from './pages/AdminSetupPage';
+import FamilySetupPage from './pages/FamilySetupPage';
+import TripsPage from './pages/TripsPage';
 
 // Get Clerk publishable key from environment
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_your_clerk_publishable_key_here';
 
 const HomePage: React.FC = () => {
+    const { isSignedIn } = useUser();
+
+    // Redirect signed-in users to family setup or trips
+    if (isSignedIn) {
+        return <Navigate to="/family-setup" replace />;
+    }
+
     return (
-        <div style={{ 
-            padding: '40px', 
-            maxWidth: '800px', 
+        <div style={{
+            padding: '40px',
+            maxWidth: '800px',
             margin: '0 auto',
             textAlign: 'center'
         }}>
@@ -27,66 +36,47 @@ const HomePage: React.FC = () => {
                 Manage scout troop trips, signups, and participant information
             </p>
             
-            <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: '30px',
-                marginTop: '40px'
+            <div style={{
+                padding: '30px',
+                backgroundColor: '#e3f2fd',
+                borderRadius: '12px',
+                marginBottom: '40px'
             }}>
-                <Link 
-                    to="/participant" 
-                    style={{ 
+                <h2 style={{ color: '#1976d2', marginBottom: '15px' }}>
+                    Get Started
+                </h2>
+                <p style={{ color: '#666', fontSize: '16px', marginBottom: '20px' }}>
+                    Sign in or create an account to manage your family and sign up for trips
+                </p>
+                <Link
+                    to="/login"
+                    style={{
+                        display: 'inline-block',
+                        padding: '15px 40px',
+                        backgroundColor: '#1976d2',
+                        color: 'white',
                         textDecoration: 'none',
-                        padding: '40px',
-                        border: '2px solid #1976d2',
-                        borderRadius: '12px',
-                        backgroundColor: '#e3f2fd',
-                        transition: 'transform 0.2s',
-                        display: 'block'
+                        borderRadius: '8px',
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.2s'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1565c0'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#1976d2'}
                 >
-                    <h2 style={{ color: '#1976d2', marginBottom: '15px' }}>
-                        📝 Sign Up for a Trip
-                    </h2>
-                    <p style={{ color: '#666', fontSize: '16px' }}>
-                        Register your scouts and family members for upcoming trips
-                    </p>
-                </Link>
-
-                <Link 
-                    to="/admin" 
-                    style={{ 
-                        textDecoration: 'none',
-                        padding: '40px',
-                        border: '2px solid #f57c00',
-                        borderRadius: '12px',
-                        backgroundColor: '#fff3e0',
-                        transition: 'transform 0.2s',
-                        display: 'block'
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                >
-                    <h2 style={{ color: '#f57c00', marginBottom: '15px' }}>
-                        🔧 Administrator
-                    </h2>
-                    <p style={{ color: '#666', fontSize: '16px' }}>
-                        Create trips, view signups, and manage trip details
-                    </p>
+                    Sign In / Sign Up
                 </Link>
             </div>
 
-            <div style={{ 
-                marginTop: '60px', 
-                padding: '30px', 
-                backgroundColor: '#f5f5f5', 
+            <div style={{
+                marginTop: '60px',
+                padding: '30px',
+                backgroundColor: '#f5f5f5',
                 borderRadius: '8px'
             }}>
                 <h3 style={{ marginBottom: '15px' }}>Features</h3>
-                <ul style={{ 
-                    listStyle: 'none', 
+                <ul style={{
+                    listStyle: 'none',
                     padding: 0,
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -135,21 +125,35 @@ const Navigation: React.FC = () => {
                     Scouting Outing Manager
                 </Link>
                 <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                    <Link
-                        to="/participant"
-                        style={{
-                            color: 'white',
-                            textDecoration: 'none',
-                            padding: '8px 16px',
-                            borderRadius: '4px',
-                            transition: 'background-color 0.2s'
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                        Sign Up
-                    </Link>
                     <SignedIn>
+                        <Link
+                            to="/trips"
+                            style={{
+                                color: 'white',
+                                textDecoration: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '4px',
+                                transition: 'background-color 0.2s'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                            Trips
+                        </Link>
+                        <Link
+                            to="/family-setup"
+                            style={{
+                                color: 'white',
+                                textDecoration: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '4px',
+                                transition: 'background-color 0.2s'
+                            }}
+                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
+                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                            My Family
+                        </Link>
                         <Link
                             to="/admin"
                             style={{
@@ -183,7 +187,7 @@ const Navigation: React.FC = () => {
                             onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
                             onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                            Login
+                            Sign In
                         </Link>
                     </SignedOut>
                 </div>
@@ -206,12 +210,33 @@ const App: React.FC = () => {
                         <Routes>
                             <Route path="/" element={<HomePage />} />
                             <Route path="/login" element={<LoginPage />} />
+                            <Route path="/sign-up" element={
+                                <div style={{
+                                    minHeight: 'calc(100vh - 200px)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    padding: '20px'
+                                }}>
+                                    <SignUp
+                                        afterSignUpUrl="/family-setup"
+                                        signInUrl="/login"
+                                    />
+                                </div>
+                            } />
                             <Route path="/admin-setup" element={<AdminSetupPage />} />
                             <Route
                                 path="/admin"
                                 element={<AdminPage />}
                             />
-                            <Route path="/participant" element={<ParticipantPage />} />
+                            <Route path="/family-setup" element={
+                                <SignedIn>
+                                    <FamilySetupPage />
+                                </SignedIn>
+                            } />
+                            <Route path="/trips" element={<TripsPage />} />
+                            {/* Legacy route - redirect to new flow */}
+                            <Route path="/participant" element={<Navigate to="/trips" replace />} />
                         </Routes>
 
                     {/* Footer */}

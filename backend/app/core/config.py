@@ -26,9 +26,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    # Initial Admin User (for database initialization)
+    # Initial Admin User (Clerk-based)
+    # When a Clerk user with this email signs in, they will automatically be granted admin role
     INITIAL_ADMIN_EMAIL: str = "soadmin@scouthacks.net"
-    INITIAL_ADMIN_PASSWORD: Optional[str] = None  # If None, a random password will be generated
     
     # Clerk Configuration
     CLERK_SECRET_KEY: str = "sk_test_your_clerk_secret_key_here"

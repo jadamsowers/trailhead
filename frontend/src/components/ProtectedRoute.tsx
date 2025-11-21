@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useUser } from '@clerk/clerk-react';
 
 interface ProtectedRouteProps {
     children: ReactNode;
@@ -11,10 +11,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     children,
     requireAdmin = false,
 }) => {
-    const { isAuthenticated, isAdmin, loading } = useAuth();
+    const { isSignedIn, isLoaded, user } = useUser();
     const location = useLocation();
 
-    if (loading) {
+    if (!isLoaded) {
         return (
             <div style={{
                 display: 'flex',
@@ -32,10 +32,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         );
     }
 
-    if (!isAuthenticated) {
+    if (!isSignedIn) {
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
+    // Check if user has admin role in public metadata
+    const isAdmin = user?.publicMetadata?.role === 'admin';
+    
     if (requireAdmin && !isAdmin) {
         return <Navigate to="/" replace />;
     }

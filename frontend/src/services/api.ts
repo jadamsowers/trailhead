@@ -17,6 +17,13 @@ import {
     RegistrationResponse,
 } from '../types';
 
+// Extend Window interface for Clerk
+declare global {
+    interface Window {
+        Clerk?: any;
+    }
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 // Log API configuration on load
@@ -99,15 +106,27 @@ async function handleResponse<T>(response: Response): Promise<T> {
     return response.json();
 }
 
-// Helper function to get auth headers
-function getAuthHeaders(): HeadersInit {
-    const token = localStorage.getItem('access_token');
+// Helper function to get auth headers with Clerk token
+async function getAuthHeaders(): Promise<HeadersInit> {
     const headers: HeadersInit = {
         'Content-Type': 'application/json',
     };
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+    
+    try {
+        if (window.Clerk && window.Clerk.session) {
+            // Get the session token from Clerk
+            const token = await window.Clerk.session.getToken();
+            if (token) {
+                console.log('✅ Using Clerk session token');
+                headers['Authorization'] = `Bearer ${token}`;
+                return headers;
+            }
+        }
+        console.warn('⚠️ No Clerk session found - user may not be signed in');
+    } catch (error) {
+        console.error('❌ Failed to get Clerk token:', error);
     }
+    
     return headers;
 }
 
@@ -132,11 +151,8 @@ export const tripAPI = {
     async getById(id: string): Promise<Trip> {
         const url = `${API_BASE_URL}/trips/${id}`;
         console.log('🚀 API Request: GET', url);
-        const token = localStorage.getItem('access_token');
         const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            headers: await getAuthHeaders(),
         });
         return handleResponse<Trip>(response);
     },
@@ -146,7 +162,7 @@ export const tripAPI = {
         console.log('🚀 API Request: POST', url, trip);
         const response = await fetch(url, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
             body: JSON.stringify(trip),
         });
         return handleResponse<Trip>(response);
@@ -157,7 +173,7 @@ export const tripAPI = {
         console.log('🚀 API Request: PUT', url, trip);
         const response = await fetch(url, {
             method: 'PUT',
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
             body: JSON.stringify(trip),
         });
         return handleResponse<Trip>(response);
@@ -166,12 +182,9 @@ export const tripAPI = {
     async delete(id: string): Promise<void> {
         const url = `${API_BASE_URL}/trips/${id}`;
         console.log('🚀 API Request: DELETE', url);
-        const token = localStorage.getItem('access_token');
         const response = await fetch(url, {
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            headers: await getAuthHeaders(),
         });
         if (!response.ok) {
             throw new APIError(response.status, 'Failed to delete trip');
@@ -199,7 +212,7 @@ export const signupAPI = {
 
     async getByTrip(tripId: string): Promise<SignupResponse[]> {
         const response = await fetch(`${API_BASE_URL}/trips/${tripId}/signups`, {
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
         });
         const data = await handleResponse<{ signups: SignupResponse[]; total: number }>(response);
         return data.signups;
@@ -209,15 +222,20 @@ export const signupAPI = {
 // CSV API
 export const csvAPI = {
     async importRoster(tripId: string, file: File): Promise<{ message: string; imported_count: number }> {
-        const token = localStorage.getItem('access_token');
         const formData = new FormData();
         formData.append('file', file);
+        
+        // Get auth headers but remove Content-Type for FormData
+        const headers = await getAuthHeaders();
+        const authHeaders: Record<string, string> = {};
+        const authHeader = (headers as Record<string, string>)['Authorization'];
+        if (authHeader) {
+            authHeaders['Authorization'] = authHeader;
+        }
 
         const response = await fetch(`${API_BASE_URL}/csv/import?trip_id=${tripId}`, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            headers: authHeaders,
             body: formData,
         });
         return handleResponse<{ message: string; imported_count: number }>(response);
@@ -225,7 +243,7 @@ export const csvAPI = {
 
     async exportRoster(tripId: string): Promise<Blob> {
         const response = await fetch(`${API_BASE_URL}/csv/trips/${tripId}/export-roster`, {
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
         });
         if (!response.ok) {
             throw new APIError(response.status, 'Failed to export roster');
@@ -235,7 +253,7 @@ export const csvAPI = {
 
     async exportRosterPDF(tripId: string): Promise<Blob> {
         const response = await fetch(`${API_BASE_URL}/csv/trips/${tripId}/export-roster-pdf`, {
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
         });
         if (!response.ok) {
             throw new APIError(response.status, 'Failed to export roster PDF');
@@ -447,9 +465,17 @@ export const familyAPI = {
      * Get all family members for the current user
      */
     async getAll(): Promise<FamilyMemberListResponse> {
-        const response = await fetch(`${API_BASE_URL}/family/`, {
-            headers: getAuthHeaders(),
+        const url = `${API_BASE_URL}/family/`;
+        console.log('🚀 API Request: GET', url);
+        
+        const headers = await getAuthHeaders();
+        const authHeader = (headers as Record<string, string>)['Authorization'];
+        console.log('🔑 Auth headers:', {
+            hasAuth: !!authHeader,
+            authType: authHeader?.split(' ')[0]
         });
+        
+        const response = await fetch(url, { headers });
         return handleResponse<FamilyMemberListResponse>(response);
     },
 
@@ -458,7 +484,7 @@ export const familyAPI = {
      */
     async getSummary(): Promise<FamilyMemberSummary[]> {
         const response = await fetch(`${API_BASE_URL}/family/summary`, {
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
         });
         return handleResponse<FamilyMemberSummary[]>(response);
     },
@@ -468,7 +494,7 @@ export const familyAPI = {
      */
     async getById(id: string): Promise<FamilyMember> {
         const response = await fetch(`${API_BASE_URL}/family/${id}`, {
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
         });
         return handleResponse<FamilyMember>(response);
     },
@@ -479,7 +505,7 @@ export const familyAPI = {
     async create(member: FamilyMemberCreate): Promise<FamilyMember> {
         const response = await fetch(`${API_BASE_URL}/family/`, {
             method: 'POST',
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
             body: JSON.stringify(member),
         });
         return handleResponse<FamilyMember>(response);
@@ -491,7 +517,7 @@ export const familyAPI = {
     async update(id: string, member: FamilyMemberUpdate): Promise<FamilyMember> {
         const response = await fetch(`${API_BASE_URL}/family/${id}`, {
             method: 'PUT',
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
             body: JSON.stringify(member),
         });
         return handleResponse<FamilyMember>(response);
@@ -503,7 +529,7 @@ export const familyAPI = {
     async delete(id: string): Promise<void> {
         const response = await fetch(`${API_BASE_URL}/family/${id}`, {
             method: 'DELETE',
-            headers: getAuthHeaders(),
+            headers: await getAuthHeaders(),
         });
         if (!response.ok) {
             throw new APIError(response.status, 'Failed to delete family member');

@@ -1,23 +1,23 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useUser } from '@clerk/clerk-react';
 
 const OAuthCallbackPage: React.FC = () => {
     const navigate = useNavigate();
-    const { isAuthenticated, loading } = useAuth();
+    const { isSignedIn, isLoaded } = useUser();
 
     useEffect(() => {
-        // The AuthContext will handle the OAuth callback
-        // Once authenticated, redirect to appropriate page
-        if (!loading) {
-            if (isAuthenticated) {
-                navigate('/admin', { replace: true });
+        // Clerk handles OAuth callbacks automatically
+        // Once loaded, redirect to appropriate page
+        if (isLoaded) {
+            if (isSignedIn) {
+                navigate('/family-setup', { replace: true });
             } else {
                 // If authentication failed, redirect to login
                 navigate('/login', { replace: true });
             }
         }
-    }, [isAuthenticated, loading, navigate]);
+    }, [isSignedIn, isLoaded, navigate]);
 
     return (
         <div style={{

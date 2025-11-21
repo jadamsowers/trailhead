@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import {
     Trip,
     SignupFormData,
@@ -8,10 +9,11 @@ import {
     ALLERGY_SEVERITIES
 } from '../../types';
 import { tripAPI, signupAPI, familyAPI, APIError } from '../../services/api';
-import { useAuth } from '../../contexts/AuthContext';
 
 const SignupForm: React.FC = () => {
-    const { user, isAuthenticated, isParent } = useAuth();
+    const { user, isSignedIn } = useUser();
+    const isAuthenticated = isSignedIn;
+    const isParent = true; // All Clerk users are parents by default
     const [trips, setTrips] = useState<Trip[]>([]);
     const [expandedTripId, setExpandedTripId] = useState<string>('');
     const [loading, setLoading] = useState(false);
@@ -50,10 +52,10 @@ const SignupForm: React.FC = () => {
         if (isAuthenticated && isParent) {
             loadFamilyMembers();
             // Pre-fill contact info from user profile
-            if (user) {
+            if (user?.primaryEmailAddress?.emailAddress) {
                 setFormData(prev => ({
                     ...prev,
-                    email: user.email || prev.email
+                    email: user.primaryEmailAddress?.emailAddress || prev.email
                 }));
             }
         }

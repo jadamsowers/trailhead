@@ -1,6 +1,36 @@
+@import "tailwindcss";
+
 /* Global Styles - Scouting Outing Manager */
 
-/* Reset and Base Styles */
+/* Custom theme configuration */
+@theme {
+  /* Font families */
+  --font-heading: "Roboto Slab", serif;
+  --font-body: Inter, sans-serif;
+  
+  /* Custom colors */
+  --color-primary-50: #e3f2fd;
+  --color-primary-100: #bbdefb;
+  --color-primary-200: #90caf9;
+  --color-primary-300: #64b5f6;
+  --color-primary-400: #42a5f5;
+  --color-primary-500: #1976d2;
+  --color-primary-600: #1565c0;
+  --color-primary-700: #0d47a1;
+  --color-primary-800: #0a3d91;
+  --color-primary-900: #062e70;
+  
+  /* Custom gradients */
+  --color-gradient-scout: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #6366f1 100%);
+  --color-gradient-scout-light: linear-gradient(135deg, #22d3ee 0%, #60a5fa 50%, #818cf8 100%);
+  --color-gradient-user: linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #8b5cf6 100%);
+  --color-gradient-user-light: linear-gradient(135deg, #f472b6 0%, #c084fc 50%, #a78bfa 100%);
+  
+  /* Custom shadows */
+  --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}
+
+/* Base styles */
 * {
   margin: 0;
   padding: 0;
@@ -8,51 +38,47 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.5;
   color: #333;
   background-color: #f5f5f5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Typography - h1 and h2 use Roboto Slab, others use Roboto */
-h1, h2,
-h1[style], h2[style] {
-  font-family: 'Roboto Slab', serif !important;
+/* Typography - h1 and h2 use Roboto Slab */
+h1, h2 {
+  font-family: var(--font-heading);
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: 0.5em;
   color: #1a1a1a;
 }
 
-h3, h4, h5, h6,
-h3[style], h4[style], h5[style], h6[style] {
-  font-family: 'Roboto Slab', sans-serif !important;
+h3, h4, h5, h6 {
+  font-family: var(--font-heading);
   font-weight: 700;
   line-height: 1.2;
   margin-bottom: 0.5em;
   color: #1a1a1a;
 }
 
-h1, h1[style] {
+h1 {
   font-size: 2.5rem;
-  font-weight: 800 !important;
+  font-weight: 800;
   letter-spacing: -0.02em;
 }
 
-h2, h2[style] {
+h2 {
   font-size: 2rem;
-  font-weight: 700 !important;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 
-h3, h3[style] {
+h3 {
   font-size: 1.5rem;
-  font-weight: 700 !important;
+  font-weight: 700;
 }
 
 h4 {
@@ -71,9 +97,8 @@ h6 {
 }
 
 /* Body text uses Inter */
-p, span, div, label, input, textarea, select, button,
-p[style], span[style], div[style], label[style], input[style], textarea[style], select[style], button[style] {
-  font-family: 'Inter', sans-serif !important;
+p, span, div, label, input, textarea, select, button {
+  font-family: var(--font-body);
 }
 
 p {
@@ -81,32 +106,9 @@ p {
   line-height: 1.6;
 }
 
-/* Buttons */
-button {
-  font-family: 'Inter', sans-serif !important;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-button:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-button:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
 /* Form Elements */
 input, textarea, select {
-  font-family: 'Inter', sans-serif !important;
+  font-family: var(--font-body);
   font-size: 14px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -136,37 +138,59 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Utility Classes */
-.font-heading {
-  font-family: 'Roboto Slab', serif;
-}
-
-.font-heading-alt {
-  font-family: 'Roboto', sans-serif;
-}
-
-.font-body {
-  font-family: 'Inter', sans-serif;
-}
-
-.font-bold {
-  font-weight: 700;
-}
-
-.font-semibold {
+/* Buttons */
+button {
+  font-family: var(--font-body);
   font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.font-medium {
-  font-weight: 500;
+button:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
-.font-regular {
-  font-weight: 400;
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* Code */
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* Custom utility classes for gradients */
+.bg-gradient-scout {
+  background: var(--color-gradient-scout);
+}
+
+.bg-gradient-scout-light {
+  background: var(--color-gradient-scout-light);
+}
+
+.bg-gradient-user {
+  background: var(--color-gradient-user);
+}
+
+.bg-gradient-user-light {
+  background: var(--color-gradient-user-light);
+}
+
+.shadow-elevated {
+  box-shadow: var(--shadow-elevated);
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-body {
+  font-family: var(--font-body);
 }
