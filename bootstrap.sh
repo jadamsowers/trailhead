@@ -85,18 +85,12 @@ else
 fi
 echo ""
 
-# Determine mode (dev or production)
-if [ "$USE_DEFAULTS" = true ]; then
-    MODE="development"
-    MODE_CHOICE=1
-    print_info "Selected mode: development"
-else
-    print_question "Select deployment mode:"
-    echo "  1) Development (localhost, hot-reload, frontend dev server)"
-    echo "  2) Production (custom domain, optimized build)"
-    read -p "Enter choice [1-2] (default: 1): " MODE_CHOICE
-    MODE_CHOICE=${MODE_CHOICE:-1}
-fi
+# Determine mode (dev or production) - always ask, even in quick setup
+print_question "Select deployment mode:"
+echo "  1) Development (localhost, hot-reload, frontend dev server)"
+echo "  2) Production (custom domain, optimized build)"
+read -p "Enter choice [1-2] (default: 1): " MODE_CHOICE
+MODE_CHOICE=${MODE_CHOICE:-1}
 
 if [ "$MODE_CHOICE" = "2" ]; then
     MODE="production"
