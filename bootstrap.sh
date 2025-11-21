@@ -216,24 +216,20 @@ else
 fi
 
 # CORS configuration
-if [ "$USE_DEFAULTS" = true ]; then
-    if [ "$MODE" = "production" ]; then
-        BACKEND_CORS_ORIGINS="$HOST_URI"
-    else
-        BACKEND_CORS_ORIGINS="http://localhost:3000,http://localhost:8000,http://localhost:8080"
-    fi
-    print_info "CORS: Using defaults"
+print_question "CORS Configuration:"
+if [ "$MODE" = "production" ]; then
+    # Always ask for CORS origins in production, even in quick setup
+    read -p "Allowed CORS Origins (comma-separated, default: $HOST_URI): " BACKEND_CORS_ORIGINS
+    BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-$HOST_URI}
 else
-    print_question "CORS Configuration:"
-    if [ "$MODE" = "production" ]; then
-        read -p "Allowed CORS Origins (comma-separated, default: $HOST_URI): " BACKEND_CORS_ORIGINS
-        BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-$HOST_URI}
-    else
-        BACKEND_CORS_ORIGINS="http://localhost:3000,http://localhost:8000,http://localhost:8080"
-        print_info "Using default CORS origins for development: $BACKEND_CORS_ORIGINS"
+    # For development, use defaults but allow override in custom mode
+    if [ "$USE_DEFAULTS" = false ]; then
+        read -p "Allowed CORS Origins (comma-separated, default: http://localhost:3000,http://localhost:8000,http://localhost:8080): " BACKEND_CORS_ORIGINS
     fi
-    echo ""
+    BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-http://localhost:3000,http://localhost:8000,http://localhost:8080}
+    print_info "Using CORS origins: $BACKEND_CORS_ORIGINS"
 fi
+echo ""
 
 # Keycloak configuration
 if [ "$USE_DEFAULTS" = true ]; then
@@ -499,9 +495,8 @@ KEYCLOAK_ADMIN_USER=$KEYCLOAK_ADMIN_USER
 KEYCLOAK_ADMIN_PASSWORD=$KEYCLOAK_ADMIN_PASSWORD
 KEYCLOAK_DB_USER=$KEYCLOAK_DB_USER
 KEYCLOAK_DB_PASSWORD=$KEYCLOAK_DB_PASSWORD
-KC_DB_USERNAME=$KEYCLOAK_DB_USER
-KC_DB_PASSWORD=$KEYCLOAK_DB_PASSWORD
 KEYCLOAK_REALM=$KEYCLOAK_REALM
+KEYCLOAK_CLIENT_ID=scouting-outing-backend
 KEYCLOAK_CLIENT_SECRET=$KEYCLOAK_CLIENT_SECRET
 FRONTEND_URL=$([ "$MODE" = "development" ] && echo "http://localhost:3000" || echo "$HOST_URI")
 EOF
