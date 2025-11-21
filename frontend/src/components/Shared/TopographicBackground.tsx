@@ -309,6 +309,42 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
                         height: '150%',
                         animation: 'topoPan 120s linear infinite'
                     }}
+                >
+                    <defs>
+                        <linearGradient id="topoGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style={{ stopColor: 'rgba(25, 118, 210, 0.03)', stopOpacity: 1 }} />
+                            <stop offset="50%" style={{ stopColor: 'rgba(25, 118, 210, 0.01)', stopOpacity: 1 }} />
+                            <stop offset="100%" style={{ stopColor: 'rgba(156, 39, 176, 0.02)', stopOpacity: 1 }} />
+                        </linearGradient>
+                        <radialGradient id="topoRadialGradient" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" style={{ stopColor: 'rgba(255, 255, 255, 0.4)', stopOpacity: 1 }} />
+                            <stop offset="100%" style={{ stopColor: 'rgba(255, 255, 255, 0)', stopOpacity: 1 }} />
+                        </radialGradient>
+                    </defs>
+                </svg>
+                {/* Gradient overlay */}
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(255, 255, 255, 0) 50%, rgba(156, 39, 176, 0.06) 100%)',
+                        pointerEvents: 'none'
+                    }}
+                />
+                {/* Radial gradient for depth */}
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 60%)',
+                        pointerEvents: 'none'
+                    }}
                 />
             </div>
         </>
