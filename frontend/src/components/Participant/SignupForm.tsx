@@ -13,7 +13,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const SignupForm: React.FC = () => {
     const { user, isAuthenticated, isParent } = useAuth();
     const [trips, setTrips] = useState<Trip[]>([]);
-    const [selectedTripId, setSelectedTripId] = useState<string>('');
+    const [expandedTripId, setExpandedTripId] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
@@ -63,8 +63,14 @@ const SignupForm: React.FC = () => {
         try {
             setLoading(true);
             const data = await tripAPI.getAll();
-            // Filter to show only future trips
-            const futureTrips = data.filter(trip => new Date(trip.trip_date) >= new Date());
+            // Filter to show only future trips (compare dates only, not time)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Reset to start of day
+            const futureTrips = data.filter(trip => {
+                const tripDate = new Date(trip.trip_date);
+                tripDate.setHours(0, 0, 0, 0); // Reset to start of day
+                return tripDate >= today;
+            });
             setTrips(futureTrips);
         } catch (err) {
             setError(err instanceof APIError ? err.message : 'Failed to load trips');
@@ -82,9 +88,19 @@ const SignupForm: React.FC = () => {
         }
     };
 
-    const handleTripSelect = (tripId: string) => {
-        setSelectedTripId(tripId);
-        setFormData({ ...formData, trip_id: tripId });
+    const handleTripToggle = (tripId: string) => {
+        if (expandedTripId === tripId) {
+            // Collapse if already expanded
+            setExpandedTripId('');
+            setFormData({ ...formData, trip_id: '' });
+        } else {
+            // Expand and set trip
+            setExpandedTripId(tripId);
+            setFormData({ ...formData, trip_id: tripId });
+            // Reset form state when switching trips
+            setShowFamilySelection(true);
+            setSelectedFamilyMemberId(null);
+        }
     };
 
     const handleContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -385,7 +401,7 @@ const SignupForm: React.FC = () => {
                         allergies: []
                     }]
                 });
-                setSelectedTripId('');
+                setExpandedTripId('');
                 setSuccess(false);
                 setSelectedFamilyMemberId(null);
                 setSaveToFamily(false);
@@ -398,7 +414,7 @@ const SignupForm: React.FC = () => {
         }
     };
 
-    const selectedTrip = trips.find(t => t.id === selectedTripId);
+    const selectedTrip = trips.find(t => t.id === expandedTripId);
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
@@ -438,10 +454,10 @@ const SignupForm: React.FC = () => {
             )}
 
             {error && (
-                <div style={{ 
-                    padding: '15px', 
-                    marginBottom: '20px', 
-                    backgroundColor: '#ffebee', 
+                <div style={{
+                    padding: '15px',
+                    marginBottom: '20px',
+                    backgroundColor: '#ffebee',
                     color: '#c62828',
                     borderRadius: '4px'
                 }}>
@@ -449,30 +465,41 @@ const SignupForm: React.FC = () => {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit}>
-                {/* Trip Selection */}
-                <div style={{ marginBottom: '30px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
-                    <h2>Select Trip</h2>
-                    {loading && trips.length === 0 ? (
-                        <p>Loading available trips...</p>
-                    ) : trips.length === 0 ? (
-                        <p>No upcoming trips available at this time.</p>
-                    ) : (
-                        <div>
-                            {trips.map(trip => (
-                                <div 
-                                    key={trip.id}
-                                    onClick={() => handleTripSelect(trip.id)}
+            {/* Trip Selection with Expandable Forms */}
+            <div style={{ marginBottom: '30px' }}>
+                <h2>Select a Trip to Sign Up</h2>
+                {loading && trips.length === 0 ? (
+                    <p>Loading available trips...</p>
+                ) : trips.length === 0 ? (
+                    <p>No upcoming trips available at this time.</p>
+                ) : (
+                    <div>
+                        {trips.map(trip => (
+                            <div
+                                key={trip.id}
+                                style={{
+                                    marginBottom: '20px',
+                                    border: expandedTripId === trip.id ? '2px solid #1976d2' : '1px solid #ddd',
+                                    borderRadius: '8px',
+                                    overflow: 'hidden'
+                                }}
+                            >
+                                {/* Trip Header - Clickable */}
+                                <div
+                                    onClick={() => handleTripToggle(trip.id)}
                                     style={{
                                         padding: '15px',
-                                        marginBottom: '10px',
-                                        border: selectedTripId === trip.id ? '2px solid #1976d2' : '1px solid #ddd',
-                                        borderRadius: '4px',
                                         cursor: 'pointer',
-                                        backgroundColor: selectedTripId === trip.id ? '#e3f2fd' : 'white'
+                                        backgroundColor: expandedTripId === trip.id ? '#e3f2fd' : 'white',
+                                        transition: 'background-color 0.2s'
                                     }}
                                 >
-                                    <h3 style={{ margin: '0 0 10px 0' }}>{trip.name}</h3>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <h3 style={{ margin: '0 0 10px 0' }}>{trip.name}</h3>
+                                        <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                                            {expandedTripId === trip.id ? '▼' : '▶'}
+                                        </span>
+                                    </div>
                                     <p style={{ margin: '5px 0' }}>
                                         <strong>Date:</strong> {new Date(trip.trip_date).toLocaleDateString()}
                                     </p>
@@ -563,13 +590,16 @@ const SignupForm: React.FC = () => {
                                     
                                     {/* Trip Lead Contact Information - Collapsible */}
                                     {(trip.trip_lead_name || trip.trip_lead_email || trip.trip_lead_phone) && (
-                                        <div style={{ marginTop: '15px' }}>
+                                        <div style={{ marginTop: '15px' }} onClick={(e) => e.stopPropagation()}>
                                             <button
                                                 type="button"
-                                                onClick={() => setShowTripLeadInfo({
-                                                    ...showTripLeadInfo,
-                                                    [trip.id]: !showTripLeadInfo[trip.id]
-                                                })}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setShowTripLeadInfo({
+                                                        ...showTripLeadInfo,
+                                                        [trip.id]: !showTripLeadInfo[trip.id]
+                                                    });
+                                                }}
                                                 style={{
                                                     padding: '8px 12px',
                                                     backgroundColor: '#2196f3',
@@ -613,13 +643,10 @@ const SignupForm: React.FC = () => {
                                         </div>
                                     )}
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
 
-                {selectedTrip && (
-                    <>
+                                {/* Expandable Form Section */}
+                                {expandedTripId === trip.id && selectedTrip && (
+                                    <form onSubmit={handleSubmit} style={{ padding: '20px', backgroundColor: '#f5f5f5', borderTop: '2px solid #1976d2' }}>
                         {/* Family Member Selection (for authenticated parents) */}
                         {isAuthenticated && isParent && familyMembers.length > 0 && showFamilySelection && (
                             <div style={{ marginBottom: '30px', padding: '20px', border: '2px solid #4caf50', borderRadius: '8px', backgroundColor: '#f1f8f4' }}>
@@ -1062,9 +1089,13 @@ const SignupForm: React.FC = () => {
                                 {loading ? 'Submitting...' : 'Submit Signup'}
                             </button>
                         </div>
-                    </>
+                                    </form>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 )}
-            </form>
+            </div>
         </div>
     );
 };

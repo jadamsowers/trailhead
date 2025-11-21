@@ -239,7 +239,7 @@ const App: React.FC = () => {
                         textAlign: 'center',
                         marginTop: '60px'
                     }}>
-                        <p>Scouting Outing Manager - Built for Scouting America Troops</p>
+                        <p>Scouting Outing Manager - vibe-coded with ⚜️❤️ by <a href="https://scouthacks.net/">Adam Sowers</a></p>
                         <p style={{ fontSize: '14px', color: '#999', marginTop: '10px' }}>
                             API Documentation: <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" style={{ color: '#64b5f6' }}>http://localhost:8000/docs</a>
                         </p>
