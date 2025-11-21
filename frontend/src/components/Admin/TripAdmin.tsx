@@ -73,13 +73,8 @@ const TripAdmin: React.FC = () => {
             setTrips(data);
         } catch (err) {
             console.error('Error loading trips:', err);
-            if (err instanceof APIError) {
-                setError(err.message);
-            } else if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('Failed to load trips');
-            }
+            const errorMessage = err instanceof Error ? err.message : 'Failed to load trips';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -97,13 +92,8 @@ const TripAdmin: React.FC = () => {
             setTripSignups({ ...tripSignups, [tripId]: signups });
         } catch (err) {
             console.error('Error loading signups:', err);
-            if (err instanceof APIError) {
-                setError(err.message);
-            } else if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('Failed to load signups');
-            }
+            const errorMessage = err instanceof Error ? err.message : 'Failed to load signups';
+            setError(errorMessage);
         } finally {
             setLoadingSignups({ ...loadingSignups, [tripId]: false });
         }
@@ -167,13 +157,8 @@ const TripAdmin: React.FC = () => {
             await loadTrips();
         } catch (err) {
             console.error('Error creating trip:', err);
-            if (err instanceof APIError) {
-                setError(err.message);
-            } else if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('Failed to create trip');
-            }
+            const errorMessage = err instanceof Error ? err.message : 'Failed to create trip';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -239,13 +224,8 @@ const TripAdmin: React.FC = () => {
             await loadTrips();
         } catch (err) {
             console.error('Error updating trip:', err);
-            if (err instanceof APIError) {
-                setError(err.message);
-            } else if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('Failed to update trip');
-            }
+            const errorMessage = err instanceof Error ? err.message : 'Failed to update trip';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -262,13 +242,8 @@ const TripAdmin: React.FC = () => {
             await loadTrips();
         } catch (err) {
             console.error('Error deleting trip:', err);
-            if (err instanceof APIError) {
-                setError(err.message);
-            } else if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('Failed to delete trip');
-            }
+            const errorMessage = err instanceof Error ? err.message : 'Failed to delete trip';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -282,13 +257,8 @@ const TripAdmin: React.FC = () => {
             csvAPI.downloadCSV(blob, `${tripName.replace(/\s+/g, '_')}_roster.csv`);
         } catch (err) {
             console.error('Error exporting roster:', err);
-            if (err instanceof APIError) {
-                setError(err.message);
-            } else if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('Failed to export roster');
-            }
+            const errorMessage = err instanceof Error ? err.message : 'Failed to export roster';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -302,13 +272,8 @@ const TripAdmin: React.FC = () => {
             csvAPI.downloadPDF(blob, `${tripName.replace(/\s+/g, '_')}_roster.pdf`);
         } catch (err) {
             console.error('Error exporting roster PDF:', err);
-            if (err instanceof APIError) {
-                setError(err.message);
-            } else if (err instanceof Error) {
-                setError(err.message);
-            } else {
-                setError('Failed to export roster PDF');
-            }
+            const errorMessage = err instanceof Error ? err.message : 'Failed to export roster PDF';
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

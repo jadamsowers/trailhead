@@ -52,10 +52,14 @@ class ClerkClient:
                 )
             
             # Decode the token to get the issuer (iss) claim which contains the frontend API URL
+            print(f"🔍 Verifying Clerk token (first 20 chars): {token[:20]}...")
             unverified_payload = jwt.decode(token, options={"verify_signature": False})
             issuer = unverified_payload.get("iss")
+            print(f"🔍 Token issuer: {issuer}")
+            print(f"🔍 Token subject (user_id): {unverified_payload.get('sub')}")
             
             if not issuer:
+                print("❌ Token missing issuer claim")
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Token missing issuer claim"
@@ -64,6 +68,7 @@ class ClerkClient:
             # Construct JWKS URL from issuer
             # Issuer format: https://<clerk-instance>.clerk.accounts.dev
             jwks_url = f"{issuer}/.well-known/jwks.json"
+            print(f"🔍 JWKS URL: {jwks_url}")
             
             # Get JWKS from Clerk
             jwks_client = PyJWKClient(jwks_url)
@@ -77,22 +82,32 @@ class ClerkClient:
                 options={"verify_exp": True}
             )
             
+            print(f"✅ Token verified successfully for user: {payload.get('sub')}")
+            
             return {
                 "user_id": payload.get("sub"),
                 "session_id": payload.get("sid"),
                 "claims": payload
             }
         except jwt.ExpiredSignatureError:
+            print("❌ Token has expired")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token has expired"
             )
         except jwt.InvalidTokenError as e:
+            print(f"❌ Invalid token: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Invalid token: {str(e)}"
             )
+        except HTTPException:
+            raise
         except Exception as e:
+            print(f"❌ Token verification failed: {str(e)}")
+            print(f"   Exception type: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Token verification failed: {str(e)}"

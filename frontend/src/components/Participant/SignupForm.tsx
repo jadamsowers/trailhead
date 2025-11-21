@@ -22,7 +22,7 @@ const SignupForm: React.FC = () => {
     const [warnings, setWarnings] = useState<string[]>([]);
     const [showTripLeadInfo, setShowTripLeadInfo] = useState<{[key: string]: boolean}>({});
     const [familyMembers, setFamilyMembers] = useState<FamilyMemberSummary[]>([]);
-    const [selectedFamilyMemberId, setSelectedFamilyMemberId] = useState<string | null>(null);
+    const [selectedFamilyMemberIds, setSelectedFamilyMemberIds] = useState<string[]>([]);
     const [saveToFamily, setSaveToFamily] = useState<boolean>(false);
     const [showFamilySelection, setShowFamilySelection] = useState<boolean>(true);
     
@@ -101,7 +101,7 @@ const SignupForm: React.FC = () => {
             setFormData({ ...formData, trip_id: tripId });
             // Reset form state when switching trips
             setShowFamilySelection(true);
-            setSelectedFamilyMemberId(null);
+            setSelectedFamilyMemberIds([]);
         }
     };
 
@@ -156,22 +156,8 @@ const SignupForm: React.FC = () => {
     };
 
     const handleAddParticipant = () => {
-        setFormData({
-            ...formData,
-            participants: [...formData.participants, {
-                full_name: '',
-                participant_type: 'scout',
-                gender: 'male',
-                age: '',
-                troop_number: '',
-                patrol: '',
-                has_youth_protection_training: false,
-                vehicle_capacity: '',
-                dietary_restrictions: {},
-                dietary_notes: '',
-                allergies: []
-            }]
-        });
+        // Redirect to family setup page to add more participants
+        window.location.href = '/family-setup';
     };
 
     const handleRemoveParticipant = (index: number) => {
@@ -181,47 +167,66 @@ const SignupForm: React.FC = () => {
         }
     };
 
-    const handleSelectFamilyMember = async (memberId: string) => {
-        setSelectedFamilyMemberId(memberId);
+    const handleToggleFamilyMember = async (memberId: string) => {
+        const isSelected = selectedFamilyMemberIds.includes(memberId);
+        
+        if (isSelected) {
+            // Remove from selection
+            setSelectedFamilyMemberIds(prev => prev.filter(id => id !== memberId));
+        } else {
+            // Add to selection
+            setSelectedFamilyMemberIds(prev => [...prev, memberId]);
+        }
+    };
+
+    const handleConfirmSelection = async () => {
+        if (selectedFamilyMemberIds.length === 0) {
+            setError('Please select at least one family member');
+            return;
+        }
+
         try {
-            // Fetch full family member details
-            const member = await familyAPI.getById(memberId);
+            setError(null);
+            const participants: typeof formData.participants = [];
             
-            // Calculate age from date of birth
-            let age = '';
-            if (member.date_of_birth) {
-                const birthDate = new Date(member.date_of_birth);
-                const today = new Date();
-                const calculatedAge = today.getFullYear() - birthDate.getFullYear();
-                age = calculatedAge.toString();
+            for (const memberId of selectedFamilyMemberIds) {
+                const member = await familyAPI.getById(memberId);
+                
+                // Calculate age from date of birth
+                let age = '';
+                if (member.date_of_birth) {
+                    const birthDate = new Date(member.date_of_birth);
+                    const today = new Date();
+                    const calculatedAge = today.getFullYear() - birthDate.getFullYear();
+                    age = calculatedAge.toString();
+                }
+
+                // Convert family member to participant form data
+                participants.push({
+                    full_name: member.name,
+                    participant_type: member.member_type === 'scout' ? 'scout' as const : 'adult' as const,
+                    gender: 'male' as const, // Default, user can change
+                    age: age,
+                    troop_number: member.troop_number || '',
+                    patrol: member.patrol_name || '',
+                    has_youth_protection_training: member.has_youth_protection,
+                    vehicle_capacity: member.vehicle_capacity?.toString() || '',
+                    dietary_restrictions: member.dietary_preferences.reduce((acc, pref) => {
+                        acc[pref.preference] = true;
+                        return acc;
+                    }, {} as { [key: string]: boolean }),
+                    dietary_notes: member.medical_notes || '',
+                    allergies: member.allergies.map(allergy => ({
+                        type: allergy.allergy,
+                        severity: (allergy.severity || 'mild') as 'mild' | 'moderate' | 'severe',
+                        notes: ''
+                    }))
+                });
             }
 
-            // Convert family member to participant form data
-            const participantData = {
-                full_name: member.name,
-                participant_type: member.member_type === 'scout' ? 'scout' as const : 'adult' as const,
-                gender: 'male' as const, // Default, user can change
-                age: age,
-                troop_number: member.troop_number || '',
-                patrol: member.patrol_name || '',
-                has_youth_protection_training: member.has_youth_protection,
-                vehicle_capacity: member.vehicle_capacity?.toString() || '',
-                dietary_restrictions: member.dietary_preferences.reduce((acc, pref) => {
-                    acc[pref.preference] = true;
-                    return acc;
-                }, {} as { [key: string]: boolean }),
-                dietary_notes: member.medical_notes || '',
-                allergies: member.allergies.map(allergy => ({
-                    type: allergy.allergy,
-                    severity: (allergy.severity || 'mild') as 'mild' | 'moderate' | 'severe',
-                    notes: ''
-                }))
-            };
-
-            // Update the first participant with family member data
             setFormData(prev => ({
                 ...prev,
-                participants: [participantData, ...prev.participants.slice(1)]
+                participants: participants
             }));
 
             setShowFamilySelection(false);
@@ -231,14 +236,14 @@ const SignupForm: React.FC = () => {
     };
 
     const handleAddNewParticipant = () => {
-        setSelectedFamilyMemberId(null);
+        setSelectedFamilyMemberIds([]);
         setShowFamilySelection(false);
     };
 
     const handleBackToFamilySelection = () => {
         setShowFamilySelection(true);
-        setSelectedFamilyMemberId(null);
-        // Reset first participant
+        setSelectedFamilyMemberIds([]);
+        // Reset participants
         setFormData(prev => ({
             ...prev,
             participants: [{
@@ -253,7 +258,7 @@ const SignupForm: React.FC = () => {
                 dietary_restrictions: {},
                 dietary_notes: '',
                 allergies: []
-            }, ...prev.participants.slice(1)]
+            }]
         }));
     };
 
@@ -346,7 +351,7 @@ const SignupForm: React.FC = () => {
             const response = await signupAPI.create(signupData);
             
             // If authenticated parent and "save to family" is checked, save new participants
-            if (isAuthenticated && isParent && saveToFamily && !selectedFamilyMemberId) {
+            if (isAuthenticated && isParent && saveToFamily && selectedFamilyMemberIds.length === 0) {
                 try {
                     for (const participant of formData.participants) {
                         const familyMemberData = {
@@ -405,7 +410,7 @@ const SignupForm: React.FC = () => {
                 });
                 setExpandedTripId('');
                 setSuccess(false);
-                setSelectedFamilyMemberId(null);
+                setSelectedFamilyMemberIds([]);
                 setSaveToFamily(false);
                 setShowFamilySelection(true);
             }, 3000);
@@ -652,59 +657,101 @@ const SignupForm: React.FC = () => {
                         {/* Family Member Selection (for authenticated parents) */}
                         {isAuthenticated && isParent && familyMembers.length > 0 && showFamilySelection && (
                             <div style={{ marginBottom: '30px', padding: '20px', border: '2px solid #4caf50', borderRadius: '8px', backgroundColor: '#f1f8f4' }}>
-                                <h2>Select from Your Family</h2>
+                                <h2>Select Participants from Your Family</h2>
                                 <p style={{ marginBottom: '15px', color: '#555' }}>
-                                    Choose a saved family member or add a new participant
+                                    Select one or more family members to sign up for this trip
                                 </p>
                                 
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px', marginBottom: '15px' }}>
-                                    {familyMembers.map(member => (
-                                        <div
-                                            key={member.id}
-                                            onClick={() => handleSelectFamilyMember(member.id)}
-                                            style={{
-                                                padding: '15px',
-                                                border: selectedFamilyMemberId === member.id ? '2px solid #4caf50' : '1px solid #ddd',
-                                                borderRadius: '8px',
-                                                cursor: 'pointer',
-                                                backgroundColor: selectedFamilyMemberId === member.id ? '#e8f5e9' : 'white',
-                                                transition: 'all 0.2s'
-                                            }}
-                                        >
-                                            <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{member.name}</h3>
-                                            <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
-                                                <strong>Type:</strong> {member.member_type === 'scout' ? 'Scout' : 'Parent'}
-                                            </p>
-                                            {member.age && (
+                                    {familyMembers.map(member => {
+                                        const isSelected = selectedFamilyMemberIds.includes(member.id);
+                                        return (
+                                            <div
+                                                key={member.id}
+                                                onClick={() => handleToggleFamilyMember(member.id)}
+                                                style={{
+                                                    padding: '15px',
+                                                    border: isSelected ? '2px solid #4caf50' : '1px solid #ddd',
+                                                    borderRadius: '8px',
+                                                    cursor: 'pointer',
+                                                    backgroundColor: isSelected ? '#e8f5e9' : 'white',
+                                                    transition: 'all 0.2s',
+                                                    position: 'relative'
+                                                }}
+                                            >
+                                                {isSelected && (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: '8px',
+                                                        right: '8px',
+                                                        width: '24px',
+                                                        height: '24px',
+                                                        borderRadius: '50%',
+                                                        backgroundColor: '#4caf50',
+                                                        color: 'white',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        fontSize: '16px',
+                                                        fontWeight: 'bold'
+                                                    }}>
+                                                        ✓
+                                                    </div>
+                                                )}
+                                                <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{member.name}</h3>
                                                 <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
-                                                    <strong>Age:</strong> {member.age}
+                                                    <strong>Type:</strong> {member.member_type === 'scout' ? 'Scout' : 'Parent'}
                                                 </p>
-                                            )}
-                                            {member.troop_number && (
-                                                <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
-                                                    <strong>Troop:</strong> {member.troop_number}
-                                                </p>
-                                            )}
-                                        </div>
-                                    ))}
+                                                {member.age && (
+                                                    <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
+                                                        <strong>Age:</strong> {member.age}
+                                                    </p>
+                                                )}
+                                                {member.troop_number && (
+                                                    <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
+                                                        <strong>Troop:</strong> {member.troop_number}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                                 
-                                <button
-                                    type="button"
-                                    onClick={handleAddNewParticipant}
-                                    style={{
-                                        padding: '10px 20px',
-                                        backgroundColor: '#2196f3',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        fontSize: '14px',
-                                        fontWeight: 'bold'
-                                    }}
-                                >
-                                    + Add New Participant Instead
-                                </button>
+                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                    <button
+                                        type="button"
+                                        onClick={handleConfirmSelection}
+                                        disabled={selectedFamilyMemberIds.length === 0}
+                                        style={{
+                                            padding: '10px 20px',
+                                            backgroundColor: selectedFamilyMemberIds.length === 0 ? '#ccc' : '#4caf50',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: selectedFamilyMemberIds.length === 0 ? 'not-allowed' : 'pointer',
+                                            fontSize: '14px',
+                                            fontWeight: 'bold'
+                                        }}
+                                    >
+                                        Continue with {selectedFamilyMemberIds.length} Selected
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleAddParticipant}
+                                        style={{
+                                            padding: '10px 20px',
+                                            backgroundColor: '#2196f3',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer',
+                                            fontSize: '14px',
+                                            fontWeight: 'bold'
+                                        }}
+                                    >
+                                        + Add New Participant
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -790,285 +837,49 @@ const SignupForm: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Participants */}
-                        {formData.participants.map((participant, index) => (
-                            <div key={index} style={{ marginBottom: '30px', padding: '20px', border: '2px solid #1976d2', borderRadius: '8px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                                    <h2>Participant {index + 1}</h2>
-                                    {formData.participants.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveParticipant(index)}
-                                            style={{
-                                                padding: '5px 10px',
-                                                backgroundColor: '#f44336',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: '4px',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            Remove
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div style={{ marginBottom: '15px' }}>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                        Full Name *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={participant.full_name}
-                                        onChange={(e) => handleParticipantChange(index, 'full_name', e.target.value)}
-                                        required
-                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
-                                    />
-                                </div>
-
-                                <div style={{ marginBottom: '15px' }}>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                        Participant Type *
-                                    </label>
-                                    <select
-                                        value={participant.participant_type}
-                                        onChange={(e) => handleParticipantChange(index, 'participant_type', e.target.value)}
-                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
-                                    >
-                                        <option value="scout">Scout</option>
-                                        <option value="adult">Adult</option>
-                                    </select>
-                                </div>
-
-                                <div style={{ marginBottom: '15px' }}>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                        Gender *
-                                    </label>
-                                    <select
-                                        value={participant.gender}
-                                        onChange={(e) => handleParticipantChange(index, 'gender', e.target.value)}
-                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
-                                    >
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                        <option value="other">Other</option>
-                                    </select>
-                                </div>
-
-                                {participant.participant_type === 'scout' ? (
-                                    <>
-                                        <div style={{ marginBottom: '15px' }}>
-                                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                                Age *
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={participant.age}
-                                                onChange={(e) => handleParticipantChange(index, 'age', e.target.value)}
-                                                min="1"
-                                                max="99"
-                                                required
-                                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
-                                            />
-                                        </div>
-
-                                        <div style={{ marginBottom: '15px' }}>
-                                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                                Troop Number *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={participant.troop_number}
-                                                onChange={(e) => handleParticipantChange(index, 'troop_number', e.target.value)}
-                                                required
-                                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
-                                            />
-                                        </div>
-
-                                        <div style={{ marginBottom: '15px' }}>
-                                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                                Patrol (Optional)
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={participant.patrol}
-                                                onChange={(e) => handleParticipantChange(index, 'patrol', e.target.value)}
-                                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
-                                            />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        {selectedTrip.is_overnight && (
-                                            <div style={{ marginBottom: '15px' }}>
-                                                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={participant.has_youth_protection_training}
-                                                        onChange={(e) => handleParticipantChange(index, 'has_youth_protection_training', e.target.checked)}
-                                                        style={{ marginRight: '8px' }}
-                                                    />
-                                                    <span>Has Scouting America Youth Protection Training (Required for overnight trips)</span>
-                                                </label>
-                                            </div>
-                                        )}
-
-                                        <div style={{ marginBottom: '15px' }}>
-                                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                                Vehicle Capacity (Optional)
-                                            </label>
-                                            <input
-                                                type="number"
-                                                value={participant.vehicle_capacity}
-                                                onChange={(e) => handleParticipantChange(index, 'vehicle_capacity', e.target.value)}
-                                                min="0"
-                                                placeholder="How many people can you transport?"
-                                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
-                                            />
-                                        </div>
-                                    </>
-                                )}
-
-                                {/* Dietary Restrictions */}
-                                <div style={{ marginBottom: '15px' }}>
-                                    <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
-                                        Dietary Restrictions
-                                    </label>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
-                                        {DIETARY_RESTRICTIONS.map(restriction => (
-                                            <label key={restriction} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={participant.dietary_restrictions[restriction] || false}
-                                                    onChange={() => handleDietaryRestrictionToggle(index, restriction)}
-                                                    style={{ marginRight: '8px' }}
-                                                />
-                                                <span style={{ textTransform: 'capitalize' }}>{restriction.replace('_', ' ')}</span>
-                                            </label>
-                                        ))}
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={participant.dietary_notes}
-                                        onChange={(e) => handleParticipantChange(index, 'dietary_notes', e.target.value)}
-                                        placeholder="Additional dietary notes..."
-                                        style={{ width: '100%', padding: '8px', fontSize: '14px', marginTop: '10px' }}
-                                    />
-                                </div>
-
-                                {/* Allergies */}
-                                <div style={{ marginBottom: '15px' }}>
-                                    <label style={{ display: 'block', marginBottom: '10px', fontWeight: 'bold' }}>
-                                        Allergies
-                                    </label>
-                                    {participant.allergies.map((allergy, allergyIndex) => (
-                                        <div key={allergyIndex} style={{ 
-                                            padding: '10px', 
-                                            marginBottom: '10px', 
-                                            border: '1px solid #ddd', 
-                                            borderRadius: '4px',
-                                            backgroundColor: '#f9f9f9'
-                                        }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                                                <select
-                                                    value={allergy.type}
-                                                    onChange={(e) => handleAllergyChange(index, allergyIndex, 'type', e.target.value)}
-                                                    style={{ flex: 1, marginRight: '10px', padding: '8px' }}
-                                                >
-                                                    <option value="">Select allergy type...</option>
-                                                    {ALLERGY_TYPES.map(type => (
-                                                        <option key={type} value={type}>
-                                                            {type.replace('_', ' ')}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <select
-                                                    value={allergy.severity}
-                                                    onChange={(e) => handleAllergyChange(index, allergyIndex, 'severity', e.target.value)}
-                                                    style={{ width: '120px', marginRight: '10px', padding: '8px' }}
-                                                >
-                                                    {ALLERGY_SEVERITIES.map(severity => (
-                                                        <option key={severity} value={severity}>
-                                                            {severity}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleRemoveAllergy(index, allergyIndex)}
-                                                    style={{
-                                                        padding: '5px 10px',
-                                                        backgroundColor: '#f44336',
-                                                        color: 'white',
-                                                        border: 'none',
-                                                        borderRadius: '4px',
-                                                        cursor: 'pointer'
-                                                    }}
-                                                >
-                                                    Remove
-                                                </button>
-                                            </div>
-                                            <input
-                                                type="text"
-                                                value={allergy.notes}
-                                                onChange={(e) => handleAllergyChange(index, allergyIndex, 'notes', e.target.value)}
-                                                placeholder="Additional notes (e.g., EpiPen required)..."
-                                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
-                                            />
+                        {/* Selected Participants Summary */}
+                        {!showFamilySelection && selectedFamilyMemberIds.length > 0 && (
+                            <div style={{ marginBottom: '30px', padding: '20px', border: '2px solid #4caf50', borderRadius: '8px', backgroundColor: '#f1f8f4' }}>
+                                <h2 style={{ marginBottom: '15px', color: '#2e7d32' }}>Selected Participants ({formData.participants.length})</h2>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '15px' }}>
+                                    {formData.participants.map((participant, index) => (
+                                        <div key={index} style={{ padding: '15px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #ddd' }}>
+                                            <p style={{ margin: '5px 0', fontSize: '16px' }}>
+                                                <strong>Name:</strong> {participant.full_name}
+                                            </p>
+                                            <p style={{ margin: '5px 0', fontSize: '16px' }}>
+                                                <strong>Type:</strong> {participant.participant_type === 'scout' ? 'Scout' : 'Adult'}
+                                            </p>
+                                            {participant.troop_number && (
+                                                <p style={{ margin: '5px 0', fontSize: '16px' }}>
+                                                    <strong>Troop:</strong> {participant.troop_number}
+                                                </p>
+                                            )}
                                         </div>
                                     ))}
+                                </div>
+                                <div style={{ padding: '15px', backgroundColor: '#fff3e0', borderRadius: '6px', border: '1px solid #ff9800' }}>
+                                    <p style={{ margin: '0', fontSize: '14px', color: '#e65100' }}>
+                                        ℹ️ <strong>Need to add more participants?</strong> Please go to the Family Setup page to add additional family members, then return here to sign them up for this trip.
+                                    </p>
                                     <button
                                         type="button"
-                                        onClick={() => handleAddAllergy(index)}
+                                        onClick={handleAddParticipant}
                                         style={{
-                                            padding: '8px 16px',
-                                            backgroundColor: '#4caf50',
+                                            marginTop: '12px',
+                                            padding: '10px 20px',
+                                            backgroundColor: '#ff9800',
                                             color: 'white',
                                             border: 'none',
                                             borderRadius: '4px',
-                                            cursor: 'pointer'
+                                            cursor: 'pointer',
+                                            fontSize: '14px',
+                                            fontWeight: 'bold'
                                         }}
                                     >
-                                        + Add Allergy
+                                        Go to Family Setup
                                     </button>
                                 </div>
-                            </div>
-                        ))}
-
-                        <button
-                            type="button"
-                            onClick={handleAddParticipant}
-                            style={{
-                                padding: '10px 20px',
-                                marginBottom: '20px',
-                                backgroundColor: '#2196f3',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '16px'
-                            }}
-                        >
-                            + Add Another Participant
-                        </button>
-
-                        {/* Save to Family Option (for authenticated parents adding new participants) */}
-                        {isAuthenticated && isParent && !selectedFamilyMemberId && (
-                            <div style={{ marginBottom: '20px', padding: '15px', border: '1px solid #4caf50', borderRadius: '8px', backgroundColor: '#f1f8f4' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={saveToFamily}
-                                        onChange={(e) => setSaveToFamily(e.target.checked)}
-                                        style={{ marginRight: '10px', width: '18px', height: '18px' }}
-                                    />
-                                    <span style={{ fontWeight: 'bold', fontSize: '16px' }}>
-                                        💾 Save these participants to my family for future trips
-                                    </span>
-                                </label>
-                                <p style={{ margin: '8px 0 0 28px', fontSize: '14px', color: '#555' }}>
-                                    This will save their information so you can quickly sign them up for future trips without re-entering details.
-                                </p>
                             </div>
                         )}
 

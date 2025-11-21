@@ -4,26 +4,44 @@ This directory contains utility scripts for development and testing.
 
 ## seed_dev_data.py
 
-A script that generates fake family members and trips for development purposes by calling the backend API.
+A script that generates fake family members and trips for development purposes by calling the backend API using Clerk authentication.
 
 ### Prerequisites
 
-1. The backend API must be running (default: `http://localhost:8000`)
-2. Install the required dependency:
+1. **Clerk Account**: You must have a Clerk account configured with the app
+2. **Admin User**: You must be signed in as an admin user in Clerk
+3. **Backend Running**: The backend API must be running (default: `http://localhost:8000`)
+4. **Dependencies**: Install required Python packages:
    ```bash
    pip install httpx
    ```
 
+### Getting Your Clerk Session Token
+
+To use this script, you need a Clerk session token:
+
+1. **Sign in to your app** in a web browser (e.g., `http://localhost:3000`)
+2. **Open Browser DevTools** (Press F12 or right-click → Inspect)
+3. **Go to Application/Storage tab** → Cookies
+4. **Find the `__session` cookie** for your domain
+5. **Copy the cookie value** - this is your Clerk session token
+6. **Use it with the script** as shown below
+
 ### Usage
 
-**Basic usage** (assumes API is running on `http://localhost:8000`):
+**Basic usage** with Clerk token:
 ```bash
-python backend/scripts/seed_dev_data.py
+python backend/scripts/seed_dev_data.py --clerk-token "sess_2a..."
 ```
 
-**Custom API URL**:
+**With custom API URL**:
 ```bash
-python backend/scripts/seed_dev_data.py --base-url http://localhost:8080
+python backend/scripts/seed_dev_data.py --clerk-token "sess_2a..." --base-url http://localhost:8080
+```
+
+**Get help**:
+```bash
+python backend/scripts/seed_dev_data.py --help
 ```
 
 ### What it creates
@@ -50,42 +68,48 @@ The script will create:
     - Random dietary preferences (25% chance)
     - Random allergies (15% chance)
 
-### Admin Account
+### Admin Requirements
 
-The script requires an admin account to create trips. It will:
+The script requires an **admin user** to create trips. The authenticated Clerk user must:
 
-1. Try to create an admin user with:
-   - Email: `admin@example.com`
-   - Password: `password123`
-   - Name: `Admin User`
+1. Have the `admin` role set in Clerk's public metadata
+2. Be properly configured in the Clerk dashboard
 
-2. If an admin already exists, it will try to login with the above credentials
+**Setting Admin Role in Clerk**:
 
-**Important**: If you already have an admin account with different credentials, the script will fail. You can either:
-- Use the default admin credentials above
-- Modify the script to use your admin credentials
-- Manually create trips using the admin interface
+1. Go to [Clerk Dashboard](https://dashboard.clerk.com)
+2. Navigate to Users → Select your user
+3. Click on "Metadata" tab
+4. Add to **Public Metadata**:
+   ```json
+   {
+     "role": "admin"
+   }
+   ```
+5. Save changes
+
+Alternatively, if your email matches the `INITIAL_ADMIN_EMAIL` in the backend `.env` file, you'll automatically get admin role on first sign-in.
 
 ### Notes
 
-- All family members are created under the admin account for simplicity
-- In production, each family would have their own user account
+- All family members are created under the authenticated Clerk user for simplicity
+- In production, each family would have their own Clerk account
 - All generated data uses fake names and information
 - The script uses the API endpoints, so it tests the API functionality
-- Default password for all users: `password123`
+- Session tokens expire - if you get authentication errors, get a fresh token
 
 ### Example Output
 
 ```
-============================================================
-Development Data Seeding Script (API-based)
-============================================================
+======================================================================
+Development Data Seeding Script (Clerk Authentication)
+======================================================================
 🌱 Starting database seeding via API...
 📡 Using API at: http://localhost:8000
 
-🔐 Setting up admin user...
-  ✓ Created admin user: admin@example.com
-  ✓ Logged in as admin
+🔐 Verifying Clerk authentication...
+  ✓ Authenticated as: John Doe (john@example.com)
+  ✓ Role: admin
 
 🏕️  Creating trips...
   ✓ Created overnight trip: Weekend Camping at Pine Lake (fixed capacity)
@@ -111,25 +135,33 @@ Development Data Seeding Script (API-based)
   - Families: 15
   - Family Members: 28
 
-🔐 Admin credentials:
-  Email: admin@example.com
-  Password: password123
+💡 Note: All family members were created under the authenticated Clerk user.
+   In production, each family would have their own Clerk account.
 ```
 
 ### Troubleshooting
 
-**Error: "Could not login as admin"**
-- Make sure the backend is running
-- Verify the admin credentials match what's in the database
-- Check the API URL is correct
+**Error: "You must be authenticated as an admin user"**
+- Verify you have admin role in Clerk's public metadata
+- Check that your email matches `INITIAL_ADMIN_EMAIL` in backend `.env`
+- Ensure you're using a fresh session token (they expire)
+
+**Error: "Token verification failed"**
+- Get a fresh session token from the browser
+- Make sure you're signed in to the app
+- Verify the backend is running and Clerk is configured
 
 **Error: "httpx is required"**
 - Install httpx: `pip install httpx`
 
 **Error: "Could not create trip"**
-- Make sure you're logged in as an admin
+- Verify you have admin permissions
 - Check the API logs for detailed error messages
-- Verify the database is properly initialized
+- Ensure the database is properly initialized
+
+**Session token expired**
+- Clerk session tokens expire after a period of time
+- Simply get a fresh token from the browser and try again
 
 ### Related Scripts
 

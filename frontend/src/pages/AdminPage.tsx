@@ -1,9 +1,21 @@
 import React, { useState } from 'react';
+import { useUser } from '@clerk/clerk-react';
 import TripAdmin from '../components/Admin/TripAdmin';
 import UserManagement from '../components/Admin/UserManagement';
 
 const AdminPage: React.FC = () => {
+    const { isLoaded } = useUser();
     const [activeTab, setActiveTab] = useState<'trips' | 'users'>('trips');
+
+    if (!isLoaded) {
+        return (
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                <div className="text-center text-gray-600">
+                    <p>Loading...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-100">

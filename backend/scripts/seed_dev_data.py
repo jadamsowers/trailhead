@@ -4,13 +4,26 @@ Development Data Seeding Script
 This script creates fake users, family members, and trips for development and testing purposes.
 It uses the backend API endpoints to create realistic test data.
 
+Prerequisites:
+    - Clerk account with API keys configured
+    - Backend running with Clerk authentication enabled
+    - A Clerk user account to authenticate with
+
 Usage:
-    python backend/scripts/seed_dev_data.py [--base-url http://localhost:8000]
+    python backend/scripts/seed_dev_data.py --clerk-token YOUR_CLERK_SESSION_TOKEN [--base-url http://localhost:8000]
+    
+    To get your Clerk session token:
+    1. Sign in to your app in the browser
+    2. Open browser DevTools (F12)
+    3. Go to Application/Storage → Cookies
+    4. Find the __session cookie value
+    5. Use that value as your --clerk-token
 """
 
 import asyncio
 import argparse
 import sys
+import os
 from datetime import date, timedelta
 from typing import List, Dict, Optional
 import random
@@ -97,11 +110,6 @@ TRIP_DESCRIPTIONS = [
 ]
 
 
-def generate_email(first_name: str, last_name: str) -> str:
-    """Generate a fake email address"""
-    return f"{first_name.lower()}.{last_name.lower()}@example.com"
-
-
 def random_date_of_birth(min_age: int, max_age: int) -> str:
     """Generate a random date of birth for given age range"""
     today = date.today()
@@ -112,28 +120,22 @@ def random_date_of_birth(min_age: int, max_age: int) -> str:
     return date(birth_year, birth_month, birth_day).isoformat()
 
 
-async def create_user_and_login(client: httpx.AsyncClient, email: str, full_name: str, password: str = "password123") -> Optional[str]:
-    """Create a user via setup-admin endpoint and login to get token"""
+async def verify_clerk_token(client: httpx.AsyncClient, token: str) -> bool:
+    """Verify the Clerk token works with the API"""
     try:
-        # Try to login first (user might already exist)
-        response = await client.post(
-            "/api/login",
-            json={"email": email, "password": password}
+        response = await client.get(
+            "/api/clerk/me",
+            headers={"Authorization": f"Bearer {token}"}
         )
-        
         if response.status_code == 200:
-            data = response.json()
-            return data["access_token"]
-        
-        # If login fails, try to create user (only works if no admin exists yet)
-        # For subsequent users, we'll need to use a different approach
-        # Since the API doesn't have a public registration endpoint, we'll skip user creation
-        # and just note that the first user needs to be created manually
-        return None
-        
+            user_data = response.json()
+            print(f"  ✓ Authenticated as: {user_data.get('full_name')} ({user_data.get('email')})")
+            print(f"  ✓ Role: {user_data.get('role')}")
+            return user_data.get('role') == 'admin'
+        return False
     except Exception as e:
-        print(f"  ⚠️  Could not create/login user {email}: {e}")
-        return None
+        print(f"  ⚠️  Token verification failed: {e}")
+        return False
 
 
 async def create_parent_member(
@@ -278,46 +280,25 @@ async def create_trip(
         return None
 
 
-async def seed_database(base_url: str):
+async def seed_database(base_url: str, clerk_token: str):
     """Main function to seed the database with development data"""
     print("🌱 Starting database seeding via API...")
     print(f"📡 Using API at: {base_url}")
     
     async with httpx.AsyncClient(base_url=base_url, timeout=30.0) as client:
-        # First, we need to create an admin user and get a token
-        print("\n🔐 Setting up admin user...")
-        admin_email = "admin@example.com"
-        admin_password = "password123"
-        admin_name = "Admin User"
+        # Verify Clerk token and check admin status
+        print("\n🔐 Verifying Clerk authentication...")
+        is_admin = await verify_clerk_token(client, clerk_token)
         
-        # Try to setup admin (only works if no admin exists)
-        try:
-            response = await client.post(
-                "/api/setup-admin",
-                json={
-                    "email": admin_email,
-                    "password": admin_password,
-                    "full_name": admin_name
-                }
-            )
-            if response.status_code == 201:
-                print(f"  ✓ Created admin user: {admin_email}")
-        except Exception:
-            pass  # Admin might already exist
-        
-        # Login as admin
-        try:
-            response = await client.post(
-                "/api/login",
-                json={"email": admin_email, "password": admin_password}
-            )
-            response.raise_for_status()
-            admin_token = response.json()["access_token"]
-            print(f"  ✓ Logged in as admin")
-        except Exception as e:
-            print(f"  ❌ Could not login as admin: {e}")
-            print(f"  💡 Make sure an admin user exists with email: {admin_email} and password: {admin_password}")
+        if not is_admin:
+            print("\n❌ Error: You must be authenticated as an admin user to run this script.")
+            print("   Please ensure:")
+            print("   1. You're signed in to the app with an admin account")
+            print("   2. Your Clerk user has 'admin' role in public metadata")
+            print("   3. You're using a valid session token")
             return
+        
+        admin_token = clerk_token
         
         # Create trips (admin only)
         print("\n🏕️  Creating trips...")
@@ -347,8 +328,8 @@ async def seed_database(base_url: str):
         
         # Create families
         print("\n👨‍👩‍👧‍👦 Creating families...")
-        print("  ℹ️  Note: Family members will be created under the admin user")
-        print("  ℹ️  In a real scenario, each family would have their own user account")
+        print("  ℹ️  Note: Family members will be created under the authenticated user")
+        print("  ℹ️  In production, each family would have their own Clerk account")
         
         families_created = 0
         total_members = 0
@@ -368,15 +349,35 @@ async def seed_database(base_url: str):
         print(f"  - Trips: {trips_created}")
         print(f"  - Families: {families_created}")
         print(f"  - Family Members: {total_members}")
-        print("\n🔐 Admin credentials:")
-        print(f"  Email: {admin_email}")
-        print(f"  Password: {admin_password}")
-        print("\n💡 Note: All family members were created under the admin account.")
-        print("   In production, each family would register their own account.")
+        print("\n💡 Note: All family members were created under the authenticated Clerk user.")
+        print("   In production, each family would have their own Clerk account.")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Seed development data via API")
+    parser = argparse.ArgumentParser(
+        description="Seed development data via API using Clerk authentication",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Using session token from browser
+  python backend/scripts/seed_dev_data.py --clerk-token "sess_2a..."
+  
+  # With custom API URL
+  python backend/scripts/seed_dev_data.py --clerk-token "sess_2a..." --base-url http://localhost:8080
+
+To get your Clerk session token:
+  1. Sign in to your app in the browser
+  2. Open browser DevTools (F12)
+  3. Go to Application/Storage → Cookies
+  4. Find the __session cookie value
+  5. Use that value as your --clerk-token
+        """
+    )
+    parser.add_argument(
+        "--clerk-token",
+        required=True,
+        help="Clerk session token (get from browser cookies after signing in)"
+    )
     parser.add_argument(
         "--base-url",
         default="http://localhost:8000",
@@ -384,11 +385,11 @@ def main():
     )
     args = parser.parse_args()
     
-    print("=" * 60)
-    print("Development Data Seeding Script (API-based)")
-    print("=" * 60)
+    print("=" * 70)
+    print("Development Data Seeding Script (Clerk Authentication)")
+    print("=" * 70)
     
-    asyncio.run(seed_database(args.base_url))
+    asyncio.run(seed_database(args.base_url, args.clerk_token))
 
 
 if __name__ == "__main__":

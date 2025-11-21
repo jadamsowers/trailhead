@@ -37,16 +37,8 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
                 status: err?.status
             });
             
-            // Provide more specific error messages
-            if (err?.status === 401) {
-                setError('Authentication required. Please log in again.');
-            } else if (err?.status === 403) {
-                setError('You do not have permission to view family members.');
-            } else if (err?.status === 404) {
-                setError('Family members endpoint not found. Please contact support.');
-            } else {
-                setError(errorMessage);
-            }
+            // Display the error message from the API or authentication system
+            setError(errorMessage);
         } finally {
             setLoading(false);
         }

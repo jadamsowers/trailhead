@@ -6,14 +6,17 @@ import { familyAPI } from '../services/api';
 import TopographicBackground from '../components/Shared/TopographicBackground';
 
 const FamilySetupPage: React.FC = () => {
-    const { user } = useUser();
+    const { user, isLoaded } = useUser();
     const navigate = useNavigate();
     const [hasFamilyMembers, setHasFamilyMembers] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        checkFamilyMembers();
-    }, []);
+        // Only check family members after Clerk is loaded
+        if (isLoaded) {
+            checkFamilyMembers();
+        }
+    }, [isLoaded]);
 
     const checkFamilyMembers = async () => {
         try {
@@ -34,7 +37,7 @@ const FamilySetupPage: React.FC = () => {
         checkFamilyMembers();
     };
 
-    if (loading) {
+    if (!isLoaded || loading) {
         return (
             <>
                 <TopographicBackground />

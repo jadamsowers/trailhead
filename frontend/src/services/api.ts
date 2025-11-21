@@ -113,21 +113,33 @@ async function getAuthHeaders(): Promise<HeadersInit> {
     };
     
     try {
-        if (window.Clerk && window.Clerk.session) {
-            // Get the session token from Clerk
-            const token = await window.Clerk.session.getToken();
-            if (token) {
-                console.log('✅ Using Clerk session token');
-                headers['Authorization'] = `Bearer ${token}`;
-                return headers;
-            }
+        // Wait for Clerk to be loaded
+        if (!window.Clerk) {
+            console.error('❌ Clerk is not loaded');
+            throw new Error('Authentication system not initialized. Please refresh the page.');
         }
-        console.warn('⚠️ No Clerk session found - user may not be signed in');
+        
+        // Check if user is signed in
+        if (!window.Clerk.session) {
+            console.error('❌ No Clerk session found');
+            throw new Error('You must be signed in to access this feature. Please sign in and try again.');
+        }
+        
+        // Get the session token from Clerk
+        const token = await window.Clerk.session.getToken();
+        if (!token) {
+            console.error('❌ Failed to get Clerk session token');
+            throw new Error('Failed to get authentication token. Please sign out and sign in again.');
+        }
+        
+        console.log('✅ Using Clerk session token');
+        headers['Authorization'] = `Bearer ${token}`;
+        return headers;
+        
     } catch (error) {
-        console.error('❌ Failed to get Clerk token:', error);
+        console.error('❌ Authentication error:', error);
+        throw error;
     }
-    
-    return headers;
 }
 
 // Trip API
