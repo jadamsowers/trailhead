@@ -165,20 +165,71 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
                     </button>
                 </div>
             ) : (
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                    gap: '20px'
-                }}>
-                    {members.map((member) => (
-                        <FamilyMemberCard
-                            key={member.id}
-                            member={member}
-                            onEdit={() => handleEditMember(member)}
-                            onDelete={() => handleDeleteMember(member.id)}
-                        />
-                    ))}
-                </div>
+                <>
+                    {/* Adults Section */}
+                    {members.filter(m => m.member_type === 'adult').length > 0 && (
+                        <div style={{ marginBottom: '32px' }}>
+                            <h3 style={{
+                                fontSize: '22px',
+                                fontWeight: '600',
+                                color: '#7b1fa2',
+                                marginBottom: '16px',
+                                paddingBottom: '8px',
+                                borderBottom: '2px solid #f3e5f5'
+                            }}>
+                                🌲 Adults ({members.filter(m => m.member_type === 'adult').length})
+                            </h3>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                                gap: '20px'
+                            }}>
+                                {members
+                                    .filter(m => m.member_type === 'adult')
+                                    .map((member) => (
+                                        <FamilyMemberCard
+                                            key={member.id}
+                                            member={member}
+                                            onEdit={() => handleEditMember(member)}
+                                            onDelete={() => handleDeleteMember(member.id)}
+                                        />
+                                    ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Youth/Scouts Section */}
+                    {members.filter(m => m.member_type === 'scout').length > 0 && (
+                        <div>
+                            <h3 style={{
+                                fontSize: '22px',
+                                fontWeight: '600',
+                                color: '#1976d2',
+                                marginBottom: '16px',
+                                paddingBottom: '8px',
+                                borderBottom: '2px solid #e3f2fd'
+                            }}>
+                                🌱 Youth ({members.filter(m => m.member_type === 'scout').length})
+                            </h3>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                                gap: '20px'
+                            }}>
+                                {members
+                                    .filter(m => m.member_type === 'scout')
+                                    .map((member) => (
+                                        <FamilyMemberCard
+                                            key={member.id}
+                                            member={member}
+                                            onEdit={() => handleEditMember(member)}
+                                            onDelete={() => handleDeleteMember(member.id)}
+                                        />
+                                    ))}
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
 
             {showAddForm && (
