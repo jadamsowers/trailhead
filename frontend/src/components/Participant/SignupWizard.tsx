@@ -478,9 +478,34 @@ const SignupWizard: React.FC = () => {
                                                 <p style={{ margin: '5px 0' }}>
                                                     <strong>Date:</strong> {new Date(outing.outing_date).toLocaleDateString()}
                                                 </p>
-                                                <p style={{ margin: '5px 0' }}>
-                                                    <strong>Participants:</strong> {signup.participant_count} ({signup.adult_count} adult{signup.adult_count !== 1 ? 's' : ''}, {signup.scout_count} scout{signup.scout_count !== 1 ? 's' : ''})
-                                                </p>
+                                                <div style={{ margin: '10px 0 0 0' }}>
+                                                    <strong>Participants ({signup.participant_count}):</strong>
+                                                    <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                        {signup.participants.map(participant => (
+                                                            <span
+                                                                key={participant.id}
+                                                                style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    padding: '4px 10px',
+                                                                    backgroundColor: '#e3f2fd',
+                                                                    color:  '#1976d2',
+                                                                    borderRadius: '12px',
+                                                                    fontSize: '13px',
+                                                                    fontWeight: '500',
+                                                                    border:  '1px solid #90caf9'
+                                                                }}
+                                                            >
+                                                                {participant.is_adult ? '🌲' : '🌱'} {participant.name}
+                                                                {participant.vehicle_capacity > 0 && (
+                                                                    <span style={{ marginLeft: '4px', fontWeight: 'bold' }}>
+                                                                        🚗: {participant.vehicle_capacity}
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             </div>
                                             <span style={{ fontSize: '20px', marginLeft: '15px' }}>
                                                 {isExpanded ? '▼' : '▶'}
