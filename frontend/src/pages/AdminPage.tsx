@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import TripAdmin from '../components/Admin/TripAdmin';
 import UserManagement from '../components/Admin/UserManagement';
+import DevDataSeeder from '../components/Admin/DevDataSeeder';
 
 const AdminPage: React.FC = () => {
     const { isLoaded } = useUser();
@@ -28,6 +29,9 @@ const AdminPage: React.FC = () => {
                         Manage trips, users, and system settings
                     </p>
                 </div>
+
+                {/* Seed Data Section */}
+                <DevDataSeeder />
 
                 {/* Large Colorful Button Navigation */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-8">

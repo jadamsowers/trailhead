@@ -49,6 +49,7 @@ class FamilyMemberBase(BaseModel):
     troop_number: Optional[str] = Field(None, max_length=50, description="Troop number")
     patrol_name: Optional[str] = Field(None, max_length=100, description="Patrol name (for scouts)")
     has_youth_protection: bool = Field(default=False, description="Youth protection training status (for parents)")
+    youth_protection_expiration: Optional[date] = Field(None, description="SAFE Youth Training certificate expiration date (for parents)")
     vehicle_capacity: int = Field(default=0, ge=0, description="Vehicle passenger capacity excluding driver (for parents)")
     medical_notes: Optional[str] = Field(None, description="Medical notes or conditions")
 
@@ -78,6 +79,7 @@ class FamilyMemberUpdate(BaseModel):
     troop_number: Optional[str] = Field(None, max_length=50)
     patrol_name: Optional[str] = Field(None, max_length=100)
     has_youth_protection: Optional[bool] = None
+    youth_protection_expiration: Optional[date] = None
     vehicle_capacity: Optional[int] = Field(None, ge=0)
     medical_notes: Optional[str] = None
     dietary_preferences: Optional[List[str]] = None

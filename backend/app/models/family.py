@@ -25,6 +25,7 @@ class FamilyMember(Base):
     
     # Parent-specific fields
     has_youth_protection = Column(Boolean, default=False, nullable=False)
+    youth_protection_expiration = Column(Date, nullable=True)  # Expiration date for SAFE Youth Training certificate
     vehicle_capacity = Column(Integer, default=0, nullable=False)  # Number of passengers (excluding driver)
     
     # Medical information

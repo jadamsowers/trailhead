@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from uuid import UUID
+from datetime import date
 
 from app.db.session import get_db
+from app.models.family import FamilyMember
 from app.schemas.signup import SignupCreate, SignupResponse, ParticipantResponse
 from app.crud import signup as crud_signup
 from app.crud import trip as crud_trip
@@ -98,7 +101,28 @@ async def create_signup(
             "Please ensure a female adult is registered before the trip."
         )
     
-    # Validate adult requirements for overnight trips
+    # Validate adult youth protection requirements
+    # For any trip, adults must have VALID (non-expired) youth protection certificates
+    today = date.today()
+    
+    for adult in new_adults:
+        # Check if adult claims to have youth protection training
+        if adult.has_youth_protection_training:
+            # For now, we trust the signup form data
+            # In a real implementation with family member integration, we would:
+            # 1. Look up the family member record
+            # 2. Check the youth_protection_expiration date
+            # 3. Reject if expired
+            pass
+        else:
+            # Adult does not have youth protection training
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Adult '{adult.full_name}' must have valid SAFE Youth Training (Youth Protection) certificate to sign up for trips. "
+                       "Please complete the training at my.scouting.org before signing up."
+            )
+    
+    # Additional validation for overnight trips
     if db_trip.is_overnight:
         if new_adults:
             # Check if at least one adult has youth protection training

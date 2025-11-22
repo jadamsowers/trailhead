@@ -133,6 +133,7 @@ async def create_family_member(
         troop_number=member_data.troop_number,
         patrol_name=member_data.patrol_name,
         has_youth_protection=member_data.has_youth_protection,
+        youth_protection_expiration=member_data.youth_protection_expiration,
         vehicle_capacity=member_data.vehicle_capacity,
         medical_notes=member_data.medical_notes,
     )

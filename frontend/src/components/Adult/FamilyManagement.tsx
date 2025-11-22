@@ -325,16 +325,30 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                         {member.has_youth_protection && (
                             <div style={{
                                 display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                color: '#2e7d32',
-                                fontWeight: '500',
-                                padding: '6px 10px',
-                                backgroundColor: '#e8f5e9',
+                                flexDirection: 'column',
+                                gap: '4px',
+                                padding: '8px 12px',
+                                backgroundColor: member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date() ? '#ffebee' : '#e8f5e9',
                                 borderRadius: '4px',
                                 marginTop: '4px'
                             }}>
-                                ✓ Youth Protection Trained
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    color: member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date() ? '#c62828' : '#2e7d32',
+                                    fontWeight: '500'
+                                }}>
+                                    {member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date() ? '⚠️ Youth Protection EXPIRED' : '✓ Youth Protection Trained'}
+                                </div>
+                                {member.youth_protection_expiration && (
+                                    <div style={{
+                                        fontSize: '12px',
+                                        color: member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date() ? '#c62828' : '#666'
+                                    }}>
+                                        {new Date(member.youth_protection_expiration) < new Date() ? 'Expired' : 'Expires'}: {new Date(member.youth_protection_expiration).toLocaleDateString()}
+                                    </div>
+                                )}
                             </div>
                         )}
                         {member.vehicle_capacity > 0 && (
@@ -419,6 +433,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
         troop_number: member?.troop_number || '',
         patrol_name: member?.patrol_name || '',
         has_youth_protection: member?.has_youth_protection || false,
+        youth_protection_expiration: member?.youth_protection_expiration || '',
         vehicle_capacity: member?.vehicle_capacity || 0,
         medical_notes: member?.medical_notes || '',
         dietary_preferences: member?.dietary_preferences.map(p => p.preference) || [],
@@ -679,9 +694,40 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                         style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                                     />
                                     <label htmlFor="youth_protection" style={{ fontSize: '15px', color: '#333', cursor: 'pointer' }}>
-                                        Youth Protection Trained
+                                        Youth Protection Trained (SAFE Youth Training)
                                     </label>
                                 </div>
+
+                                {formData.has_youth_protection && (
+                                    <div>
+                                        <label style={{
+                                            display: 'block',
+                                            marginBottom: '8px',
+                                            fontWeight: '600',
+                                            color: '#333',
+                                            fontSize: '15px'
+                                        }}>
+                                            Youth Protection Certificate Expiration Date *
+                                        </label>
+                                        <input
+                                            type="date"
+                                            required={formData.has_youth_protection}
+                                            value={formData.youth_protection_expiration}
+                                            onChange={(e) => setFormData({ ...formData, youth_protection_expiration: e.target.value })}
+                                            style={{
+                                                width: '100%',
+                                                padding: '12px',
+                                                border: '1px solid #ddd',
+                                                borderRadius: '6px',
+                                                fontSize: '15px',
+                                                boxSizing: 'border-box'
+                                            }}
+                                        />
+                                        <p style={{ fontSize: '13px', color: '#666', marginTop: '6px' }}>
+                                            SAFE Youth Training certificates are typically valid for 2 years
+                                        </p>
+                                    </div>
+                                )}
 
                                 <div>
                                     <label style={{

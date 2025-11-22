@@ -189,9 +189,20 @@ const SignupForm: React.FC = () => {
             setError(null);
             const participants: typeof formData.participants = [];
             
-            for (const memberId of selectedFamilyMemberIds) {
-                const member = await familyAPI.getById(memberId);
-                
+            // Load all family members first
+            const memberDetails = await Promise.all(
+                selectedFamilyMemberIds.map(memberId => familyAPI.getById(memberId))
+            );
+            
+            // Sort members: adults first, then scouts
+            // This ensures adults' vehicle capacity is added to the trip before scouts
+            const sortedMembers = memberDetails.sort((a, b) => {
+                if (a.member_type === 'parent' && b.member_type === 'scout') return -1;
+                if (a.member_type === 'scout' && b.member_type === 'parent') return 1;
+                return 0;
+            });
+            
+            for (const member of sortedMembers) {
                 // Calculate age from date of birth
                 let age = '';
                 if (member.date_of_birth) {
@@ -662,60 +673,135 @@ const SignupForm: React.FC = () => {
                                     Select one or more family members to sign up for this trip
                                 </p>
                                 
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px', marginBottom: '15px' }}>
-                                    {familyMembers.map(member => {
-                                        const isSelected = selectedFamilyMemberIds.includes(member.id);
-                                        return (
-                                            <div
-                                                key={member.id}
-                                                onClick={() => handleToggleFamilyMember(member.id)}
-                                                style={{
-                                                    padding: '15px',
-                                                    border: isSelected ? '2px solid #4caf50' : '1px solid #ddd',
-                                                    borderRadius: '8px',
-                                                    cursor: 'pointer',
-                                                    backgroundColor: isSelected ? '#e8f5e9' : 'white',
-                                                    transition: 'all 0.2s',
-                                                    position: 'relative'
-                                                }}
-                                            >
-                                                {isSelected && (
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: '8px',
-                                                        right: '8px',
-                                                        width: '24px',
-                                                        height: '24px',
-                                                        borderRadius: '50%',
-                                                        backgroundColor: '#4caf50',
-                                                        color: 'white',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        fontSize: '16px',
-                                                        fontWeight: 'bold'
-                                                    }}>
-                                                        ✓
+                                {/* Group parents and scouts separately */}
+                                {(() => {
+                                    const parents = familyMembers.filter(m => m.member_type === 'parent');
+                                    const scouts = familyMembers.filter(m => m.member_type === 'scout');
+                                    
+                                    return (
+                                        <>
+                                            {parents.length > 0 && (
+                                                <div style={{ marginBottom: '20px' }}>
+                                                    <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#555', fontWeight: 'bold' }}>Parents</h3>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
+                                                        {parents.map(member => {
+                                                            const isSelected = selectedFamilyMemberIds.includes(member.id);
+                                                            return (
+                                                                <div
+                                                                    key={member.id}
+                                                                    onClick={() => handleToggleFamilyMember(member.id)}
+                                                                    style={{
+                                                                        padding: '15px',
+                                                                        border: isSelected ? '2px solid #4caf50' : '1px solid #ddd',
+                                                                        borderRadius: '8px',
+                                                                        cursor: 'pointer',
+                                                                        backgroundColor: isSelected ? '#e8f5e9' : 'white',
+                                                                        transition: 'all 0.2s',
+                                                                        position: 'relative'
+                                                                    }}
+                                                                >
+                                                                    {isSelected && (
+                                                                        <div style={{
+                                                                            position: 'absolute',
+                                                                            top: '8px',
+                                                                            right: '8px',
+                                                                            width: '24px',
+                                                                            height: '24px',
+                                                                            borderRadius: '50%',
+                                                                            backgroundColor: '#4caf50',
+                                                                            color: 'white',
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            fontSize: '16px',
+                                                                            fontWeight: 'bold'
+                                                                        }}>
+                                                                            ✓
+                                                                        </div>
+                                                                    )}
+                                                                    <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{member.name}</h3>
+                                                                    <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
+                                                                        <strong>Type:</strong> Parent
+                                                                    </p>
+                                                                    {member.age && (
+                                                                        <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
+                                                                            <strong>Age:</strong> {member.age}
+                                                                        </p>
+                                                                    )}
+                                                                    {member.troop_number && (
+                                                                        <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
+                                                                            <strong>Troop:</strong> {member.troop_number}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
-                                                )}
-                                                <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{member.name}</h3>
-                                                <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
-                                                    <strong>Type:</strong> {member.member_type === 'scout' ? 'Scout' : 'Parent'}
-                                                </p>
-                                                {member.age && (
-                                                    <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
-                                                        <strong>Age:</strong> {member.age}
-                                                    </p>
-                                                )}
-                                                {member.troop_number && (
-                                                    <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
-                                                        <strong>Troop:</strong> {member.troop_number}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                                </div>
+                                            )}
+                                            
+                                            {scouts.length > 0 && (
+                                                <div style={{ marginBottom: '15px' }}>
+                                                    <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#555', fontWeight: 'bold' }}>Scouts</h3>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
+                                                        {scouts.map(member => {
+                                                            const isSelected = selectedFamilyMemberIds.includes(member.id);
+                                                            return (
+                                                                <div
+                                                                    key={member.id}
+                                                                    onClick={() => handleToggleFamilyMember(member.id)}
+                                                                    style={{
+                                                                        padding: '15px',
+                                                                        border: isSelected ? '2px solid #4caf50' : '1px solid #ddd',
+                                                                        borderRadius: '8px',
+                                                                        cursor: 'pointer',
+                                                                        backgroundColor: isSelected ? '#e8f5e9' : 'white',
+                                                                        transition: 'all 0.2s',
+                                                                        position: 'relative'
+                                                                    }}
+                                                                >
+                                                                    {isSelected && (
+                                                                        <div style={{
+                                                                            position: 'absolute',
+                                                                            top: '8px',
+                                                                            right: '8px',
+                                                                            width: '24px',
+                                                                            height: '24px',
+                                                                            borderRadius: '50%',
+                                                                            backgroundColor: '#4caf50',
+                                                                            color: 'white',
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            fontSize: '16px',
+                                                                            fontWeight: 'bold'
+                                                                        }}>
+                                                                            ✓
+                                                                        </div>
+                                                                    )}
+                                                                    <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{member.name}</h3>
+                                                                    <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
+                                                                        <strong>Type:</strong> Scout
+                                                                    </p>
+                                                                    {member.age && (
+                                                                        <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
+                                                                            <strong>Age:</strong> {member.age}
+                                                                        </p>
+                                                                    )}
+                                                                    {member.troop_number && (
+                                                                        <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
+                                                                            <strong>Troop:</strong> {member.troop_number}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                                 
                                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                                     <button

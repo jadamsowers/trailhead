@@ -229,6 +229,7 @@ export interface FamilyMember {
     troop_number?: string;
     patrol_name?: string;
     has_youth_protection: boolean;
+    youth_protection_expiration?: string;
     vehicle_capacity: number;
     medical_notes?: string;
     dietary_preferences: DietaryPreference[];
@@ -244,6 +245,7 @@ export interface FamilyMemberCreate {
     troop_number?: string;
     patrol_name?: string;
     has_youth_protection?: boolean;
+    youth_protection_expiration?: string;
     vehicle_capacity?: number;
     medical_notes?: string;
     dietary_preferences?: string[];
@@ -259,6 +261,7 @@ export interface FamilyMemberUpdate {
     troop_number?: string;
     patrol_name?: string;
     has_youth_protection?: boolean;
+    youth_protection_expiration?: string;
     vehicle_capacity?: number;
     medical_notes?: string;
     dietary_preferences?: string[];

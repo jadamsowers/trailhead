@@ -120,6 +120,35 @@ def random_date_of_birth(min_age: int, max_age: int) -> str:
     return date(birth_year, birth_month, birth_day).isoformat()
 
 
+def random_youth_protection_expiration(has_training: bool) -> Optional[str]:
+    """Generate a random youth protection expiration date
+    
+    Args:
+        has_training: Whether the person has youth protection training
+        
+    Returns:
+        ISO format date string or None if no training
+    """
+    if not has_training:
+        return None
+    
+    today = date.today()
+    
+    # 85% have valid (future) expiration dates
+    # 15% have expired certificates
+    if random.random() < 0.85:
+        # Valid certificate: expires 1-24 months in the future
+        # Most certificates are valid for 2 years, so generate dates throughout that range
+        months_until_expiry = random.randint(1, 24)
+        expiry_date = today + timedelta(days=months_until_expiry * 30)
+    else:
+        # Expired certificate: expired 1-6 months ago
+        months_since_expiry = random.randint(1, 6)
+        expiry_date = today - timedelta(days=months_since_expiry * 30)
+    
+    return expiry_date.isoformat()
+
+
 async def verify_clerk_token(client: httpx.AsyncClient, token: str) -> bool:
     """Verify the Clerk token works with the API"""
     try:
@@ -146,11 +175,14 @@ async def create_parent_member(
     vehicle_capacity: int = 0
 ) -> Optional[Dict]:
     """Create a parent family member"""
+    youth_protection_expiration = random_youth_protection_expiration(has_youth_protection)
+    
     member_data = {
         "name": name,
         "member_type": "parent",
         "date_of_birth": random_date_of_birth(30, 55),
         "has_youth_protection": has_youth_protection,
+        "youth_protection_expiration": youth_protection_expiration,
         "vehicle_capacity": vehicle_capacity,
         "medical_notes": random.choice(MEDICAL_NOTES),
         "dietary_preferences": [random.choice(DIETARY_PREFERENCES)] if random.random() < 0.3 else [],
