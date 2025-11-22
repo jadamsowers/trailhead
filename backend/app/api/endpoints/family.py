@@ -74,12 +74,20 @@ async def list_family_members_summary(
                 (today.month, today.day) < (member.date_of_birth.month, member.date_of_birth.day)
             )
         
+        # Check if youth protection is expired (for adults)
+        youth_protection_expired = None
+        if member.member_type == 'adult' and member.has_youth_protection and member.youth_protection_expiration:
+            youth_protection_expired = member.youth_protection_expiration < date.today()
+        
         summaries.append(FamilyMemberSummary(
             id=member.id,
             name=member.name,
             member_type=member.member_type,
             troop_number=member.troop_number,
-            age=age
+            age=age,
+            vehicle_capacity=member.vehicle_capacity if member.member_type == 'adult' else None,
+            has_youth_protection=member.has_youth_protection if member.member_type == 'adult' else None,
+            youth_protection_expired=youth_protection_expired
         ))
     
     return summaries

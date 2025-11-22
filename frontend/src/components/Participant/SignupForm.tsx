@@ -628,6 +628,21 @@ const SignupForm: React.FC = () => {
                                                                             <strong>Troop:</strong> {member.troop_number}
                                                                         </p>
                                                                     )}
+                                                                    {member.vehicle_capacity !== undefined && member.vehicle_capacity > 0 && (
+                                                                        <p style={{ margin: '4px 0', fontSize: '14px', color: '#1976d2', fontWeight: 'bold' }}>
+                                                                            🚗 Can transport {member.vehicle_capacity} passenger{member.vehicle_capacity !== 1 ? 's' : ''}
+                                                                        </p>
+                                                                    )}
+                                                                    {member.has_youth_protection !== undefined && (
+                                                                        <p style={{
+                                                                            margin: '4px 0',
+                                                                            fontSize: '12px',
+                                                                            color: member.youth_protection_expired ? '#c62828' : '#2e7d32',
+                                                                            fontWeight: member.youth_protection_expired ? 'bold' : 'normal'
+                                                                        }}>
+                                                                            {member.youth_protection_expired ? '⚠️ Youth Protection EXPIRED' : member.has_youth_protection ? '✓ Youth Protection Trained' : ''}
+                                                                        </p>
+                                                                    )}
                                                                 </div>
                                                             );
                                                         })}

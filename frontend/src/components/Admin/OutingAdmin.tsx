@@ -305,7 +305,7 @@ const OutingAdmin: React.FC = () => {
                             <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Gender</th>
                             {!isAdult && <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Troop/Patrol</th>}
                             {isAdult && <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Training</th>}
-                            {isAdult && <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Vehicle</th>}
+                            {isAdult && <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Passengers</th>}
                             <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Dietary</th>
                             <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Allergies</th>
                             <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Notes</th>

@@ -83,6 +83,30 @@ const randomDateOfBirth = (minAge: number, maxAge: number): string => {
     return `${birthYear}-${String(birthMonth).padStart(2, '0')}-${String(birthDay).padStart(2, '0')}`;
 };
 
+const randomYouthProtectionExpiration = (hasTraining: boolean): string | undefined => {
+    if (!hasTraining) {
+        return undefined;
+    }
+    
+    const today = new Date();
+    
+    // 85% have valid (future) expiration dates
+    // 15% have expired certificates
+    if (Math.random() < 0.85) {
+        // Valid certificate: expires 1-24 months in the future
+        const monthsUntilExpiry = randomInt(1, 24);
+        const expiryDate = new Date(today);
+        expiryDate.setMonth(today.getMonth() + monthsUntilExpiry);
+        return expiryDate.toISOString().split('T')[0];
+    } else {
+        // Expired certificate: expired 1-6 months ago
+        const monthsSinceExpiry = randomInt(1, 6);
+        const expiryDate = new Date(today);
+        expiryDate.setMonth(today.getMonth() - monthsSinceExpiry);
+        return expiryDate.toISOString().split('T')[0];
+    }
+};
+
 const DevDataSeeder: React.FC = () => {
     const [isSeeding, setIsSeeding] = useState(false);
     const [progress, setProgress] = useState<string>('');
@@ -139,11 +163,15 @@ const DevDataSeeder: React.FC = () => {
         const hasVehicle = Math.random() < 0.7;
         const vehicleCapacity = hasVehicle ? randomChoice([0, 4, 5, 6, 7]) : 0;
 
+        const hasYouthProtection = true; // All adults must have YPT for outings
+        const youthProtectionExpiration = randomYouthProtectionExpiration(hasYouthProtection);
+        
         const parentMember = await familyAPI.create({
             name: parent1Name,
             member_type: 'adult',
             date_of_birth: randomDateOfBirth(30, 55),
-            has_youth_protection: Math.random() < 0.8,
+            has_youth_protection: hasYouthProtection,
+            youth_protection_expiration: youthProtectionExpiration,
             vehicle_capacity: vehicleCapacity,
             medical_notes: randomChoice(MEDICAL_NOTES) || undefined,
             dietary_preferences: Math.random() < 0.3 ? [randomChoice(DIETARY_PREFERENCES)] : [],

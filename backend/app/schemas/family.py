@@ -112,6 +112,9 @@ class FamilyMemberSummary(BaseModel):
     member_type: str
     troop_number: Optional[str] = None
     age: Optional[int] = None  # Calculated from date_of_birth
+    vehicle_capacity: Optional[int] = None  # Vehicle passenger capacity (for adults)
+    has_youth_protection: Optional[bool] = None  # Youth protection training status (for adults)
+    youth_protection_expired: Optional[bool] = None  # Whether youth protection has expired (for adults)
 
     class Config:
         from_attributes = True

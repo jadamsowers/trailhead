@@ -373,35 +373,37 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                 
                 {member.member_type === 'adult' && (
                     <>
-                        {member.has_youth_protection && (
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px',
+                            padding: '8px 12px',
+                            backgroundColor: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date()) ? '#ffebee' : '#e8f5e9',
+                            borderRadius: '4px',
+                            marginTop: '4px'
+                        }}>
                             <div style={{
                                 display: 'flex',
-                                flexDirection: 'column',
-                                gap: '4px',
-                                padding: '8px 12px',
-                                backgroundColor: member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date() ? '#ffebee' : '#e8f5e9',
-                                borderRadius: '4px',
-                                marginTop: '4px'
+                                alignItems: 'center',
+                                gap: '8px',
+                                color: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date()) ? '#c62828' : '#2e7d32',
+                                fontWeight: '500'
                             }}>
-                                <div style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    color: member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date() ? '#c62828' : '#2e7d32',
-                                    fontWeight: '500'
-                                }}>
-                                    {member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date() ? '⚠️ Youth Protection EXPIRED' : '✓ Youth Protection Trained'}
-                                </div>
-                                {member.youth_protection_expiration && (
-                                    <div style={{
-                                        fontSize: '12px',
-                                        color: member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date() ? '#c62828' : '#666'
-                                    }}>
-                                        {new Date(member.youth_protection_expiration) < new Date() ? 'Expired' : 'Expires'}: {new Date(member.youth_protection_expiration).toLocaleDateString()}
-                                    </div>
-                                )}
+                                {!member.has_youth_protection
+                                    ? '⚠️ Youth Protection: Not Trained'
+                                    : member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date()
+                                        ? '⚠️ Youth Protection: Expired'
+                                        : '✓ Youth Protection: Valid'}
                             </div>
-                        )}
+                            <div style={{
+                                fontSize: '12px',
+                                color: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date()) ? '#c62828' : '#666'
+                            }}>
+                                Expiration: {member.youth_protection_expiration
+                                    ? new Date(member.youth_protection_expiration).toLocaleDateString()
+                                    : 'N/A'}
+                            </div>
+                        </div>
                         {member.vehicle_capacity > 0 && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ fontWeight: '600', minWidth: '80px', color: '#333' }}>Vehicle:</span>
