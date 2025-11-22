@@ -51,12 +51,17 @@ async def list_family_members(
 
 @router.get("/summary", response_model=List[FamilyMemberSummary])
 async def list_family_members_summary(
+    outing_id: str = None,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Get a simplified list of family members for selection during signup.
     Returns basic information without detailed medical/dietary data.
+    
+    If outing_id is provided, youth protection expiration is checked against
+    the outing's end date (or outing date if no end date). Otherwise, it's
+    checked against today's date.
     """
     result = await db.execute(
         select(FamilyMember)
@@ -64,6 +69,18 @@ async def list_family_members_summary(
         .order_by(FamilyMember.member_type, FamilyMember.name)
     )
     members = result.scalars().all()
+    
+    # Get outing end date if outing_id is provided
+    comparison_date = date.today()
+    if outing_id:
+        from app.models.outing import Outing
+        outing_result = await db.execute(
+            select(Outing).where(Outing.id == outing_id)
+        )
+        outing = outing_result.scalar_one_or_none()
+        if outing:
+            # Use end_date if available, otherwise use outing_date
+            comparison_date = outing.end_date if outing.end_date else outing.outing_date
     
     summaries = []
     for member in members:
@@ -75,9 +92,10 @@ async def list_family_members_summary(
             )
         
         # Check if youth protection is expired (for adults)
+        # Compare against outing end date if provided, otherwise today
         youth_protection_expired = None
         if member.member_type == 'adult' and member.has_youth_protection and member.youth_protection_expiration:
-            youth_protection_expired = member.youth_protection_expiration < date.today()
+            youth_protection_expired = member.youth_protection_expiration < comparison_date
         
         summaries.append(FamilyMemberSummary(
             id=member.id,

@@ -134,7 +134,8 @@ async def create_signup(
         )
     
     # Validate adult youth protection requirements
-    today = date.today()
+    # Youth protection must be valid through the END of the outing
+    outing_end_date = db_outing.end_date if db_outing.end_date else db_outing.outing_date
     
     for adult in new_adults:
         # Check if adult has youth protection training
@@ -145,12 +146,13 @@ async def create_signup(
                        "Please complete the training at my.scouting.org before signing up."
             )
         
-        # Check if youth protection is expired
+        # Check if youth protection will be valid through the end of the outing
         if adult.youth_protection_expiration:
-            if adult.youth_protection_expiration < today:
+            if adult.youth_protection_expiration < outing_end_date:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Adult '{adult.name}' has an expired SAFE Youth Training certificate (expired {adult.youth_protection_expiration}). "
+                    detail=f"Adult '{adult.name}' has SAFE Youth Training that expires {adult.youth_protection_expiration}, "
+                           f"but must be valid through the outing end date ({outing_end_date}). "
                            "Please renew the training at my.scouting.org before signing up."
                 )
     
@@ -424,7 +426,8 @@ async def update_signup(
                 )
         
         # Validate adult youth protection requirements
-        today = date.today()
+        # Youth protection must be valid through the END of the outing
+        outing_end_date = db_outing.end_date if db_outing.end_date else db_outing.outing_date
         new_adults = [fm for fm in new_family_members if fm.member_type == 'adult']
         
         for adult in new_adults:
@@ -434,10 +437,11 @@ async def update_signup(
                     detail=f"Adult '{adult.name}' must have valid SAFE Youth Training certificate."
                 )
             
-            if adult.youth_protection_expiration and adult.youth_protection_expiration < today:
+            if adult.youth_protection_expiration and adult.youth_protection_expiration < outing_end_date:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Adult '{adult.name}' has an expired SAFE Youth Training certificate."
+                    detail=f"Adult '{adult.name}' has SAFE Youth Training that expires {adult.youth_protection_expiration}, "
+                           f"but must be valid through the outing end date ({outing_end_date})."
                 )
     
     # Update the signup
