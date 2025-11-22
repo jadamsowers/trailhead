@@ -24,6 +24,9 @@ from app.models import (
     DietaryRestriction,
     Allergy,
     RefreshToken,
+    FamilyMember,
+    FamilyMemberDietaryPreference,
+    FamilyMemberAllergy,
 )
 
 # this is the Alembic Config object, which provides
