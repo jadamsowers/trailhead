@@ -6,6 +6,40 @@ import {
     FamilyMemberUpdate,
 } from '../../types';
 
+// Responsive styles for family management
+const familyManagementStyles = `
+    .family-member-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+    
+    .family-member-card {
+        padding: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .family-member-grid {
+            grid-template-columns: 1fr !important;
+        }
+        
+        .family-member-card {
+            padding: 16px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .family-member-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px;
+        }
+        
+        .family-member-card {
+            padding: 12px !important;
+        }
+    }
+`;
+
 interface FamilyManagementProps {
     onMemberAdded?: () => void;
 }
@@ -90,7 +124,9 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
     }
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        <>
+            <style>{familyManagementStyles}</style>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                 <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1976d2', margin: '0' }}>Family Members</h2>
                 <button
@@ -179,11 +215,7 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
                             }}>
                                 🌲 Adults ({members.filter(m => m.member_type === 'adult').length})
                             </h3>
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                                gap: '20px'
-                            }}>
+                            <div className="family-member-grid">
                                 {members
                                     .filter(m => m.member_type === 'adult')
                                     .map((member) => (
@@ -211,11 +243,7 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
                             }}>
                                 🌱 Youth ({members.filter(m => m.member_type === 'scout').length})
                             </h3>
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                                gap: '20px'
-                            }}>
+                            <div className="family-member-grid">
                                 {members
                                     .filter(m => m.member_type === 'scout')
                                     .map((member) => (
@@ -239,7 +267,8 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
                     onSuccess={handleFormSuccess}
                 />
             )}
-        </div>
+            </div>
+        </>
     );
 };
 
@@ -255,17 +284,19 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
         : null;
 
     return (
-        <div style={{
-            backgroundColor: 'white',
-            border: '1px solid #e0e0e0',
-            borderRadius: '8px',
-            padding: '20px',
-            transition: 'box-shadow 0.2s, transform 0.2s',
-            cursor: 'default',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column'
-        }}
+        <div
+            className="family-member-card"
+            style={{
+                backgroundColor: 'white',
+                border: '1px solid #e0e0e0',
+                borderRadius: '8px',
+                padding: '20px',
+                transition: 'box-shadow 0.2s, transform 0.2s',
+                cursor: 'default',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column'
+            }}
         onMouseOver={(e) => {
             e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
             e.currentTarget.style.transform = 'translateY(-2px)';

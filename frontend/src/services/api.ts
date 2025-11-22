@@ -552,9 +552,14 @@ export const familyAPI = {
 
     /**
      * Get simplified list of family members for signup selection
+     * @param outingId - Optional outing ID to check youth protection expiration against outing end date
      */
-    async getSummary(): Promise<FamilyMemberSummary[]> {
-        const response = await fetch(`${API_BASE_URL}/family/summary`, {
+    async getSummary(outingId?: string): Promise<FamilyMemberSummary[]> {
+        const url = new URL(`${API_BASE_URL}/family/summary`);
+        if (outingId) {
+            url.searchParams.append('outing_id', outingId);
+        }
+        const response = await fetch(url.toString(), {
             headers: await getAuthHeaders(),
         });
         return handleResponse<FamilyMemberSummary[]>(response);

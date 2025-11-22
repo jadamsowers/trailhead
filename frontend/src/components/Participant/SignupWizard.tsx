@@ -6,6 +6,113 @@ import { formatPhoneNumber, validatePhoneWithMessage } from '../../utils/phoneUt
 
 type WizardStep = 'select-trip' | 'contact-info' | 'select-adults' | 'select-scouts' | 'review';
 
+// Add responsive styles
+const styles = `
+    @media (max-width: 768px) {
+        .wizard-container {
+            padding: 10px !important;
+        }
+        
+        .wizard-container h1 {
+            font-size: 24px !important;
+        }
+        
+        .wizard-container h2 {
+            font-size: 20px !important;
+        }
+        
+        .progress-indicator {
+            padding: 15px !important;
+        }
+        
+        .progress-step-label {
+            font-size: 10px !important;
+        }
+        
+        .progress-step-circle {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 14px !important;
+        }
+        
+        .outing-card {
+            flex-direction: column !important;
+        }
+        
+        .capacity-badge {
+            margin-left: 0 !important;
+            margin-top: 10px !important;
+            align-self: flex-start !important;
+        }
+        
+        .participant-grid {
+            grid-template-columns: 1fr !important;
+        }
+        
+        .member-selection-grid {
+            grid-template-columns: 1fr !important;
+        }
+        
+        .navigation-buttons {
+            flex-direction: column !important;
+        }
+        
+        .navigation-buttons > * {
+            width: 100% !important;
+        }
+        
+        .navigation-buttons .button-group {
+            width: 100% !important;
+            flex-direction: column !important;
+        }
+        
+        .navigation-buttons button {
+            width: 100% !important;
+        }
+        
+        .participant-chip {
+            font-size: 12px !important;
+            padding: 3px 8px !important;
+        }
+        
+        .signup-actions {
+            flex-direction: column !important;
+        }
+        
+        .signup-actions button {
+            width: 100% !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .wizard-container {
+            padding: 5px !important;
+        }
+        
+        .wizard-container h1 {
+            font-size: 20px !important;
+        }
+        
+        .wizard-container h2 {
+            font-size: 18px !important;
+        }
+        
+        .progress-indicator {
+            padding: 10px !important;
+        }
+        
+        .progress-step-circle {
+            width: 28px !important;
+            height: 28px !important;
+            font-size: 12px !important;
+        }
+        
+        .participant-chip {
+            font-size: 11px !important;
+        }
+    }
+`;
+
 const SignupWizard: React.FC = () => {
     const { user, isSignedIn } = useUser();
     
@@ -41,11 +148,11 @@ const SignupWizard: React.FC = () => {
     useEffect(() => {
         loadOutings();
         if (isSignedIn) {
-            loadFamilyMembers();
+            loadFamilyMembers(selectedOuting?.id);
             loadUserContactInfo();
             loadMySignups();
         }
-    }, [isSignedIn, user]);
+    }, [isSignedIn, user, selectedOuting?.id]);
 
     const loadUserContactInfo = async () => {
         try {
@@ -88,9 +195,9 @@ const SignupWizard: React.FC = () => {
         }
     };
 
-    const loadFamilyMembers = async () => {
+    const loadFamilyMembers = async (outingId?: string) => {
         try {
-            const data = await familyAPI.getSummary();
+            const data = await familyAPI.getSummary(outingId);
             setFamilyMembers(data);
         } catch (err) {
             console.error('Failed to load family members:', err);
@@ -325,7 +432,9 @@ const SignupWizard: React.FC = () => {
     };
 
     return (
-        <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto' }}>
+        <>
+            <style>{styles}</style>
+            <div className="wizard-container" style={{ padding: '20px', maxWidth: '900px', margin: '0 auto' }}>
             <h1>{editingSignupId ? '✏️ Edit Signup' : 'Outing Signup'}</h1>
             
             {editingSignupId && (
@@ -372,7 +481,7 @@ const SignupWizard: React.FC = () => {
             )}
 
             {error && (
-                <div style={{
+                <div className="progress-step-label" style={{
                     padding: '15px',
                     marginBottom: '20px',
                     backgroundColor: '#ffebee',
@@ -385,7 +494,7 @@ const SignupWizard: React.FC = () => {
 
             {/* Progress Indicator - Only show after trip selection */}
             {currentStep !== 'select-trip' && (
-                <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+                <div className="progress-indicator" style={{ marginBottom: '30px', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         {[
                             { key: 'contact-info', label: 'Contact', number: 1 },
@@ -400,7 +509,7 @@ const SignupWizard: React.FC = () => {
                             return (
                                 <React.Fragment key={step.key}>
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
-                                        <div style={{
+                                        <div className="progress-step-circle" style={{
                                             width: '40px',
                                             height: '40px',
                                             borderRadius: '50%',
@@ -472,15 +581,41 @@ const SignupWizard: React.FC = () => {
                                             backgroundColor: isExpanded ? '#e8f5e9' : '#f1f8f4'
                                         }}
                                     >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div className="outing-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <div style={{ flex: 1 }}>
                                                 <h3 style={{ margin: '0 0 10px 0', color: '#2e7d32' }}>✓ {outing.name}</h3>
                                                 <p style={{ margin: '5px 0' }}>
                                                     <strong>Date:</strong> {new Date(outing.outing_date).toLocaleDateString()}
                                                 </p>
-                                                <p style={{ margin: '5px 0' }}>
-                                                    <strong>Participants:</strong> {signup.participant_count} ({signup.adult_count} adult{signup.adult_count !== 1 ? 's' : ''}, {signup.scout_count} scout{signup.scout_count !== 1 ? 's' : ''})
-                                                </p>
+                                                <div style={{ margin: '10px 0 0 0' }}>
+                                                    <strong>Participants ({signup.participant_count}):</strong>
+                                                    <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                        {signup.participants.map(participant => (
+                                                            <span
+                                                                key={participant.id}
+                                                                className="participant-chip"
+                                                                style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    padding: '4px 10px',
+                                                                    backgroundColor: '#e3f2fd',
+                                                                    color:  '#1976d2',
+                                                                    borderRadius: '12px',
+                                                                    fontSize: '13px',
+                                                                    fontWeight: '500',
+                                                                    border:  '1px solid #90caf9'
+                                                                }}
+                                                            >
+                                                                {participant.is_adult ? '🌲' : '🌱'} {participant.name}
+                                                                {participant.vehicle_capacity > 0 && (
+                                                                    <span style={{ marginLeft: '4px', fontWeight: 'bold' }}>
+                                                                        🚗: {participant.vehicle_capacity}
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             </div>
                                             <span style={{ fontSize: '20px', marginLeft: '15px' }}>
                                                 {isExpanded ? '▼' : '▶'}
@@ -498,7 +633,7 @@ const SignupWizard: React.FC = () => {
 
                                             <div style={{ marginBottom: '20px' }}>
                                                 <h4 style={{ marginBottom: '10px' }}>Your Participants</h4>
-                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                                                <div className="participant-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
                                                     {signup.participants.map(participant => (
                                                         <div
                                                             key={participant.id}
@@ -532,7 +667,7 @@ const SignupWizard: React.FC = () => {
                                                 <p style={{ margin: '4px 0', fontSize: '14px' }}><strong>Phone:</strong> {signup.family_contact_phone}</p>
                                             </div>
 
-                                            <div style={{ display: 'flex', gap: '10px' }}>
+                                            <div className="signup-actions" style={{ display: 'flex', gap: '10px' }}>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
@@ -644,7 +779,7 @@ const SignupWizard: React.FC = () => {
                                             position: 'relative'
                                         }}
                                     >
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div className="outing-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <div style={{ flex: 1 }}>
                                                 <h3 style={{ margin: '0 0 10px 0' }}>{outing.name}</h3>
                                                 <p style={{ margin: '5px 0' }}>
@@ -656,7 +791,7 @@ const SignupWizard: React.FC = () => {
                                             </div>
                                             
                                             {/* Capacity Badge */}
-                                            <div style={{
+                                            <div className="capacity-badge" style={{
                                                 marginLeft: '15px',
                                                 padding: '8px 12px',
                                                 backgroundColor: outing.is_full ? '#ffebee' : '#e8f5e9',
@@ -798,7 +933,7 @@ const SignupWizard: React.FC = () => {
                         {familyMembers.filter(m => m.member_type === 'adult').length === 0 ? (
                             <p>No adults in family. <a href="/family-setup">Add adults</a></p>
                         ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px' }}>
+                            <div className="member-selection-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px' }}>
                                 {familyMembers.filter(m => m.member_type === 'adult').map(member => {
                                     const isSelected = selectedAdultIds.includes(member.id);
                                     const isExpired = member.youth_protection_expired === true;
@@ -849,9 +984,9 @@ const SignupWizard: React.FC = () => {
                                                     fontWeight: member.youth_protection_expired ? 'bold' : 'normal'
                                                 }}>
                                                     {member.youth_protection_expired
-                                                        ? '⚠️ Youth Protection EXPIRED - Cannot Sign Up'
+                                                        ? `⚠️ Youth Protection expires before trip ends - Cannot Sign Up`
                                                         : member.has_youth_protection
-                                                            ? '✓ Youth Protection Trained'
+                                                            ? '✓ Youth Protection valid through trip'
                                                             : ''
                                                     }
                                                 </p>
@@ -887,7 +1022,7 @@ const SignupWizard: React.FC = () => {
                         {familyMembers.filter(m => m.member_type === 'scout').length === 0 ? (
                             <p>No scouts in family. <a href="/family-setup">Add scouts</a></p>
                         ) : (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px' }}>
+                            <div className="member-selection-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px' }}>
                                 {familyMembers.filter(m => m.member_type === 'scout').map(member => {
                                     const isSelected = selectedScoutIds.includes(member.id);
                                     const availableSeats = calculateAvailableSeats();
@@ -950,7 +1085,7 @@ const SignupWizard: React.FC = () => {
             </div>
 
             {/* Navigation Buttons */}
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'space-between' }}>
+            <div className="navigation-buttons" style={{ display: 'flex', gap: '10px', justifyContent: 'space-between' }}>
                 {currentStep !== 'select-trip' && (
                     <button
                         onClick={goToPreviousStep}
@@ -970,7 +1105,7 @@ const SignupWizard: React.FC = () => {
                     </button>
                 )}
                 
-                <div style={{ display: 'flex', gap: '10px', marginLeft: 'auto' }}>
+                <div className="button-group" style={{ display: 'flex', gap: '10px', marginLeft: 'auto' }}>
                     {currentStep !== 'select-trip' && (
                         <button
                             onClick={handleCancelWizard}
@@ -1027,7 +1162,8 @@ const SignupWizard: React.FC = () => {
                     )}
                 </div>
             </div>
-        </div>
+            </div>
+        </>
     );
 };
 
