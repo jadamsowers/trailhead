@@ -32,6 +32,12 @@ class SignupCreate(BaseModel):
     family_member_ids: list[UUID] = Field(..., min_length=1, description="List of family member IDs to sign up (at least one required)")
 
 
+class SignupUpdate(BaseModel):
+    """Schema for updating a signup - can update contact info and/or participants"""
+    family_contact: Optional[FamilyContact] = Field(None, description="Updated family contact information")
+    family_member_ids: Optional[list[UUID]] = Field(None, min_length=1, description="Updated list of family member IDs (replaces existing participants)")
+
+
 class ParticipantResponse(BaseModel):
     """Schema for participant response"""
     id: UUID

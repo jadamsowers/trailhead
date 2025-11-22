@@ -88,18 +88,51 @@ async function handleResponse<T>(response: Response): Promise<T> {
         status: response.status,
         statusText: response.statusText,
         ok: response.ok,
+        headers: {
+            'content-type': response.headers.get('content-type'),
+            'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
+        }
     });
     
     if (!response.ok) {
-        const error: APIErrorResponse = await response.json().catch(() => ({
-            detail: `HTTP ${response.status}: ${response.statusText}`
-        }));
-        console.error('❌ API Error:', {
-            url: response.url,
-            status: response.status,
-            error: error.detail,
-        });
-        throw new APIError(response.status, error.detail);
+        let errorDetail: string;
+        let errorType: string | undefined;
+        
+        try {
+            const errorData: APIErrorResponse & { error_type?: string; error_message?: string } = await response.json();
+            
+            // Handle different error response formats
+            if (errorData.error_type && errorData.error_message) {
+                // Backend 500 error with detailed info
+                errorDetail = `${errorData.error_type}: ${errorData.error_message}`;
+                errorType = errorData.error_type;
+                console.error('❌ Backend Error:', {
+                    url: response.url,
+                    status: response.status,
+                    type: errorData.error_type,
+                    message: errorData.error_message,
+                    detail: errorData.detail,
+                });
+            } else if (errorData.detail) {
+                // Standard FastAPI error
+                errorDetail = typeof errorData.detail === 'string'
+                    ? errorData.detail
+                    : JSON.stringify(errorData.detail);
+                console.error('❌ API Error:', {
+                    url: response.url,
+                    status: response.status,
+                    detail: errorData.detail,
+                });
+            } else {
+                errorDetail = `HTTP ${response.status}: ${response.statusText}`;
+            }
+        } catch (parseError) {
+            // If JSON parsing fails, use status text
+            errorDetail = `HTTP ${response.status}: ${response.statusText}`;
+            console.error('❌ Failed to parse error response:', parseError);
+        }
+        
+        throw new APIError(response.status, errorDetail);
     }
     return response.json();
 }
@@ -233,6 +266,40 @@ export const signupAPI = {
         });
         const data = await handleResponse<{ signups: SignupResponse[]; total: number }>(response);
         return data.signups;
+    },
+
+    async getMySignups(): Promise<SignupResponse[]> {
+        const response = await fetch(`${API_BASE_URL}/signups/my-signups`, {
+            headers: await getAuthHeaders(),
+        });
+        return handleResponse<SignupResponse[]>(response);
+    },
+
+    async updateSignup(signupId: string, updateData: {
+        family_contact?: {
+            email: string;
+            phone: string;
+            emergency_contact_name: string;
+            emergency_contact_phone: string;
+        };
+        family_member_ids?: string[];
+    }): Promise<SignupResponse> {
+        const response = await fetch(`${API_BASE_URL}/signups/${signupId}`, {
+            method: 'PUT',
+            headers: await getAuthHeaders(),
+            body: JSON.stringify(updateData),
+        });
+        return handleResponse<SignupResponse>(response);
+    },
+
+    async cancelSignup(signupId: string): Promise<void> {
+        const response = await fetch(`${API_BASE_URL}/signups/${signupId}`, {
+            method: 'DELETE',
+            headers: await getAuthHeaders(),
+        });
+        if (!response.ok) {
+            throw new APIError(response.status, 'Failed to cancel signup');
+        }
     },
     async getEmails(outingId: string): Promise<{ emails: string[]; count: number }> {
         const response = await fetch(`${API_BASE_URL}/signups/outings/${outingId}/emails`, {

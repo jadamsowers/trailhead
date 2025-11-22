@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from uuid import UUID
 from datetime import date
 from pydantic import BaseModel, EmailStr
@@ -11,7 +12,7 @@ from app.models.user import User
 from app.models.family import FamilyMember
 from app.models.signup import Signup
 from app.models.participant import Participant
-from app.schemas.signup import SignupCreate, SignupResponse, ParticipantResponse
+from app.schemas.signup import SignupCreate, SignupUpdate, SignupResponse, ParticipantResponse
 from app.crud import signup as crud_signup
 from app.crud import outing as crud_outing
 from app.api.deps import get_current_user, get_current_admin_user
@@ -211,6 +212,283 @@ async def create_signup(
         adult_count=db_signup.adult_count,
         created_at=db_signup.created_at,
         warnings=warnings
+    )
+
+
+@router.get("/my-signups", response_model=list[SignupResponse])
+async def get_my_signups(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get all signups for the current user.
+    Returns signups where any participant's family member belongs to the current user.
+    """
+    # Get all family members for the current user
+    family_members_result = await db.execute(
+        select(FamilyMember)
+        .where(FamilyMember.user_id == current_user.id)
+    )
+    family_members = family_members_result.scalars().all()
+    
+    if not family_members:
+        return []
+    
+    family_member_ids = [fm.id for fm in family_members]
+    
+    # Get all participants that belong to user's family members
+    participants_result = await db.execute(
+        select(Participant)
+        .where(Participant.family_member_id.in_(family_member_ids))
+    )
+    participants = participants_result.scalars().all()
+    
+    if not participants:
+        return []
+    
+    # Get unique signup IDs
+    signup_ids = list(set(p.signup_id for p in participants))
+    
+    # Get all signups with full details
+    signups_result = await db.execute(
+        select(Signup)
+        .options(
+            selectinload(Signup.participants)
+            .selectinload(Participant.family_member)
+            .selectinload(FamilyMember.dietary_preferences)
+        )
+        .options(
+            selectinload(Signup.participants)
+            .selectinload(Participant.family_member)
+            .selectinload(FamilyMember.allergies)
+        )
+        .options(
+            selectinload(Signup.outing)
+        )
+        .where(Signup.id.in_(signup_ids))
+        .order_by(Signup.created_at.desc())
+    )
+    signups = signups_result.scalars().all()
+    
+    # Convert to response format
+    response_list = []
+    for signup in signups:
+        participant_responses = []
+        for participant in signup.participants:
+            # Get dietary restrictions from family member
+            dietary_restrictions = [dp.preference for dp in participant.family_member.dietary_preferences] if participant.family_member else []
+            
+            # Get allergies from family member
+            allergies = [a.allergy for a in participant.family_member.allergies] if participant.family_member else []
+            
+            participant_responses.append(ParticipantResponse(
+                id=participant.id,
+                name=participant.name,
+                age=participant.age,
+                participant_type=participant.participant_type,
+                is_adult=participant.is_adult,
+                gender=participant.gender,
+                troop_number=participant.troop_number,
+                patrol_name=participant.patrol_name,
+                has_youth_protection=participant.has_youth_protection,
+                vehicle_capacity=participant.vehicle_capacity,
+                dietary_restrictions=dietary_restrictions,
+                allergies=allergies,
+                medical_notes=participant.medical_notes,
+                created_at=participant.created_at
+            ))
+        
+        response_list.append(SignupResponse(
+            id=signup.id,
+            outing_id=signup.outing_id,
+            family_contact_name=signup.family_contact_name,
+            family_contact_email=signup.family_contact_email,
+            family_contact_phone=signup.family_contact_phone,
+            participants=participant_responses,
+            participant_count=signup.participant_count,
+            scout_count=signup.scout_count,
+            adult_count=signup.adult_count,
+            created_at=signup.created_at,
+            warnings=[]
+        ))
+    
+    return response_list
+
+
+@router.put("/{signup_id}", response_model=SignupResponse)
+async def update_signup(
+    signup_id: UUID,
+    signup_update: SignupUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update a signup's contact information and/or participants.
+    Users can only update their own signups. Admins can update any signup.
+    """
+    # Get the existing signup
+    db_signup = await crud_signup.get_signup(db, signup_id)
+    if not db_signup:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Signup not found"
+        )
+    
+    # Check ownership unless user is admin
+    if current_user.role != "admin":
+        # Get all participants for this signup
+        participants_result = await db.execute(
+            select(Participant)
+            .where(Participant.signup_id == signup_id)
+        )
+        participants = participants_result.scalars().all()
+        
+        if not participants:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Signup has no participants"
+            )
+        
+        # Check if any participant's family member belongs to current user
+        family_member_ids = [p.family_member_id for p in participants]
+        family_members_result = await db.execute(
+            select(FamilyMember)
+            .where(FamilyMember.id.in_(family_member_ids))
+            .where(FamilyMember.user_id == current_user.id)
+        )
+        user_family_members = family_members_result.scalars().all()
+        
+        if not user_family_members:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only update your own signups"
+            )
+    
+    # If updating participants, validate capacity and requirements
+    if signup_update.family_member_ids is not None:
+        # Get the outing
+        db_outing = await crud_outing.get_outing(db, db_signup.outing_id)
+        if not db_outing:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Outing not found"
+            )
+        
+        # Load new family members
+        new_family_members = []
+        for family_member_id in signup_update.family_member_ids:
+            result = await db.execute(
+                select(FamilyMember).where(FamilyMember.id == family_member_id)
+            )
+            family_member = result.scalar_one_or_none()
+            if not family_member:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Family member with ID {family_member_id} not found"
+                )
+            new_family_members.append(family_member)
+        
+        # Calculate capacity changes
+        old_participant_count = len(db_signup.participants)
+        new_participant_count = len(new_family_members)
+        participant_delta = new_participant_count - old_participant_count
+        
+        if db_outing.capacity_type == 'vehicle':
+            # Calculate old and new vehicle capacity
+            old_vehicle_capacity = sum(
+                p.vehicle_capacity if p.vehicle_capacity else 0
+                for p in db_signup.participants
+                if p.is_adult
+            )
+            new_vehicle_capacity = sum(
+                fm.vehicle_capacity if fm.vehicle_capacity else 0
+                for fm in new_family_members
+                if fm.member_type == 'adult'
+            )
+            vehicle_capacity_delta = new_vehicle_capacity - old_vehicle_capacity
+            
+            # Check if update would exceed capacity
+            projected_available_spots = db_outing.available_spots + vehicle_capacity_delta - participant_delta
+            
+            if projected_available_spots < 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Not enough available spots. Update would result in {abs(projected_available_spots)} over capacity."
+                )
+        else:
+            # Fixed capacity
+            if db_outing.available_spots < participant_delta:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Not enough available spots. Only {db_outing.available_spots} spots remaining."
+                )
+        
+        # Validate adult youth protection requirements
+        today = date.today()
+        new_adults = [fm for fm in new_family_members if fm.member_type == 'adult']
+        
+        for adult in new_adults:
+            if not adult.has_youth_protection:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Adult '{adult.name}' must have valid SAFE Youth Training certificate."
+                )
+            
+            if adult.youth_protection_expiration and adult.youth_protection_expiration < today:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Adult '{adult.name}' has an expired SAFE Youth Training certificate."
+                )
+    
+    # Update the signup
+    try:
+        updated_signup = await crud_signup.update_signup(db, signup_id, signup_update)
+        if not updated_signup:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Signup not found"
+            )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    
+    # Convert to response format
+    participant_responses = []
+    for participant in updated_signup.participants:
+        dietary_restrictions = [dp.preference for dp in participant.family_member.dietary_preferences] if participant.family_member else []
+        allergies = [a.allergy for a in participant.family_member.allergies] if participant.family_member else []
+        
+        participant_responses.append(ParticipantResponse(
+            id=participant.id,
+            name=participant.name,
+            age=participant.age,
+            participant_type=participant.participant_type,
+            is_adult=participant.is_adult,
+            gender=participant.gender,
+            troop_number=participant.troop_number,
+            patrol_name=participant.patrol_name,
+            has_youth_protection=participant.has_youth_protection,
+            vehicle_capacity=participant.vehicle_capacity,
+            dietary_restrictions=dietary_restrictions,
+            allergies=allergies,
+            medical_notes=participant.medical_notes,
+            created_at=participant.created_at
+        ))
+    
+    return SignupResponse(
+        id=updated_signup.id,
+        outing_id=updated_signup.outing_id,
+        family_contact_name=updated_signup.family_contact_name,
+        family_contact_email=updated_signup.family_contact_email,
+        family_contact_phone=updated_signup.family_contact_phone,
+        participants=participant_responses,
+        participant_count=updated_signup.participant_count,
+        scout_count=updated_signup.scout_count,
+        adult_count=updated_signup.adult_count,
+        created_at=updated_signup.created_at,
+        warnings=[]
     )
 
 

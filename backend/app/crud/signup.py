@@ -7,7 +7,7 @@ from typing import Optional
 from app.models.signup import Signup
 from app.models.participant import Participant, DietaryRestriction, Allergy
 from app.models.family import FamilyMember
-from app.schemas.signup import SignupCreate
+from app.schemas.signup import SignupCreate, SignupUpdate
 
 
 async def get_signup(db: AsyncSession, signup_id: UUID) -> Optional[Signup]:
@@ -121,6 +121,73 @@ async def create_signup(db: AsyncSession, signup: SignupCreate) -> Signup:
             .selectinload(Participant.allergies)
         )
         .where(Signup.id == db_signup.id)
+    )
+    return result.scalar_one()
+
+
+async def update_signup(db: AsyncSession, signup_id: UUID, signup_update: SignupUpdate) -> Optional[Signup]:
+    """Update a signup's contact info and/or participants"""
+    db_signup = await get_signup(db, signup_id)
+    if not db_signup:
+        return None
+    
+    # Update contact info if provided
+    if signup_update.family_contact:
+        db_signup.family_contact_name = signup_update.family_contact.emergency_contact_name
+        db_signup.family_contact_email = signup_update.family_contact.email
+        db_signup.family_contact_phone = signup_update.family_contact.phone
+    
+    # Update participants if provided
+    if signup_update.family_member_ids is not None:
+        # Verify all family members exist
+        family_members = []
+        for family_member_id in signup_update.family_member_ids:
+            result = await db.execute(
+                select(FamilyMember).where(FamilyMember.id == family_member_id)
+            )
+            family_member = result.scalar_one_or_none()
+            if not family_member:
+                raise ValueError(f"Family member with ID {family_member_id} not found")
+            family_members.append(family_member)
+        
+        # Delete existing participants
+        for participant in db_signup.participants:
+            await db.delete(participant)
+        await db.flush()
+        
+        # Create new participant records
+        for family_member in family_members:
+            db_participant = Participant(
+                signup_id=db_signup.id,
+                family_member_id=family_member.id
+            )
+            db.add(db_participant)
+    
+    await db.flush()
+    await db.refresh(db_signup)
+    
+    # Reload with relationships
+    result = await db.execute(
+        select(Signup)
+        .options(
+            selectinload(Signup.participants)
+            .selectinload(Participant.family_member)
+            .selectinload(FamilyMember.dietary_preferences)
+        )
+        .options(
+            selectinload(Signup.participants)
+            .selectinload(Participant.family_member)
+            .selectinload(FamilyMember.allergies)
+        )
+        .options(
+            selectinload(Signup.participants)
+            .selectinload(Participant.dietary_restrictions)
+        )
+        .options(
+            selectinload(Signup.participants)
+            .selectinload(Participant.allergies)
+        )
+        .where(Signup.id == signup_id)
     )
     return result.scalar_one()
 

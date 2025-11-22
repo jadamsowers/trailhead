@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { Outing, FamilyMemberSummary } from '../../types';
+import { Outing, FamilyMemberSummary, SignupResponse } from '../../types';
 import { outingAPI, signupAPI, familyAPI, userAPI, APIError } from '../../services/api';
 import { formatPhoneNumber, validatePhoneWithMessage } from '../../utils/phoneUtils';
 
@@ -12,9 +12,13 @@ const SignupWizard: React.FC = () => {
     // Wizard state
     const [currentStep, setCurrentStep] = useState<WizardStep>('select-trip');
     const [selectedOuting, setSelectedOuting] = useState<Outing | null>(null);
+    const [editingSignupId, setEditingSignupId] = useState<string | null>(null);
     
     // Data state
     const [outings, setOutings] = useState<Outing[]>([]);
+    const [mySignups, setMySignups] = useState<SignupResponse[]>([]);
+    const [mySignupOutingIds, setMySignupOutingIds] = useState<Set<string>>(new Set());
+    const [expandedSignupId, setExpandedSignupId] = useState<string>('');
     const [familyMembers, setFamilyMembers] = useState<FamilyMemberSummary[]>([]);
     const [selectedAdultIds, setSelectedAdultIds] = useState<string[]>([]);
     const [selectedScoutIds, setSelectedScoutIds] = useState<string[]>([]);
@@ -29,6 +33,7 @@ const SignupWizard: React.FC = () => {
     
     // UI state
     const [loading, setLoading] = useState(false);
+    const [cancelingSignupId, setCancelingSignupId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [warnings, setWarnings] = useState<string[]>([]);
@@ -38,6 +43,7 @@ const SignupWizard: React.FC = () => {
         if (isSignedIn) {
             loadFamilyMembers();
             loadUserContactInfo();
+            loadMySignups();
         }
     }, [isSignedIn, user]);
 
@@ -88,6 +94,40 @@ const SignupWizard: React.FC = () => {
             setFamilyMembers(data);
         } catch (err) {
             console.error('Failed to load family members:', err);
+        }
+    };
+
+    const loadMySignups = async () => {
+        try {
+            const signups = await signupAPI.getMySignups();
+            setMySignups(signups);
+            const signupOutingIds = new Set(signups.map(s => s.outing_id));
+            setMySignupOutingIds(signupOutingIds);
+        } catch (err) {
+            console.error('Failed to load my signups:', err);
+            // Don't show error to user - just log it and continue
+            // This allows the page to work even if my-signups endpoint fails
+            setMySignups([]);
+            setMySignupOutingIds(new Set());
+        }
+    };
+
+    const handleCancelSignup = async (signupId: string, outingName: string) => {
+        if (!window.confirm(`Are you sure you want to cancel your signup for "${outingName}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            setCancelingSignupId(signupId);
+            setError(null);
+            await signupAPI.cancelSignup(signupId);
+            await loadMySignups();
+            await loadOutings();
+            setExpandedSignupId('');
+        } catch (err) {
+            setError(err instanceof APIError ? err.message : 'Failed to cancel signup');
+        } finally {
+            setCancelingSignupId(null);
         }
     };
 
@@ -199,7 +239,6 @@ const SignupWizard: React.FC = () => {
             }
             
             const signupData = {
-                outing_id: selectedOuting.id,
                 family_contact: {
                     email: contactInfo.email,
                     phone: contactInfo.phone,
@@ -209,16 +248,31 @@ const SignupWizard: React.FC = () => {
                 family_member_ids: allSelectedIds
             };
 
-            const response = await signupAPI.create(signupData);
+            let response;
+            if (editingSignupId) {
+                // Update existing signup
+                response = await signupAPI.updateSignup(editingSignupId, signupData);
+                setSuccess(true);
+                setWarnings([]);
+            } else {
+                // Create new signup
+                response = await signupAPI.create({
+                    outing_id: selectedOuting.id,
+                    ...signupData
+                });
+                setSuccess(true);
+                setWarnings(response.warnings || []);
+            }
             
-            setSuccess(true);
-            setWarnings(response.warnings || []);
+            // Reload signups and outings to update the lists
+            await loadMySignups();
+            await loadOutings();
             
             setTimeout(() => {
                 resetForm();
             }, 3000);
         } catch (err) {
-            setError(err instanceof APIError ? err.message : 'Failed to submit signup');
+            setError(err instanceof APIError ? err.message : `Failed to ${editingSignupId ? 'update' : 'submit'} signup`);
         } finally {
             setLoading(false);
         }
@@ -229,6 +283,7 @@ const SignupWizard: React.FC = () => {
         setSelectedOuting(null);
         setSelectedAdultIds([]);
         setSelectedScoutIds([]);
+        setEditingSignupId(null);
         setContactInfo({
             email: user?.primaryEmailAddress?.emailAddress || '',
             phone: '',
@@ -242,7 +297,20 @@ const SignupWizard: React.FC = () => {
 
     return (
         <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto' }}>
-            <h1>Outing Signup</h1>
+            <h1>{editingSignupId ? '✏️ Edit Signup' : 'Outing Signup'}</h1>
+            
+            {editingSignupId && (
+                <div style={{
+                    padding: '15px',
+                    marginBottom: '20px',
+                    backgroundColor: '#e3f2fd',
+                    color: '#1976d2',
+                    borderRadius: '4px',
+                    border: '2px solid #1976d2'
+                }}>
+                    <strong>Editing Mode:</strong> You're editing your signup for {selectedOuting?.name}. Make your changes and submit to update.
+                </div>
+            )}
             
             {success && (
                 <>
@@ -254,7 +322,7 @@ const SignupWizard: React.FC = () => {
                         borderRadius: '4px',
                         fontWeight: 'bold'
                     }}>
-                        ✓ Signup submitted successfully!
+                        ✓ Signup {editingSignupId ? 'updated' : 'submitted'} successfully!
                     </div>
                     
                     {warnings.length > 0 && (
@@ -342,18 +410,190 @@ const SignupWizard: React.FC = () => {
                 </div>
             )}
 
+            {/* My Signups Section - Show before trip selection */}
+            {currentStep === 'select-trip' && mySignups.length > 0 && (
+                <div style={{ marginBottom: '40px' }}>
+                    <h2 style={{ color: '#2e7d32', marginBottom: '15px' }}>✓ My Signups ({mySignups.length})</h2>
+                    <p style={{ marginBottom: '20px', color: '#666' }}>
+                        Outings you're already signed up for. Click to view details or cancel.
+                    </p>
+                    <div style={{ display: 'grid', gap: '15px' }}>
+                        {mySignups.map(signup => {
+                            const outing = outings.find(o => o.id === signup.outing_id);
+                            if (!outing) return null;
+                            
+                            const isExpanded = expandedSignupId === signup.id;
+                            const isCanceling = cancelingSignupId === signup.id;
+                            
+                            return (
+                                <div
+                                    key={signup.id}
+                                    style={{
+                                        border: isExpanded ? '2px solid #2e7d32' : '1px solid #c8e6c9',
+                                        borderRadius: '8px',
+                                        overflow: 'hidden',
+                                        backgroundColor: '#f1f8f4'
+                                    }}
+                                >
+                                    <div
+                                        onClick={() => setExpandedSignupId(isExpanded ? '' : signup.id)}
+                                        style={{
+                                            padding: '20px',
+                                            cursor: 'pointer',
+                                            backgroundColor: isExpanded ? '#e8f5e9' : '#f1f8f4'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <h3 style={{ margin: '0 0 10px 0', color: '#2e7d32' }}>✓ {outing.name}</h3>
+                                                <p style={{ margin: '5px 0' }}>
+                                                    <strong>Date:</strong> {new Date(outing.outing_date).toLocaleDateString()}
+                                                </p>
+                                                <p style={{ margin: '5px 0' }}>
+                                                    <strong>Participants:</strong> {signup.participant_count} ({signup.adult_count} adult{signup.adult_count !== 1 ? 's' : ''}, {signup.scout_count} scout{signup.scout_count !== 1 ? 's' : ''})
+                                                </p>
+                                            </div>
+                                            <span style={{ fontSize: '20px', marginLeft: '15px' }}>
+                                                {isExpanded ? '▼' : '▶'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {isExpanded && (
+                                        <div style={{ padding: '20px', backgroundColor: 'white', borderTop: '2px solid #2e7d32' }}>
+                                            <div style={{ marginBottom: '20px' }}>
+                                                <h4 style={{ marginBottom: '10px' }}>Outing Details</h4>
+                                                <p style={{ margin: '5px 0' }}><strong>Location:</strong> {outing.location}</p>
+                                                {outing.description && <p style={{ margin: '10px 0' }}>{outing.description}</p>}
+                                            </div>
+
+                                            <div style={{ marginBottom: '20px' }}>
+                                                <h4 style={{ marginBottom: '10px' }}>Your Participants</h4>
+                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                                                    {signup.participants.map(participant => (
+                                                        <div
+                                                            key={participant.id}
+                                                            style={{
+                                                                padding: '12px',
+                                                                backgroundColor: '#f5f5f5',
+                                                                borderRadius: '6px',
+                                                                border: '1px solid #ddd'
+                                                            }}
+                                                        >
+                                                            <p style={{ margin: '0 0 6px 0', fontWeight: 'bold' }}>{participant.name}</p>
+                                                            <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                                                {participant.is_adult ? '👨‍👩‍👧‍👦 Adult' : '🎒 Scout'}
+                                                            </p>
+                                                            {participant.troop_number && (
+                                                                <p style={{ margin: '4px 0', fontSize: '14px' }}>Troop {participant.troop_number}</p>
+                                                            )}
+                                                            {participant.vehicle_capacity > 0 && (
+                                                                <p style={{ margin: '4px 0', fontSize: '13px', color: '#1976d2', fontWeight: 'bold' }}>
+                                                                    🚗 {participant.vehicle_capacity} seats
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '6px' }}>
+                                                <h4 style={{ marginBottom: '8px', fontSize: '14px' }}>Contact Information</h4>
+                                                <p style={{ margin: '4px 0', fontSize: '14px' }}><strong>Email:</strong> {signup.family_contact_email}</p>
+                                                <p style={{ margin: '4px 0', fontSize: '14px' }}><strong>Phone:</strong> {signup.family_contact_phone}</p>
+                                            </div>
+
+                                            <div style={{ display: 'flex', gap: '10px' }}>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        // Set up edit mode
+                                                        setEditingSignupId(signup.id);
+                                                        setSelectedOuting(outing);
+                                                        setContactInfo({
+                                                            email: signup.family_contact_email,
+                                                            phone: signup.family_contact_phone,
+                                                            emergency_contact_name: signup.family_contact_name,
+                                                            emergency_contact_phone: signup.family_contact_phone
+                                                        });
+                                                        // Pre-select current participants
+                                                        const participantFamilyMemberIds = signup.participants.map(p => {
+                                                            // Find the family member ID from the participant
+                                                            const fm = familyMembers.find(f => f.name === p.name);
+                                                            return fm?.id;
+                                                        }).filter(Boolean) as string[];
+                                                        
+                                                        const adults = participantFamilyMemberIds.filter(id => {
+                                                            const fm = familyMembers.find(f => f.id === id);
+                                                            return fm?.member_type === 'adult';
+                                                        });
+                                                        const scouts = participantFamilyMemberIds.filter(id => {
+                                                            const fm = familyMembers.find(f => f.id === id);
+                                                            return fm?.member_type === 'scout';
+                                                        });
+                                                        
+                                                        setSelectedAdultIds(adults);
+                                                        setSelectedScoutIds(scouts);
+                                                        setCurrentStep('contact-info');
+                                                        setExpandedSignupId('');
+                                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                    }}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '12px 24px',
+                                                        backgroundColor: '#1976d2',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: 'pointer',
+                                                        fontSize: '16px',
+                                                        fontWeight: 'bold'
+                                                    }}
+                                                >
+                                                    ✏️ Edit Signup
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleCancelSignup(signup.id, outing.name);
+                                                    }}
+                                                    disabled={isCanceling}
+                                                    style={{
+                                                        flex: 1,
+                                                        padding: '12px 24px',
+                                                        backgroundColor: isCanceling ? '#ccc' : '#d32f2f',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: isCanceling ? 'not-allowed' : 'pointer',
+                                                        fontSize: '16px',
+                                                        fontWeight: 'bold'
+                                                    }}
+                                                >
+                                                    {isCanceling ? 'Canceling...' : '🗑️ Cancel'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             {/* Step Content */}
             <div style={{ marginBottom: '30px' }}>
                 {currentStep === 'select-trip' && (
                     <div>
-                        <h2>Select a Trip</h2>
+                        <h2>{mySignups.length > 0 ? 'Sign Up for Another Trip' : 'Select a Trip'}</h2>
                         {loading && outings.length === 0 ? (
                             <p>Loading available outings...</p>
-                        ) : outings.length === 0 ? (
-                            <p>No upcoming outings available.</p>
+                        ) : outings.filter(o => !mySignupOutingIds.has(o.id)).length === 0 ? (
+                            <p>No upcoming outings available{mySignups.length > 0 ? ' (you\'re signed up for all available outings)' : ''}.</p>
                         ) : (
                             <div style={{ display: 'grid', gap: '15px' }}>
-                                {outings.map(outing => (
+                                {outings.filter(o => !mySignupOutingIds.has(o.id)).map(outing => (
                                     <div
                                         key={outing.id}
                                         onClick={() => {

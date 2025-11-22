@@ -4,6 +4,7 @@ import {
     Outing,
     SignupFormData,
     FamilyMemberSummary,
+    SignupResponse,
 } from '../../types';
 import { outingAPI, signupAPI, familyAPI, APIError } from '../../services/api';
 import { formatPhoneNumber, validatePhoneWithMessage } from '../../utils/phoneUtils';
@@ -13,8 +14,12 @@ const SignupForm: React.FC = () => {
     const isAuthenticated = isSignedIn;
     const isParent = true; // All Clerk users are parents by default
     const [outings, setOutings] = useState<Outing[]>([]);
+    const [mySignups, setMySignups] = useState<SignupResponse[]>([]);
+    const [mySignupOutingIds, setMySignupOutingIds] = useState<Set<string>>(new Set());
     const [expandedOutingId, setExpandedOutingId] = useState<string>('');
+    const [expandedSignupId, setExpandedSignupId] = useState<string>('');
     const [loading, setLoading] = useState(false);
+    const [cancelingSignupId, setCancelingSignupId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [warnings, setWarnings] = useState<string[]>([]);
@@ -49,6 +54,7 @@ const SignupForm: React.FC = () => {
         loadOutings();
         if (isAuthenticated && isParent) {
             loadFamilyMembers();
+            loadMySignups();
             // Pre-fill contact info from user profile
             if (user?.primaryEmailAddress?.emailAddress) {
                 setFormData(prev => ({
@@ -76,6 +82,18 @@ const SignupForm: React.FC = () => {
             setError(err instanceof APIError ? err.message : 'Failed to load outings');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadMySignups = async () => {
+        try {
+            const signups = await signupAPI.getMySignups();
+            setMySignups(signups);
+            // Create a set of outing IDs where user is already signed up
+            const signupOutingIds = new Set(signups.map(s => s.outing_id));
+            setMySignupOutingIds(signupOutingIds);
+        } catch (err) {
+            console.error('Failed to load my signups:', err);
         }
     };
 
@@ -311,6 +329,9 @@ const SignupForm: React.FC = () => {
             setSuccess(true);
             setWarnings(response.warnings || []);
             
+            // Reload signups to update the list
+            await loadMySignups();
+            
             // Reset form after successful submission
             setTimeout(() => {
                 setWarnings([]);
@@ -347,11 +368,32 @@ const SignupForm: React.FC = () => {
         }
     };
 
+    const handleCancelSignup = async (signupId: string, outingName: string) => {
+        if (!window.confirm(`Are you sure you want to cancel your signup for "${outingName}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            setCancelingSignupId(signupId);
+            setError(null);
+            await signupAPI.cancelSignup(signupId);
+            // Reload signups and outings after successful cancellation
+            await loadMySignups();
+            await loadOutings();
+            setExpandedSignupId('');
+        } catch (err) {
+            setError(err instanceof APIError ? err.message : 'Failed to cancel signup');
+        } finally {
+            setCancelingSignupId(null);
+        }
+    };
+
     const selectedOuting = outings.find(t => t.id === expandedOutingId);
+    const availableOutings = outings.filter(o => !mySignupOutingIds.has(o.id));
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-            <h1>Outing Signup Form</h1>
+            <h1>Outing Signups</h1>
             
             {success && (
                 <>
@@ -398,16 +440,150 @@ const SignupForm: React.FC = () => {
                 </div>
             )}
 
-            {/* Outing Selection with Expandable Forms */}
+            {/* My Signups Section */}
+            {isAuthenticated && mySignups.length > 0 && (
+                <div style={{ marginBottom: '40px' }}>
+                    <h2 style={{ color: '#2e7d32', marginBottom: '15px' }}>✓ My Signups ({mySignups.length})</h2>
+                    <p style={{ marginBottom: '20px', color: '#666' }}>
+                        Outings you're already signed up for. Click on any signup to view details or cancel.
+                    </p>
+                    <div>
+                        {mySignups.map(signup => {
+                            const outing = outings.find(o => o.id === signup.outing_id);
+                            if (!outing) return null;
+                            
+                            const isExpanded = expandedSignupId === signup.id;
+                            const isCanceling = cancelingSignupId === signup.id;
+                            
+                            return (
+                                <div
+                                    key={signup.id}
+                                    style={{
+                                        marginBottom: '20px',
+                                        border: isExpanded ? '2px solid #2e7d32' : '1px solid #ddd',
+                                        borderRadius: '8px',
+                                        overflow: 'hidden',
+                                        backgroundColor: '#f1f8f4'
+                                    }}
+                                >
+                                    {/* Signup Header - Clickable */}
+                                    <div
+                                        onClick={() => setExpandedSignupId(isExpanded ? '' : signup.id)}
+                                        style={{
+                                            padding: '15px',
+                                            cursor: 'pointer',
+                                            backgroundColor: isExpanded ? '#e8f5e9' : '#f1f8f4',
+                                            transition: 'background-color 0.2s'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div style={{ flex: 1 }}>
+                                                <h3 style={{ margin: '0 0 10px 0', color: '#2e7d32' }}>
+                                                    ✓ {outing.name}
+                                                </h3>
+                                                <p style={{ margin: '5px 0', fontSize: '14px' }}>
+                                                    <strong>Date:</strong> {new Date(outing.outing_date).toLocaleDateString()}
+                                                </p>
+                                                <p style={{ margin: '5px 0', fontSize: '14px' }}>
+                                                    <strong>Participants:</strong> {signup.participant_count} ({signup.adult_count} adult{signup.adult_count !== 1 ? 's' : ''}, {signup.scout_count} scout{signup.scout_count !== 1 ? 's' : ''})
+                                                </p>
+                                            </div>
+                                            <span style={{ fontSize: '20px', fontWeight: 'bold', marginLeft: '10px' }}>
+                                                {isExpanded ? '▼' : '▶'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Expanded Signup Details */}
+                                    {isExpanded && (
+                                        <div style={{ padding: '20px', backgroundColor: 'white', borderTop: '2px solid #2e7d32' }}>
+                                            <div style={{ marginBottom: '20px' }}>
+                                                <h4 style={{ marginBottom: '10px' }}>Outing Details</h4>
+                                                <p style={{ margin: '5px 0' }}><strong>Location:</strong> {outing.location}</p>
+                                                {outing.description && <p style={{ margin: '10px 0' }}>{outing.description}</p>}
+                                            </div>
+
+                                            <div style={{ marginBottom: '20px' }}>
+                                                <h4 style={{ marginBottom: '10px' }}>Your Participants</h4>
+                                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px' }}>
+                                                    {signup.participants.map(participant => (
+                                                        <div
+                                                            key={participant.id}
+                                                            style={{
+                                                                padding: '15px',
+                                                                backgroundColor: '#f5f5f5',
+                                                                borderRadius: '8px',
+                                                                border: '1px solid #ddd'
+                                                            }}
+                                                        >
+                                                            <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', fontSize: '16px' }}>
+                                                                {participant.name}
+                                                            </p>
+                                                            <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                                                <strong>Type:</strong> {participant.is_adult ? '👨‍👩‍👧‍👦 Adult' : '🎒 Scout'}
+                                                            </p>
+                                                            {participant.age && (
+                                                                <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                                                    <strong>Age:</strong> {participant.age}
+                                                                </p>
+                                                            )}
+                                                            {participant.troop_number && (
+                                                                <p style={{ margin: '4px 0', fontSize: '14px' }}>
+                                                                    <strong>Troop:</strong> {participant.troop_number}
+                                                                </p>
+                                                            )}
+                                                            {participant.vehicle_capacity > 0 && (
+                                                                <p style={{ margin: '4px 0', fontSize: '14px', color: '#1976d2', fontWeight: 'bold' }}>
+                                                                    🚗 Can transport {participant.vehicle_capacity} passenger{participant.vehicle_capacity !== 1 ? 's' : ''}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+                                                <h4 style={{ marginBottom: '10px' }}>Contact Information</h4>
+                                                <p style={{ margin: '4px 0' }}><strong>Email:</strong> {signup.family_contact_email}</p>
+                                                <p style={{ margin: '4px 0' }}><strong>Phone:</strong> {signup.family_contact_phone}</p>
+                                            </div>
+
+                                            <button
+                                                onClick={() => handleCancelSignup(signup.id, outing.name)}
+                                                disabled={isCanceling}
+                                                style={{
+                                                    padding: '12px 24px',
+                                                    backgroundColor: isCanceling ? '#ccc' : '#d32f2f',
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    cursor: isCanceling ? 'not-allowed' : 'pointer',
+                                                    fontSize: '16px',
+                                                    fontWeight: 'bold',
+                                                    width: '100%'
+                                                }}
+                                            >
+                                                {isCanceling ? 'Canceling...' : 'Cancel This Signup'}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* Available Outings Section */}
             <div style={{ marginBottom: '30px' }}>
-                <h2>Select a Outing to Sign Up</h2>
+                <h2>Available Outings to Sign Up</h2>
                 {loading && outings.length === 0 ? (
                     <p>Loading available outings...</p>
-                ) : outings.length === 0 ? (
-                    <p>No upcoming outings available at this time.</p>
+                ) : availableOutings.length === 0 ? (
+                    <p>No upcoming outings available at this time{mySignups.length > 0 ? ' (you\'re already signed up for all available outings)' : ''}.</p>
                 ) : (
                     <div>
-                        {outings.map(outing => (
+                        {availableOutings.map(outing => (
                             <div
                                 key={outing.id}
                                 style={{
