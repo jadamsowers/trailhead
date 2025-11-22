@@ -6,13 +6,24 @@ from typing import Optional
 
 from app.models.signup import Signup
 from app.models.participant import Participant, DietaryRestriction, Allergy
+from app.models.family import FamilyMember
 from app.schemas.signup import SignupCreate
 
 
 async def get_signup(db: AsyncSession, signup_id: UUID) -> Optional[Signup]:
-    """Get a signup by ID with all participants"""
+    """Get a signup by ID with all participants and their family member data"""
     result = await db.execute(
         select(Signup)
+        .options(
+            selectinload(Signup.participants)
+            .selectinload(Participant.family_member)
+            .selectinload(FamilyMember.dietary_preferences)
+        )
+        .options(
+            selectinload(Signup.participants)
+            .selectinload(Participant.family_member)
+            .selectinload(FamilyMember.allergies)
+        )
         .options(
             selectinload(Signup.participants)
             .selectinload(Participant.dietary_restrictions)
@@ -32,6 +43,16 @@ async def get_outing_signups(db: AsyncSession, outing_id: UUID) -> list[Signup]:
         select(Signup)
         .options(
             selectinload(Signup.participants)
+            .selectinload(Participant.family_member)
+            .selectinload(FamilyMember.dietary_preferences)
+        )
+        .options(
+            selectinload(Signup.participants)
+            .selectinload(Participant.family_member)
+            .selectinload(FamilyMember.allergies)
+        )
+        .options(
+            selectinload(Signup.participants)
             .selectinload(Participant.dietary_restrictions)
         )
         .options(
@@ -45,7 +66,18 @@ async def get_outing_signups(db: AsyncSession, outing_id: UUID) -> list[Signup]:
 
 
 async def create_signup(db: AsyncSession, signup: SignupCreate) -> Signup:
-    """Create a new signup with participants"""
+    """Create a new signup with family member references"""
+    # Verify all family members exist
+    family_members = []
+    for family_member_id in signup.family_member_ids:
+        result = await db.execute(
+            select(FamilyMember).where(FamilyMember.id == family_member_id)
+        )
+        family_member = result.scalar_one_or_none()
+        if not family_member:
+            raise ValueError(f"Family member with ID {family_member_id} not found")
+        family_members.append(family_member)
+    
     # Create signup
     db_signup = Signup(
         outing_id=signup.outing_id,
@@ -56,42 +88,13 @@ async def create_signup(db: AsyncSession, signup: SignupCreate) -> Signup:
     db.add(db_signup)
     await db.flush()
     
-    # Create participants
-    for participant_data in signup.participants:
-        # Determine if adult based on participant_type
-        is_adult = participant_data.participant_type == 'adult'
-        
+    # Create participant records linking to family members
+    for family_member in family_members:
         db_participant = Participant(
             signup_id=db_signup.id,
-            name=participant_data.full_name,
-            age=participant_data.age if participant_data.age else 0,
-            participant_type=participant_data.participant_type,
-            is_adult=is_adult,
-            gender=participant_data.gender,
-            troop_number=participant_data.troop_number,
-            patrol_name=participant_data.patrol,
-            has_youth_protection=participant_data.has_youth_protection_training,
-            vehicle_capacity=participant_data.vehicle_capacity if participant_data.vehicle_capacity else 0,
-            medical_notes=None,
+            family_member_id=family_member.id
         )
         db.add(db_participant)
-        await db.flush()
-        
-        # Add dietary restrictions
-        for restriction in participant_data.dietary_restrictions:
-            db_restriction = DietaryRestriction(
-                participant_id=db_participant.id,
-                restriction_type=restriction.restriction_type
-            )
-            db.add(db_restriction)
-        
-        # Add allergies
-        for allergy in participant_data.allergies:
-            db_allergy = Allergy(
-                participant_id=db_participant.id,
-                allergy_type=allergy.allergy_type
-            )
-            db.add(db_allergy)
     
     await db.flush()
     await db.refresh(db_signup)
@@ -99,6 +102,16 @@ async def create_signup(db: AsyncSession, signup: SignupCreate) -> Signup:
     # Load relationships
     result = await db.execute(
         select(Signup)
+        .options(
+            selectinload(Signup.participants)
+            .selectinload(Participant.family_member)
+            .selectinload(FamilyMember.dietary_preferences)
+        )
+        .options(
+            selectinload(Signup.participants)
+            .selectinload(Participant.family_member)
+            .selectinload(FamilyMember.allergies)
+        )
         .options(
             selectinload(Signup.participants)
             .selectinload(Participant.dietary_restrictions)

@@ -17,20 +17,6 @@ class Allergy(BaseModel):
     notes: Optional[str] = Field(None, description="Additional notes")
 
 
-class ParticipantCreate(BaseModel):
-    """Schema for creating a participant"""
-    full_name: str = Field(..., min_length=1, max_length=255, description="Participant name")
-    participant_type: str = Field(..., pattern="^(scout|adult)$", description="Type: scout or adult")
-    gender: str = Field(..., pattern="^(male|female|other)$", description="Gender: male, female, or other")
-    age: Optional[int] = Field(None, gt=0, lt=150, description="Participant age (required for scouts)")
-    troop_number: Optional[str] = Field(None, max_length=50, description="Troop number (scouts only)")
-    patrol: Optional[str] = Field(None, max_length=100, description="Patrol name (scouts only)")
-    has_youth_protection_training: bool = Field(False, description="Scouting America youth protection training status (adults only)")
-    vehicle_capacity: Optional[int] = Field(None, ge=0, description="Number of people can transport (adults only)")
-    dietary_restrictions: list[DietaryRestriction] = Field(default_factory=list, description="List of dietary restrictions")
-    allergies: list[Allergy] = Field(default_factory=list, description="List of allergies")
-
-
 class FamilyContact(BaseModel):
     """Schema for family contact information"""
     email: EmailStr = Field(..., description="Contact email")
@@ -40,20 +26,20 @@ class FamilyContact(BaseModel):
 
 
 class SignupCreate(BaseModel):
-    """Schema for creating a signup"""
+    """Schema for creating a signup with family member IDs"""
     outing_id: UUID = Field(..., description="ID of the outing to sign up for")
     family_contact: FamilyContact = Field(..., description="Family contact information")
-    participants: list[ParticipantCreate] = Field(..., min_length=1, description="List of participants (at least one required)")
+    family_member_ids: list[UUID] = Field(..., min_length=1, description="List of family member IDs to sign up (at least one required)")
 
 
 class ParticipantResponse(BaseModel):
     """Schema for participant response"""
     id: UUID
     name: str
-    age: int
+    age: Optional[int]
     participant_type: str
     is_adult: bool
-    gender: str
+    gender: Optional[str]
     troop_number: Optional[str]
     patrol_name: Optional[str]
     has_youth_protection: bool

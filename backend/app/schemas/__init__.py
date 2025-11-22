@@ -1,5 +1,5 @@
 from app.schemas.outing import OutingCreate, OutingUpdate, OutingResponse, OutingListResponse
-from app.schemas.signup import SignupCreate, SignupResponse, ParticipantCreate
+from app.schemas.signup import SignupCreate, SignupResponse
 from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest, UserResponse
 from app.schemas.family import (
     FamilyMemberCreate,

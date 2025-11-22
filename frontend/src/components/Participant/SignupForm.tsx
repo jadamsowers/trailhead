@@ -185,65 +185,8 @@ const SignupForm: React.FC = () => {
             return;
         }
 
-        try {
-            setError(null);
-            const participants: typeof formData.participants = [];
-            
-            // Load all family members first
-            const memberDetails = await Promise.all(
-                selectedFamilyMemberIds.map(memberId => familyAPI.getById(memberId))
-            );
-            
-            // Sort members: adults first, then scouts
-            // This ensures adults' vehicle capacity is added to the outing before scouts
-            const sortedMembers = memberDetails.sort((a, b) => {
-                if (a.member_type === 'adult' && b.member_type === 'scout') return -1;
-                if (a.member_type === 'scout' && b.member_type === 'adult') return 1;
-                return 0;
-            });
-            
-            for (const member of sortedMembers) {
-                // Calculate age from date of birth
-                let age = '';
-                if (member.date_of_birth) {
-                    const birthDate = new Date(member.date_of_birth);
-                    const today = new Date();
-                    const calculatedAge = today.getFullYear() - birthDate.getFullYear();
-                    age = calculatedAge.toString();
-                }
-
-                // Convert family member to participant form data
-                participants.push({
-                    full_name: member.name,
-                    participant_type: member.member_type === 'scout' ? 'scout' as const : 'adult' as const,
-                    gender: 'male' as const, // Default, user can change
-                    age: age,
-                    troop_number: member.troop_number || '',
-                    patrol: member.patrol_name || '',
-                    has_youth_protection_training: member.has_youth_protection,
-                    vehicle_capacity: member.vehicle_capacity?.toString() || '',
-                    dietary_restrictions: member.dietary_preferences.reduce((acc, pref) => {
-                        acc[pref.preference] = true;
-                        return acc;
-                    }, {} as { [key: string]: boolean }),
-                    dietary_notes: member.medical_notes || '',
-                    allergies: member.allergies.map(allergy => ({
-                        type: allergy.allergy,
-                        severity: (allergy.severity || 'mild') as 'mild' | 'moderate' | 'severe',
-                        notes: ''
-                    }))
-                });
-            }
-
-            setFormData(prev => ({
-                ...prev,
-                participants: participants
-            }));
-
-            setShowFamilySelection(false);
-        } catch (err) {
-            setError(err instanceof APIError ? err.message : 'Failed to load family member details');
-        }
+        // Simply hide the selection UI - we'll send the IDs directly to the API
+        setShowFamilySelection(false);
     };
 
     const handleAddNewParticipant = () => {
@@ -301,9 +244,29 @@ const SignupForm: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        const validationError = validateForm();
-        if (validationError) {
-            setError(validationError);
+        // Validate basic form fields
+        if (!formData.outing_id) {
+            setError('Please select an outing');
+            return;
+        }
+        if (!formData.email) {
+            setError('Email is required');
+            return;
+        }
+        if (!formData.phone) {
+            setError('Phone number is required');
+            return;
+        }
+        if (!formData.emergency_contact_name) {
+            setError('Emergency contact name is required');
+            return;
+        }
+        if (!formData.emergency_contact_phone) {
+            setError('Emergency contact phone is required');
+            return;
+        }
+        if (selectedFamilyMemberIds.length === 0) {
+            setError('Please select at least one family member');
             return;
         }
 
@@ -311,7 +274,7 @@ const SignupForm: React.FC = () => {
             setLoading(true);
             setError(null);
             
-            // Transform form data to API format
+            // Send family member IDs directly to the API
             const signupData = {
                 outing_id: formData.outing_id,
                 family_contact: {
@@ -320,78 +283,10 @@ const SignupForm: React.FC = () => {
                     emergency_contact_name: formData.emergency_contact_name,
                     emergency_contact_phone: formData.emergency_contact_phone
                 },
-                participants: formData.participants.map(p => {
-                    const baseParticipant = {
-                        full_name: p.full_name,
-                        participant_type: p.participant_type,
-                        gender: p.gender,
-                        dietary_restrictions: Object.entries(p.dietary_restrictions)
-                            .filter(([_, checked]) => checked)
-                            .map(([type]) => ({
-                                restriction_type: type,
-                                notes: p.dietary_notes || undefined
-                            })),
-                        allergies: p.allergies
-                            .filter(a => a.type)
-                            .map(a => ({
-                                allergy_type: a.type,
-                                severity: a.severity,
-                                notes: a.notes || undefined
-                            }))
-                    };
-
-                    if (p.participant_type === 'scout') {
-                        return {
-                            ...baseParticipant,
-                            participant_type: 'scout' as const,
-                            age: parseInt(p.age),
-                            troop_number: p.troop_number,
-                            patrol: p.patrol || undefined
-                        };
-                    } else {
-                        return {
-                            ...baseParticipant,
-                            participant_type: 'adult' as const,
-                            has_youth_protection_training: p.has_youth_protection_training,
-                            vehicle_capacity: p.vehicle_capacity ? parseInt(p.vehicle_capacity) : undefined
-                        };
-                    }
-                })
+                family_member_ids: selectedFamilyMemberIds
             };
 
             const response = await signupAPI.create(signupData);
-            
-            // If authenticated adult and "save to family" is checked, save new participants
-            if (isAuthenticated && isParent && saveToFamily && selectedFamilyMemberIds.length === 0) {
-                try {
-                    for (const participant of formData.participants) {
-                        const familyMemberData = {
-                            name: participant.full_name,
-                            member_type: participant.participant_type === 'scout' ? 'scout' as const : 'adult' as const,
-                            troop_number: participant.troop_number || undefined,
-                            patrol_name: participant.patrol || undefined,
-                            has_youth_protection: participant.has_youth_protection_training,
-                            vehicle_capacity: participant.vehicle_capacity ? parseInt(participant.vehicle_capacity) : undefined,
-                            medical_notes: participant.dietary_notes || undefined,
-                            dietary_preferences: Object.entries(participant.dietary_restrictions)
-                                .filter(([_, checked]) => checked)
-                                .map(([type]) => type),
-                            allergies: participant.allergies
-                                .filter(a => a.type)
-                                .map(a => ({
-                                    allergy: a.type,
-                                    severity: a.severity
-                                }))
-                        };
-                        await familyAPI.create(familyMemberData);
-                    }
-                    // Reload family members
-                    await loadFamilyMembers();
-                } catch (err) {
-                    console.error('Failed to save to family:', err);
-                    // Don't fail the signup if saving to family fails
-                }
-            }
             
             setSuccess(true);
             setWarnings(response.warnings || []);
@@ -401,7 +296,7 @@ const SignupForm: React.FC = () => {
                 setWarnings([]);
                 setFormData({
                     outing_id: '',
-                    email: '',
+                    email: user?.primaryEmailAddress?.emailAddress || '',
                     phone: '',
                     emergency_contact_name: '',
                     emergency_contact_phone: '',
@@ -926,19 +821,19 @@ const SignupForm: React.FC = () => {
                         {/* Selected Participants Summary */}
                         {!showFamilySelection && selectedFamilyMemberIds.length > 0 && (
                             <div style={{ marginBottom: '30px', padding: '20px', border: '2px solid #4caf50', borderRadius: '8px', backgroundColor: '#f1f8f4' }}>
-                                <h2 style={{ marginBottom: '15px', color: '#2e7d32' }}>Selected Participants ({formData.participants.length})</h2>
+                                <h2 style={{ marginBottom: '15px', color: '#2e7d32' }}>Selected Participants ({selectedFamilyMemberIds.length})</h2>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '15px' }}>
-                                    {formData.participants.map((participant, index) => (
-                                        <div key={index} style={{ padding: '15px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #ddd' }}>
+                                    {familyMembers.filter(fm => selectedFamilyMemberIds.includes(fm.id)).map((member) => (
+                                        <div key={member.id} style={{ padding: '15px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #ddd' }}>
                                             <p style={{ margin: '5px 0', fontSize: '16px' }}>
-                                                <strong>Name:</strong> {participant.full_name}
+                                                <strong>Name:</strong> {member.name}
                                             </p>
                                             <p style={{ margin: '5px 0', fontSize: '16px' }}>
-                                                <strong>Type:</strong> {participant.participant_type === 'scout' ? 'Scout' : 'Adult'}
+                                                <strong>Type:</strong> {member.member_type === 'scout' ? 'Scout' : 'Adult'}
                                             </p>
-                                            {participant.troop_number && (
+                                            {member.troop_number && (
                                                 <p style={{ margin: '5px 0', fontSize: '16px' }}>
-                                                    <strong>Troop:</strong> {participant.troop_number}
+                                                    <strong>Troop:</strong> {member.troop_number}
                                                 </p>
                                             )}
                                         </div>

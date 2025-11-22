@@ -19,8 +19,7 @@ async def create_signup(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Create a new signup for an outing (public endpoint).
-    No authentication required - families can sign up directly.
+    Create a new signup for an outing using family member IDs.
     
     Scouting America Requirements enforced:
     - Minimum 2 adults required per outing
@@ -35,20 +34,32 @@ async def create_signup(
             detail="Outing not found"
         )
     
+    # Load family members to validate and check capacity
+    family_members = []
+    for family_member_id in signup.family_member_ids:
+        result = await db.execute(
+            select(FamilyMember).where(FamilyMember.id == family_member_id)
+        )
+        family_member = result.scalar_one_or_none()
+        if not family_member:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Family member with ID {family_member_id} not found"
+            )
+        family_members.append(family_member)
+    
     # Check if outing has enough spots
-    # For vehicle-based capacity, account for vehicle capacity from adults in this signup
-    total_participants = len(signup.participants)
+    total_participants = len(family_members)
     
     if db_outing.capacity_type == 'vehicle':
         # Calculate vehicle capacity being added by adults in this signup
         new_vehicle_capacity = sum(
-            p.vehicle_capacity if p.vehicle_capacity else 0
-            for p in signup.participants
-            if p.participant_type == 'adult'
+            fm.vehicle_capacity if fm.vehicle_capacity else 0
+            for fm in family_members
+            if fm.member_type == 'adult'
         )
         
         # Calculate available spots after adding the new vehicle capacity
-        # available_spots = current_vehicle_capacity + new_vehicle_capacity - (current_participants + new_participants)
         projected_available_spots = db_outing.available_spots + new_vehicle_capacity - total_participants
         
         if projected_available_spots < 0:
@@ -75,10 +86,10 @@ async def create_signup(
     total_female_youth = sum(1 for s in existing_signups for p in s.participants if not p.is_adult and p.gender == 'female')
     
     # Add counts from new signup
-    new_adults = [p for p in signup.participants if p.participant_type == 'adult']
-    new_female_adults = [p for p in new_adults if p.gender == 'female']
-    new_youth = [p for p in signup.participants if p.participant_type == 'scout']
-    new_female_youth = [p for p in new_youth if p.gender == 'female']
+    new_adults = [fm for fm in family_members if fm.member_type == 'adult']
+    new_female_adults = [fm for fm in new_adults if fm.gender == 'female']
+    new_youth = [fm for fm in family_members if fm.member_type == 'scout']
+    new_female_youth = [fm for fm in new_youth if fm.gender == 'female']
     
     total_adults += len(new_adults)
     total_female_adults += len(new_female_adults)
@@ -102,31 +113,31 @@ async def create_signup(
         )
     
     # Validate adult youth protection requirements
-    # For any outing, adults must have VALID (non-expired) youth protection certificates
     today = date.today()
     
     for adult in new_adults:
-        # Check if adult claims to have youth protection training
-        if adult.has_youth_protection_training:
-            # For now, we trust the signup form data
-            # In a real implementation with family member integration, we would:
-            # 1. Look up the family member record
-            # 2. Check the youth_protection_expiration date
-            # 3. Reject if expired
-            pass
-        else:
-            # Adult does not have youth protection training
+        # Check if adult has youth protection training
+        if not adult.has_youth_protection:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Adult '{adult.full_name}' must have valid SAFE Youth Training (Youth Protection) certificate to sign up for outings. "
+                detail=f"Adult '{adult.name}' must have valid SAFE Youth Training (Youth Protection) certificate to sign up for outings. "
                        "Please complete the training at my.scouting.org before signing up."
             )
+        
+        # Check if youth protection is expired
+        if adult.youth_protection_expiration:
+            if adult.youth_protection_expiration < today:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Adult '{adult.name}' has an expired SAFE Youth Training certificate (expired {adult.youth_protection_expiration}). "
+                           "Please renew the training at my.scouting.org before signing up."
+                )
     
     # Additional validation for overnight outings
     if db_outing.is_overnight:
         if new_adults:
             # Check if at least one adult has youth protection training
-            has_trained_adult = any(a.has_youth_protection_training for a in new_adults)
+            has_trained_adult = any(a.has_youth_protection for a in new_adults)
             if not has_trained_adult:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -134,11 +145,23 @@ async def create_signup(
                 )
     
     # Create the signup
-    db_signup = await crud_signup.create_signup(db, signup)
+    try:
+        db_signup = await crud_signup.create_signup(db, signup)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
     
     # Convert to response format
     participant_responses = []
     for participant in db_signup.participants:
+        # Get dietary restrictions from family member
+        dietary_restrictions = [dp.preference for dp in participant.family_member.dietary_preferences] if participant.family_member else []
+        
+        # Get allergies from family member
+        allergies = [a.allergy for a in participant.family_member.allergies] if participant.family_member else []
+        
         participant_responses.append(ParticipantResponse(
             id=participant.id,
             name=participant.name,
@@ -150,8 +173,8 @@ async def create_signup(
             patrol_name=participant.patrol_name,
             has_youth_protection=participant.has_youth_protection,
             vehicle_capacity=participant.vehicle_capacity,
-            dietary_restrictions=[dr.restriction_type for dr in participant.dietary_restrictions],
-            allergies=[a.allergy_type for a in participant.allergies],
+            dietary_restrictions=dietary_restrictions,
+            allergies=allergies,
             medical_notes=participant.medical_notes,
             created_at=participant.created_at
         ))
@@ -190,6 +213,12 @@ async def get_signup(
     # Convert to response format
     participant_responses = []
     for participant in db_signup.participants:
+        # Get dietary restrictions from family member
+        dietary_restrictions = [dp.preference for dp in participant.family_member.dietary_preferences] if participant.family_member else []
+        
+        # Get allergies from family member
+        allergies = [a.allergy for a in participant.family_member.allergies] if participant.family_member else []
+        
         participant_responses.append(ParticipantResponse(
             id=participant.id,
             name=participant.name,
@@ -201,8 +230,8 @@ async def get_signup(
             patrol_name=participant.patrol_name,
             has_youth_protection=participant.has_youth_protection,
             vehicle_capacity=participant.vehicle_capacity,
-            dietary_restrictions=[dr.restriction_type for dr in participant.dietary_restrictions],
-            allergies=[a.allergy_type for a in participant.allergies],
+            dietary_restrictions=dietary_restrictions,
+            allergies=allergies,
             medical_notes=participant.medical_notes,
             created_at=participant.created_at
         ))

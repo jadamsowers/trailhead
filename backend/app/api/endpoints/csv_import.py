@@ -9,7 +9,7 @@ from typing import List
 from app.db.session import get_db
 from app.api.deps import get_current_admin_user
 from app.models.user import User
-from app.schemas.signup import SignupCreate, ParticipantCreate, FamilyContact
+from app.schemas.signup import SignupCreate, FamilyContact
 from app.crud import signup as crud_signup
 from app.crud import outing as crud_outing
 from app.utils.pdf_generator import generate_outing_roster_pdf
@@ -27,6 +27,10 @@ async def import_roster_csv(
     """
     Import troop roster from CSV file (admin only).
     
+    NOTE: This endpoint is temporarily disabled and needs to be refactored to work with
+    the new family member reference system. CSV imports should create family members first,
+    then reference them in signups.
+    
     CSV Format:
     name,age,participant_type,gender,troop_number,patrol_name,has_youth_protection,vehicle_capacity,dietary_restrictions,allergies,medical_notes,family_contact_name,family_contact_email,family_contact_phone
     
@@ -42,131 +46,10 @@ async def import_roster_csv(
     - allergies: comma-separated list in quotes
     - Empty fields for troop_number and patrol_name for adults
     """
-    # Verify outing exists
-    db_outing = await crud_outing.get_outing(db, outing_id)
-    if not db_outing:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Outing not found"
-        )
-    
-    # Check file type
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File must be a CSV file"
-        )
-    
-    # Read CSV file
-    contents = await file.read()
-    csv_data = contents.decode('utf-8')
-    csv_reader = csv.DictReader(io.StringIO(csv_data))
-    
-    # Group participants by family contact
-    family_groups = {}
-    errors = []
-    row_num = 1
-    
-    for row in csv_reader:
-        row_num += 1
-        try:
-            # Validate required fields
-            required_fields = ['name', 'age', 'participant_type', 'gender', 
-                             'family_contact_name', 'family_contact_email', 'family_contact_phone']
-            missing_fields = [field for field in required_fields if not row.get(field)]
-            if missing_fields:
-                errors.append(f"Row {row_num}: Missing required fields: {', '.join(missing_fields)}")
-                continue
-            
-            # Parse dietary restrictions and allergies
-            dietary_restrictions = []
-            if row.get('dietary_restrictions'):
-                dietary_restrictions = [d.strip() for d in row['dietary_restrictions'].split(',') if d.strip()]
-            
-            allergies = []
-            if row.get('allergies'):
-                allergies = [a.strip() for a in row['allergies'].split(',') if a.strip()]
-            
-            # Parse boolean fields
-            is_adult = row['participant_type'].lower() == 'adult'
-            has_youth_protection = row.get('has_youth_protection', '').lower() == 'true'
-            vehicle_capacity = int(row.get('vehicle_capacity', 0))
-            
-            # Create participant
-            participant = ParticipantCreate(
-                name=row['name'],
-                age=int(row['age']),
-                participant_type=row['participant_type'].lower(),
-                is_adult=is_adult,
-                gender=row['gender'].lower(),
-                troop_number=row.get('troop_number') or None,
-                patrol_name=row.get('patrol_name') or None,
-                has_youth_protection=has_youth_protection,
-                vehicle_capacity=vehicle_capacity,
-                dietary_restrictions=dietary_restrictions,
-                allergies=allergies,
-                medical_notes=row.get('medical_notes') or None
-            )
-            
-            # Group by family contact
-            family_key = f"{row['family_contact_email']}_{row['family_contact_phone']}"
-            if family_key not in family_groups:
-                family_groups[family_key] = {
-                    'contact': FamilyContact(
-                        name=row['family_contact_name'],
-                        email=row['family_contact_email'],
-                        phone=row['family_contact_phone']
-                    ),
-                    'participants': []
-                }
-            family_groups[family_key]['participants'].append(participant)
-            
-        except ValueError as e:
-            errors.append(f"Row {row_num}: Invalid data format - {str(e)}")
-        except Exception as e:
-            errors.append(f"Row {row_num}: Error processing row - {str(e)}")
-    
-    # If there were errors, return them
-    if errors:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={
-                "message": "CSV import failed with errors",
-                "errors": errors
-            }
-        )
-    
-    # Create signups for each family group
-    created_signups = []
-    signup_errors = []
-    
-    for family_key, family_data in family_groups.items():
-        try:
-            signup_request = SignupCreate(
-                outing_id=outing_id,
-                family_contact=family_data['contact'],
-                participants=family_data['participants']
-            )
-            
-            # Create the signup
-            db_signup = await crud_signup.create_signup(db, signup_request)
-            created_signups.append({
-                'signup_id': str(db_signup.id),
-                'family_contact': family_data['contact'].name,
-                'participant_count': len(family_data['participants'])
-            })
-            
-        except Exception as e:
-            signup_errors.append(f"Family {family_data['contact'].name}: {str(e)}")
-    
-    # Return results
-    return {
-        "success": True,
-        "message": f"Successfully imported {len(created_signups)} family signups",
-        "created_signups": created_signups,
-        "total_participants": sum(s['participant_count'] for s in created_signups),
-        "errors": signup_errors if signup_errors else None
-    }
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="CSV import is temporarily disabled. This feature needs to be refactored to work with the new family member reference system."
+    )
 
 
 @router.get("/outings/{outing_id}/export-roster")

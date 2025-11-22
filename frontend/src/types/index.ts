@@ -46,50 +46,14 @@ export interface FamilyContact {
     emergency_contact_phone: string;
 }
 
-export interface DietaryRestriction {
-    restriction_type: string;
-    notes?: string;
-}
-
-export interface Allergy {
-    allergy_type: string;
-    severity: 'mild' | 'moderate' | 'severe';
-    notes?: string;
-}
-
-export interface ParticipantBase {
-    full_name: string;
-    participant_type: 'scout' | 'adult';
-    gender: 'male' | 'female' | 'other';
-    age?: number;
-    troop_number?: string;
-    patrol?: string;
-    dietary_restrictions: DietaryRestriction[];
-    allergies: Allergy[];
-}
-
-export interface ScoutParticipant extends ParticipantBase {
-    participant_type: 'scout';
-    age: number;
-    troop_number: string;
-    patrol?: string;
-}
-
-export interface AdultParticipant extends ParticipantBase {
-    participant_type: 'adult';
-    vehicle_capacity?: number;
-}
-
-export type Participant = ScoutParticipant | AdultParticipant;
-
-// Participant response from backend (different from create)
+// Participant response from backend
 export interface ParticipantResponse {
     id: string;
     name: string;
-    age: number;
-    participant_type: 'scout' | 'adult';
+    age: number | null;
+    participant_type: string;
     is_adult: boolean;
-    gender: 'male' | 'female' | 'other';
+    gender: string | null;
     troop_number: string | null;
     patrol_name: string | null;
     has_youth_protection: boolean;
@@ -103,7 +67,7 @@ export interface ParticipantResponse {
 export interface SignupCreate {
     outing_id: string;
     family_contact: FamilyContact;
-    participants: Participant[];
+    family_member_ids: string[];
 }
 
 export interface SignupResponse {
