@@ -231,57 +231,16 @@ export const signupAPI = {
     },
 };
 
-// CSV API
-export const csvAPI = {
-    async importRoster(outingId: string, file: File): Promise<{ message: string; imported_count: number }> {
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        // Get auth headers but remove Content-Type for FormData
-        const headers = await getAuthHeaders();
-        const authHeaders: Record<string, string> = {};
-        const authHeader = (headers as Record<string, string>)['Authorization'];
-        if (authHeader) {
-            authHeaders['Authorization'] = authHeader;
-        }
-
-        const response = await fetch(`${API_BASE_URL}/csv/import?outing_id=${outingId}`, {
-            method: 'POST',
-            headers: authHeaders,
-            body: formData,
-        });
-        return handleResponse<{ message: string; imported_count: number }>(response);
-    },
-
-    async exportRoster(outingId: string): Promise<Blob> {
-        const response = await fetch(`${API_BASE_URL}/csv/outings/${outingId}/export-roster`, {
-            headers: await getAuthHeaders(),
-        });
-        if (!response.ok) {
-            throw new APIError(response.status, 'Failed to export roster');
-        }
-        return response.blob();
-    },
-
+// PDF Export API
+export const pdfAPI = {
     async exportRosterPDF(outingId: string): Promise<Blob> {
-        const response = await fetch(`${API_BASE_URL}/csv/outings/${outingId}/export-roster-pdf`, {
+        const response = await fetch(`${API_BASE_URL}/signups/outings/${outingId}/export-pdf`, {
             headers: await getAuthHeaders(),
         });
         if (!response.ok) {
             throw new APIError(response.status, 'Failed to export roster PDF');
         }
         return response.blob();
-    },
-
-    downloadCSV(blob: Blob, filename: string) {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
     },
 
     downloadPDF(blob: Blob, filename: string) {

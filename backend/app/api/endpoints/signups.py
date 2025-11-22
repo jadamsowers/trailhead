@@ -1,14 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from uuid import UUID
 from datetime import date
 
 from app.db.session import get_db
+from app.models.user import User
 from app.models.family import FamilyMember
+from app.models.signup import Signup
+from app.models.participant import Participant
 from app.schemas.signup import SignupCreate, SignupResponse, ParticipantResponse
 from app.crud import signup as crud_signup
 from app.crud import outing as crud_outing
+from app.api.deps import get_current_user, get_current_admin_user
+from app.utils.pdf_generator import generate_outing_roster_pdf
 
 router = APIRouter()
 
@@ -254,16 +260,132 @@ async def get_signup(
 @router.delete("/{signup_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def cancel_signup(
     signup_id: UUID,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Cancel a signup (public endpoint).
-    Families can cancel their own signups.
+    Cancel a signup.
+    Users can cancel their own signups. Admins can cancel any signup.
     """
-    success = await crud_signup.delete_signup(db, signup_id)
-    if not success:
+    # Get the signup with participants and family members
+    result = await db.execute(
+        select(Signup)
+        .where(Signup.id == signup_id)
+    )
+    signup = result.scalar_one_or_none()
+    
+    if not signup:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Signup not found"
         )
+    
+    # Check ownership unless user is admin
+    if current_user.role != "admin":
+        # Get all participants for this signup
+        participants_result = await db.execute(
+            select(Participant)
+            .where(Participant.signup_id == signup_id)
+        )
+        participants = participants_result.scalars().all()
+        
+        if not participants:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Signup has no participants"
+            )
+        
+        # Check if any participant's family member belongs to current user
+        family_member_ids = [p.family_member_id for p in participants]
+        family_members_result = await db.execute(
+            select(FamilyMember)
+            .where(FamilyMember.id.in_(family_member_ids))
+            .where(FamilyMember.user_id == current_user.id)
+        )
+        user_family_members = family_members_result.scalars().all()
+        
+        if not user_family_members:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only cancel your own signups"
+            )
+    
+    # Delete the signup
+    success = await crud_signup.delete_signup(db, signup_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete signup"
+        )
+    
     return None
+
+
+@router.get("/outings/{outing_id}/export-pdf")
+async def export_outing_roster_pdf(
+    outing_id: UUID,
+    current_user: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Export outing roster as PDF file with checkboxes for check-in (admin only).
+    Returns an attractive, printable PDF document for outing leaders.
+    """
+    # Verify outing exists
+    db_outing = await crud_outing.get_outing(db, outing_id)
+    if not db_outing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Outing not found"
+        )
+    
+    # Get all signups
+    signups = await crud_signup.get_outing_signups(db, outing_id)
+    
+    # Prepare outing data
+    outing_data = {
+        'name': db_outing.name,
+        'outing_date': db_outing.outing_date.isoformat(),
+        'end_date': db_outing.end_date.isoformat() if db_outing.end_date else None,
+        'location': db_outing.location,
+        'description': db_outing.description,
+        'outing_lead_name': db_outing.outing_lead_name,
+        'outing_lead_email': db_outing.outing_lead_email,
+        'outing_lead_phone': db_outing.outing_lead_phone
+    }
+    
+    # Prepare signups data
+    signups_data = []
+    for signup in signups:
+        participants_data = []
+        for participant in signup.participants:
+            participants_data.append({
+                'name': participant.name,
+                'age': participant.age,
+                'participant_type': participant.participant_type,
+                'gender': participant.gender,
+                'troop_number': participant.troop_number,
+                'patrol_name': participant.patrol_name,
+                'has_youth_protection': participant.has_youth_protection,
+                'vehicle_capacity': participant.vehicle_capacity,
+                'dietary_restrictions': [dr.restriction_type for dr in participant.dietary_restrictions],
+                'allergies': [a.allergy_type for a in participant.allergies]
+            })
+        
+        signups_data.append({
+            'family_contact_name': signup.family_contact_name,
+            'family_contact_phone': signup.family_contact_phone,
+            'participants': participants_data
+        })
+    
+    # Generate PDF
+    pdf_buffer = generate_outing_roster_pdf(outing_data, signups_data)
+    
+    # Return as downloadable file
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=outing_{db_outing.name.replace(' ', '_')}_roster.pdf"
+        }
+    )

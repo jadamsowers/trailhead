@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.endpoints import outings, signups, csv_import, auth, registration, family, clerk_auth
+from app.api.endpoints import outings, signups, registration, family, clerk_auth
 
 # Create FastAPI application with enhanced documentation
 app = FastAPI(
@@ -19,7 +19,7 @@ A comprehensive API for managing scout troop outings, signups, and participant i
 * **Family Signups** - Register multiple scouts and adults per family
 * **Scouting America Compliance** - Enforce two-deep leadership and youth protection requirements
 * **Multi-Troop Support** - Track troop numbers and patrol assignments
-* **CSV Import/Export** - Bulk roster management capabilities
+* **PDF Export** - Export printable rosters for outing leaders
 * **Dietary Tracking** - Manage allergies and dietary restrictions
 * **Adult Qualifications** - Track Scouting America training and transportation capacity
 
@@ -70,18 +70,6 @@ app.include_router(
 )
 
 app.include_router(
-    csv_import.router,
-    prefix=f"{settings.API_V1_STR}/csv",
-    tags=["csv-import-export"]
-)
-
-app.include_router(
-    auth.router,
-    prefix=f"{settings.API_V1_STR}/auth",
-    tags=["authentication"]
-)
-
-app.include_router(
     clerk_auth.router,
     prefix=f"{settings.API_V1_STR}/clerk",
     tags=["clerk-auth"]
@@ -113,10 +101,9 @@ async def root():
         },
         "endpoints": {
             "health": f"{settings.API_V1_STR}/health",
-            "auth": f"{settings.API_V1_STR}/auth",
+            "clerk": f"{settings.API_V1_STR}/clerk",
             "outings": f"{settings.API_V1_STR}/outings",
             "signups": f"{settings.API_V1_STR}/signups",
-            "csv": f"{settings.API_V1_STR}/csv",
             "family": f"{settings.API_V1_STR}/family"
         }
     }

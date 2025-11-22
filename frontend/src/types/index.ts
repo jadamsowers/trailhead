@@ -241,6 +241,9 @@ export interface FamilyMemberSummary {
     member_type: 'adult' | 'scout';
     troop_number?: string;
     age?: number;
+    vehicle_capacity?: number;
+    has_youth_protection?: boolean;
+    youth_protection_expired?: boolean;
 }
 
 export interface FamilyMemberListResponse {

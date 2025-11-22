@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outing, OutingCreate, SignupResponse, ParticipantResponse } from '../../types';
-import { outingAPI, csvAPI, signupAPI, APIError } from '../../services/api';
+import { outingAPI, pdfAPI, signupAPI } from '../../services/api';
 
 const OutingAdmin: React.FC = () => {
     // Helper function to get next Friday-Sunday dates
@@ -249,27 +249,12 @@ const OutingAdmin: React.FC = () => {
         }
     };
 
-    const handleExportRoster = async (outingId: string, outingName: string) => {
-        try {
-            setLoading(true);
-            setError(null);
-            const blob = await csvAPI.exportRoster(outingId);
-            csvAPI.downloadCSV(blob, `${outingName.replace(/\s+/g, '_')}_roster.csv`);
-        } catch (err) {
-            console.error('Error exporting roster:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Failed to export roster';
-            setError(errorMessage);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const handleExportRosterPDF = async (outingId: string, outingName: string) => {
         try {
             setLoading(true);
             setError(null);
-            const blob = await csvAPI.exportRosterPDF(outingId);
-            csvAPI.downloadPDF(blob, `${outingName.replace(/\s+/g, '_')}_roster.pdf`);
+            const blob = await pdfAPI.exportRosterPDF(outingId);
+            pdfAPI.downloadPDF(blob, `${outingName.replace(/\s+/g, '_')}_roster.pdf`);
         } catch (err) {
             console.error('Error exporting roster PDF:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to export roster PDF';
@@ -1000,24 +985,6 @@ const OutingAdmin: React.FC = () => {
                                         title="Download printable PDF roster with checkboxes for check-in"
                                     >
                                         📄 Export Roster (PDF)
-                                    </button>
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleExportRoster(outing.id, outing.name);
-                                        }}
-                                        disabled={loading}
-                                        style={{
-                                            padding: '8px 16px',
-                                            marginRight: '10px',
-                                            backgroundColor: '#4caf50',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            cursor: loading ? 'not-allowed' : 'pointer'
-                                        }}
-                                    >
-                                        Export Roster (CSV)
                                     </button>
                                     <button
                                         onClick={(e) => {
