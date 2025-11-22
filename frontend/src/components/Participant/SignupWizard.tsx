@@ -295,6 +295,35 @@ const SignupWizard: React.FC = () => {
         setError(null);
     };
 
+    const handleCancelWizard = () => {
+        if (currentStep === 'select-trip') {
+            // Already at the start, nothing to cancel
+            return;
+        }
+
+        const hasChanges = selectedOuting !== null ||
+                          selectedAdultIds.length > 0 ||
+                          selectedScoutIds.length > 0 ||
+                          (editingSignupId !== null);
+
+        if (hasChanges) {
+            const confirmMessage = editingSignupId
+                ? 'Are you sure you want to cancel editing this signup? Your changes will be lost.'
+                : 'Are you sure you want to cancel this signup? Your progress will be lost.';
+            
+            if (!window.confirm(confirmMessage)) {
+                return;
+            }
+        }
+
+        // Reset form and reload user contact info
+        resetForm();
+        loadUserContactInfo();
+        
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     return (
         <div style={{ padding: '20px', maxWidth: '900px', margin: '0 auto' }}>
             <h1>{editingSignupId ? '✏️ Edit Signup' : 'Outing Signup'}</h1>
@@ -941,43 +970,62 @@ const SignupWizard: React.FC = () => {
                     </button>
                 )}
                 
-                {currentStep !== 'review' ? (
-                    <button
-                        onClick={goToNextStep}
-                        disabled={loading}
-                        style={{
-                            padding: '12px 24px',
-                            backgroundColor: '#1976d2',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            fontSize: '16px',
-                            fontWeight: 'bold',
-                            marginLeft: 'auto'
-                        }}
-                    >
-                        Next →
-                    </button>
-                ) : (
-                    <button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        style={{
-                            padding: '12px 24px',
-                            backgroundColor: loading ? '#ccc' : '#4caf50',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            fontSize: '16px',
-                            fontWeight: 'bold',
-                            marginLeft: 'auto'
-                        }}
-                    >
-                        {loading ? 'Submitting...' : 'Submit Signup'}
-                    </button>
-                )}
+                <div style={{ display: 'flex', gap: '10px', marginLeft: 'auto' }}>
+                    {currentStep !== 'select-trip' && (
+                        <button
+                            onClick={handleCancelWizard}
+                            disabled={loading}
+                            style={{
+                                padding: '12px 24px',
+                                backgroundColor: 'white',
+                                color: '#d32f2f',
+                                border: '2px solid #d32f2f',
+                                borderRadius: '4px',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                fontSize: '16px',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            ✕ Cancel
+                        </button>
+                    )}
+                    
+                    {currentStep !== 'review' ? (
+                        <button
+                            onClick={goToNextStep}
+                            disabled={loading}
+                            style={{
+                                padding: '12px 24px',
+                                backgroundColor: '#1976d2',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                fontSize: '16px',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            Next →
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleSubmit}
+                            disabled={loading}
+                            style={{
+                                padding: '12px 24px',
+                                backgroundColor: loading ? '#ccc' : '#4caf50',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: loading ? 'not-allowed' : 'pointer',
+                                fontSize: '16px',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            {loading ? 'Submitting...' : 'Submit Signup'}
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
     );
