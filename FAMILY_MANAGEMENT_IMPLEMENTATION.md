@@ -1,7 +1,7 @@
 # Family Management System Implementation
 
 ## Overview
-This document describes the implementation of the family management system that allows parents to manage their family members (parents and scouts) with saved information that can be reused when signing up for trips.
+This document describes the implementation of the family management system that allows parents to manage their family members (parents and scouts) with saved information that can be reused when signing up for outings.
 
 ## Completed Implementation
 
@@ -33,7 +33,7 @@ Created Pydantic schemas for validation:
 - FamilyMemberCreate: For creating new family members
 - FamilyMemberUpdate: For updating existing family members
 - FamilyMemberResponse: For returning family member data
-- FamilyMemberSummary: Simplified view for trip signup selection
+- FamilyMemberSummary: Simplified view for outing signup selection
 - DietaryPreferenceResponse, AllergyResponse: For nested data
 
 ### 4. Backend API Endpoints (`backend/app/api/endpoints/family.py`)
@@ -79,9 +79,9 @@ Created comprehensive React component with:
 
 ### 8. Parent Page (`frontend/src/pages/ParentPage.tsx`)
 Created parent dashboard with:
-- Tab navigation (Available Trips / My Family)
+- Tab navigation (Available Outings / My Family)
 - Integration of FamilyManagement component
-- Trip list display
+- Outing list display
 - Helpful tips for users
 
 ## Integration Points
@@ -92,7 +92,7 @@ Created parent dashboard with:
 3. They can log in via Clerk OAuth flow
 4. Access token is used for all family management operations
 
-### 9. Trip Signup Integration (`frontend/src/components/Participant/SignupForm.tsx`) ✅ COMPLETED
+### 9. Outing Signup Integration (`frontend/src/components/Participant/SignupForm.tsx`) ✅ COMPLETED
 Enhanced the SignupForm component with full family management integration:
 
 1. **Authentication Detection** ✅
@@ -117,7 +117,7 @@ Enhanced the SignupForm component with full family management integration:
    - Allows editing of pre-filled data if needed
 
 4. **Save to Family Option** ✅
-   - Checkbox: "💾 Save these participants to my family for future trips"
+   - Checkbox: "💾 Save these participants to my family for future outings"
    - Only shown for authenticated parents adding new participants
    - Automatically saves all participants to family after successful signup
    - Includes helpful description of the feature
@@ -180,8 +180,8 @@ family_member_allergies
 - `PUT /api/family/{id}` - Update member
 - `DELETE /api/family/{id}` - Delete member
 
-### Trips & Signups (existing)
-- `GET /api/trips/available` - List available trips
+### Outings & Signups (existing)
+- `GET /api/outings/available` - List available outings
 - `POST /api/signups` - Create signup
 
 ## Next Steps
@@ -198,13 +198,13 @@ Test the complete flow:
 1. Register as a parent via Clerk
 2. Log in via Clerk OAuth
 3. Add family members
-4. Sign up for a trip using saved family members
+4. Sign up for a outing using saved family members
 5. Verify data is correctly saved and retrieved
 
 ## Benefits
 
-1. **Time Savings**: Parents don't re-enter information for each trip
-2. **Data Consistency**: Same information used across all trips
+1. **Time Savings**: Parents don't re-enter information for each outing
+2. **Data Consistency**: Same information used across all outings
 3. **Easy Updates**: Update family member info in one place
 4. **Better UX**: Streamlined signup process
 5. **Data Quality**: Reduced errors from manual entry

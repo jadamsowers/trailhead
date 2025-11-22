@@ -1,7 +1,7 @@
 # Family Member Ordering Implementation
 
 ## Overview
-When adding family members to a trip, adults are now processed before scouts to ensure their vehicle capacity is added to the trip count before scouts are added.
+When adding family members to a outing, adults are now processed before scouts to ensure their vehicle capacity is added to the outing count before scouts are added.
 
 ## Changes Made
 
@@ -20,7 +20,7 @@ const memberDetails = await Promise.all(
 );
 
 // Sort members: adults first, then scouts
-// This ensures adults' vehicle capacity is added to the trip before scouts
+// This ensures adults' vehicle capacity is added to the outing before scouts
 const sortedMembers = memberDetails.sort((a, b) => {
     if (a.member_type === 'parent' && b.member_type === 'scout') return -1;
     if (a.member_type === 'scout' && b.member_type === 'parent') return 1;
@@ -33,25 +33,25 @@ const sortedMembers = memberDetails.sort((a, b) => {
 The backend already processes participants in the order they're received:
 
 1. **Sequential Processing**: The `create_signup` function in `backend/app/crud/signup.py` iterates through participants in order
-2. **Capacity Calculation**: The `total_vehicle_capacity` property in `backend/app/models/trip.py` sums vehicle capacity from all adult participants
+2. **Capacity Calculation**: The `total_vehicle_capacity` property in `backend/app/models/outing.py` sums vehicle capacity from all adult participants
 3. **Validation**: The signup endpoint validates capacity by accounting for new vehicle capacity being added
 
 ## Why This Matters
 
-For trips with vehicle-based capacity:
+For outings with vehicle-based capacity:
 - Adults can provide vehicle capacity (number of seats they can transport)
 - Scouts consume capacity but don't provide it
 - By processing adults first, their vehicle capacity is accounted for before checking if there's room for scouts
-- This prevents false "trip is full" errors when an adult with vehicle capacity and scouts are signing up together
+- This prevents false "outing is full" errors when an adult with vehicle capacity and scouts are signing up together
 
 ## Example Scenario
 
 **Before**: Signing up 1 adult (with 5 vehicle seats) + 3 scouts
-- If scouts processed first: Trip might reject signup thinking there's no capacity
+- If scouts processed first: Outing might reject signup thinking there's no capacity
 - Then adult's 5 seats would be added (but too late)
 
 **After**: Same signup with adults processed first
-- Adult's 5 vehicle seats are added to trip capacity
+- Adult's 5 vehicle seats are added to outing capacity
 - Then 3 scouts are added (consuming 3 of those 5 seats)
 - Signup succeeds correctly
 
@@ -59,9 +59,9 @@ For trips with vehicle-based capacity:
 
 To test this implementation:
 
-1. Create a trip with vehicle-based capacity
+1. Create a outing with vehicle-based capacity
 2. Add a family with at least one adult (with vehicle capacity) and one scout
-3. Select both the adult and scout when signing up for the trip
+3. Select both the adult and scout when signing up for the outing
 4. Verify the signup succeeds and the adult's vehicle capacity is properly accounted for
 
 The sorting happens automatically in the frontend, ensuring the correct order is sent to the backend API.

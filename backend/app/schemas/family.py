@@ -44,19 +44,19 @@ class AllergyResponse(AllergyBase):
 class FamilyMemberBase(BaseModel):
     """Base schema for family members"""
     name: str = Field(..., min_length=1, max_length=255, description="Full name")
-    member_type: str = Field(..., description="Member type: 'parent' or 'scout'")
+    member_type: str = Field(..., description="Member type: 'adult' or 'scout'")
     date_of_birth: Optional[date] = Field(None, description="Date of birth (required for scouts)")
     troop_number: Optional[str] = Field(None, max_length=50, description="Troop number")
     patrol_name: Optional[str] = Field(None, max_length=100, description="Patrol name (for scouts)")
-    has_youth_protection: bool = Field(default=False, description="Youth protection training status (for parents)")
-    youth_protection_expiration: Optional[date] = Field(None, description="SAFE Youth Training certificate expiration date (for parents)")
-    vehicle_capacity: int = Field(default=0, ge=0, description="Vehicle passenger capacity excluding driver (for parents)")
+    has_youth_protection: bool = Field(default=False, description="Youth protection training status (for adults)")
+    youth_protection_expiration: Optional[date] = Field(None, description="SAFE Youth Training certificate expiration date (for adults)")
+    vehicle_capacity: int = Field(default=0, ge=0, description="Vehicle passenger capacity excluding driver (for adults)")
     medical_notes: Optional[str] = Field(None, description="Medical notes or conditions")
 
     @validator('member_type')
     def validate_member_type(cls, v):
-        if v not in ['parent', 'scout']:
-            raise ValueError('member_type must be either "parent" or "scout"')
+        if v not in ['adult', 'scout']:
+            raise ValueError('member_type must be either "adult" or "scout"')
         return v
 
     @validator('date_of_birth')

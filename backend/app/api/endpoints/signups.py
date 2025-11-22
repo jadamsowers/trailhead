@@ -8,7 +8,7 @@ from app.db.session import get_db
 from app.models.family import FamilyMember
 from app.schemas.signup import SignupCreate, SignupResponse, ParticipantResponse
 from app.crud import signup as crud_signup
-from app.crud import trip as crud_trip
+from app.crud import outing as crud_outing
 
 router = APIRouter()
 
@@ -19,27 +19,27 @@ async def create_signup(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Create a new signup for a trip (public endpoint).
+    Create a new signup for an outing (public endpoint).
     No authentication required - families can sign up directly.
     
     Scouting America Requirements enforced:
-    - Minimum 2 adults required per trip
+    - Minimum 2 adults required per outing
     - If female youth present, at least 1 female adult leader required
-    - Adults must have youth protection training for overnight trips
+    - Adults must have youth protection training for overnight outings
     """
-    # Verify trip exists and has available spots
-    db_trip = await crud_trip.get_trip(db, signup.trip_id)
-    if not db_trip:
+    # Verify outing exists and has available spots
+    db_outing = await crud_outing.get_outing(db, signup.outing_id)
+    if not db_outing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Trip not found"
+            detail="Outing not found"
         )
     
-    # Check if trip has enough spots
+    # Check if outing has enough spots
     # For vehicle-based capacity, account for vehicle capacity from adults in this signup
     total_participants = len(signup.participants)
     
-    if db_trip.capacity_type == 'vehicle':
+    if db_outing.capacity_type == 'vehicle':
         # Calculate vehicle capacity being added by adults in this signup
         new_vehicle_capacity = sum(
             p.vehicle_capacity if p.vehicle_capacity else 0
@@ -49,25 +49,25 @@ async def create_signup(
         
         # Calculate available spots after adding the new vehicle capacity
         # available_spots = current_vehicle_capacity + new_vehicle_capacity - (current_participants + new_participants)
-        projected_available_spots = db_trip.available_spots + new_vehicle_capacity - total_participants
+        projected_available_spots = db_outing.available_spots + new_vehicle_capacity - total_participants
         
         if projected_available_spots < 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Not enough available spots. Current capacity: {db_trip.total_vehicle_capacity} seats, "
-                       f"current participants: {db_trip.signup_count}. Your signup adds {new_vehicle_capacity} seats "
+                detail=f"Not enough available spots. Current capacity: {db_outing.total_vehicle_capacity} seats, "
+                       f"current participants: {db_outing.signup_count}. Your signup adds {new_vehicle_capacity} seats "
                        f"but requires {total_participants} spots, resulting in {abs(projected_available_spots)} over capacity."
             )
     else:
         # Fixed capacity - simple check
-        if db_trip.available_spots < total_participants:
+        if db_outing.available_spots < total_participants:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Not enough available spots. Only {db_trip.available_spots} spots remaining."
+                detail=f"Not enough available spots. Only {db_outing.available_spots} spots remaining."
             )
     
     # Get all existing signups to check total adult count across all signups
-    existing_signups = await crud_signup.get_trip_signups(db, signup.trip_id)
+    existing_signups = await crud_signup.get_outing_signups(db, signup.outing_id)
     
     # Count adults and youth by gender across all signups (existing + new)
     total_adults = sum(1 for s in existing_signups for p in s.participants if p.is_adult)
@@ -90,19 +90,19 @@ async def create_signup(
     # Scouting America Two-Deep Leadership: Minimum 2 adults required
     if total_adults < 2:
         warnings.append(
-            f"⚠️ Scouting America requires at least 2 adults on every trip. Currently {total_adults} adult(s) signed up. "
-            "Please ensure at least 2 adults are registered before the trip."
+            f"⚠️ Scouting America requires at least 2 adults on every outing. Currently {total_adults} adult(s) signed up. "
+            "Please ensure at least 2 adults are registered before the outing."
         )
     
     # Scouting America Gender-Specific Leadership: If female youth present, require female adult leader
     if total_female_youth > 0 and total_female_adults < 1:
         warnings.append(
             "⚠️ Scouting America requires at least one female adult leader when female youth are present. "
-            "Please ensure a female adult is registered before the trip."
+            "Please ensure a female adult is registered before the outing."
         )
     
     # Validate adult youth protection requirements
-    # For any trip, adults must have VALID (non-expired) youth protection certificates
+    # For any outing, adults must have VALID (non-expired) youth protection certificates
     today = date.today()
     
     for adult in new_adults:
@@ -118,19 +118,19 @@ async def create_signup(
             # Adult does not have youth protection training
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Adult '{adult.full_name}' must have valid SAFE Youth Training (Youth Protection) certificate to sign up for trips. "
+                detail=f"Adult '{adult.full_name}' must have valid SAFE Youth Training (Youth Protection) certificate to sign up for outings. "
                        "Please complete the training at my.scouting.org before signing up."
             )
     
-    # Additional validation for overnight trips
-    if db_trip.is_overnight:
+    # Additional validation for overnight outings
+    if db_outing.is_overnight:
         if new_adults:
             # Check if at least one adult has youth protection training
             has_trained_adult = any(a.has_youth_protection_training for a in new_adults)
             if not has_trained_adult:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="At least one adult must have Scouting America youth protection training for overnight trips"
+                    detail="At least one adult must have Scouting America youth protection training for overnight outings"
                 )
     
     # Create the signup
@@ -158,7 +158,7 @@ async def create_signup(
     
     return SignupResponse(
         id=db_signup.id,
-        trip_id=db_signup.trip_id,
+        outing_id=db_signup.outing_id,
         family_contact_name=db_signup.family_contact_name,
         family_contact_email=db_signup.family_contact_email,
         family_contact_phone=db_signup.family_contact_phone,
@@ -209,7 +209,7 @@ async def get_signup(
     
     return SignupResponse(
         id=db_signup.id,
-        trip_id=db_signup.trip_id,
+        outing_id=db_signup.outing_id,
         family_contact_name=db_signup.family_contact_name,
         family_contact_email=db_signup.family_contact_email,
         family_contact_phone=db_signup.family_contact_phone,

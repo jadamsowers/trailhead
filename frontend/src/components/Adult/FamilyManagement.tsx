@@ -251,7 +251,7 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                         backgroundColor: member.member_type === 'scout' ? '#e3f2fd' : '#f3e5f5',
                         color: member.member_type === 'scout' ? '#1976d2' : '#7b1fa2'
                     }}>
-                        {member.member_type === 'scout' ? '🌱 Scout' : '🌲 Parent'}
+                        {member.member_type === 'scout' ? '🌱 Scout' : '🌲 Adult'}
                     </span>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', marginLeft: '12px' }}>
@@ -320,7 +320,7 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                     </div>
                 )}
                 
-                {member.member_type === 'parent' && (
+                {member.member_type === 'adult' && (
                     <>
                         {member.has_youth_protection && (
                             <div style={{
@@ -449,9 +449,9 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
         setSubmitting(true);
         setError(null);
 
-        // Validate youth protection for parents
-        if (formData.member_type === 'parent' && !formData.has_youth_protection) {
-            setError('⚠️ Youth Protection Training is required for all parents/adults attending trips. Please complete the training at my.scouting.org and check the box to confirm.');
+        // Validate youth protection for adults
+        if (formData.member_type === 'adult' && !formData.has_youth_protection) {
+            setError('⚠️ Youth Protection Training is required for all adults attending outings. Please complete the training at my.scouting.org and check the box to confirm.');
             setSubmitting(false);
             return;
         }
@@ -587,7 +587,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                             <select
                                 required
                                 value={formData.member_type}
-                                onChange={(e) => setFormData({ ...formData, member_type: e.target.value as 'scout' | 'parent' })}
+                                onChange={(e) => setFormData({ ...formData, member_type: e.target.value as 'scout' | 'adult' })}
                                 style={{
                                     width: '100%',
                                     padding: '12px',
@@ -599,7 +599,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 }}
                             >
                                 <option value="scout">Scout</option>
-                                <option value="parent">Parent</option>
+                                <option value="adult">Adult</option>
                             </select>
                         </div>
 
@@ -683,7 +683,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                             </div>
                         )}
 
-                        {formData.member_type === 'parent' && (
+                        {formData.member_type === 'adult' && (
                             <>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <input

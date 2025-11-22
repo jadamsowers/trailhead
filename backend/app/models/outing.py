@@ -7,30 +7,30 @@ from datetime import datetime
 from app.db.base import Base
 
 
-class Trip(Base):
-    """Trip model for managing Scouting Outings"""
-    __tablename__ = "trips"
+class Outing(Base):
+    """Outing model for managing Scouting Outings"""
+    __tablename__ = "outings"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     name = Column(String(255), nullable=False)
-    trip_date = Column(Date, nullable=False, index=True)  # Start date for overnight trips, single date for day trips
-    end_date = Column(Date, nullable=True, index=True)  # End date for overnight trips only
+    outing_date = Column(Date, nullable=False, index=True)  # Start date for overnight outings, single date for day outings
+    end_date = Column(Date, nullable=True, index=True)  # End date for overnight outings only
     location = Column(String(255), nullable=False)
     description = Column(Text)
     max_participants = Column(Integer, nullable=False)
     capacity_type = Column(String(20), default='fixed', nullable=False)  # 'fixed' or 'vehicle'
     is_overnight = Column(Boolean, default=False, nullable=False)
-    trip_lead_name = Column(String(255), nullable=True)
-    trip_lead_email = Column(String(255), nullable=True)
-    trip_lead_phone = Column(String(50), nullable=True)
+    outing_lead_name = Column(String(255), nullable=True)
+    outing_lead_email = Column(String(255), nullable=True)
+    outing_lead_phone = Column(String(50), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
-    signups = relationship("Signup", back_populates="trip", cascade="all, delete-orphan")
+    signups = relationship("Signup", back_populates="outing", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<Trip(id={self.id}, name={self.name}, date={self.trip_date})>"
+        return f"<Outing(id={self.id}, name={self.name}, date={self.outing_date})>"
 
     @property
     def signup_count(self):
@@ -59,7 +59,7 @@ class Trip(Base):
 
     @property
     def is_full(self):
-        """Check if trip is at capacity based on capacity type"""
+        """Check if outing is at capacity based on capacity type"""
         if self.capacity_type == 'vehicle':
             return self.signup_count >= self.total_vehicle_capacity
         else:
@@ -67,7 +67,7 @@ class Trip(Base):
 
     @property
     def needs_more_drivers(self):
-        """Check if trip needs more drivers (only relevant for vehicle capacity)"""
+        """Check if outing needs more drivers (only relevant for vehicle capacity)"""
         if self.capacity_type == 'vehicle':
             return self.total_vehicle_capacity < self.signup_count
         return False
@@ -104,10 +104,10 @@ class Trip(Base):
 
     @property
     def needs_two_deep_leadership(self):
-        """Check if trip needs more adults for Scouting America two-deep leadership (minimum 2 adults)"""
+        """Check if outing needs more adults for Scouting America two-deep leadership (minimum 2 adults)"""
         return self.adult_count < 2
 
     @property
     def needs_female_leader(self):
-        """Check if trip needs a female adult leader (required when female youth present)"""
+        """Check if outing needs a female adult leader (required when female youth present)"""
         return self.female_youth_count > 0 and self.female_adult_count < 1

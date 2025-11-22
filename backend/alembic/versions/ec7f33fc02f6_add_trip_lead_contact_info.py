@@ -1,4 +1,4 @@
-"""add_trip_lead_contact_info
+"""add_outing_lead_contact_info
 
 Revision ID: ec7f33fc02f6
 Revises: 3112048f95f5
@@ -17,14 +17,14 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add trip lead contact information columns
-    op.add_column('trips', sa.Column('trip_lead_name', sa.String(length=255), nullable=True))
-    op.add_column('trips', sa.Column('trip_lead_email', sa.String(length=255), nullable=True))
-    op.add_column('trips', sa.Column('trip_lead_phone', sa.String(length=50), nullable=True))
+    # Add outing lead contact information columns
+    op.add_column('outings', sa.Column('outing_lead_name', sa.String(length=255), nullable=True))
+    op.add_column('outings', sa.Column('outing_lead_email', sa.String(length=255), nullable=True))
+    op.add_column('outings', sa.Column('outing_lead_phone', sa.String(length=50), nullable=True))
 
 
 def downgrade() -> None:
-    # Remove trip lead contact information columns
-    op.drop_column('trips', 'trip_lead_phone')
-    op.drop_column('trips', 'trip_lead_email')
-    op.drop_column('trips', 'trip_lead_name')
+    # Remove outing lead contact information columns
+    op.drop_column('outings', 'outing_lead_phone')
+    op.drop_column('outings', 'outing_lead_email')
+    op.drop_column('outings', 'outing_lead_name')

@@ -1,6 +1,6 @@
 # Scouting Outing Manager
 
-A comprehensive web application for managing scout troop trips, signups, and participant information with family management capabilities.
+A comprehensive web application for managing scout troop outings, signups, and participant information with family management capabilities.
 
 ## 🚀 Quick Start
 
@@ -57,10 +57,10 @@ A comprehensive web application for managing scout troop trips, signups, and par
 
 ## ✨ Features
 
-### Trip Management
+### Outing Management
 - Create and manage scouting outings
 - Set capacity limits (youth and adult)
-- Track trip dates and locations
+- Track outing dates and locations
 - Export rosters to PDF
 
 ### Family Signups
@@ -211,7 +211,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- Built for scout troops to simplify trip management
+- Built for scout troops to simplify outing management
 - Designed with Scouting America youth protection in mind
 - Vibe-coded with ⚜️❤️
 

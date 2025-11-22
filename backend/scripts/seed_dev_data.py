@@ -1,7 +1,7 @@
 """
 Development Data Seeding Script
 
-This script creates fake users, family members, and trips for development and testing purposes.
+This script creates fake users, family members, and outings for development and testing purposes.
 It uses the backend API endpoints to create realistic test data.
 
 Prerequisites:
@@ -76,7 +76,7 @@ TRIP_NAMES = [
     "Day Hike - Eagle Peak Trail",
     "Kayaking Adventure",
     "Rock Climbing Workshop",
-    "Backpacking Trip - Mountain Ridge",
+    "Backpacking Outing - Mountain Ridge",
     "Service Project - Trail Maintenance",
     "Fishing Derby",
     "Winter Camping Experience",
@@ -105,7 +105,7 @@ TRIP_DESCRIPTIONS = [
     "Join us for an exciting outdoor adventure! This is a great opportunity for scouts to develop outdoor skills and build teamwork.",
     "Come experience the great outdoors! All skill levels welcome. Bring your enthusiasm and sense of adventure.",
     "A fantastic adventure awaits! Don't miss this opportunity to explore nature and make lasting memories.",
-    "This trip will challenge and inspire our scouts. Sign up today and be part of something special!",
+    "This outing will challenge and inspire our scouts. Sign up today and be part of something special!",
     "Experience the thrill of outdoor adventure while learning valuable scouting skills in a safe, supervised environment.",
 ]
 
@@ -174,12 +174,12 @@ async def create_parent_member(
     has_youth_protection: bool = True,
     vehicle_capacity: int = 0
 ) -> Optional[Dict]:
-    """Create a parent family member"""
+    """Create an adult family member"""
     youth_protection_expiration = random_youth_protection_expiration(has_youth_protection)
     
     member_data = {
         "name": name,
-        "member_type": "parent",
+        "member_type": "adult",
         "date_of_birth": random_date_of_birth(30, 55),
         "has_youth_protection": has_youth_protection,
         "youth_protection_expiration": youth_protection_expiration,
@@ -198,7 +198,7 @@ async def create_parent_member(
         response.raise_for_status()
         return response.json()
     except Exception as e:
-        print(f"  ⚠️  Could not create parent {name}: {e}")
+        print(f"  ⚠️  Could not create adult {name}: {e}")
         return None
 
 
@@ -237,14 +237,14 @@ async def create_scout_member(
 
 
 async def create_family(client: httpx.AsyncClient, token: str, last_name: str, num_scouts: int = 1) -> List[Dict]:
-    """Create a complete family with parent(s) and scout(s)"""
+    """Create a complete family with adult(s) and scout(s)"""
     members = []
-    
-    # Create primary parent
+
+    # Create primary adult
     parent1_first = random.choice(FIRST_NAMES_MALE if random.random() > 0.5 else FIRST_NAMES_FEMALE)
     parent1_name = f"{parent1_first} {last_name}"
     
-    # Primary parent with vehicle (70% chance)
+    # Primary adult with vehicle (70% chance)
     has_vehicle = random.random() < 0.7
     vehicle_capacity = random.choice([0, 4, 5, 6, 7]) if has_vehicle else 0
     
@@ -271,7 +271,7 @@ async def create_family(client: httpx.AsyncClient, token: str, last_name: str, n
     return members
 
 
-async def create_trip(
+async def create_outing(
     client: httpx.AsyncClient,
     token: str,
     name: str,
@@ -281,34 +281,34 @@ async def create_trip(
     capacity_type: str = "fixed",
     max_participants: int = 30
 ) -> Optional[Dict]:
-    """Create a trip"""
-    trip_date = (date.today() + timedelta(days=days_from_now)).isoformat()
+    """Create a outing"""
+    outing_date = (date.today() + timedelta(days=days_from_now)).isoformat()
     end_date = (date.today() + timedelta(days=days_from_now + random.randint(1, 3))).isoformat() if is_overnight else None
     
-    trip_data = {
+    outing_data = {
         "name": name,
-        "trip_date": trip_date,
+        "outing_date": outing_date,
         "end_date": end_date,
         "location": location,
         "description": random.choice(TRIP_DESCRIPTIONS),
         "max_participants": max_participants,
         "capacity_type": capacity_type,
         "is_overnight": is_overnight,
-        "trip_lead_name": f"{random.choice(FIRST_NAMES_MALE)} {random.choice(LAST_NAMES)}",
-        "trip_lead_email": f"leader{random.randint(1, 100)}@example.com",
-        "trip_lead_phone": f"555-{random.randint(100, 999)}-{random.randint(1000, 9999)}",
+        "outing_lead_name": f"{random.choice(FIRST_NAMES_MALE)} {random.choice(LAST_NAMES)}",
+        "outing_lead_email": f"leader{random.randint(1, 100)}@example.com",
+        "outing_lead_phone": f"555-{random.randint(100, 999)}-{random.randint(1000, 9999)}",
     }
     
     try:
         response = await client.post(
-            "/api/trips",
-            json=trip_data,
+            "/api/outings",
+            json=outing_data,
             headers={"Authorization": f"Bearer {token}"}
         )
         response.raise_for_status()
         return response.json()
     except Exception as e:
-        print(f"  ⚠️  Could not create trip {name}: {e}")
+        print(f"  ⚠️  Could not create outing {name}: {e}")
         return None
 
 
@@ -332,11 +332,11 @@ async def seed_database(base_url: str, clerk_token: str):
         
         admin_token = clerk_token
         
-        # Create trips (admin only)
-        print("\n🏕️  Creating trips...")
-        trips_created = 0
+        # Create outings (admin only)
+        print("\n🏕️  Creating outings...")
+        outings_created = 0
         
-        trip_configs = [
+        outing_configs = [
             (TRIP_NAMES[0], LOCATIONS[0], 7, True, "fixed", 25),
             (TRIP_NAMES[1], LOCATIONS[1], 14, False, "fixed", 30),
             (TRIP_NAMES[2], LOCATIONS[2], 21, False, "vehicle", 40),
@@ -349,14 +349,14 @@ async def seed_database(base_url: str, clerk_token: str):
             (TRIP_NAMES[9], LOCATIONS[9], 105, False, "fixed", 40),
         ]
         
-        for name, location, days, overnight, cap_type, max_part in trip_configs:
-            trip = await create_trip(client, admin_token, name, location, days, overnight, cap_type, max_part)
-            if trip:
-                trips_created += 1
-                trip_type = "overnight" if overnight else "day"
-                print(f"  ✓ Created {trip_type} trip: {name} ({cap_type} capacity)")
+        for name, location, days, overnight, cap_type, max_part in outing_configs:
+            outing = await create_outing(client, admin_token, name, location, days, overnight, cap_type, max_part)
+            if outing:
+                outings_created += 1
+                outing_type = "overnight" if overnight else "day"
+                print(f"  ✓ Created {outing_type} outing: {name} ({cap_type} capacity)")
         
-        print(f"\n✅ Created {trips_created} trips")
+        print(f"\n✅ Created {outings_created} outings")
         
         # Create families
         print("\n👨‍👩‍👧‍👦 Creating families...")
@@ -378,7 +378,7 @@ async def seed_database(base_url: str, clerk_token: str):
         
         print("\n🎉 Database seeding completed successfully!")
         print("\n📊 Summary:")
-        print(f"  - Trips: {trips_created}")
+        print(f"  - Outings: {outings_created}")
         print(f"  - Families: {families_created}")
         print(f"  - Family Members: {total_members}")
         print("\n💡 Note: All family members were created under the authenticated Clerk user.")

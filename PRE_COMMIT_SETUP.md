@@ -48,13 +48,13 @@ When you commit changes to any file in `backend/app/schemas/`, the hooks will:
 
 ```bash
 # 1. Make changes to a backend schema
-vim backend/app/schemas/trip.py
+vim backend/app/schemas/outing.py
 
 # 2. Stage your changes
-git add backend/app/schemas/trip.py
+git add backend/app/schemas/outing.py
 
 # 3. Commit (hooks run automatically)
-git commit -m "Add new field to Trip schema"
+git commit -m "Add new field to Outing schema"
 
 # Output:
 # Regenerate TypeScript types from OpenAPI...........Passed

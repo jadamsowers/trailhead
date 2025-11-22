@@ -1,7 +1,7 @@
 # Scouting Outing Manager - System Architecture
 
 ## Overview
-A full-stack web application for managing scout troop trips with PostgreSQL backend, Python FastAPI REST API, React frontend, and Kubernetes deployment.
+A full-stack web application for managing scout troop outings with PostgreSQL backend, Python FastAPI REST API, React frontend, and Kubernetes deployment.
 
 ## System Architecture
 
@@ -9,7 +9,7 @@ A full-stack web application for managing scout troop trips with PostgreSQL back
 graph TB
     subgraph "External Access"
         User[Users/Families]
-        Admin[Trip Administrators]
+        Admin[Outing Administrators]
     end
     
     subgraph "Kubernetes Cluster"
@@ -61,7 +61,7 @@ erDiagram
     TRIPS {
         uuid id PK
         string name
-        date trip_date
+        date outing_date
         string location
         text description
         int max_participants
@@ -72,7 +72,7 @@ erDiagram
     
     SIGNUPS {
         uuid id PK
-        uuid trip_id FK
+        uuid outing_id FK
         string family_contact_name
         string family_contact_email
         string family_contact_phone
@@ -107,20 +107,20 @@ erDiagram
 
 ### Database Tables Detail
 
-#### trips
-- `id` (UUID, PK): Unique trip identifier
-- `name` (VARCHAR): Trip name
-- `trip_date` (DATE): Date of the trip
-- `location` (VARCHAR): Trip location
-- `description` (TEXT): Detailed trip description
+#### outings
+- `id` (UUID, PK): Unique outing identifier
+- `name` (VARCHAR): Outing name
+- `outing_date` (DATE): Date of the outing
+- `location` (VARCHAR): Outing location
+- `description` (TEXT): Detailed outing description
 - `max_participants` (INTEGER): Maximum number of participants
-- `is_overnight` (BOOLEAN): Whether trip requires overnight stay
+- `is_overnight` (BOOLEAN): Whether outing requires overnight stay
 - `created_at` (TIMESTAMP): Record creation time
 - `updated_at` (TIMESTAMP): Last update time
 
 #### signups
 - `id` (UUID, PK): Unique signup identifier
-- `trip_id` (UUID, FK): Reference to trips table
+- `outing_id` (UUID, FK): Reference to outings table
 - `family_contact_name` (VARCHAR): Primary family contact
 - `family_contact_email` (VARCHAR): Contact email
 - `family_contact_phone` (VARCHAR): Contact phone
@@ -150,19 +150,19 @@ erDiagram
 
 ## API Endpoints
 
-### Trip Management (Admin)
+### Outing Management (Admin)
 
-#### GET /api/trips
-- Description: List all trips
-- Response: Array of trip objects with signup counts
+#### GET /api/outings
+- Description: List all outings
+- Response: Array of outing objects with signup counts
 
-#### POST /api/trips
-- Description: Create a new trip
+#### POST /api/outings
+- Description: Create a new outing
 - Request Body:
 ```json
 {
   "name": "Summer Camp 2026",
-  "trip_date": "2026-07-15",
+  "outing_date": "2026-07-15",
   "location": "Camp Wilderness",
   "description": "Week-long summer camp",
   "max_participants": 50,
@@ -170,37 +170,37 @@ erDiagram
 }
 ```
 
-#### GET /api/trips/{trip_id}
-- Description: Get trip details with all signups
-- Response: Trip object with nested signups and participants
+#### GET /api/outings/{outing_id}
+- Description: Get outing details with all signups
+- Response: Outing object with nested signups and participants
 
-#### PUT /api/trips/{trip_id}
-- Description: Update trip details
-- Request Body: Same as POST /api/trips
+#### PUT /api/outings/{outing_id}
+- Description: Update outing details
+- Request Body: Same as POST /api/outings
 
-#### DELETE /api/trips/{trip_id}
-- Description: Delete a trip (only if no signups)
+#### DELETE /api/outings/{outing_id}
+- Description: Delete a outing (only if no signups)
 
-#### GET /api/trips/{trip_id}/signups
-- Description: Get all signups for a specific trip
+#### GET /api/outings/{outing_id}/signups
+- Description: Get all signups for a specific outing
 - Response: Array of signup objects with participant details
 
-#### GET /api/trips/{trip_id}/export
-- Description: Export trip signups as CSV
+#### GET /api/outings/{outing_id}/export
+- Description: Export outing signups as CSV
 - Response: CSV file download
 
 ### Participant Signups
 
-#### GET /api/trips/available
-- Description: List available trips for signup
-- Response: Array of trips with available spots
+#### GET /api/outings/available
+- Description: List available outings for signup
+- Response: Array of outings with available spots
 
 #### POST /api/signups
-- Description: Submit a family signup for a trip
+- Description: Submit a family signup for a outing
 - Request Body:
 ```json
 {
-  "trip_id": "uuid",
+  "outing_id": "uuid",
   "family_contact": {
     "name": "John Doe",
     "email": "john@example.com",
@@ -254,19 +254,19 @@ erDiagram
 src/
 ├── components/
 │   ├── Admin/
-│   │   ├── TripAdmin.tsx          # Trip creation and management
-│   │   ├── TripList.tsx           # List of all trips
-│   │   ├── SignupViewer.tsx       # View signups for a trip
+│   │   ├── OutingAdmin.tsx          # Outing creation and management
+│   │   ├── OutingList.tsx           # List of all outings
+│   │   ├── SignupViewer.tsx       # View signups for a outing
 │   │   └── ExportButton.tsx       # Export signups to CSV
 │   ├── Participant/
-│   │   ├── TripBrowser.tsx        # Browse available trips
+│   │   ├── OutingBrowser.tsx        # Browse available outings
 │   │   ├── SignupForm.tsx         # Multi-participant signup form
 │   │   ├── ParticipantForm.tsx    # Individual participant form
 │   │   ├── DietaryCheckboxes.tsx  # Dietary restrictions selection
 │   │   ├── AllergyCheckboxes.tsx  # Allergy selection
 │   │   └── AdultQuestions.tsx     # Scouting America training and vehicle capacity
 │   └── Shared/
-│       ├── TripCard.tsx           # Trip display card
+│       ├── OutingCard.tsx           # Outing display card
 │       ├── LoadingSpinner.tsx     # Loading indicator
 │       └── ErrorMessage.tsx       # Error display
 ├── pages/
@@ -277,7 +277,7 @@ src/
 │   ├── api.ts                     # API client
 │   └── types.ts                   # TypeScript interfaces
 ├── hooks/
-│   ├── useTrips.ts                # Trip data management
+│   ├── useOutings.ts                # Outing data management
 │   └── useSignup.ts               # Signup form management
 └── utils/
     ├── validation.ts              # Form validation
@@ -287,13 +287,13 @@ src/
 ### Key Features
 
 1. **Admin Interface**
-   - Create and manage trips
+   - Create and manage outings
    - View all signups with filtering
    - Export signup data to CSV
    - Real-time capacity tracking
 
 2. **Participant Interface**
-   - Browse available trips
+   - Browse available outings
    - Multi-person signup (scouts + adults)
    - Dietary restrictions and allergies
    - Adult-specific questions (Scouting America training, vehicle capacity)
@@ -399,8 +399,8 @@ src/
 
 1. Email notifications for signup confirmations
 2. Calendar integration (iCal export)
-3. Payment processing for trip fees
-4. Photo gallery for past trips
+3. Payment processing for outing fees
+4. Photo gallery for past outings
 5. Mobile app (React Native)
 6. Advanced reporting and analytics
 7. Integration with Scouting America systems

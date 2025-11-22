@@ -11,15 +11,15 @@ from app.api.deps import get_current_admin_user
 from app.models.user import User
 from app.schemas.signup import SignupCreate, ParticipantCreate, FamilyContact
 from app.crud import signup as crud_signup
-from app.crud import trip as crud_trip
-from app.utils.pdf_generator import generate_trip_roster_pdf
+from app.crud import outing as crud_outing
+from app.utils.pdf_generator import generate_outing_roster_pdf
 
 router = APIRouter()
 
 
-@router.post("/trips/{trip_id}/import-roster")
+@router.post("/outings/{outing_id}/import-roster")
 async def import_roster_csv(
-    trip_id: UUID,
+    outing_id: UUID,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_admin_user),
     db: AsyncSession = Depends(get_db)
@@ -42,12 +42,12 @@ async def import_roster_csv(
     - allergies: comma-separated list in quotes
     - Empty fields for troop_number and patrol_name for adults
     """
-    # Verify trip exists
-    db_trip = await crud_trip.get_trip(db, trip_id)
-    if not db_trip:
+    # Verify outing exists
+    db_outing = await crud_outing.get_outing(db, outing_id)
+    if not db_outing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Trip not found"
+            detail="Outing not found"
         )
     
     # Check file type
@@ -143,7 +143,7 @@ async def import_roster_csv(
     for family_key, family_data in family_groups.items():
         try:
             signup_request = SignupCreate(
-                trip_id=trip_id,
+                outing_id=outing_id,
                 family_contact=family_data['contact'],
                 participants=family_data['participants']
             )
@@ -169,28 +169,28 @@ async def import_roster_csv(
     }
 
 
-@router.get("/trips/{trip_id}/export-roster")
+@router.get("/outings/{outing_id}/export-roster")
 async def export_roster_csv(
-    trip_id: UUID,
+    outing_id: UUID,
     current_user: User = Depends(get_current_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Export trip roster as CSV file (admin only).
+    Export outing roster as CSV file (admin only).
     Returns CSV with all participants and their details.
     """
     from fastapi.responses import StreamingResponse
     
-    # Verify trip exists
-    db_trip = await crud_trip.get_trip(db, trip_id)
-    if not db_trip:
+    # Verify outing exists
+    db_outing = await crud_outing.get_outing(db, outing_id)
+    if not db_outing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Trip not found"
+            detail="Outing not found"
         )
     
     # Get all signups
-    signups = await crud_signup.get_trip_signups(db, trip_id)
+    signups = await crud_signup.get_outing_signups(db, outing_id)
     
     # Create CSV
     output = io.StringIO()
@@ -229,42 +229,42 @@ async def export_roster_csv(
         iter([output.getvalue()]),
         media_type="text/csv",
         headers={
-            "Content-Disposition": f"attachment; filename=trip_{trip_id}_roster.csv"
+            "Content-Disposition": f"attachment; filename=outing_{outing_id}_roster.csv"
         }
     )
 
 
-@router.get("/trips/{trip_id}/export-roster-pdf")
+@router.get("/outings/{outing_id}/export-roster-pdf")
 async def export_roster_pdf(
-    trip_id: UUID,
+    outing_id: UUID,
     current_user: User = Depends(get_current_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Export trip roster as PDF file with checkboxes for check-in (admin only).
-    Returns an attractive, printable PDF document for trip leaders.
+    Export outing roster as PDF file with checkboxes for check-in (admin only).
+    Returns an attractive, printable PDF document for outing leaders.
     """
-    # Verify trip exists
-    db_trip = await crud_trip.get_trip(db, trip_id)
-    if not db_trip:
+    # Verify outing exists
+    db_outing = await crud_outing.get_outing(db, outing_id)
+    if not db_outing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Trip not found"
+            detail="Outing not found"
         )
     
     # Get all signups
-    signups = await crud_signup.get_trip_signups(db, trip_id)
+    signups = await crud_signup.get_outing_signups(db, outing_id)
     
-    # Prepare trip data
-    trip_data = {
-        'name': db_trip.name,
-        'trip_date': db_trip.trip_date.isoformat(),
-        'end_date': db_trip.end_date.isoformat() if db_trip.end_date else None,
-        'location': db_trip.location,
-        'description': db_trip.description,
-        'trip_lead_name': db_trip.trip_lead_name,
-        'trip_lead_email': db_trip.trip_lead_email,
-        'trip_lead_phone': db_trip.trip_lead_phone
+    # Prepare outing data
+    outing_data = {
+        'name': db_outing.name,
+        'outing_date': db_outing.outing_date.isoformat(),
+        'end_date': db_outing.end_date.isoformat() if db_outing.end_date else None,
+        'location': db_outing.location,
+        'description': db_outing.description,
+        'outing_lead_name': db_outing.outing_lead_name,
+        'outing_lead_email': db_outing.outing_lead_email,
+        'outing_lead_phone': db_outing.outing_lead_phone
     }
     
     # Prepare signups data
@@ -292,13 +292,13 @@ async def export_roster_pdf(
         })
     
     # Generate PDF
-    pdf_buffer = generate_trip_roster_pdf(trip_data, signups_data)
+    pdf_buffer = generate_outing_roster_pdf(outing_data, signups_data)
     
     # Return as downloadable file
     return StreamingResponse(
         pdf_buffer,
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f"attachment; filename=trip_{db_trip.name.replace(' ', '_')}_roster.pdf"
+            "Content-Disposition": f"attachment; filename=outing_{db_outing.name.replace(' ', '_')}_roster.pdf"
         }
     )

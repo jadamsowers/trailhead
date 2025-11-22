@@ -39,23 +39,23 @@ class TestGetSignup:
 
 
 @pytest.mark.asyncio
-class TestGetTripSignups:
-    """Test get_trip_signups function"""
+class TestGetOutingSignups:
+    """Test get_outing_signups function"""
     
-    async def test_get_trip_signups(self, db_session, test_trip, test_signup):
-        """Test getting all signups for a trip"""
-        signups = await crud_signup.get_trip_signups(db_session, test_trip.id)
+    async def test_get_outing_signups(self, db_session, test_outing, test_signup):
+        """Test getting all signups for a outing"""
+        signups = await crud_signup.get_outing_signups(db_session, test_outing.id)
         
         assert len(signups) >= 1
         assert test_signup.id in [s.id for s in signups]
     
-    async def test_get_trip_signups_empty(self, db_session, test_day_trip):
-        """Test getting signups for trip with no signups"""
-        signups = await crud_signup.get_trip_signups(db_session, test_day_trip.id)
+    async def test_get_outing_signups_empty(self, db_session, test_day_outing):
+        """Test getting signups for outing with no signups"""
+        signups = await crud_signup.get_outing_signups(db_session, test_day_outing.id)
         
         assert len(signups) == 0
     
-    async def test_get_trip_signups_ordered_by_date(self, db_session, test_trip):
+    async def test_get_outing_signups_ordered_by_date(self, db_session, test_outing):
         """Test signups are ordered by created_at descending"""
         # Create multiple signups
         from app.models.signup import Signup
@@ -64,7 +64,7 @@ class TestGetTripSignups:
         
         for i in range(3):
             signup = Signup(
-                trip_id=test_trip.id,
+                outing_id=test_outing.id,
                 family_contact_name=f"Family {i}",
                 family_contact_email=f"family{i}@test.com",
                 family_contact_phone=f"555-000{i}",
@@ -84,7 +84,7 @@ class TestGetTripSignups:
             await db_session.commit()
             await asyncio.sleep(0.01)  # Ensure different timestamps
         
-        signups = await crud_signup.get_trip_signups(db_session, test_trip.id)
+        signups = await crud_signup.get_outing_signups(db_session, test_outing.id)
         
         # Should be ordered by created_at descending (newest first)
         for i in range(len(signups) - 1):
@@ -95,10 +95,10 @@ class TestGetTripSignups:
 class TestCreateSignup:
     """Test create_signup function"""
     
-    async def test_create_signup_with_participants(self, db_session, test_trip):
+    async def test_create_signup_with_participants(self, db_session, test_outing):
         """Test creating a signup with participants"""
         signup_data = SignupCreate(
-            trip_id=test_trip.id,
+            outing_id=test_outing.id,
             family_contact=FamilyContact(
                 name="New Family",
                 email="newfamily@test.com",
@@ -139,17 +139,17 @@ class TestCreateSignup:
         result = await crud_signup.create_signup(db_session, signup_data)
         
         assert result.id is not None
-        assert result.trip_id == test_trip.id
+        assert result.outing_id == test_outing.id
         assert result.family_contact_name == "New Family"
         assert result.family_contact_email == "newfamily@test.com"
         assert result.family_contact_phone == "555-9999"
         assert len(result.participants) == 2
         assert result.created_at is not None
     
-    async def test_create_signup_with_dietary_restrictions(self, db_session, test_trip):
+    async def test_create_signup_with_dietary_restrictions(self, db_session, test_outing):
         """Test creating signup with dietary restrictions and allergies"""
         signup_data = SignupCreate(
-            trip_id=test_trip.id,
+            outing_id=test_outing.id,
             family_contact=FamilyContact(
                 name="Special Needs Family",
                 email="special@test.com",
@@ -191,11 +191,11 @@ class TestCreateSignup:
         assert "peanuts" in allergy_types
         assert "dairy" in allergy_types
     
-    async def test_create_signup_with_multiple_families(self, db_session, test_trip):
-        """Test creating multiple signups for same trip"""
+    async def test_create_signup_with_multiple_families(self, db_session, test_outing):
+        """Test creating multiple signups for same outing"""
         for i in range(3):
             signup_data = SignupCreate(
-                trip_id=test_trip.id,
+                outing_id=test_outing.id,
                 family_contact=FamilyContact(
                     name=f"Family {i}",
                     email=f"family{i}@test.com",
@@ -223,7 +223,7 @@ class TestCreateSignup:
             assert result.id is not None
         
         # Verify all signups exist
-        signups = await crud_signup.get_trip_signups(db_session, test_trip.id)
+        signups = await crud_signup.get_outing_signups(db_session, test_outing.id)
         assert len(signups) >= 3
 
 
@@ -231,11 +231,11 @@ class TestCreateSignup:
 class TestDeleteSignup:
     """Test delete_signup function"""
     
-    async def test_delete_existing_signup(self, db_session, test_trip):
+    async def test_delete_existing_signup(self, db_session, test_outing):
         """Test deleting an existing signup"""
         # Create a signup to delete
         signup_data = SignupCreate(
-            trip_id=test_trip.id,
+            outing_id=test_outing.id,
             family_contact=FamilyContact(
                 name="Delete Me",
                 email="delete@test.com",
@@ -279,14 +279,14 @@ class TestDeleteSignup:
         
         assert result is False
     
-    async def test_delete_signup_cascades_to_participants(self, db_session, test_trip):
+    async def test_delete_signup_cascades_to_participants(self, db_session, test_outing):
         """Test deleting signup also deletes participants"""
         from app.models.participant import Participant
         from sqlalchemy import select
         
         # Create signup with participants
         signup_data = SignupCreate(
-            trip_id=test_trip.id,
+            outing_id=test_outing.id,
             family_contact=FamilyContact(
                 name="Cascade Test",
                 email="cascade@test.com",

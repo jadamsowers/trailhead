@@ -5,7 +5,7 @@
  * It serves as an abstraction layer between the generated types and the application code.
  * 
  * Usage:
- * import { Trip, SignupCreate, SignupResponse } from './api-helpers';
+ * import { Outing, SignupCreate, SignupResponse } from './api-helpers';
  * 
  * Note: Run `npm run generate-types` to generate the base types from the backend OpenAPI spec.
  */
@@ -17,10 +17,10 @@ import type { components, paths } from './generated';
 // Schema Types (from components.schemas)
 // ============================================================================
 
-export type Trip = components['schemas']['TripResponse'];
-export type TripCreate = components['schemas']['TripCreate'];
-export type TripUpdate = components['schemas']['TripUpdate'];
-export type TripListResponse = components['schemas']['TripListResponse'];
+export type Outing = components['schemas']['OutingResponse'];
+export type OutingCreate = components['schemas']['OutingCreate'];
+export type OutingUpdate = components['schemas']['OutingUpdate'];
+export type OutingListResponse = components['schemas']['OutingListResponse'];
 
 export type SignupCreate = components['schemas']['SignupCreate'];
 export type SignupResponse = components['schemas']['SignupResponse'];
@@ -40,16 +40,16 @@ export type User = components['schemas']['UserResponse'];
 // API Response Types (from paths)
 // ============================================================================
 
-// Trip endpoints
-export type GetTripsResponse = paths['/api/trips']['get']['responses']['200']['content']['application/json'];
-export type GetAvailableTripsResponse = paths['/api/trips/available']['get']['responses']['200']['content']['application/json'];
-export type CreateTripResponse = paths['/api/trips']['post']['responses']['201']['content']['application/json'];
-export type GetTripResponse = paths['/api/trips/{trip_id}']['get']['responses']['200']['content']['application/json'];
+// Outing endpoints
+export type GetOutingsResponse = paths['/api/outings']['get']['responses']['200']['content']['application/json'];
+export type GetAvailableOutingsResponse = paths['/api/outings/available']['get']['responses']['200']['content']['application/json'];
+export type CreateOutingResponse = paths['/api/outings']['post']['responses']['201']['content']['application/json'];
+export type GetOutingResponse = paths['/api/outings/{outing_id}']['get']['responses']['200']['content']['application/json'];
 
 // Signup endpoints
 export type CreateSignupResponse = paths['/api/signups']['post']['responses']['201']['content']['application/json'];
 export type GetSignupResponse = paths['/api/signups/{signup_id}']['get']['responses']['200']['content']['application/json'];
-export type GetTripSignupsResponse = paths['/api/trips/{trip_id}/signups']['get']['responses']['200']['content']['application/json'];
+export type GetOutingSignupsResponse = paths['/api/outings/{outing_id}/signups']['get']['responses']['200']['content']['application/json'];
 
 // Auth endpoints
 export type LoginResponse = paths['/api/auth/login']['post']['responses']['200']['content']['application/json'];

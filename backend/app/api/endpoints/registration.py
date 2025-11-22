@@ -36,7 +36,7 @@ async def register_parent(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Register a new parent account.
+    Register a new adult account.
     Creates user in Clerk and syncs to local database.
     """
     # Check if user already exists in our database
@@ -54,7 +54,7 @@ async def register_parent(
     user = User(
         email=registration.email,
         full_name=f"{registration.first_name} {registration.last_name}",
-        role="parent",
+        role="adult",
         is_active=True,
         hashed_password=get_password_hash(registration.password)
     )
@@ -63,7 +63,7 @@ async def register_parent(
     await db.refresh(user)
     
     return RegistrationResponse(
-        message="Parent account created successfully. Please sign in with Clerk.",
+        message="Adult account created successfully. Please sign in with Clerk.",
         user_id=str(user.id),
         email=user.email
     )

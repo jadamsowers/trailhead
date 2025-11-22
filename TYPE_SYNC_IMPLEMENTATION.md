@@ -74,9 +74,9 @@ Create `frontend/src/types/api-helpers.ts`:
 import { components, paths } from './generated';
 
 // Extract types from OpenAPI spec
-export type Trip = components['schemas']['TripResponse'];
-export type TripCreate = components['schemas']['TripCreate'];
-export type TripUpdate = components['schemas']['TripUpdate'];
+export type Outing = components['schemas']['OutingResponse'];
+export type OutingCreate = components['schemas']['OutingCreate'];
+export type OutingUpdate = components['schemas']['OutingUpdate'];
 export type SignupCreate = components['schemas']['SignupCreate'];
 export type SignupResponse = components['schemas']['SignupResponse'];
 export type ParticipantResponse = components['schemas']['ParticipantResponse'];
@@ -85,9 +85,9 @@ export type DietaryRestriction = components['schemas']['DietaryRestriction'];
 export type Allergy = components['schemas']['Allergy'];
 
 // API response types
-export type GetTripsResponse = paths['/api/trips']['get']['responses']['200']['content']['application/json'];
-export type GetAvailableTripsResponse = paths['/api/trips/available']['get']['responses']['200']['content']['application/json'];
-export type CreateTripResponse = paths['/api/trips']['post']['responses']['201']['content']['application/json'];
+export type GetOutingsResponse = paths['/api/outings']['get']['responses']['200']['content']['application/json'];
+export type GetAvailableOutingsResponse = paths['/api/outings/available']['get']['responses']['200']['content']['application/json'];
+export type CreateOutingResponse = paths['/api/outings']['post']['responses']['201']['content']['application/json'];
 
 // Error types
 export type APIError = components['schemas']['HTTPValidationError'];
@@ -147,68 +147,68 @@ from datetime import date, timedelta
 
 
 @pytest.mark.asyncio
-class TestTripContracts:
-    """Verify Trip API contracts"""
+class TestOutingContracts:
+    """Verify Outing API contracts"""
     
-    async def test_trip_response_structure(self, client: AsyncClient, test_trip):
-        """Verify TripResponse has all required fields"""
-        response = await client.get("/api/trips/available")
+    async def test_outing_response_structure(self, client: AsyncClient, test_outing):
+        """Verify OutingResponse has all required fields"""
+        response = await client.get("/api/outings/available")
         assert response.status_code == 200
         
         data = response.json()
-        assert "trips" in data
+        assert "outings" in data
         assert "total" in data
         
-        if len(data["trips"]) > 0:
-            trip = data["trips"][0]
+        if len(data["outings"]) > 0:
+            outing = data["outings"][0]
             # Required fields
-            assert "id" in trip
-            assert "name" in trip
-            assert "trip_date" in trip
-            assert "location" in trip
-            assert "max_participants" in trip
-            assert "capacity_type" in trip
-            assert "signup_count" in trip
-            assert "available_spots" in trip
-            assert "is_full" in trip
-            assert "is_overnight" in trip
-            assert "created_at" in trip
-            assert "updated_at" in trip
+            assert "id" in outing
+            assert "name" in outing
+            assert "outing_date" in outing
+            assert "location" in outing
+            assert "max_participants" in outing
+            assert "capacity_type" in outing
+            assert "signup_count" in outing
+            assert "available_spots" in outing
+            assert "is_full" in outing
+            assert "is_overnight" in outing
+            assert "created_at" in outing
+            assert "updated_at" in outing
             
             # Computed fields
-            assert "total_vehicle_capacity" in trip
-            assert "needs_more_drivers" in trip
-            assert "adult_count" in trip
-            assert "needs_two_deep_leadership" in trip
-            assert "needs_female_leader" in trip
+            assert "total_vehicle_capacity" in outing
+            assert "needs_more_drivers" in outing
+            assert "adult_count" in outing
+            assert "needs_two_deep_leadership" in outing
+            assert "needs_female_leader" in outing
     
-    async def test_create_trip_contract(self, client: AsyncClient, auth_headers):
-        """Verify trip creation accepts correct fields"""
-        trip_data = {
-            "name": "Contract Test Trip",
-            "trip_date": (date.today() + timedelta(days=30)).isoformat(),
+    async def test_create_outing_contract(self, client: AsyncClient, auth_headers):
+        """Verify outing creation accepts correct fields"""
+        outing_data = {
+            "name": "Contract Test Outing",
+            "outing_date": (date.today() + timedelta(days=30)).isoformat(),
             "end_date": (date.today() + timedelta(days=31)).isoformat(),
             "location": "Test Location",
             "description": "Test description",
             "max_participants": 20,
             "capacity_type": "fixed",
             "is_overnight": True,
-            "trip_lead_name": "Test Lead",
-            "trip_lead_email": "lead@test.com",
-            "trip_lead_phone": "555-1234"
+            "outing_lead_name": "Test Lead",
+            "outing_lead_email": "lead@test.com",
+            "outing_lead_phone": "555-1234"
         }
         
         response = await client.post(
-            "/api/trips",
+            "/api/outings",
             headers=auth_headers,
-            json=trip_data
+            json=outing_data
         )
         
         assert response.status_code == 201
         result = response.json()
         
         # Verify all input fields are in response
-        for key in trip_data:
+        for key in outing_data:
             assert key in result
 
 
@@ -225,7 +225,7 @@ class TestSignupContracts:
         
         # Required fields
         assert "id" in signup
-        assert "trip_id" in signup
+        assert "outing_id" in signup
         assert "family_contact_name" in signup
         assert "family_contact_email" in signup
         assert "family_contact_phone" in signup
@@ -239,10 +239,10 @@ class TestSignupContracts:
         assert "warnings" in signup
         assert isinstance(signup["warnings"], list)
     
-    async def test_create_signup_returns_warnings(self, client: AsyncClient, test_trip):
+    async def test_create_signup_returns_warnings(self, client: AsyncClient, test_outing):
         """Verify signup creation returns warnings field"""
         signup_data = {
-            "trip_id": str(test_trip.id),
+            "outing_id": str(test_outing.id),
             "family_contact": {
                 "email": "test@example.com",
                 "phone": "555-0000",
@@ -484,7 +484,7 @@ npm run generate-types
 
 ```typescript
 // Import from generated types
-import { Trip, SignupCreate, SignupResponse } from './types/generated';
+import { Outing, SignupCreate, SignupResponse } from './types/generated';
 
 // Use in API calls
 async function createSignup(data: SignupCreate): Promise<SignupResponse> {

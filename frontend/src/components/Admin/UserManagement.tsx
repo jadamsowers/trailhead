@@ -97,7 +97,7 @@ const UserManagement: React.FC = () => {
         switch (role) {
             case 'admin':
                 return 'bg-red-100 text-red-800';
-            case 'parent':
+            case 'adult':
                 return 'bg-blue-100 text-blue-800';
             default:
                 return 'bg-gray-100 text-gray-800';
@@ -189,11 +189,11 @@ const UserManagement: React.FC = () => {
                                             {user.role === 'admin' && (
                                                 <>
                                                     <button
-                                                        onClick={() => updateUserRole(user.id, 'parent')}
+                                                        onClick={() => updateUserRole(user.id, 'adult')}
                                                         disabled={updatingUserId === user.id}
                                                         className="text-orange-600 hover:text-orange-900 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        {updatingUserId === user.id ? 'Updating...' : 'Demote to Parent'}
+                                                        {updatingUserId === user.id ? 'Updating...' : 'Demote to Adult'}
                                                     </button>
                                                     <span className="text-gray-300">|</span>
                                                     <button
@@ -205,7 +205,7 @@ const UserManagement: React.FC = () => {
                                                     </button>
                                                 </>
                                             )}
-                                            {user.role === 'parent' && (
+                                            {user.role === 'adult' && (
                                                 <button
                                                     onClick={() => updateUserRole(user.id, 'user')}
                                                     disabled={updatingUserId === user.id}
@@ -216,11 +216,11 @@ const UserManagement: React.FC = () => {
                                             )}
                                             {user.role === 'user' && (
                                                 <button
-                                                    onClick={() => updateUserRole(user.id, 'parent')}
+                                                    onClick={() => updateUserRole(user.id, 'adult')}
                                                     disabled={updatingUserId === user.id}
                                                     className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    {updatingUserId === user.id ? 'Updating...' : 'Promote to Parent'}
+                                                    {updatingUserId === user.id ? 'Updating...' : 'Promote to Adult'}
                                                 </button>
                                             )}
                                         </div>

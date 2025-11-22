@@ -107,7 +107,7 @@ When you modify SQLAlchemy models, create a new migration:
 
 ```bash
 cd backend
-alembic revision --autogenerate -m "Add new field to trips table"
+alembic revision --autogenerate -m "Add new field to outings table"
 ```
 
 Alembic will:
@@ -211,19 +211,19 @@ For complex schema changes that require data transformation:
 ```python
 def upgrade() -> None:
     # 1. Add new column (nullable)
-    op.add_column('trips', sa.Column('new_field', sa.String(), nullable=True))
+    op.add_column('outings', sa.Column('new_field', sa.String(), nullable=True))
     
     # 2. Migrate data
     connection = op.get_bind()
     connection.execute(
-        text("UPDATE trips SET new_field = old_field WHERE old_field IS NOT NULL")
+        text("UPDATE outings SET new_field = old_field WHERE old_field IS NOT NULL")
     )
     
     # 3. Make column non-nullable if needed
-    op.alter_column('trips', 'new_field', nullable=False)
+    op.alter_column('outings', 'new_field', nullable=False)
     
     # 4. Drop old column
-    op.drop_column('trips', 'old_field')
+    op.drop_column('outings', 'old_field')
 ```
 
 ### 4. Use Transactions

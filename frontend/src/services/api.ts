@@ -1,6 +1,6 @@
 import {
-    Trip,
-    TripCreate,
+    Outing,
+    OutingCreate,
     SignupCreate,
     SignupResponse,
     SignupWithDetails,
@@ -13,7 +13,7 @@ import {
     FamilyMemberUpdate,
     FamilyMemberSummary,
     FamilyMemberListResponse,
-    ParentRegistrationRequest,
+    AdultRegistrationRequest,
     RegistrationResponse,
 } from '../types';
 
@@ -142,64 +142,64 @@ async function getAuthHeaders(): Promise<HeadersInit> {
     }
 }
 
-// Trip API
-export const tripAPI = {
-    async getAll(): Promise<Trip[]> {
-        const url = `${API_BASE_URL}/trips`;
+// Outing API
+export const outingAPI = {
+    async getAll(): Promise<Outing[]> {
+        const url = `${API_BASE_URL}/outings`;
         console.log('🚀 API Request: GET', url);
         const response = await fetch(url);
-        const data = await handleResponse<{ trips: Trip[]; total: number }>(response);
-        return data.trips;
+        const data = await handleResponse<{ outings: Outing[]; total: number }>(response);
+        return data.outings;
     },
 
-    async getAvailable(): Promise<Trip[]> {
-        const url = `${API_BASE_URL}/trips/available`;
+    async getAvailable(): Promise<Outing[]> {
+        const url = `${API_BASE_URL}/outings/available`;
         console.log('🚀 API Request: GET', url);
         const response = await fetch(url);
-        const data = await handleResponse<{ trips: Trip[]; total: number }>(response);
-        return data.trips;
+        const data = await handleResponse<{ outings: Outing[]; total: number }>(response);
+        return data.outings;
     },
 
-    async getById(id: string): Promise<Trip> {
-        const url = `${API_BASE_URL}/trips/${id}`;
+    async getById(id: string): Promise<Outing> {
+        const url = `${API_BASE_URL}/outings/${id}`;
         console.log('🚀 API Request: GET', url);
         const response = await fetch(url, {
             headers: await getAuthHeaders(),
         });
-        return handleResponse<Trip>(response);
+        return handleResponse<Outing>(response);
     },
 
-    async create(trip: TripCreate): Promise<Trip> {
-        const url = `${API_BASE_URL}/trips`;
-        console.log('🚀 API Request: POST', url, trip);
+    async create(outing: OutingCreate): Promise<Outing> {
+        const url = `${API_BASE_URL}/outings`;
+        console.log('🚀 API Request: POST', url, outing);
         const response = await fetch(url, {
             method: 'POST',
             headers: await getAuthHeaders(),
-            body: JSON.stringify(trip),
+            body: JSON.stringify(outing),
         });
-        return handleResponse<Trip>(response);
+        return handleResponse<Outing>(response);
     },
 
-    async update(id: string, trip: Partial<TripCreate>): Promise<Trip> {
-        const url = `${API_BASE_URL}/trips/${id}`;
-        console.log('🚀 API Request: PUT', url, trip);
+    async update(id: string, outing: Partial<OutingCreate>): Promise<Outing> {
+        const url = `${API_BASE_URL}/outings/${id}`;
+        console.log('🚀 API Request: PUT', url, outing);
         const response = await fetch(url, {
             method: 'PUT',
             headers: await getAuthHeaders(),
-            body: JSON.stringify(trip),
+            body: JSON.stringify(outing),
         });
-        return handleResponse<Trip>(response);
+        return handleResponse<Outing>(response);
     },
 
     async delete(id: string): Promise<void> {
-        const url = `${API_BASE_URL}/trips/${id}`;
+        const url = `${API_BASE_URL}/outings/${id}`;
         console.log('🚀 API Request: DELETE', url);
         const response = await fetch(url, {
             method: 'DELETE',
             headers: await getAuthHeaders(),
         });
         if (!response.ok) {
-            throw new APIError(response.status, 'Failed to delete trip');
+            throw new APIError(response.status, 'Failed to delete outing');
         }
     },
 };
@@ -222,8 +222,8 @@ export const signupAPI = {
         return handleResponse<SignupWithDetails>(response);
     },
 
-    async getByTrip(tripId: string): Promise<SignupResponse[]> {
-        const response = await fetch(`${API_BASE_URL}/trips/${tripId}/signups`, {
+    async getByOuting(outingId: string): Promise<SignupResponse[]> {
+        const response = await fetch(`${API_BASE_URL}/outings/${outingId}/signups`, {
             headers: await getAuthHeaders(),
         });
         const data = await handleResponse<{ signups: SignupResponse[]; total: number }>(response);
@@ -233,7 +233,7 @@ export const signupAPI = {
 
 // CSV API
 export const csvAPI = {
-    async importRoster(tripId: string, file: File): Promise<{ message: string; imported_count: number }> {
+    async importRoster(outingId: string, file: File): Promise<{ message: string; imported_count: number }> {
         const formData = new FormData();
         formData.append('file', file);
         
@@ -245,7 +245,7 @@ export const csvAPI = {
             authHeaders['Authorization'] = authHeader;
         }
 
-        const response = await fetch(`${API_BASE_URL}/csv/import?trip_id=${tripId}`, {
+        const response = await fetch(`${API_BASE_URL}/csv/import?outing_id=${outingId}`, {
             method: 'POST',
             headers: authHeaders,
             body: formData,
@@ -253,8 +253,8 @@ export const csvAPI = {
         return handleResponse<{ message: string; imported_count: number }>(response);
     },
 
-    async exportRoster(tripId: string): Promise<Blob> {
-        const response = await fetch(`${API_BASE_URL}/csv/trips/${tripId}/export-roster`, {
+    async exportRoster(outingId: string): Promise<Blob> {
+        const response = await fetch(`${API_BASE_URL}/csv/outings/${outingId}/export-roster`, {
             headers: await getAuthHeaders(),
         });
         if (!response.ok) {
@@ -263,8 +263,8 @@ export const csvAPI = {
         return response.blob();
     },
 
-    async exportRosterPDF(tripId: string): Promise<Blob> {
-        const response = await fetch(`${API_BASE_URL}/csv/trips/${tripId}/export-roster-pdf`, {
+    async exportRosterPDF(outingId: string): Promise<Blob> {
+        const response = await fetch(`${API_BASE_URL}/csv/outings/${outingId}/export-roster-pdf`, {
             headers: await getAuthHeaders(),
         });
         if (!response.ok) {

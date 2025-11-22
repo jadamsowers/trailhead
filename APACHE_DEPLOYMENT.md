@@ -184,10 +184,10 @@ sudo systemctl reload apache2
 
 ```bash
 # Create backup
-docker exec scouting-outing-db pg_dump -U scouttrips scouting_outing_manager > backup_$(date +%Y%m%d_%H%M%S).sql
+docker exec scouting-outing-db pg_dump -U scoutoutings scouting_outing_manager > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Restore from backup
-docker exec -i scouting-outing-db psql -U scouttrips scouting_outing_manager < backup_20240101_120000.sql
+docker exec -i scouting-outing-db psql -U scoutoutings scouting_outing_manager < backup_20240101_120000.sql
 ```
 
 ### Stop Application

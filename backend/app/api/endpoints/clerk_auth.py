@@ -46,10 +46,10 @@ async def sync_user_role(
     Sync user role from Clerk metadata to local database.
     This endpoint can be called after updating role in Clerk dashboard.
     """
-    if role not in ["admin", "parent", "user"]:
+    if role not in ["admin", "adult", "user"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid role. Must be one of: admin, parent, user"
+            detail="Invalid role. Must be one of: admin, adult, user"
         )
     
     current_user.role = role
@@ -93,10 +93,10 @@ async def update_user_role(
     Cannot demote the initial admin.
     """
     # Validate role
-    if request.role not in ["admin", "parent", "user"]:
+    if request.role not in ["admin", "adult", "user"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid role. Must be one of: admin, parent, user"
+            detail="Invalid role. Must be one of: admin, adult, user"
         )
     
     # Get the target user

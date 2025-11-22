@@ -59,7 +59,7 @@ scouting-outing-manager/
 
 ### 1.1 Database Models (SQLAlchemy)
 
-**File: backend/app/models/trip.py**
+**File: backend/app/models/outing.py**
 ```python
 from sqlalchemy import Column, String, Integer, Boolean, Date, Text, DateTime
 from sqlalchemy.dialects.postgresql import UUID
@@ -67,12 +67,12 @@ from sqlalchemy.orm import relationship
 import uuid
 from datetime import datetime
 
-class Trip(Base):
-    __tablename__ = "trips"
+class Outing(Base):
+    __tablename__ = "outings"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(255), nullable=False)
-    trip_date = Column(Date, nullable=False)
+    outing_date = Column(Date, nullable=False)
     location = Column(String(255), nullable=False)
     description = Column(Text)
     max_participants = Column(Integer, nullable=False)
@@ -80,7 +80,7 @@ class Trip(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    signups = relationship("Signup", back_populates="trip", cascade="all, delete-orphan")
+    signups = relationship("Signup", back_populates="outing", cascade="all, delete-orphan")
 ```
 
 **File: backend/app/models/signup.py**
@@ -89,13 +89,13 @@ class Signup(Base):
     __tablename__ = "signups"
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    trip_id = Column(UUID(as_uuid=True), ForeignKey("trips.id"), nullable=False)
+    outing_id = Column(UUID(as_uuid=True), ForeignKey("outings.id"), nullable=False)
     family_contact_name = Column(String(255), nullable=False)
     family_contact_email = Column(String(255), nullable=False)
     family_contact_phone = Column(String(50))
     created_at = Column(DateTime, default=datetime.utcnow)
     
-    trip = relationship("Trip", back_populates="signups")
+    outing = relationship("Outing", back_populates="signups")
     participants = relationship("Participant", back_populates="signup", cascade="all, delete-orphan")
 ```
 
@@ -122,28 +122,28 @@ class Participant(Base):
 
 ### 1.2 Pydantic Schemas
 
-**File: backend/app/schemas/trip.py**
+**File: backend/app/schemas/outing.py**
 ```python
 from pydantic import BaseModel, Field
 from datetime import date
 from uuid import UUID
 from typing import Optional, List
 
-class TripBase(BaseModel):
+class OutingBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    trip_date: date
+    outing_date: date
     location: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
     max_participants: int = Field(..., gt=0)
     is_overnight: bool = False
 
-class TripCreate(TripBase):
+class OutingCreate(OutingBase):
     pass
 
-class TripUpdate(TripBase):
+class OutingUpdate(OutingBase):
     pass
 
-class TripInDB(TripBase):
+class OutingInDB(OutingBase):
     id: UUID
     created_at: datetime
     updated_at: datetime
@@ -156,17 +156,17 @@ class TripInDB(TripBase):
 
 ### 1.3 API Endpoints Structure
 
-**File: backend/app/api/endpoints/trips.py**
-- GET /api/trips - List all trips
-- POST /api/trips - Create trip
-- GET /api/trips/{trip_id} - Get trip details
-- PUT /api/trips/{trip_id} - Update trip
-- DELETE /api/trips/{trip_id} - Delete trip
-- GET /api/trips/{trip_id}/signups - Get trip signups
-- GET /api/trips/{trip_id}/export - Export CSV
+**File: backend/app/api/endpoints/outings.py**
+- GET /api/outings - List all outings
+- POST /api/outings - Create outing
+- GET /api/outings/{outing_id} - Get outing details
+- PUT /api/outings/{outing_id} - Update outing
+- DELETE /api/outings/{outing_id} - Delete outing
+- GET /api/outings/{outing_id}/signups - Get outing signups
+- GET /api/outings/{outing_id}/export - Export CSV
 
 **File: backend/app/api/endpoints/signups.py**
-- GET /api/trips/available - List available trips
+- GET /api/outings/available - List available outings
 - POST /api/signups - Create signup
 - GET /api/signups/{signup_id} - Get signup
 - DELETE /api/signups/{signup_id} - Cancel signup
@@ -207,10 +207,10 @@ settings = Settings()
 
 **File: frontend/src/types/index.ts**
 ```typescript
-export interface Trip {
+export interface Outing {
   id: string;
   name: string;
-  trip_date: string;
+  outing_date: string;
   location: string;
   description?: string;
   max_participants: number;
@@ -234,7 +234,7 @@ export interface Participant {
 }
 
 export interface SignupRequest {
-  trip_id: string;
+  outing_id: string;
   family_contact: {
     name: string;
     email: string;
@@ -245,7 +245,7 @@ export interface SignupRequest {
 
 export interface Signup {
   id: string;
-  trip_id: string;
+  outing_id: string;
   family_contact_name: string;
   family_contact_email: string;
   family_contact_phone: string;
@@ -291,18 +291,18 @@ const apiClient = axios.create({
   },
 });
 
-export const tripApi = {
-  getAll: () => apiClient.get('/trips'),
-  getById: (id: string) => apiClient.get(`/trips/${id}`),
-  create: (data: TripCreate) => apiClient.post('/trips', data),
-  update: (id: string, data: TripUpdate) => apiClient.put(`/trips/${id}`, data),
-  delete: (id: string) => apiClient.delete(`/trips/${id}`),
-  getSignups: (id: string) => apiClient.get(`/trips/${id}/signups`),
-  exportSignups: (id: string) => apiClient.get(`/trips/${id}/export`, { responseType: 'blob' }),
+export const outingApi = {
+  getAll: () => apiClient.get('/outings'),
+  getById: (id: string) => apiClient.get(`/outings/${id}`),
+  create: (data: OutingCreate) => apiClient.post('/outings', data),
+  update: (id: string, data: OutingUpdate) => apiClient.put(`/outings/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/outings/${id}`),
+  getSignups: (id: string) => apiClient.get(`/outings/${id}/signups`),
+  exportSignups: (id: string) => apiClient.get(`/outings/${id}/export`, { responseType: 'blob' }),
 };
 
 export const signupApi = {
-  getAvailableTrips: () => apiClient.get('/trips/available'),
+  getAvailableOutings: () => apiClient.get('/outings/available'),
   create: (data: SignupRequest) => apiClient.post('/signups', data),
   getById: (id: string) => apiClient.get(`/signups/${id}`),
   cancel: (id: string) => apiClient.delete(`/signups/${id}`),
@@ -660,7 +660,7 @@ volumes:
    - Set up Alembic migrations
 
 2. **API Development** (Days 4-6)
-   - Implement trip endpoints
+   - Implement outing endpoints
    - Implement signup endpoints
    - Add validation and error handling
    - Create health check endpoints

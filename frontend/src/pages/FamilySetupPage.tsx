@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
-import { FamilyManagement } from '../components/Parent/FamilyManagement';
+import { FamilyManagement } from '../components/Adult/FamilyManagement';
 import { familyAPI } from '../services/api';
 import TopographicBackground from '../components/Shared/TopographicBackground';
 
@@ -30,7 +30,7 @@ const FamilySetupPage: React.FC = () => {
     };
 
     const handleContinue = () => {
-        navigate('/trips');
+        navigate('/outings');
     };
 
     const handleMemberAdded = () => {
@@ -82,14 +82,14 @@ const FamilySetupPage: React.FC = () => {
                             color: '#1976d2',
                             marginBottom: '10px'
                         }}>
-                            Welcome, {user?.firstName || 'Parent'}!
+                            Welcome, {user?.firstName || 'Adult'}!
                         </h1>
                         <p style={{
                             color: '#666',
                             fontSize: '16px',
                             marginBottom: '0'
                         }}>
-                            Let's set up your family members so you can easily sign up for trips
+                            Let's set up your family members so you can easily sign up for outings
                         </p>
                     </div>
 
@@ -120,8 +120,8 @@ const FamilySetupPage: React.FC = () => {
                                 fontSize: '15px',
                                 lineHeight: '1.6'
                             }}>
-                                Before you can sign up for trips, please add at least one family member (scout or parent).
-                                This information will be saved and can be reused for future trip signups, saving you time!
+                                Before you can sign up for outings, please add at least one family member (scout or adult).
+                                This information will be saved and can be reused for future outing signups, saving you time!
                             </p>
                             <ul style={{
                                 color: '#1565c0',
@@ -179,7 +179,7 @@ const FamilySetupPage: React.FC = () => {
                                     e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
                                 }}
                             >
-                                Continue to Trip Signups →
+                                Continue to Outing Signups →
                             </button>
                         </div>
                     )}
@@ -195,7 +195,7 @@ const FamilySetupPage: React.FC = () => {
                             fontSize: '14px'
                         }}>
                             <p style={{ margin: '0' }}>
-                                Once you've added at least one family member, you can continue to browse and sign up for trips.
+                                Once you've added at least one family member, you can continue to browse and sign up for outings.
                             </p>
                         </div>
                     )}

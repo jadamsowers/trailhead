@@ -4,7 +4,7 @@ This directory contains utility scripts for development and testing.
 
 ## seed_dev_data.py
 
-A script that generates fake family members and trips for development purposes by calling the backend API using Clerk authentication.
+A script that generates fake family members and outings for development purposes by calling the backend API using Clerk authentication.
 
 ### Prerequisites
 
@@ -48,11 +48,11 @@ python backend/scripts/seed_dev_data.py --help
 
 The script will create:
 
-- **10 trips** with various configurations:
-  - Mix of day trips and overnight trips
+- **10 outings** with various configurations:
+  - Mix of day outings and overnight outings
   - Different capacity types (fixed and vehicle-based)
-  - Trips scheduled from 1 week to 3+ months in the future
-  - Realistic trip names, locations, and descriptions
+  - Outings scheduled from 1 week to 3+ months in the future
+  - Realistic outing names, locations, and descriptions
 
 - **15 families** with:
   - 1-3 scouts per family (weighted toward 1-2 scouts)
@@ -70,7 +70,7 @@ The script will create:
 
 ### Admin Requirements
 
-The script requires an **admin user** to create trips. The authenticated Clerk user must:
+The script requires an **admin user** to create outings. The authenticated Clerk user must:
 
 1. Have the `admin` role set in Clerk's public metadata
 2. Be properly configured in the Clerk dashboard
@@ -111,13 +111,13 @@ Development Data Seeding Script (Clerk Authentication)
   ✓ Authenticated as: John Doe (john@example.com)
   ✓ Role: admin
 
-🏕️  Creating trips...
-  ✓ Created overnight trip: Weekend Camping at Pine Lake (fixed capacity)
-  ✓ Created day trip: Day Hike - Eagle Peak Trail (fixed capacity)
-  ✓ Created day trip: Kayaking Adventure (vehicle capacity)
+🏕️  Creating outings...
+  ✓ Created overnight outing: Weekend Camping at Pine Lake (fixed capacity)
+  ✓ Created day outing: Day Hike - Eagle Peak Trail (fixed capacity)
+  ✓ Created day outing: Kayaking Adventure (vehicle capacity)
   ...
 
-✅ Created 10 trips
+✅ Created 10 outings
 
 👨‍👩‍👧‍👦 Creating families...
   ℹ️  Note: Family members will be created under the admin user
@@ -131,7 +131,7 @@ Development Data Seeding Script (Clerk Authentication)
 🎉 Database seeding completed successfully!
 
 📊 Summary:
-  - Trips: 10
+  - Outings: 10
   - Families: 15
   - Family Members: 28
 
@@ -154,7 +154,7 @@ Development Data Seeding Script (Clerk Authentication)
 **Error: "httpx is required"**
 - Install httpx: `pip install httpx`
 
-**Error: "Could not create trip"**
+**Error: "Could not create outing"**
 - Verify you have admin permissions
 - Check the API logs for detailed error messages
 - Ensure the database is properly initialized

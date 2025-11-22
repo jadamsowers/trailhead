@@ -1,9 +1,9 @@
 // API Response Types matching backend schemas
 
-export interface Trip {
+export interface Outing {
     id: string;
     name: string;
-    trip_date: string;
+    outing_date: string;
     end_date?: string;
     location: string;
     description: string;
@@ -18,25 +18,25 @@ export interface Trip {
     needs_two_deep_leadership: boolean;
     needs_female_leader: boolean;
     is_overnight: boolean;
-    trip_lead_name?: string;
-    trip_lead_email?: string;
-    trip_lead_phone?: string;
+    outing_lead_name?: string;
+    outing_lead_email?: string;
+    outing_lead_phone?: string;
     created_at: string;
     updated_at: string;
 }
 
-export interface TripCreate {
+export interface OutingCreate {
     name: string;
-    trip_date: string;
+    outing_date: string;
     end_date?: string;
     location: string;
     description: string;
     max_participants: number;
     capacity_type: 'fixed' | 'vehicle';
     is_overnight: boolean;
-    trip_lead_name?: string;
-    trip_lead_email?: string;
-    trip_lead_phone?: string;
+    outing_lead_name?: string;
+    outing_lead_email?: string;
+    outing_lead_phone?: string;
 }
 
 export interface FamilyContact {
@@ -101,14 +101,14 @@ export interface ParticipantResponse {
 }
 
 export interface SignupCreate {
-    trip_id: string;
+    outing_id: string;
     family_contact: FamilyContact;
     participants: Participant[];
 }
 
 export interface SignupResponse {
     id: string;
-    trip_id: string;
+    outing_id: string;
     family_contact_name: string;
     family_contact_email: string;
     family_contact_phone: string;
@@ -121,7 +121,7 @@ export interface SignupResponse {
 }
 
 export interface SignupWithDetails extends SignupResponse {
-    trip: Trip;
+    outing: Outing;
 }
 
 // Common dietary restrictions and allergies
@@ -174,7 +174,7 @@ export interface ParticipantFormData {
 }
 
 export interface SignupFormData {
-    trip_id: string;
+    outing_id: string;
     email: string;
     phone: string;
     emergency_contact_name: string;
@@ -203,7 +203,7 @@ export interface User {
     id: string;
     email: string;
     full_name: string;
-    role: 'admin' | 'user' | 'parent';
+    role: 'admin' | 'user' | 'adult';
     is_active?: boolean;
     is_initial_admin?: boolean;
 }
@@ -224,7 +224,7 @@ export interface FamilyMember {
     id: string;
     user_id: string;
     name: string;
-    member_type: 'parent' | 'scout';
+    member_type: 'adult' | 'scout';
     date_of_birth?: string;
     troop_number?: string;
     patrol_name?: string;
@@ -240,7 +240,7 @@ export interface FamilyMember {
 
 export interface FamilyMemberCreate {
     name: string;
-    member_type: 'parent' | 'scout';
+    member_type: 'adult' | 'scout';
     date_of_birth?: string;
     troop_number?: string;
     patrol_name?: string;
@@ -274,7 +274,7 @@ export interface FamilyMemberUpdate {
 export interface FamilyMemberSummary {
     id: string;
     name: string;
-    member_type: 'parent' | 'scout';
+    member_type: 'adult' | 'scout';
     troop_number?: string;
     age?: number;
 }
@@ -285,7 +285,7 @@ export interface FamilyMemberListResponse {
 }
 
 // Registration types
-export interface ParentRegistrationRequest {
+export interface AdultRegistrationRequest {
     email: string;
     password: string;
     first_name: string;

@@ -62,14 +62,14 @@ frontend/
 ## Features
 
 ### Admin Interface
-- Create and manage trips
-- View trip signups
+- Create and manage outings
+- View outing signups
 - Export roster as CSV
-- Manage trip dates (single day or overnight with start/end dates)
+- Manage outing dates (single day or overnight with start/end dates)
 
 ### Participant Interface
-- Browse available trips
-- Sign up for trips
+- Browse available outings
+- Sign up for outings
 - Add multiple participants (scouts and adults)
 - Specify dietary restrictions and allergies
 - Youth Protection Training verification for adults

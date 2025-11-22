@@ -4,7 +4,7 @@ import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 import SignupForm from '../components/Participant/SignupForm';
 import { familyAPI } from '../services/api';
 
-const TripsPage: React.FC = () => {
+const OutingsPage: React.FC = () => {
     const { user, isLoaded } = useUser();
     const navigate = useNavigate();
     const [checkingFamily, setCheckingFamily] = useState(true);
@@ -59,13 +59,13 @@ const TripsPage: React.FC = () => {
                     <div className="min-h-screen flex items-center justify-center bg-gray-50">
                         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
                             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                                Welcome to Trip Signups!
+                                Welcome to Outing Signups!
                             </h2>
                             <p className="text-gray-600 mb-6">
-                                Before you can sign up for trips, you need to add family members to your account.
+                                Before you can sign up for outings, you need to add family members to your account.
                             </p>
                             <p className="text-gray-600 mb-8">
-                                Add yourself and any youth or adults who will be participating in trips.
+                                Add yourself and any youth or adults who will be participating in outings.
                             </p>
                             <button
                                 onClick={() => navigate('/family-setup')}
@@ -84,7 +84,7 @@ const TripsPage: React.FC = () => {
                             Sign In Required
                         </h1>
                         <p className="text-gray-600 mb-6">
-                            Please sign in or create an account to view and sign up for trips.
+                            Please sign in or create an account to view and sign up for outings.
                         </p>
                         <button
                             onClick={() => navigate('/login')}
@@ -99,4 +99,4 @@ const TripsPage: React.FC = () => {
     );
 };
 
-export default TripsPage;
+export default OutingsPage;

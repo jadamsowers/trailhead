@@ -41,7 +41,7 @@ class FamilyContact(BaseModel):
 
 class SignupCreate(BaseModel):
     """Schema for creating a signup"""
-    trip_id: UUID = Field(..., description="ID of the trip to sign up for")
+    outing_id: UUID = Field(..., description="ID of the outing to sign up for")
     family_contact: FamilyContact = Field(..., description="Family contact information")
     participants: list[ParticipantCreate] = Field(..., min_length=1, description="List of participants (at least one required)")
 
@@ -70,7 +70,7 @@ class ParticipantResponse(BaseModel):
 class SignupResponse(BaseModel):
     """Schema for signup response"""
     id: UUID
-    trip_id: UUID
+    outing_id: UUID
     family_contact_name: str
     family_contact_email: str
     family_contact_phone: str

@@ -9,7 +9,7 @@ import ParticipantPage from './pages/ParticipantPage';
 import LoginPage from './pages/LoginPage';
 import AdminSetupPage from './pages/AdminSetupPage';
 import FamilySetupPage from './pages/FamilySetupPage';
-import TripsPage from './pages/TripsPage';
+import OutingsPage from './pages/OutingsPage';
 
 // Get Clerk publishable key from environment
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_your_clerk_publishable_key_here';
@@ -17,7 +17,7 @@ const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_
 const HomePage: React.FC = () => {
     const { isSignedIn } = useUser();
 
-    // Redirect signed-in users to family setup or trips
+    // Redirect signed-in users to family setup or outings
     if (isSignedIn) {
         return <Navigate to="/family-setup" replace />;
     }
@@ -33,7 +33,7 @@ const HomePage: React.FC = () => {
                 Scouting Outing Manager
             </h1>
             <p style={{ fontSize: '20px', marginBottom: '40px', color: '#666' }}>
-                Manage scout troop trips, signups, and participant information
+                Manage scout troop outings, signups, and participant information
             </p>
             
             <div style={{
@@ -46,7 +46,7 @@ const HomePage: React.FC = () => {
                     Get Started
                 </h2>
                 <p style={{ color: '#666', fontSize: '16px', marginBottom: '20px' }}>
-                    Sign in or create an account to manage your family and sign up for trips
+                    Sign in or create an account to manage your family and sign up for outings
                 </p>
                 <Link
                     to="/login"
@@ -90,7 +90,7 @@ const HomePage: React.FC = () => {
                     <li>✓ Two-deep leadership tracking</li>
                     <li>✓ Transportation capacity planning</li>
                     <li>✓ CSV roster import/export</li>
-                    <li>✓ Trip capacity management</li>
+                    <li>✓ Outing capacity management</li>
                 </ul>
             </div>
         </div>
@@ -127,7 +127,7 @@ const Navigation: React.FC = () => {
                 <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                     <SignedIn>
                         <Link
-                            to="/trips"
+                            to="/outings"
                             style={{
                                 color: 'white',
                                 textDecoration: 'none',
@@ -138,7 +138,7 @@ const Navigation: React.FC = () => {
                             onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
                             onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
-                            Trips
+                            Outings
                         </Link>
                         <Link
                             to="/family-setup"
@@ -234,9 +234,10 @@ const App: React.FC = () => {
                                     <FamilySetupPage />
                                 </SignedIn>
                             } />
-                            <Route path="/trips" element={<TripsPage />} />
-                            {/* Legacy route - redirect to new flow */}
-                            <Route path="/participant" element={<Navigate to="/trips" replace />} />
+                            <Route path="/outings" element={<OutingsPage />} />
+                            {/* Legacy routes - redirect to new flow */}
+                            <Route path="/outings" element={<Navigate to="/outings" replace />} />
+                            <Route path="/participant" element={<Navigate to="/outings" replace />} />
                         </Routes>
 
                     {/* Footer */}

@@ -1,4 +1,4 @@
-"""add capacity_type to trips
+"""add capacity_type to outings
 
 Revision ID: e3f8a9b2c4d5
 Revises: d5e8f9a1b2c3
@@ -18,9 +18,9 @@ depends_on = None
 
 def upgrade() -> None:
     # Add capacity_type column with default value 'fixed'
-    op.add_column('trips', sa.Column('capacity_type', sa.String(length=20), nullable=False, server_default='fixed'))
+    op.add_column('outings', sa.Column('capacity_type', sa.String(length=20), nullable=False, server_default='fixed'))
 
 
 def downgrade() -> None:
     # Remove capacity_type column
-    op.drop_column('trips', 'capacity_type')
+    op.drop_column('outings', 'capacity_type')

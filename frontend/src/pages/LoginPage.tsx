@@ -20,7 +20,7 @@ const LoginPage: React.FC = () => {
                     Welcome Back
                 </h1>
                 <p className="mb-8 text-gray-600 text-sm">
-                    Sign in to set up your family and sign up for trips
+                    Sign in to set up your family and sign up for outings
                 </p>
 
                 <SignIn

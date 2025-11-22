@@ -1,6 +1,6 @@
 """
-PDF generation utilities for trip rosters.
-Creates attractive, printable check-in sheets for trip leaders.
+PDF generation utilities for outing rosters.
+Creates attractive, printable check-in sheets for outing leaders.
 """
 from io import BytesIO
 from datetime import datetime
@@ -13,12 +13,12 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
 
-def generate_trip_roster_pdf(trip_data: dict, signups: List[dict]) -> BytesIO:
+def generate_outing_roster_pdf(outing_data: dict, signups: List[dict]) -> BytesIO:
     """
-    Generate a PDF roster for a trip with checkboxes for check-in.
+    Generate a PDF roster for a outing with checkboxes for check-in.
     
     Args:
-        trip_data: Dictionary containing trip information (name, date, location, etc.)
+        outing_data: Dictionary containing outing information (name, date, location, etc.)
         signups: List of signup dictionaries with participant information
         
     Returns:
@@ -72,31 +72,31 @@ def generate_trip_roster_pdf(trip_data: dict, signups: List[dict]) -> BytesIO:
     )
     
     # Add title
-    title = Paragraph(f"<b>{trip_data['name']}</b>", title_style)
+    title = Paragraph(f"<b>{outing_data['name']}</b>", title_style)
     elements.append(title)
     
-    # Add trip details
-    trip_date = datetime.fromisoformat(trip_data['trip_date'].replace('Z', '+00:00'))
-    date_str = trip_date.strftime('%B %d, %Y')
+    # Add outing details
+    outing_date = datetime.fromisoformat(outing_data['outing_date'].replace('Z', '+00:00'))
+    date_str = outing_date.strftime('%B %d, %Y')
     
-    if trip_data.get('end_date'):
-        end_date = datetime.fromisoformat(trip_data['end_date'].replace('Z', '+00:00'))
+    if outing_data.get('end_date'):
+        end_date = datetime.fromisoformat(outing_data['end_date'].replace('Z', '+00:00'))
         date_str += f" - {end_date.strftime('%B %d, %Y')}"
     
     subtitle = Paragraph(
-        f"{date_str} | {trip_data['location']}",
+        f"{date_str} | {outing_data['location']}",
         subtitle_style
     )
     elements.append(subtitle)
     elements.append(Spacer(1, 0.1*inch))
     
-    # Add trip leader info if available
-    if trip_data.get('trip_lead_name'):
-        leader_info = f"<b>Trip Leader:</b> {trip_data['trip_lead_name']}"
-        if trip_data.get('trip_lead_phone'):
-            leader_info += f" | <b>Phone:</b> {trip_data['trip_lead_phone']}"
-        if trip_data.get('trip_lead_email'):
-            leader_info += f" | <b>Email:</b> {trip_data['trip_lead_email']}"
+    # Add outing leader info if available
+    if outing_data.get('outing_lead_name'):
+        leader_info = f"<b>Outing Leader:</b> {outing_data['outing_lead_name']}"
+        if outing_data.get('outing_lead_phone'):
+            leader_info += f" | <b>Phone:</b> {outing_data['outing_lead_phone']}"
+        if outing_data.get('outing_lead_email'):
+            leader_info += f" | <b>Email:</b> {outing_data['outing_lead_email']}"
         elements.append(Paragraph(leader_info, header_style))
         elements.append(Spacer(1, 0.1*inch))
     

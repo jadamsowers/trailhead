@@ -1,5 +1,5 @@
 from app.models.user import User
-from app.models.trip import Trip
+from app.models.outing import Outing
 from app.models.signup import Signup
 from app.models.participant import Participant, DietaryRestriction, Allergy
 from app.models.refresh_token import RefreshToken
@@ -7,7 +7,7 @@ from app.models.family import FamilyMember, FamilyMemberDietaryPreference, Famil
 
 __all__ = [
     "User",
-    "Trip",
+    "Outing",
     "Signup",
     "Participant",
     "DietaryRestriction",

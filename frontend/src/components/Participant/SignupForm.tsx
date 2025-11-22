@@ -1,33 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import {
-    Trip,
+    Outing,
     SignupFormData,
     FamilyMemberSummary,
     DIETARY_RESTRICTIONS,
     ALLERGY_TYPES,
     ALLERGY_SEVERITIES
 } from '../../types';
-import { tripAPI, signupAPI, familyAPI, APIError } from '../../services/api';
+import { outingAPI, signupAPI, familyAPI, APIError } from '../../services/api';
 
 const SignupForm: React.FC = () => {
     const { user, isSignedIn } = useUser();
     const isAuthenticated = isSignedIn;
     const isParent = true; // All Clerk users are parents by default
-    const [trips, setTrips] = useState<Trip[]>([]);
-    const [expandedTripId, setExpandedTripId] = useState<string>('');
+    const [outings, setOutings] = useState<Outing[]>([]);
+    const [expandedOutingId, setExpandedOutingId] = useState<string>('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [warnings, setWarnings] = useState<string[]>([]);
-    const [showTripLeadInfo, setShowTripLeadInfo] = useState<{[key: string]: boolean}>({});
+    const [showOutingLeadInfo, setShowOutingLeadInfo] = useState<{[key: string]: boolean}>({});
     const [familyMembers, setFamilyMembers] = useState<FamilyMemberSummary[]>([]);
     const [selectedFamilyMemberIds, setSelectedFamilyMemberIds] = useState<string[]>([]);
     const [saveToFamily, setSaveToFamily] = useState<boolean>(false);
     const [showFamilySelection, setShowFamilySelection] = useState<boolean>(true);
     
     const [formData, setFormData] = useState<SignupFormData>({
-        trip_id: '',
+        outing_id: '',
         email: '',
         phone: '',
         emergency_contact_name: '',
@@ -48,7 +48,7 @@ const SignupForm: React.FC = () => {
     });
 
     useEffect(() => {
-        loadTrips();
+        loadOutings();
         if (isAuthenticated && isParent) {
             loadFamilyMembers();
             // Pre-fill contact info from user profile
@@ -61,21 +61,21 @@ const SignupForm: React.FC = () => {
         }
     }, [isAuthenticated, isParent, user]);
 
-    const loadTrips = async () => {
+    const loadOutings = async () => {
         try {
             setLoading(true);
-            const data = await tripAPI.getAll();
-            // Filter to show only future trips (compare dates only, not time)
+            const data = await outingAPI.getAll();
+            // Filter to show only future outings (compare dates only, not time)
             const today = new Date();
             today.setHours(0, 0, 0, 0); // Reset to start of day
-            const futureTrips = data.filter(trip => {
-                const tripDate = new Date(trip.trip_date);
-                tripDate.setHours(0, 0, 0, 0); // Reset to start of day
-                return tripDate >= today;
+            const futureOutings = data.filter(outing => {
+                const outingDate = new Date(outing.outing_date);
+                outingDate.setHours(0, 0, 0, 0); // Reset to start of day
+                return outingDate >= today;
             });
-            setTrips(futureTrips);
+            setOutings(futureOutings);
         } catch (err) {
-            setError(err instanceof APIError ? err.message : 'Failed to load trips');
+            setError(err instanceof APIError ? err.message : 'Failed to load outings');
         } finally {
             setLoading(false);
         }
@@ -90,16 +90,16 @@ const SignupForm: React.FC = () => {
         }
     };
 
-    const handleTripToggle = (tripId: string) => {
-        if (expandedTripId === tripId) {
+    const handleOutingToggle = (outingId: string) => {
+        if (expandedOutingId === outingId) {
             // Collapse if already expanded
-            setExpandedTripId('');
-            setFormData({ ...formData, trip_id: '' });
+            setExpandedOutingId('');
+            setFormData({ ...formData, outing_id: '' });
         } else {
-            // Expand and set trip
-            setExpandedTripId(tripId);
-            setFormData({ ...formData, trip_id: tripId });
-            // Reset form state when switching trips
+            // Expand and set outing
+            setExpandedOutingId(outingId);
+            setFormData({ ...formData, outing_id: outingId });
+            // Reset form state when switching outings
             setShowFamilySelection(true);
             setSelectedFamilyMemberIds([]);
         }
@@ -195,10 +195,10 @@ const SignupForm: React.FC = () => {
             );
             
             // Sort members: adults first, then scouts
-            // This ensures adults' vehicle capacity is added to the trip before scouts
+            // This ensures adults' vehicle capacity is added to the outing before scouts
             const sortedMembers = memberDetails.sort((a, b) => {
-                if (a.member_type === 'parent' && b.member_type === 'scout') return -1;
-                if (a.member_type === 'scout' && b.member_type === 'parent') return 1;
+                if (a.member_type === 'adult' && b.member_type === 'scout') return -1;
+                if (a.member_type === 'scout' && b.member_type === 'adult') return 1;
                 return 0;
             });
             
@@ -274,7 +274,7 @@ const SignupForm: React.FC = () => {
     };
 
     const validateForm = (): string | null => {
-        if (!formData.trip_id) return 'Please select a trip';
+        if (!formData.outing_id) return 'Please select a outing';
         if (!formData.email) return 'Email is required';
         if (!formData.phone) return 'Phone number is required';
         if (!formData.emergency_contact_name) return 'Emergency contact name is required';
@@ -313,7 +313,7 @@ const SignupForm: React.FC = () => {
             
             // Transform form data to API format
             const signupData = {
-                trip_id: formData.trip_id,
+                outing_id: formData.outing_id,
                 family_contact: {
                     email: formData.email,
                     phone: formData.phone,
@@ -361,13 +361,13 @@ const SignupForm: React.FC = () => {
 
             const response = await signupAPI.create(signupData);
             
-            // If authenticated parent and "save to family" is checked, save new participants
+            // If authenticated adult and "save to family" is checked, save new participants
             if (isAuthenticated && isParent && saveToFamily && selectedFamilyMemberIds.length === 0) {
                 try {
                     for (const participant of formData.participants) {
                         const familyMemberData = {
                             name: participant.full_name,
-                            member_type: participant.participant_type === 'scout' ? 'scout' as const : 'parent' as const,
+                            member_type: participant.participant_type === 'scout' ? 'scout' as const : 'adult' as const,
                             troop_number: participant.troop_number || undefined,
                             patrol_name: participant.patrol || undefined,
                             has_youth_protection: participant.has_youth_protection_training,
@@ -400,7 +400,7 @@ const SignupForm: React.FC = () => {
             setTimeout(() => {
                 setWarnings([]);
                 setFormData({
-                    trip_id: '',
+                    outing_id: '',
                     email: '',
                     phone: '',
                     emergency_contact_name: '',
@@ -419,7 +419,7 @@ const SignupForm: React.FC = () => {
                         allergies: []
                     }]
                 });
-                setExpandedTripId('');
+                setExpandedOutingId('');
                 setSuccess(false);
                 setSelectedFamilyMemberIds([]);
                 setSaveToFamily(false);
@@ -432,11 +432,11 @@ const SignupForm: React.FC = () => {
         }
     };
 
-    const selectedTrip = trips.find(t => t.id === expandedTripId);
+    const selectedOuting = outings.find(t => t.id === expandedOutingId);
 
     return (
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-            <h1>Trip Signup Form</h1>
+            <h1>Outing Signup Form</h1>
             
             {success && (
                 <>
@@ -483,50 +483,50 @@ const SignupForm: React.FC = () => {
                 </div>
             )}
 
-            {/* Trip Selection with Expandable Forms */}
+            {/* Outing Selection with Expandable Forms */}
             <div style={{ marginBottom: '30px' }}>
-                <h2>Select a Trip to Sign Up</h2>
-                {loading && trips.length === 0 ? (
-                    <p>Loading available trips...</p>
-                ) : trips.length === 0 ? (
-                    <p>No upcoming trips available at this time.</p>
+                <h2>Select a Outing to Sign Up</h2>
+                {loading && outings.length === 0 ? (
+                    <p>Loading available outings...</p>
+                ) : outings.length === 0 ? (
+                    <p>No upcoming outings available at this time.</p>
                 ) : (
                     <div>
-                        {trips.map(trip => (
+                        {outings.map(outing => (
                             <div
-                                key={trip.id}
+                                key={outing.id}
                                 style={{
                                     marginBottom: '20px',
-                                    border: expandedTripId === trip.id ? '2px solid #1976d2' : '1px solid #ddd',
+                                    border: expandedOutingId === outing.id ? '2px solid #1976d2' : '1px solid #ddd',
                                     borderRadius: '8px',
                                     overflow: 'hidden'
                                 }}
                             >
-                                {/* Trip Header - Clickable */}
+                                {/* Outing Header - Clickable */}
                                 <div
-                                    onClick={() => handleTripToggle(trip.id)}
+                                    onClick={() => handleOutingToggle(outing.id)}
                                     style={{
                                         padding: '15px',
                                         cursor: 'pointer',
-                                        backgroundColor: expandedTripId === trip.id ? '#e3f2fd' : 'white',
+                                        backgroundColor: expandedOutingId === outing.id ? '#e3f2fd' : 'white',
                                         transition: 'background-color 0.2s'
                                     }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <h3 style={{ margin: '0 0 10px 0' }}>{trip.name}</h3>
+                                        <h3 style={{ margin: '0 0 10px 0' }}>{outing.name}</h3>
                                         <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-                                            {expandedTripId === trip.id ? '▼' : '▶'}
+                                            {expandedOutingId === outing.id ? '▼' : '▶'}
                                         </span>
                                     </div>
                                     <p style={{ margin: '5px 0' }}>
-                                        <strong>Date:</strong> {new Date(trip.trip_date).toLocaleDateString()}
+                                        <strong>Date:</strong> {new Date(outing.outing_date).toLocaleDateString()}
                                     </p>
                                     <p style={{ margin: '5px 0' }}>
-                                        <strong>Location:</strong> {trip.location}
+                                        <strong>Location:</strong> {outing.location}
                                     </p>
                                     
                                     {/* Scouting America Two-Deep Leadership Warning */}
-                                    {trip.needs_two_deep_leadership && (
+                                    {outing.needs_two_deep_leadership && (
                                         <p style={{
                                             margin: '10px 0',
                                             padding: '10px',
@@ -536,13 +536,13 @@ const SignupForm: React.FC = () => {
                                             fontSize: '14px',
                                             fontWeight: 'bold'
                                         }}>
-                                            ⚠️ Scouting America Requirement: This trip needs at least {2 - trip.adult_count} more adult(s).
-                                            Scouting America requires a minimum of 2 adults on every trip for two-deep leadership.
+                                            ⚠️ Scouting America Requirement: This outing needs at least {2 - outing.adult_count} more adult(s).
+                                            Scouting America requires a minimum of 2 adults on every outing for two-deep leadership.
                                         </p>
                                     )}
                                     
                                     {/* Scouting America Female Leader Warning */}
-                                    {trip.needs_female_leader && (
+                                    {outing.needs_female_leader && (
                                         <p style={{
                                             margin: '10px 0',
                                             padding: '10px',
@@ -552,29 +552,29 @@ const SignupForm: React.FC = () => {
                                             fontSize: '14px',
                                             fontWeight: 'bold'
                                         }}>
-                                            ⚠️ Scouting America Requirement: This trip has female youth participants and requires at least one female adult leader.
+                                            ⚠️ Scouting America Requirement: This outing has female youth participants and requires at least one female adult leader.
                                         </p>
                                     )}
                                     
-                                    {trip.capacity_type === 'fixed' ? (
+                                    {outing.capacity_type === 'fixed' ? (
                                         <p style={{ margin: '5px 0' }}>
-                                            <strong>Capacity:</strong> {trip.signup_count} / {trip.max_participants}
-                                            {trip.is_full && (
+                                            <strong>Capacity:</strong> {outing.signup_count} / {outing.max_participants}
+                                            {outing.is_full && (
                                                 <span style={{ color: '#d32f2f', marginLeft: '10px' }}>FULL</span>
                                             )}
                                         </p>
                                     ) : (
                                         <>
                                             <p style={{ margin: '5px 0' }}>
-                                                <strong>Participants:</strong> {trip.signup_count}
+                                                <strong>Participants:</strong> {outing.signup_count}
                                             </p>
                                             <p style={{ margin: '5px 0' }}>
-                                                <strong>Vehicle Seats Available:</strong> {trip.available_spots}
-                                                {trip.is_full && (
+                                                <strong>Vehicle Seats Available:</strong> {outing.available_spots}
+                                                {outing.is_full && (
                                                     <span style={{ color: '#d32f2f', marginLeft: '10px' }}>FULL</span>
                                                 )}
                                             </p>
-                                            {trip.needs_more_drivers && (
+                                            {outing.needs_more_drivers && (
                                                 <p style={{
                                                     margin: '10px 0',
                                                     padding: '10px',
@@ -584,11 +584,11 @@ const SignupForm: React.FC = () => {
                                                     fontSize: '14px',
                                                     fontWeight: 'bold'
                                                 }}>
-                                                    ⚠️ We need more adult drivers! Current vehicle capacity is {trip.total_vehicle_capacity} seats for {trip.signup_count} participants.
+                                                    ⚠️ We need more adult drivers! Current vehicle capacity is {outing.total_vehicle_capacity} seats for {outing.signup_count} participants.
                                                     If you're an adult, please consider signing up with vehicle capacity to help transport scouts.
                                                 </p>
                                             )}
-                                            {trip.is_full && !trip.needs_more_drivers && (
+                                            {outing.is_full && !outing.needs_more_drivers && (
                                                 <p style={{
                                                     margin: '10px 0',
                                                     padding: '10px',
@@ -598,24 +598,24 @@ const SignupForm: React.FC = () => {
                                                     fontSize: '14px',
                                                     fontWeight: 'bold'
                                                 }}>
-                                                    This trip is currently full. We need more adults to sign up with vehicle capacity to accommodate additional participants.
+                                                    This outing is currently full. We need more adults to sign up with vehicle capacity to accommodate additional participants.
                                                     If you're an adult willing to drive, your signup will help create space for more scouts!
                                                 </p>
                                             )}
                                         </>
                                     )}
-                                    {trip.description && <p style={{ margin: '10px 0 0 0' }}>{trip.description}</p>}
+                                    {outing.description && <p style={{ margin: '10px 0 0 0' }}>{outing.description}</p>}
                                     
-                                    {/* Trip Lead Contact Information - Collapsible */}
-                                    {(trip.trip_lead_name || trip.trip_lead_email || trip.trip_lead_phone) && (
+                                    {/* Outing Lead Contact Information - Collapsible */}
+                                    {(outing.outing_lead_name || outing.outing_lead_email || outing.outing_lead_phone) && (
                                         <div style={{ marginTop: '15px' }} onClick={(e) => e.stopPropagation()}>
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setShowTripLeadInfo({
-                                                        ...showTripLeadInfo,
-                                                        [trip.id]: !showTripLeadInfo[trip.id]
+                                                    setShowOutingLeadInfo({
+                                                        ...showOutingLeadInfo,
+                                                        [outing.id]: !showOutingLeadInfo[outing.id]
                                                     });
                                                 }}
                                                 style={{
@@ -629,10 +629,10 @@ const SignupForm: React.FC = () => {
                                                     fontWeight: 'bold'
                                                 }}
                                             >
-                                                {showTripLeadInfo[trip.id] ? '▼ Hide' : '▶ Show'} Trip Lead Contact Info
+                                                {showOutingLeadInfo[outing.id] ? '▼ Hide' : '▶ Show'} Outing Lead Contact Info
                                             </button>
                                             
-                                            {showTripLeadInfo[trip.id] && (
+                                            {showOutingLeadInfo[outing.id] && (
                                                 <div style={{
                                                     marginTop: '10px',
                                                     padding: '15px',
@@ -640,20 +640,20 @@ const SignupForm: React.FC = () => {
                                                     borderRadius: '4px',
                                                     border: '1px solid #2196f3'
                                                 }}>
-                                                    <h4 style={{ margin: '0 0 10px 0', color: '#1976d2' }}>Trip Lead Contact</h4>
-                                                    {trip.trip_lead_name && (
+                                                    <h4 style={{ margin: '0 0 10px 0', color: '#1976d2' }}>Outing Lead Contact</h4>
+                                                    {outing.outing_lead_name && (
                                                         <p style={{ margin: '5px 0' }}>
-                                                            <strong>Name:</strong> {trip.trip_lead_name}
+                                                            <strong>Name:</strong> {outing.outing_lead_name}
                                                         </p>
                                                     )}
-                                                    {trip.trip_lead_email && (
+                                                    {outing.outing_lead_email && (
                                                         <p style={{ margin: '5px 0' }}>
-                                                            <strong>Email:</strong> <a href={`mailto:${trip.trip_lead_email}`} style={{ color: '#1976d2' }}>{trip.trip_lead_email}</a>
+                                                            <strong>Email:</strong> <a href={`mailto:${outing.outing_lead_email}`} style={{ color: '#1976d2' }}>{outing.outing_lead_email}</a>
                                                         </p>
                                                     )}
-                                                    {trip.trip_lead_phone && (
+                                                    {outing.outing_lead_phone && (
                                                         <p style={{ margin: '5px 0' }}>
-                                                            <strong>Phone:</strong> <a href={`tel:${trip.trip_lead_phone}`} style={{ color: '#1976d2' }}>{trip.trip_lead_phone}</a>
+                                                            <strong>Phone:</strong> <a href={`tel:${outing.outing_lead_phone}`} style={{ color: '#1976d2' }}>{outing.outing_lead_phone}</a>
                                                         </p>
                                                     )}
                                                 </div>
@@ -663,28 +663,28 @@ const SignupForm: React.FC = () => {
                                 </div>
 
                                 {/* Expandable Form Section */}
-                                {expandedTripId === trip.id && selectedTrip && (
+                                {expandedOutingId === outing.id && selectedOuting && (
                                     <form onSubmit={handleSubmit} style={{ padding: '20px', backgroundColor: '#f5f5f5', borderTop: '2px solid #1976d2' }}>
                         {/* Family Member Selection (for authenticated parents) */}
                         {isAuthenticated && isParent && familyMembers.length > 0 && showFamilySelection && (
                             <div style={{ marginBottom: '30px', padding: '20px', border: '2px solid #4caf50', borderRadius: '8px', backgroundColor: '#f1f8f4' }}>
                                 <h2>Select Participants from Your Family</h2>
                                 <p style={{ marginBottom: '15px', color: '#555' }}>
-                                    Select one or more family members to sign up for this trip
+                                    Select one or more family members to sign up for this outing
                                 </p>
                                 
                                 {/* Group parents and scouts separately */}
                                 {(() => {
-                                    const parents = familyMembers.filter(m => m.member_type === 'parent');
+                                    const adults = familyMembers.filter(m => m.member_type === 'adult');
                                     const scouts = familyMembers.filter(m => m.member_type === 'scout');
                                     
                                     return (
                                         <>
-                                            {parents.length > 0 && (
+                                            {adults.length > 0 && (
                                                 <div style={{ marginBottom: '20px' }}>
-                                                    <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#555', fontWeight: 'bold' }}>Parents</h3>
+                                                    <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#555', fontWeight: 'bold' }}>Adults</h3>
                                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
-                                                        {parents.map(member => {
+                                                        {adults.map(member => {
                                                             const isSelected = selectedFamilyMemberIds.includes(member.id);
                                                             return (
                                                                 <div
@@ -721,7 +721,7 @@ const SignupForm: React.FC = () => {
                                                                     )}
                                                                     <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{member.name}</h3>
                                                                     <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
-                                                                        <strong>Type:</strong> Parent
+                                                                        <strong>Type:</strong> Adult
                                                                     </p>
                                                                     {member.age && (
                                                                         <p style={{ margin: '4px 0', fontSize: '14px', color: '#666' }}>
@@ -946,7 +946,7 @@ const SignupForm: React.FC = () => {
                                 </div>
                                 <div style={{ padding: '15px', backgroundColor: '#fff3e0', borderRadius: '6px', border: '1px solid #ff9800' }}>
                                     <p style={{ margin: '0', fontSize: '14px', color: '#e65100' }}>
-                                        ℹ️ <strong>Need to add more participants?</strong> Please go to the Family Setup page to add additional family members, then return here to sign them up for this trip.
+                                        ℹ️ <strong>Need to add more participants?</strong> Please go to the Family Setup page to add additional family members, then return here to sign them up for this outing.
                                     </p>
                                     <button
                                         type="button"

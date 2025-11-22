@@ -40,14 +40,14 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 
 #### 1. Browse Endpoints
 
-- Endpoints are organized by tags: `trips`, `signups`, `csv-import-export`
+- Endpoints are organized by tags: `outings`, `signups`, `csv-import-export`
 - Click any endpoint to expand and see details
 - View request parameters, body schemas, and response formats
 
 #### 2. Test Public Endpoints
 
 ```
-1. Click on "GET /api/trips" to expand
+1. Click on "GET /api/outings" to expand
 2. Click "Try it out" button
 3. Click "Execute" to make the request
 4. View the response below
@@ -72,15 +72,15 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
    - Click "Close"
 
 3. Now you can test admin endpoints:
-   - Try "POST /api/trips" to create a trip
-   - Try "GET /api/trips/{trip_id}/signups" to view signups
+   - Try "POST /api/outings" to create a outing
+   - Try "GET /api/outings/{outing_id}/signups" to view signups
 ```
 
-#### 4. Create a Test Trip
+#### 4. Create a Test Outing
 
 ```
 1. Authorize with admin credentials (see above)
-2. Expand "POST /api/trips"
+2. Expand "POST /api/outings"
 3. Click "Try it out"
 4. Edit the request body:
    {
@@ -93,7 +93,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
      "is_overnight": true
    }
 5. Click "Execute"
-6. Copy the trip "id" from the response
+6. Copy the outing "id" from the response
 ```
 
 #### 5. Create a Test Signup
@@ -101,9 +101,9 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 1. Expand "POST /api/signups"
 2. Click "Try it out"
-3. Edit the request body with your trip_id:
+3. Edit the request body with your outing_id:
    {
-     "trip_id": "<paste-trip-id-here>",
+     "outing_id": "<paste-outing-id-here>",
      "contact_name": "John Smith",
      "contact_email": "john.smith@example.com",
      "contact_phone": "555-0123",
@@ -218,13 +218,13 @@ The documentation is automatically generated from your code. To enhance it:
 ### 1. Add Endpoint Descriptions
 
 ```python
-@router.get("/trips/{trip_id}")
-async def get_trip(trip_id: UUID):
+@router.get("/outings/{outing_id}")
+async def get_outing(outing_id: UUID):
     """
-    Get a specific trip by ID.
+    Get a specific outing by ID.
     
-    Returns detailed information about a single trip including:
-    - Trip details (name, dates, location)
+    Returns detailed information about a single outing including:
+    - Outing details (name, dates, location)
     - Capacity information
     - Current signup count
     """
@@ -236,10 +236,10 @@ async def get_trip(trip_id: UUID):
 ```python
 from fastapi import Response
 
-@router.post("/trips", response_model=TripResponse)
-async def create_trip(trip: TripCreate):
+@router.post("/outings", response_model=OutingResponse)
+async def create_outing(outing: OutingCreate):
     """
-    Create a new trip.
+    Create a new outing.
     
     Example response:
     ```json
@@ -257,9 +257,9 @@ async def create_trip(trip: TripCreate):
 ### 3. Add Tags and Metadata
 
 ```python
-@router.get("/trips", tags=["trips", "public"])
-async def list_trips():
-    """List all available trips"""
+@router.get("/outings", tags=["outings", "public"])
+async def list_outings():
+    """List all available outings"""
     # endpoint code
 ```
 
@@ -281,7 +281,7 @@ async def list_trips():
 
 3. **Use in curl**
    ```bash
-   curl -X GET http://localhost:8000/api/trips \
+   curl -X GET http://localhost:8000/api/outings \
      -H "Authorization: Bearer <your_access_token>"
    ```
 
@@ -293,19 +293,19 @@ async def list_trips():
 |--------|----------|-------------|
 | GET | `/` | API information and links |
 | GET | `/api/health` | Health check |
-| GET | `/api/trips` | List available trips |
+| GET | `/api/outings` | List available outings |
 | POST | `/api/signups` | Create signup |
 
 ### Admin Endpoints (Requires Authentication)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/trips` | Create new trip |
-| PUT | `/api/trips/{id}` | Update trip |
-| DELETE | `/api/trips/{id}` | Delete trip |
-| GET | `/api/trips/{id}/signups` | View trip signups |
-| POST | `/api/csv/trips/{id}/import-roster` | Import CSV roster |
-| GET | `/api/csv/trips/{id}/export-roster` | Export CSV roster |
+| POST | `/api/outings` | Create new outing |
+| PUT | `/api/outings/{id}` | Update outing |
+| DELETE | `/api/outings/{id}` | Delete outing |
+| GET | `/api/outings/{id}/signups` | View outing signups |
+| POST | `/api/csv/outings/{id}/import-roster` | Import CSV roster |
+| GET | `/api/csv/outings/{id}/export-roster` | Export CSV roster |
 
 ### Authentication Endpoints
 
@@ -379,6 +379,6 @@ http://<your-server-ip>:8000/redoc
 1. Start the server: `uvicorn app.main:app --reload`
 2. Open Swagger UI: http://localhost:8000/docs
 3. Test the health endpoint
-4. Create a test trip
+4. Create a test outing
 5. Create a test signup
 6. Explore all available endpoints!

@@ -26,8 +26,8 @@ async def get_signup(db: AsyncSession, signup_id: UUID) -> Optional[Signup]:
     return result.scalar_one_or_none()
 
 
-async def get_trip_signups(db: AsyncSession, trip_id: UUID) -> list[Signup]:
-    """Get all signups for a specific trip"""
+async def get_outing_signups(db: AsyncSession, outing_id: UUID) -> list[Signup]:
+    """Get all signups for a specific outing"""
     result = await db.execute(
         select(Signup)
         .options(
@@ -38,7 +38,7 @@ async def get_trip_signups(db: AsyncSession, trip_id: UUID) -> list[Signup]:
             selectinload(Signup.participants)
             .selectinload(Participant.allergies)
         )
-        .where(Signup.trip_id == trip_id)
+        .where(Signup.outing_id == outing_id)
         .order_by(Signup.created_at.desc())
     )
     return result.scalars().all()
@@ -48,7 +48,7 @@ async def create_signup(db: AsyncSession, signup: SignupCreate) -> Signup:
     """Create a new signup with participants"""
     # Create signup
     db_signup = Signup(
-        trip_id=signup.trip_id,
+        outing_id=signup.outing_id,
         family_contact_name=signup.family_contact.emergency_contact_name,
         family_contact_email=signup.family_contact.email,
         family_contact_phone=signup.family_contact.phone,

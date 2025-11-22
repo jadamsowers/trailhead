@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import TripAdmin from '../components/Admin/TripAdmin';
+import OutingAdmin from '../components/Admin/OutingAdmin';
 import UserManagement from '../components/Admin/UserManagement';
 import DevDataSeeder from '../components/Admin/DevDataSeeder';
 
 const AdminPage: React.FC = () => {
     const { isLoaded } = useUser();
-    const [activeTab, setActiveTab] = useState<'trips' | 'users'>('trips');
+    const [activeTab, setActiveTab] = useState<'outings' | 'users'>('outings');
 
     if (!isLoaded) {
         return (
@@ -26,7 +26,7 @@ const AdminPage: React.FC = () => {
                         Admin Dashboard
                     </h1>
                     <p className="text-gray-600 mt-2">
-                        Manage trips, users, and system settings
+                        Manage outings, users, and system settings
                     </p>
                 </div>
 
@@ -36,9 +36,9 @@ const AdminPage: React.FC = () => {
                 {/* Large Colorful Button Navigation */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-8">
                     <button
-                        onClick={() => setActiveTab('trips')}
+                        onClick={() => setActiveTab('outings')}
                         className={`
-                            ${activeTab === 'trips' 
+                            ${activeTab === 'outings' 
                                 ? 'bg-gradient-scout shadow-elevated scale-105 ring-4 ring-blue-500/30' 
                                 : 'bg-gradient-scout-light shadow-lg scale-100'
                             }
@@ -62,9 +62,9 @@ const AdminPage: React.FC = () => {
                                     d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
                                 />
                             </svg>
-                            <h2 className="text-3xl font-heading font-bold m-0">Trip Management</h2>
+                            <h2 className="text-3xl font-heading font-bold m-0">Outing Management</h2>
                             <p className="text-base opacity-90 m-0">
-                                Create, edit, and manage scouting trips
+                                Create, edit, and manage scouting outings
                             </p>
                         </div>
                     </button>
@@ -106,7 +106,7 @@ const AdminPage: React.FC = () => {
 
                 {/* Tab Content */}
                 <div>
-                    {activeTab === 'trips' && <TripAdmin />}
+                    {activeTab === 'outings' && <OutingAdmin />}
                     {activeTab === 'users' && <UserManagement />}
                 </div>
             </div>

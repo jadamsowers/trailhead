@@ -21,7 +21,7 @@ from app.main import app
 from app.db.base import Base
 from app.db.session import get_db
 from app.models.user import User
-from app.models.trip import Trip
+from app.models.outing import Outing
 from app.models.signup import Signup
 from app.models.participant import Participant, DietaryRestriction, Allergy
 from app.core.security import get_password_hash, create_access_token
@@ -119,49 +119,49 @@ async def auth_headers(test_user_token: str) -> dict:
 
 
 @pytest.fixture
-async def test_trip(db_session: AsyncSession) -> Trip:
-    """Create a test trip"""
-    trip = Trip(
+async def test_outing(db_session: AsyncSession) -> Outing:
+    """Create a test outing"""
+    outing = Outing(
         id=uuid.uuid4(),
-        name="Test Camping Trip",
-        trip_date=date.today() + timedelta(days=30),
+        name="Test Camping Outing",
+        outing_date=date.today() + timedelta(days=30),
         end_date=date.today() + timedelta(days=32),
         location="Test Campground",
-        description="A test camping trip",
+        description="A test camping outing",
         max_participants=20,
         is_overnight=True,
     )
-    db_session.add(trip)
+    db_session.add(outing)
     await db_session.commit()
-    await db_session.refresh(trip)
-    return trip
+    await db_session.refresh(outing)
+    return outing
 
 
 @pytest.fixture
-async def test_day_trip(db_session: AsyncSession) -> Trip:
-    """Create a test day trip"""
-    trip = Trip(
+async def test_day_outing(db_session: AsyncSession) -> Outing:
+    """Create a test day outing"""
+    outing = Outing(
         id=uuid.uuid4(),
         name="Test Day Hike",
-        trip_date=date.today() + timedelta(days=15),
+        outing_date=date.today() + timedelta(days=15),
         end_date=None,
         location="Test Trail",
         description="A test day hike",
         max_participants=15,
         is_overnight=False,
     )
-    db_session.add(trip)
+    db_session.add(outing)
     await db_session.commit()
-    await db_session.refresh(trip)
-    return trip
+    await db_session.refresh(outing)
+    return outing
 
 
 @pytest.fixture
-async def test_signup(db_session: AsyncSession, test_trip: Trip) -> Signup:
+async def test_signup(db_session: AsyncSession, test_outing: Outing) -> Signup:
     """Create a test signup with participants"""
     signup = Signup(
         id=uuid.uuid4(),
-        trip_id=test_trip.id,
+        outing_id=test_outing.id,
         family_contact_name="John Doe",
         family_contact_email="john@example.com",
         family_contact_phone="555-1234",
@@ -260,10 +260,10 @@ async def test_participant_with_restrictions(db_session: AsyncSession, test_sign
 
 
 @pytest.fixture
-def sample_signup_data(test_trip: Trip) -> dict:
+def sample_signup_data(test_outing: Outing) -> dict:
     """Sample signup data for testing"""
     return {
-        "trip_id": str(test_trip.id),
+        "outing_id": str(test_outing.id),
         "family_contact": {
             "name": "Jane Smith",
             "email": "jane@example.com",
@@ -303,11 +303,11 @@ def sample_signup_data(test_trip: Trip) -> dict:
 
 
 @pytest.fixture
-def sample_trip_data() -> dict:
-    """Sample trip data for testing"""
+def sample_outing_data() -> dict:
+    """Sample outing data for testing"""
     return {
         "name": "Summer Camp 2026",
-        "trip_date": (date.today() + timedelta(days=60)).isoformat(),
+        "outing_date": (date.today() + timedelta(days=60)).isoformat(),
         "end_date": (date.today() + timedelta(days=67)).isoformat(),
         "location": "Camp Wilderness",
         "description": "Week-long summer camp adventure",

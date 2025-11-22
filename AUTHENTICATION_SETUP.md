@@ -214,7 +214,7 @@ Create `backend/.env`:
 
 ```env
 SECRET_KEY=your-super-secret-key-change-in-production
-DATABASE_URL=postgresql+asyncpg://user:password@localhost/scouttrips
+DATABASE_URL=postgresql+asyncpg://user:password@localhost/scoutoutings
 
 # Initial Admin User Configuration (optional)
 # If INITIAL_ADMIN_PASSWORD is not set, a random password will be generated

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { tripAPI, familyAPI } from '../../services/api';
+import { outingAPI, familyAPI } from '../../services/api';
 
 // Fake data pools
 const FIRST_NAMES_MALE = ["James", "John", "Robert", "Michael", "William", "David", "Richard", "Joseph", "Thomas", "Christopher"];
@@ -42,7 +42,7 @@ const TRIP_NAMES = [
     "Day Hike - Eagle Peak Trail",
     "Kayaking Adventure",
     "Rock Climbing Workshop",
-    "Backpacking Trip - Mountain Ridge",
+    "Backpacking Outing - Mountain Ridge",
     "Service Project - Trail Maintenance",
     "Fishing Derby",
     "Winter Camping Experience",
@@ -67,7 +67,7 @@ const TRIP_DESCRIPTIONS = [
     "Join us for an exciting outdoor adventure! This is a great opportunity for scouts to develop outdoor skills and build teamwork.",
     "Come experience the great outdoors! All skill levels welcome. Bring your enthusiasm and sense of adventure.",
     "A fantastic adventure awaits! Don't miss this opportunity to explore nature and make lasting memories.",
-    "This trip will challenge and inspire our scouts. Sign up today and be part of something special!",
+    "This outing will challenge and inspire our scouts. Sign up today and be part of something special!",
     "Experience the thrill of outdoor adventure while learning valuable scouting skills in a safe, supervised environment.",
 ];
 
@@ -89,7 +89,7 @@ const DevDataSeeder: React.FC = () => {
     const [seedMessage, setSeedMessage] = useState<string | null>(null);
     const [seedError, setSeedError] = useState<string | null>(null);
 
-    const createTrip = async (
+    const createOuting = async (
         name: string,
         location: string,
         daysFromNow: number,
@@ -98,41 +98,41 @@ const DevDataSeeder: React.FC = () => {
         maxParticipants: number
     ) => {
         const today = new Date();
-        const tripDate = new Date(today);
-        tripDate.setDate(today.getDate() + daysFromNow);
+        const outingDate = new Date(today);
+        outingDate.setDate(today.getDate() + daysFromNow);
         
-        const endDate = isOvernight ? new Date(tripDate) : null;
+        const endDate = isOvernight ? new Date(outingDate) : null;
         if (endDate) {
-            endDate.setDate(tripDate.getDate() + randomInt(1, 3));
+            endDate.setDate(outingDate.getDate() + randomInt(1, 3));
         }
 
         const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
-        const tripData: any = {
+        const outingData: any = {
             name,
-            trip_date: formatDate(tripDate),
+            outing_date: formatDate(outingDate),
             location,
             description: randomChoice(TRIP_DESCRIPTIONS),
             max_participants: maxParticipants,
             capacity_type: capacityType,
             is_overnight: isOvernight,
-            trip_lead_name: `${randomChoice(FIRST_NAMES_MALE)} ${randomChoice(LAST_NAMES)}`,
-            trip_lead_email: `leader${randomInt(1, 100)}@example.com`,
-            trip_lead_phone: `555-${randomInt(100, 999)}-${randomInt(1000, 9999)}`,
+            outing_lead_name: `${randomChoice(FIRST_NAMES_MALE)} ${randomChoice(LAST_NAMES)}`,
+            outing_lead_email: `leader${randomInt(1, 100)}@example.com`,
+            outing_lead_phone: `555-${randomInt(100, 999)}-${randomInt(1000, 9999)}`,
         };
         
-        // Only include end_date if it's an overnight trip
+        // Only include end_date if it's an overnight outing
         if (endDate) {
-            tripData.end_date = formatDate(endDate);
+            outingData.end_date = formatDate(endDate);
         }
         
-        await tripAPI.create(tripData);
+        await outingAPI.create(outingData);
     };
 
     const createFamily = async (lastName: string, numScouts: number) => {
         const members = [];
 
-        // Create primary parent
+        // Create primary adult
         const parent1First = randomChoice(Math.random() > 0.5 ? FIRST_NAMES_MALE : FIRST_NAMES_FEMALE);
         const parent1Name = `${parent1First} ${lastName}`;
         
@@ -141,7 +141,7 @@ const DevDataSeeder: React.FC = () => {
 
         const parentMember = await familyAPI.create({
             name: parent1Name,
-            member_type: 'parent',
+            member_type: 'adult',
             date_of_birth: randomDateOfBirth(30, 55),
             has_youth_protection: Math.random() < 0.8,
             vehicle_capacity: vehicleCapacity,
@@ -178,7 +178,7 @@ const DevDataSeeder: React.FC = () => {
     };
 
     const handleSeedData = async () => {
-        if (!window.confirm('This will create sample trips and family data. Continue?')) {
+        if (!window.confirm('This will create sample outings and family data. Continue?')) {
             return;
         }
 
@@ -187,14 +187,14 @@ const DevDataSeeder: React.FC = () => {
         setSeedMessage(null);
         setSeedError(null);
 
-        let tripsCreated = 0;
+        let outingsCreated = 0;
         let familiesCreated = 0;
         let totalMembers = 0;
 
         try {
-            // Create trips
-            setProgress('Creating trips...');
-            const tripConfigs: [string, string, number, boolean, 'fixed' | 'vehicle', number][] = [
+            // Create outings
+            setProgress('Creating outings...');
+            const outingConfigs: [string, string, number, boolean, 'fixed' | 'vehicle', number][] = [
                 [TRIP_NAMES[0], LOCATIONS[0], 7, true, 'fixed', 25],
                 [TRIP_NAMES[1], LOCATIONS[1], 14, false, 'fixed', 30],
                 [TRIP_NAMES[2], LOCATIONS[2], 21, false, 'vehicle', 40],
@@ -207,13 +207,13 @@ const DevDataSeeder: React.FC = () => {
                 [TRIP_NAMES[9], LOCATIONS[9], 105, false, 'fixed', 40],
             ];
 
-            for (const [name, location, days, overnight, capType, maxPart] of tripConfigs) {
+            for (const [name, location, days, overnight, capType, maxPart] of outingConfigs) {
                 try {
-                    await createTrip(name, location, days, overnight, capType, maxPart);
-                    tripsCreated++;
-                    setProgress(`Created ${tripsCreated}/${tripConfigs.length} trips...`);
+                    await createOuting(name, location, days, overnight, capType, maxPart);
+                    outingsCreated++;
+                    setProgress(`Created ${outingsCreated}/${outingConfigs.length} outings...`);
                 } catch (error) {
-                    console.error(`Error creating trip ${name}:`, error);
+                    console.error(`Error creating outing ${name}:`, error);
                 }
             }
 
@@ -234,7 +234,7 @@ const DevDataSeeder: React.FC = () => {
 
             setSeedMessage(
                 `✅ Successfully seeded database!\n\n` +
-                `• Trips created: ${tripsCreated}\n` +
+                `• Outings created: ${outingsCreated}\n` +
                 `• Families created: ${familiesCreated}\n` +
                 `• Total members: ${totalMembers}\n\n` +
                 `Note: All family members were created under your account.`
@@ -256,8 +256,8 @@ const DevDataSeeder: React.FC = () => {
                         🌱 Development Data Seeding
                     </h3>
                     <p className="text-gray-700 mb-4">
-                        Quickly populate the database with sample trips and family data for testing and development.
-                        This will create 10 trips and 15 families with realistic test data.
+                        Quickly populate the database with sample outings and family data for testing and development.
+                        This will create 10 outings and 15 families with realistic test data.
                     </p>
                     {progress && (
                         <div className="mb-4 p-4 bg-blue-100 border border-blue-400 rounded text-sm">

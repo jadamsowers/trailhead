@@ -8,14 +8,13 @@ from app.db.base import Base
 
 
 class Participant(Base):
-    """Participant model for scouts and adults attending trips"""
+    """Participant model for scouts and adults attending outings"""
     __tablename__ = "participants"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     signup_id = Column(UUID(as_uuid=True), ForeignKey("signups.id", ondelete="CASCADE"), nullable=False, index=True)
     name = Column(String(255), nullable=False)
     age = Column(Integer, nullable=False)
-    participant_type = Column(String(50), nullable=False, index=True)  # 'scout' or 'adult'
     is_adult = Column(Boolean, default=False, nullable=False)
     gender = Column(String(20), nullable=False, index=True)  # 'male', 'female', 'other'
     

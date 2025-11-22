@@ -8,7 +8,7 @@ from app.db.base import Base
 
 
 class FamilyMember(Base):
-    """Family member model for storing reusable parent and scout information"""
+    """Family member model for storing reusable adult and scout information"""
     __tablename__ = "family_members"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
@@ -16,14 +16,15 @@ class FamilyMember(Base):
     
     # Basic information
     name = Column(String(255), nullable=False)
-    member_type = Column(String(50), nullable=False, index=True)  # 'parent' or 'scout'
-    date_of_birth = Column(Date, nullable=True)  # Required for scouts, optional for parents
+    member_type = Column(String(50), nullable=False, index=True)  # 'adult' or 'scout'
+    date_of_birth = Column(Date, nullable=True)  # Required for scouts, optional for adults
+    gender = Column(String(20), nullable=True, index=True)  # 'male', 'female', 'other'
     
     # Scout-specific fields
     troop_number = Column(String(50), index=True)  # e.g., "123", "456"
     patrol_name = Column(String(100))  # e.g., "Eagle Patrol", "Wolf Patrol"
     
-    # Parent-specific fields
+    # Adult-specific fields
     has_youth_protection = Column(Boolean, default=False, nullable=False)
     youth_protection_expiration = Column(Date, nullable=True)  # Expiration date for SAFE Youth Training certificate
     vehicle_capacity = Column(Integer, default=0, nullable=False)  # Number of passengers (excluding driver)

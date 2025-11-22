@@ -24,7 +24,7 @@ cp .env.example .env
 # Edit .env with your database credentials
 # Required variables:
 # - POSTGRES_SERVER (e.g., localhost)
-# - POSTGRES_USER (e.g., scouttrips)
+# - POSTGRES_USER (e.g., scoutoutings)
 # - POSTGRES_PASSWORD (your secure password)
 # - POSTGRES_DB (e.g., scouting_outing_manager)
 # - SECRET_KEY (generate with: openssl rand -hex 32)
@@ -202,7 +202,7 @@ python -c "import sys; print(sys.path)"
 ## Next Steps
 
 1. **Change Admin Password** - Use the API to update the default password
-2. **Create Test Trip** - Use the admin interface to create a sample trip
+2. **Create Test Outing** - Use the admin interface to create a sample outing
 3. **Test Signup Flow** - Create a test signup with participants
 4. **Review Documentation** - Read MIGRATIONS.md for detailed migration guide
 5. **Deploy** - See k8s-migration-job.yaml for Kubernetes deployment
@@ -210,14 +210,14 @@ python -c "import sys; print(sys.path)"
 ## API Endpoints
 
 ### Public Endpoints
-- `GET /api/trips` - List available trips
+- `GET /api/outings` - List available outings
 - `POST /api/signups` - Create signup with participants
 
 ### Admin Endpoints (require authentication)
-- `POST /api/trips` - Create new trip
-- `GET /api/trips/{id}/signups` - View trip signups
-- `POST /api/csv/trips/{id}/import-roster` - Import roster CSV
-- `GET /api/csv/trips/{id}/export-roster` - Export roster CSV
+- `POST /api/outings` - Create new outing
+- `GET /api/outings/{id}/signups` - View outing signups
+- `POST /api/csv/outings/{id}/import-roster` - Import roster CSV
+- `GET /api/csv/outings/{id}/export-roster` - Export roster CSV
 
 ### Authentication Endpoints
 - `POST /api/auth/login` - Login (get access token)

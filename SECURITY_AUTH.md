@@ -73,13 +73,13 @@ CREATE INDEX idx_refresh_tokens_token ON refresh_tokens(token);
 ### Role Definitions
 
 1. **admin**: Full access to all features
-   - Create, edit, delete trips
+   - Create, edit, delete outings
    - View all signups
    - Export data
    - Manage users (future)
 
 2. **participant**: Public access (no authentication required)
-   - View available trips
+   - View available outings
    - Submit signups
    - View own signups (with signup ID)
 
@@ -329,9 +329,9 @@ async def logout(
 
 ### 4. Protected Endpoints
 
-Update trip endpoints to require authentication:
+Update outing endpoints to require authentication:
 
-**File: backend/app/api/endpoints/trips.py**
+**File: backend/app/api/endpoints/outings.py**
 ```python
 from fastapi import APIRouter, Depends
 from app.api.deps import get_current_admin_user
@@ -339,51 +339,51 @@ from app.models.user import User
 
 router = APIRouter()
 
-@router.post("/trips")
-async def create_trip(
-    trip_data: TripCreate,
+@router.post("/outings")
+async def create_outing(
+    outing_data: OutingCreate,
     current_user: User = Depends(get_current_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Create a new trip (admin only)"""
+    """Create a new outing (admin only)"""
     # Implementation
     pass
 
-@router.put("/trips/{trip_id}")
-async def update_trip(
-    trip_id: str,
-    trip_data: TripUpdate,
+@router.put("/outings/{outing_id}")
+async def update_outing(
+    outing_id: str,
+    outing_data: OutingUpdate,
     current_user: User = Depends(get_current_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Update a trip (admin only)"""
+    """Update a outing (admin only)"""
     # Implementation
     pass
 
-@router.delete("/trips/{trip_id}")
-async def delete_trip(
-    trip_id: str,
+@router.delete("/outings/{outing_id}")
+async def delete_outing(
+    outing_id: str,
     current_user: User = Depends(get_current_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Delete a trip (admin only)"""
+    """Delete a outing (admin only)"""
     # Implementation
     pass
 
-@router.get("/trips/{trip_id}/signups")
-async def get_trip_signups(
-    trip_id: str,
+@router.get("/outings/{outing_id}/signups")
+async def get_outing_signups(
+    outing_id: str,
     current_user: User = Depends(get_current_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Get all signups for a trip (admin only)"""
+    """Get all signups for a outing (admin only)"""
     # Implementation
     pass
 
 # Public endpoints (no authentication required)
-@router.get("/trips/available")
-async def get_available_trips(db: AsyncSession = Depends(get_db)):
-    """Get available trips for signup (public)"""
+@router.get("/outings/available")
+async def get_available_outings(db: AsyncSession = Depends(get_db)):
+    """Get available outings for signup (public)"""
     # Implementation
     pass
 ```
@@ -782,5 +782,5 @@ curl -X POST http://localhost:8000/api/auth/login \
   -d '{"email":"soadmin@scouthacks.net","password":"changeme123"}'
 
 # Use token
-curl -X GET http://localhost:8000/api/trips \
+curl -X GET http://localhost:8000/api/outings \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"

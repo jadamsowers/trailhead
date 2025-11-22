@@ -10,9 +10,9 @@ The dummy data script has been converted to a frontend-only component that uses 
 
 1. **New Component** (`frontend/src/components/Admin/DevDataSeeder.tsx`)
    - Self-contained React component for seeding data
-   - Uses existing [`tripAPI.create()`](frontend/src/services/api.ts:172) and [`familyAPI.create()`](frontend/src/services/api.ts:517) APIs
+   - Uses existing [`outingAPI.create()`](frontend/src/services/api.ts:172) and [`familyAPI.create()`](frontend/src/services/api.ts:517) APIs
    - Creates realistic test data including:
-     - 10 trips with various configurations (day trips, overnight trips, fixed/vehicle capacity)
+     - 10 outings with various configurations (day outings, overnight outings, fixed/vehicle capacity)
      - 15 families with scouts and parents
      - Realistic medical notes, dietary preferences, and allergies
      - Troop numbers and patrol assignments
@@ -26,7 +26,7 @@ The dummy data script has been converted to a frontend-only component that uses 
 ### Backend Changes
 
 **None!** The seeding functionality uses the existing backend APIs:
-- [`POST /api/trips`](backend/app/api/endpoints/trips.py) for creating trips
+- [`POST /api/outings`](backend/app/api/endpoints/outings.py) for creating outings
 - [`POST /api/family/`](backend/app/api/endpoints/family.py) for creating family members
 
 ## How to Use
@@ -40,23 +40,23 @@ The dummy data script has been converted to a frontend-only component that uses 
 5. Confirm the action in the dialog
 6. Watch the progress as data is created
 7. View the results showing:
-   - Number of trips created
+   - Number of outings created
    - Number of families created
    - Total family members created
 
 ### What Gets Created
 
-**Trips (10 total):**
+**Outings (10 total):**
 - Weekend Camping at Pine Lake (overnight, fixed capacity, 7 days out)
-- Day Hike - Eagle Peak Trail (day trip, fixed capacity, 14 days out)
-- Kayaking Adventure (day trip, vehicle-based capacity, 21 days out)
-- Rock Climbing Workshop (day trip, fixed capacity, 28 days out)
-- Backpacking Trip - Mountain Ridge (overnight, vehicle-based capacity, 35 days out)
-- Service Project - Trail Maintenance (day trip, fixed capacity, 45 days out)
-- Fishing Derby (day trip, fixed capacity, 60 days out)
+- Day Hike - Eagle Peak Trail (day outing, fixed capacity, 14 days out)
+- Kayaking Adventure (day outing, vehicle-based capacity, 21 days out)
+- Rock Climbing Workshop (day outing, fixed capacity, 28 days out)
+- Backpacking Outing - Mountain Ridge (overnight, vehicle-based capacity, 35 days out)
+- Service Project - Trail Maintenance (day outing, fixed capacity, 45 days out)
+- Fishing Derby (day outing, fixed capacity, 60 days out)
 - Winter Camping Experience (overnight, vehicle-based capacity, 75 days out)
-- Canoeing on River Rapids (day trip, vehicle-based capacity, 90 days out)
-- Orienteering Competition (day trip, fixed capacity, 105 days out)
+- Canoeing on River Rapids (day outing, vehicle-based capacity, 90 days out)
+- Orienteering Competition (day outing, fixed capacity, 105 days out)
 
 **Families (15 total):**
 - Each family has 1-3 scouts (weighted: 60% have 1, 30% have 2, 10% have 3)
@@ -81,7 +81,7 @@ The dummy data script has been converted to a frontend-only component that uses 
 ### Architecture
 - **Frontend-only implementation** - No special backend endpoint
 - Uses existing authenticated API endpoints:
-  - [`tripAPI.create()`](frontend/src/services/api.ts:172) for trips
+  - [`outingAPI.create()`](frontend/src/services/api.ts:172) for outings
   - [`familyAPI.create()`](frontend/src/services/api.ts:517) for family members
 - All API calls use Clerk authentication automatically
 - Sequential creation with progress updates
@@ -103,7 +103,7 @@ The dummy data script has been converted to a frontend-only component that uses 
 
 ### Progress Tracking
 The component shows real-time progress:
-- "Creating trips..." with count (e.g., "Created 5/10 trips...")
+- "Creating outings..." with count (e.g., "Created 5/10 outings...")
 - "Creating families..." with count (e.g., "Created 8/15 families (24 members)...")
 - Final success message with totals
 
@@ -121,7 +121,7 @@ The component shows real-time progress:
 1. **Simpler Architecture** - No special backend endpoint needed
 2. **Reuses Existing Code** - Uses the same APIs as the normal UI
 3. **Better Testing** - Tests the actual API endpoints users will use
-4. **Easier Maintenance** - Changes to trip/family APIs automatically work with seeding
+4. **Easier Maintenance** - Changes to outing/family APIs automatically work with seeding
 5. **More Transparent** - You can see exactly what API calls are being made
 6. **Better Progress Feedback** - Can update UI after each API call
 
@@ -129,8 +129,8 @@ The component shows real-time progress:
 
 Possible improvements for the future:
 - Option to clear existing data before seeding
-- Configurable number of trips/families to create
-- Option to create signups for the trips
+- Configurable number of outings/families to create
+- Option to create signups for the outings
 - Batch API calls for faster seeding
 - Export/import of seed data configurations
-- Ability to seed specific types of data (trips only, families only, etc.)
+- Ability to seed specific types of data (outings only, families only, etc.)

@@ -2,21 +2,21 @@
 import pytest
 from datetime import date, timedelta
 
-from app.models.trip import Trip
+from app.models.outing import Outing
 from app.models.signup import Signup
 from app.models.participant import Participant, DietaryRestriction, Allergy
 from app.models.user import User
 
 
 @pytest.mark.asyncio
-class TestTripModel:
-    """Test Trip model"""
+class TestOutingModel:
+    """Test Outing model"""
     
-    async def test_trip_creation(self, db_session):
-        """Test creating a trip"""
-        trip = Trip(
-            name="Test Trip",
-            trip_date=date.today() + timedelta(days=30),
+    async def test_outing_creation(self, db_session):
+        """Test creating a outing"""
+        outing = Outing(
+            name="Test Outing",
+            outing_date=date.today() + timedelta(days=30),
             end_date=date.today() + timedelta(days=32),
             location="Test Location",
             description="Test Description",
@@ -24,50 +24,50 @@ class TestTripModel:
             is_overnight=True,
         )
         
-        db_session.add(trip)
+        db_session.add(outing)
         await db_session.commit()
-        await db_session.refresh(trip)
+        await db_session.refresh(outing)
         
-        assert trip.id is not None
-        assert trip.name == "Test Trip"
-        assert trip.created_at is not None
-        assert trip.updated_at is not None
+        assert outing.id is not None
+        assert outing.name == "Test Outing"
+        assert outing.created_at is not None
+        assert outing.updated_at is not None
     
-    async def test_trip_signup_count_property(self, db_session, test_trip, test_signup):
+    async def test_outing_signup_count_property(self, db_session, test_outing, test_signup):
         """Test signup_count computed property"""
-        from app.crud import trip as crud_trip
+        from app.crud import outing as crud_outing
         
-        trip = await crud_trip.get_trip(db_session, test_trip.id)
+        outing = await crud_outing.get_outing(db_session, test_outing.id)
         
         # test_signup has 2 participants
-        assert trip.signup_count == 2
+        assert outing.signup_count == 2
     
-    async def test_trip_available_spots_property(self, db_session, test_trip, test_signup):
+    async def test_outing_available_spots_property(self, db_session, test_outing, test_signup):
         """Test available_spots computed property"""
-        from app.crud import trip as crud_trip
+        from app.crud import outing as crud_outing
         
-        trip = await crud_trip.get_trip(db_session, test_trip.id)
+        outing = await crud_outing.get_outing(db_session, test_outing.id)
         
-        expected = test_trip.max_participants - 2
-        assert trip.available_spots == expected
+        expected = test_outing.max_participants - 2
+        assert outing.available_spots == expected
     
-    async def test_trip_is_full_property(self, db_session):
+    async def test_outing_is_full_property(self, db_session):
         """Test is_full computed property"""
-        trip = Trip(
-            name="Small Trip",
-            trip_date=date.today() + timedelta(days=30),
+        outing = Outing(
+            name="Small Outing",
+            outing_date=date.today() + timedelta(days=30),
             location="Test",
             max_participants=1,
         )
-        db_session.add(trip)
+        db_session.add(outing)
         await db_session.commit()
-        await db_session.refresh(trip)
+        await db_session.refresh(outing)
         
-        assert trip.is_full is False
+        assert outing.is_full is False
         
-        # Add signup to fill trip
+        # Add signup to fill outing
         signup = Signup(
-            trip_id=trip.id,
+            outing_id=outing.id,
             family_contact_name="Test",
             family_contact_email="test@test.com",
             family_contact_phone="555-0000",
@@ -85,27 +85,27 @@ class TestTripModel:
         )
         db_session.add(participant)
         await db_session.commit()
-        await db_session.refresh(trip)
+        await db_session.refresh(outing)
         
-        assert trip.is_full is True
+        assert outing.is_full is True
     
-    async def test_trip_repr(self, test_trip):
-        """Test trip string representation"""
-        repr_str = repr(test_trip)
+    async def test_outing_repr(self, test_outing):
+        """Test outing string representation"""
+        repr_str = repr(test_outing)
         
-        assert "Trip" in repr_str
-        assert str(test_trip.id) in repr_str
-        assert test_trip.name in repr_str
+        assert "Outing" in repr_str
+        assert str(test_outing.id) in repr_str
+        assert test_outing.name in repr_str
 
 
 @pytest.mark.asyncio
 class TestSignupModel:
     """Test Signup model"""
     
-    async def test_signup_creation(self, db_session, test_trip):
+    async def test_signup_creation(self, db_session, test_outing):
         """Test creating a signup"""
         signup = Signup(
-            trip_id=test_trip.id,
+            outing_id=test_outing.id,
             family_contact_name="Test Family",
             family_contact_email="test@example.com",
             family_contact_phone="555-1234",
@@ -116,7 +116,7 @@ class TestSignupModel:
         await db_session.refresh(signup)
         
         assert signup.id is not None
-        assert signup.trip_id == test_trip.id
+        assert signup.outing_id == test_outing.id
         assert signup.created_at is not None
     
     async def test_signup_participant_count_property(self, db_session, test_signup):
@@ -427,14 +427,14 @@ class TestAllergyModel:
 class TestModelRelationships:
     """Test model relationships and cascades"""
     
-    async def test_trip_signup_relationship(self, db_session, test_trip, test_signup):
-        """Test trip-signup relationship"""
-        from app.crud import trip as crud_trip
+    async def test_outing_signup_relationship(self, db_session, test_outing, test_signup):
+        """Test outing-signup relationship"""
+        from app.crud import outing as crud_outing
         
-        trip = await crud_trip.get_trip(db_session, test_trip.id)
+        outing = await crud_outing.get_outing(db_session, test_outing.id)
         
-        assert len(trip.signups) > 0
-        assert test_signup.id in [s.id for s in trip.signups]
+        assert len(outing.signups) > 0
+        assert test_signup.id in [s.id for s in outing.signups]
     
     async def test_signup_participant_relationship(self, db_session, test_signup):
         """Test signup-participant relationship"""
@@ -444,14 +444,14 @@ class TestModelRelationships:
         
         assert len(signup.participants) > 0
     
-    async def test_delete_signup_cascades_to_participants(self, db_session, test_trip):
+    async def test_delete_signup_cascades_to_participants(self, db_session, test_outing):
         """Test deleting signup cascades to participants"""
         from app.crud import signup as crud_signup
         from app.schemas.signup import SignupCreate, ParticipantCreate, FamilyContact
         
         # Create signup with participant
         signup_data = SignupCreate(
-            trip_id=test_trip.id,
+            outing_id=test_outing.id,
             family_contact=FamilyContact(
                 name="Test",
                 email="test@test.com",

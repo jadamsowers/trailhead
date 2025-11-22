@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Trip, TripCreate, SignupResponse, ParticipantResponse } from '../../types';
-import { tripAPI, csvAPI, signupAPI, APIError } from '../../services/api';
+import { Outing, OutingCreate, SignupResponse, ParticipantResponse } from '../../types';
+import { outingAPI, csvAPI, signupAPI, APIError } from '../../services/api';
 
-const TripAdmin: React.FC = () => {
+const OutingAdmin: React.FC = () => {
     // Helper function to get next Friday-Sunday dates
     const getNextWeekendDates = () => {
         const today = new Date();
@@ -37,76 +37,76 @@ const TripAdmin: React.FC = () => {
 
     const defaultDates = getNextWeekendDates();
 
-    const [trips, setTrips] = useState<Trip[]>([]);
+    const [outings, setOutings] = useState<Outing[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [expandedTripId, setExpandedTripId] = useState<string | null>(null);
-    const [tripSignups, setTripSignups] = useState<{ [tripId: string]: SignupResponse[] }>({});
-    const [loadingSignups, setLoadingSignups] = useState<{ [tripId: string]: boolean }>({});
-    const [isCreateTripExpanded, setIsCreateTripExpanded] = useState(false);
-    const [editingTripId, setEditingTripId] = useState<string | null>(null);
-    const [editTrip, setEditTrip] = useState<TripCreate | null>(null);
-    const [newTrip, setNewTrip] = useState<TripCreate>({
+    const [expandedOutingId, setExpandedOutingId] = useState<string | null>(null);
+    const [outingSignups, setOutingSignups] = useState<{ [outingId: string]: SignupResponse[] }>({});
+    const [loadingSignups, setLoadingSignups] = useState<{ [outingId: string]: boolean }>({});
+    const [isCreateOutingExpanded, setIsCreateOutingExpanded] = useState(false);
+    const [editingOutingId, setEditingOutingId] = useState<string | null>(null);
+    const [editOuting, setEditOuting] = useState<OutingCreate | null>(null);
+    const [newOuting, setNewOuting] = useState<OutingCreate>({
         name: '',
-        trip_date: defaultDates.friday,
+        outing_date: defaultDates.friday,
         end_date: defaultDates.sunday,
         location: '',
         description: '',
         max_participants: 30,
         capacity_type: 'vehicle',
         is_overnight: true,
-        trip_lead_name: '',
-        trip_lead_email: '',
-        trip_lead_phone: ''
+        outing_lead_name: '',
+        outing_lead_email: '',
+        outing_lead_phone: ''
     });
 
-    // Load trips on component mount
+    // Load outings on component mount
     useEffect(() => {
-        loadTrips();
+        loadOutings();
     }, []);
 
-    const loadTrips = async () => {
+    const loadOutings = async () => {
         try {
             setLoading(true);
             setError(null);
-            const data = await tripAPI.getAll();
-            setTrips(data);
+            const data = await outingAPI.getAll();
+            setOutings(data);
         } catch (err) {
-            console.error('Error loading trips:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Failed to load trips';
+            console.error('Error loading outings:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Failed to load outings';
             setError(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
-    const loadTripSignups = async (tripId: string) => {
-        if (tripSignups[tripId]) {
+    const loadOutingSignups = async (outingId: string) => {
+        if (outingSignups[outingId]) {
             // Already loaded
             return;
         }
 
         try {
-            setLoadingSignups({ ...loadingSignups, [tripId]: true });
-            const signups = await signupAPI.getByTrip(tripId);
-            setTripSignups({ ...tripSignups, [tripId]: signups });
+            setLoadingSignups({ ...loadingSignups, [outingId]: true });
+            const signups = await signupAPI.getByOuting(outingId);
+            setOutingSignups({ ...outingSignups, [outingId]: signups });
         } catch (err) {
             console.error('Error loading signups:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to load signups';
             setError(errorMessage);
         } finally {
-            setLoadingSignups({ ...loadingSignups, [tripId]: false });
+            setLoadingSignups({ ...loadingSignups, [outingId]: false });
         }
     };
 
-    const handleTripClick = async (tripId: string) => {
-        if (expandedTripId === tripId) {
+    const handleOutingClick = async (outingId: string) => {
+        if (expandedOutingId === outingId) {
             // Collapse
-            setExpandedTripId(null);
+            setExpandedOutingId(null);
         } else {
             // Expand and load signups if not already loaded
-            setExpandedTripId(tripId);
-            await loadTripSignups(tripId);
+            setExpandedOutingId(outingId);
+            await loadOutingSignups(outingId);
         }
     };
 
@@ -115,146 +115,146 @@ const TripAdmin: React.FC = () => {
         
         if (type === 'checkbox') {
             const checked = (e.target as HTMLInputElement).checked;
-            setNewTrip({
-                ...newTrip,
+            setNewOuting({
+                ...newOuting,
                 [name]: checked
             });
         } else if (name === 'max_participants') {
-            setNewTrip({
-                ...newTrip,
+            setNewOuting({
+                ...newOuting,
                 [name]: parseInt(value) || 0
             });
         } else {
-            setNewTrip({
-                ...newTrip,
+            setNewOuting({
+                ...newOuting,
                 [name]: value
             });
         }
     };
 
-    const handleCreateTrip = async (e: React.FormEvent) => {
+    const handleCreateOuting = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             setLoading(true);
             setError(null);
-            await tripAPI.create(newTrip);
+            await outingAPI.create(newOuting);
             // Reset form with new default dates
             const newDefaultDates = getNextWeekendDates();
-            setNewTrip({
+            setNewOuting({
                 name: '',
-                trip_date: newDefaultDates.friday,
+                outing_date: newDefaultDates.friday,
                 end_date: newDefaultDates.sunday,
                 location: '',
                 description: '',
                 max_participants: 30,
                 capacity_type: 'vehicle',
                 is_overnight: true,
-                trip_lead_name: '',
-                trip_lead_email: '',
-                trip_lead_phone: ''
+                outing_lead_name: '',
+                outing_lead_email: '',
+                outing_lead_phone: ''
             });
-            // Reload trips
-            await loadTrips();
+            // Reload outings
+            await loadOutings();
         } catch (err) {
-            console.error('Error creating trip:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Failed to create trip';
+            console.error('Error creating outing:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Failed to create outing';
             setError(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleEditTrip = (trip: Trip) => {
-        setEditingTripId(trip.id);
-        setEditTrip({
-            name: trip.name,
-            trip_date: trip.trip_date,
-            end_date: trip.end_date || '',
-            location: trip.location,
-            description: trip.description || '',
-            max_participants: trip.max_participants,
-            capacity_type: trip.capacity_type,
-            is_overnight: trip.is_overnight,
-            trip_lead_name: trip.trip_lead_name || '',
-            trip_lead_email: trip.trip_lead_email || '',
-            trip_lead_phone: trip.trip_lead_phone || ''
+    const handleEditOuting = (outing: Outing) => {
+        setEditingOutingId(outing.id);
+        setEditOuting({
+            name: outing.name,
+            outing_date: outing.outing_date,
+            end_date: outing.end_date || '',
+            location: outing.location,
+            description: outing.description || '',
+            max_participants: outing.max_participants,
+            capacity_type: outing.capacity_type,
+            is_overnight: outing.is_overnight,
+            outing_lead_name: outing.outing_lead_name || '',
+            outing_lead_email: outing.outing_lead_email || '',
+            outing_lead_phone: outing.outing_lead_phone || ''
         });
-        setExpandedTripId(null);
+        setExpandedOutingId(null);
     };
 
     const handleCancelEdit = () => {
-        setEditingTripId(null);
-        setEditTrip(null);
+        setEditingOutingId(null);
+        setEditOuting(null);
     };
 
     const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        if (!editTrip) return;
+        if (!editOuting) return;
         
         const { name, value, type } = e.target;
         
         if (type === 'checkbox') {
             const checked = (e.target as HTMLInputElement).checked;
-            setEditTrip({
-                ...editTrip,
+            setEditOuting({
+                ...editOuting,
                 [name]: checked
             });
         } else if (name === 'max_participants') {
-            setEditTrip({
-                ...editTrip,
+            setEditOuting({
+                ...editOuting,
                 [name]: parseInt(value) || 0
             });
         } else {
-            setEditTrip({
-                ...editTrip,
+            setEditOuting({
+                ...editOuting,
                 [name]: value
             });
         }
     };
 
-    const handleUpdateTrip = async (e: React.FormEvent) => {
+    const handleUpdateOuting = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!editingTripId || !editTrip) return;
+        if (!editingOutingId || !editOuting) return;
 
         try {
             setLoading(true);
             setError(null);
-            await tripAPI.update(editingTripId, editTrip);
-            setEditingTripId(null);
-            setEditTrip(null);
-            await loadTrips();
+            await outingAPI.update(editingOutingId, editOuting);
+            setEditingOutingId(null);
+            setEditOuting(null);
+            await loadOutings();
         } catch (err) {
-            console.error('Error updating trip:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Failed to update trip';
+            console.error('Error updating outing:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Failed to update outing';
             setError(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDeleteTrip = async (id: string) => {
-        if (!window.confirm('Are you sure you want to delete this trip?')) {
+    const handleDeleteOuting = async (id: string) => {
+        if (!window.confirm('Are you sure you want to delete this outing?')) {
             return;
         }
         try {
             setLoading(true);
             setError(null);
-            await tripAPI.delete(id);
-            await loadTrips();
+            await outingAPI.delete(id);
+            await loadOutings();
         } catch (err) {
-            console.error('Error deleting trip:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Failed to delete trip';
+            console.error('Error deleting outing:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Failed to delete outing';
             setError(errorMessage);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleExportRoster = async (tripId: string, tripName: string) => {
+    const handleExportRoster = async (outingId: string, outingName: string) => {
         try {
             setLoading(true);
             setError(null);
-            const blob = await csvAPI.exportRoster(tripId);
-            csvAPI.downloadCSV(blob, `${tripName.replace(/\s+/g, '_')}_roster.csv`);
+            const blob = await csvAPI.exportRoster(outingId);
+            csvAPI.downloadCSV(blob, `${outingName.replace(/\s+/g, '_')}_roster.csv`);
         } catch (err) {
             console.error('Error exporting roster:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to export roster';
@@ -264,12 +264,12 @@ const TripAdmin: React.FC = () => {
         }
     };
 
-    const handleExportRosterPDF = async (tripId: string, tripName: string) => {
+    const handleExportRosterPDF = async (outingId: string, outingName: string) => {
         try {
             setLoading(true);
             setError(null);
-            const blob = await csvAPI.exportRosterPDF(tripId);
-            csvAPI.downloadPDF(blob, `${tripName.replace(/\s+/g, '_')}_roster.pdf`);
+            const blob = await csvAPI.exportRosterPDF(outingId);
+            csvAPI.downloadPDF(blob, `${outingName.replace(/\s+/g, '_')}_roster.pdf`);
         } catch (err) {
             console.error('Error exporting roster PDF:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to export roster PDF';
@@ -398,16 +398,16 @@ const TripAdmin: React.FC = () => {
         );
     };
 
-    const renderTripSignups = (tripId: string) => {
-        const signups = tripSignups[tripId];
-        const isLoading = loadingSignups[tripId];
+    const renderOutingSignups = (outingId: string) => {
+        const signups = outingSignups[outingId];
+        const isLoading = loadingSignups[outingId];
 
         if (isLoading) {
             return <p style={{ padding: '20px', textAlign: 'center' }}>Loading participants...</p>;
         }
 
         if (!signups || signups.length === 0) {
-            return <p style={{ padding: '20px', textAlign: 'center', color: '#666' }}>No signups yet for this trip.</p>;
+            return <p style={{ padding: '20px', textAlign: 'center', color: '#666' }}>No signups yet for this outing.</p>;
         }
 
         // Group all participants by type
@@ -463,7 +463,7 @@ const TripAdmin: React.FC = () => {
 
     return (
         <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-            <h1>Trip Administrator Interface</h1>
+            <h1>Outing Administrator Interface</h1>
             
             {error && (
                 <div style={{ 
@@ -479,29 +479,29 @@ const TripAdmin: React.FC = () => {
 
             <div style={{ marginBottom: '40px', border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
                 <div
-                    onClick={() => setIsCreateTripExpanded(!isCreateTripExpanded)}
+                    onClick={() => setIsCreateOutingExpanded(!isCreateOutingExpanded)}
                     style={{
                         padding: '20px',
                         cursor: 'pointer',
-                        backgroundColor: isCreateTripExpanded ? '#e3f2fd' : '#f9f9f9',
+                        backgroundColor: isCreateOutingExpanded ? '#e3f2fd' : '#f9f9f9',
                         transition: 'background-color 0.2s',
-                        borderBottom: isCreateTripExpanded ? '1px solid #ddd' : 'none'
+                        borderBottom: isCreateOutingExpanded ? '1px solid #ddd' : 'none'
                     }}
                 >
                     <h2 style={{ margin: 0 }}>
-                        {isCreateTripExpanded ? '▼' : '▶'} Create New Trip
+                        {isCreateOutingExpanded ? '▼' : '▶'} Create New Outing
                     </h2>
                 </div>
-                {isCreateTripExpanded && (
-                    <form onSubmit={handleCreateTrip} style={{ padding: '20px' }}>
+                {isCreateOutingExpanded && (
+                    <form onSubmit={handleCreateOuting} style={{ padding: '20px' }}>
                     <div style={{ marginBottom: '15px' }}>
                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                            Trip Name *
+                            Outing Name *
                         </label>
                         <input
                             type="text"
                             name="name"
-                            value={newTrip.name}
+                            value={newOuting.name}
                             onChange={handleInputChange}
                             placeholder="e.g., Summer Camp 2026"
                             required
@@ -514,29 +514,29 @@ const TripAdmin: React.FC = () => {
                             <input
                                 type="checkbox"
                                 name="is_overnight"
-                                checked={newTrip.is_overnight}
+                                checked={newOuting.is_overnight}
                                 onChange={handleInputChange}
                                 style={{ marginRight: '8px' }}
                             />
-                            <span style={{ fontWeight: 'bold' }}>Overnight Trip</span>
+                            <span style={{ fontWeight: 'bold' }}>Overnight Outing</span>
                         </label>
                     </div>
 
-                    <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: newTrip.is_overnight ? '1fr 1fr' : '1fr', gap: '15px' }}>
+                    <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: newOuting.is_overnight ? '1fr 1fr' : '1fr', gap: '15px' }}>
                         <div>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                {newTrip.is_overnight ? 'Start Date *' : 'Trip Date *'}
+                                {newOuting.is_overnight ? 'Start Date *' : 'Outing Date *'}
                             </label>
                             <input
                                 type="date"
-                                name="trip_date"
-                                value={newTrip.trip_date}
+                                name="outing_date"
+                                value={newOuting.outing_date}
                                 onChange={handleInputChange}
                                 required
                                 style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                             />
                         </div>
-                        {newTrip.is_overnight && (
+                        {newOuting.is_overnight && (
                             <div>
                                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                     End Date *
@@ -544,10 +544,10 @@ const TripAdmin: React.FC = () => {
                                 <input
                                     type="date"
                                     name="end_date"
-                                    value={newTrip.end_date || ''}
+                                    value={newOuting.end_date || ''}
                                     onChange={handleInputChange}
                                     required
-                                    min={newTrip.trip_date}
+                                    min={newOuting.outing_date}
                                     style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                 />
                             </div>
@@ -561,7 +561,7 @@ const TripAdmin: React.FC = () => {
                         <input
                             type="text"
                             name="location"
-                            value={newTrip.location}
+                            value={newOuting.location}
                             onChange={handleInputChange}
                             placeholder="e.g., Camp Wilderness"
                             required
@@ -575,9 +575,9 @@ const TripAdmin: React.FC = () => {
                         </label>
                         <textarea
                             name="description"
-                            value={newTrip.description}
+                            value={newOuting.description}
                             onChange={handleInputChange}
-                            placeholder="Trip details and activities..."
+                            placeholder="Outing details and activities..."
                             rows={4}
                             style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                         />
@@ -589,7 +589,7 @@ const TripAdmin: React.FC = () => {
                         </label>
                         <select
                             name="capacity_type"
-                            value={newTrip.capacity_type}
+                            value={newOuting.capacity_type}
                             onChange={handleInputChange}
                             style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                         >
@@ -597,13 +597,13 @@ const TripAdmin: React.FC = () => {
                             <option value="vehicle">Vehicle-Based Capacity</option>
                         </select>
                         <p style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
-                            {newTrip.capacity_type === 'fixed'
+                            {newOuting.capacity_type === 'fixed'
                                 ? 'Set a fixed maximum number of participants'
                                 : 'Capacity based on available vehicle seats from adults'}
                         </p>
                     </div>
 
-                    {newTrip.capacity_type === 'fixed' && (
+                    {newOuting.capacity_type === 'fixed' && (
                         <div style={{ marginBottom: '15px' }}>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                 Maximum Capacity *
@@ -611,7 +611,7 @@ const TripAdmin: React.FC = () => {
                             <input
                                 type="number"
                                 name="max_participants"
-                                value={newTrip.max_participants}
+                                value={newOuting.max_participants}
                                 onChange={handleInputChange}
                                 min="1"
                                 required
@@ -621,16 +621,16 @@ const TripAdmin: React.FC = () => {
                     )}
 
                     <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-                        <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Trip Lead Contact Information (Optional)</h3>
+                        <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Outing Lead Contact Information (Optional)</h3>
                         
                         <div style={{ marginBottom: '15px' }}>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                Trip Lead Name
+                                Outing Lead Name
                             </label>
                             <input
                                 type="text"
-                                name="trip_lead_name"
-                                value={newTrip.trip_lead_name || ''}
+                                name="outing_lead_name"
+                                value={newOuting.outing_lead_name || ''}
                                 onChange={handleInputChange}
                                 placeholder="e.g., John Smith"
                                 style={{ width: '100%', padding: '8px', fontSize: '14px' }}
@@ -639,12 +639,12 @@ const TripAdmin: React.FC = () => {
 
                         <div style={{ marginBottom: '15px' }}>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                Trip Lead Email
+                                Outing Lead Email
                             </label>
                             <input
                                 type="email"
-                                name="trip_lead_email"
-                                value={newTrip.trip_lead_email || ''}
+                                name="outing_lead_email"
+                                value={newOuting.outing_lead_email || ''}
                                 onChange={handleInputChange}
                                 placeholder="e.g., john.smith@example.com"
                                 style={{ width: '100%', padding: '8px', fontSize: '14px' }}
@@ -653,12 +653,12 @@ const TripAdmin: React.FC = () => {
 
                         <div style={{ marginBottom: '15px' }}>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                Trip Lead Phone
+                                Outing Lead Phone
                             </label>
                             <input
                                 type="tel"
-                                name="trip_lead_phone"
-                                value={newTrip.trip_lead_phone || ''}
+                                name="outing_lead_phone"
+                                value={newOuting.outing_lead_phone || ''}
                                 onChange={handleInputChange}
                                 placeholder="e.g., (555) 123-4567"
                                 style={{ width: '100%', padding: '8px', fontSize: '14px' }}
@@ -679,23 +679,23 @@ const TripAdmin: React.FC = () => {
                             fontSize: '16px'
                         }}
                     >
-                        {loading ? 'Creating...' : 'Create Trip'}
+                        {loading ? 'Creating...' : 'Create Outing'}
                     </button>
                     </form>
                 )}
             </div>
 
             <div>
-                <h2>Current Trips ({trips.length})</h2>
-                {loading && trips.length === 0 ? (
-                    <p>Loading trips...</p>
-                ) : trips.length === 0 ? (
-                    <p>No trips created yet. Create your first trip above!</p>
+                <h2>Current Outings ({outings.length})</h2>
+                {loading && outings.length === 0 ? (
+                    <p>Loading outings...</p>
+                ) : outings.length === 0 ? (
+                    <p>No outings created yet. Create your first outing above!</p>
                 ) : (
                     <div style={{ display: 'grid', gap: '20px' }}>
-                        {trips.map((trip) => (
+                        {outings.map((outing) => (
                             <div
-                                key={trip.id}
+                                key={outing.id}
                                 style={{
                                     border: '1px solid #ddd',
                                     borderRadius: '8px',
@@ -703,20 +703,20 @@ const TripAdmin: React.FC = () => {
                                     overflow: 'hidden'
                                 }}
                             >
-                                {editingTripId === trip.id && editTrip ? (
+                                {editingOutingId === outing.id && editOuting ? (
                                     <div style={{ backgroundColor: '#fff3e0' }}>
                                         <div style={{ padding: '20px', borderBottom: '1px solid #ddd', backgroundColor: '#ff9800', color: 'white' }}>
-                                            <h3 style={{ margin: 0 }}>✏️ Editing: {trip.name}</h3>
+                                            <h3 style={{ margin: 0 }}>✏️ Editing: {outing.name}</h3>
                                         </div>
-                                        <form onSubmit={handleUpdateTrip} style={{ padding: '20px' }}>
+                                        <form onSubmit={handleUpdateOuting} style={{ padding: '20px' }}>
                                             <div style={{ marginBottom: '15px' }}>
                                                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                                    Trip Name *
+                                                    Outing Name *
                                                 </label>
                                                 <input
                                                     type="text"
                                                     name="name"
-                                                    value={editTrip.name}
+                                                    value={editOuting.name}
                                                     onChange={handleEditInputChange}
                                                     required
                                                     style={{ width: '100%', padding: '8px', fontSize: '14px' }}
@@ -728,29 +728,29 @@ const TripAdmin: React.FC = () => {
                                                     <input
                                                         type="checkbox"
                                                         name="is_overnight"
-                                                        checked={editTrip.is_overnight}
+                                                        checked={editOuting.is_overnight}
                                                         onChange={handleEditInputChange}
                                                         style={{ marginRight: '8px' }}
                                                     />
-                                                    <span style={{ fontWeight: 'bold' }}>Overnight Trip</span>
+                                                    <span style={{ fontWeight: 'bold' }}>Overnight Outing</span>
                                                 </label>
                                             </div>
 
-                                            <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: editTrip.is_overnight ? '1fr 1fr' : '1fr', gap: '15px' }}>
+                                            <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: editOuting.is_overnight ? '1fr 1fr' : '1fr', gap: '15px' }}>
                                                 <div>
                                                     <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                                        {editTrip.is_overnight ? 'Start Date *' : 'Trip Date *'}
+                                                        {editOuting.is_overnight ? 'Start Date *' : 'Outing Date *'}
                                                     </label>
                                                     <input
                                                         type="date"
-                                                        name="trip_date"
-                                                        value={editTrip.trip_date}
+                                                        name="outing_date"
+                                                        value={editOuting.outing_date}
                                                         onChange={handleEditInputChange}
                                                         required
                                                         style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                                     />
                                                 </div>
-                                                {editTrip.is_overnight && (
+                                                {editOuting.is_overnight && (
                                                     <div>
                                                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                                             End Date *
@@ -758,10 +758,10 @@ const TripAdmin: React.FC = () => {
                                                         <input
                                                             type="date"
                                                             name="end_date"
-                                                            value={editTrip.end_date || ''}
+                                                            value={editOuting.end_date || ''}
                                                             onChange={handleEditInputChange}
                                                             required
-                                                            min={editTrip.trip_date}
+                                                            min={editOuting.outing_date}
                                                             style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                                         />
                                                     </div>
@@ -775,7 +775,7 @@ const TripAdmin: React.FC = () => {
                                                 <input
                                                     type="text"
                                                     name="location"
-                                                    value={editTrip.location}
+                                                    value={editOuting.location}
                                                     onChange={handleEditInputChange}
                                                     required
                                                     style={{ width: '100%', padding: '8px', fontSize: '14px' }}
@@ -788,7 +788,7 @@ const TripAdmin: React.FC = () => {
                                                 </label>
                                                 <textarea
                                                     name="description"
-                                                    value={editTrip.description}
+                                                    value={editOuting.description}
                                                     onChange={handleEditInputChange}
                                                     rows={4}
                                                     style={{ width: '100%', padding: '8px', fontSize: '14px' }}
@@ -801,7 +801,7 @@ const TripAdmin: React.FC = () => {
                                                 </label>
                                                 <select
                                                     name="capacity_type"
-                                                    value={editTrip.capacity_type}
+                                                    value={editOuting.capacity_type}
                                                     onChange={handleEditInputChange}
                                                     style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                                 >
@@ -810,7 +810,7 @@ const TripAdmin: React.FC = () => {
                                                 </select>
                                             </div>
 
-                                            {editTrip.capacity_type === 'fixed' && (
+                                            {editOuting.capacity_type === 'fixed' && (
                                                 <div style={{ marginBottom: '15px' }}>
                                                     <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                                         Maximum Capacity *
@@ -818,7 +818,7 @@ const TripAdmin: React.FC = () => {
                                                     <input
                                                         type="number"
                                                         name="max_participants"
-                                                        value={editTrip.max_participants}
+                                                        value={editOuting.max_participants}
                                                         onChange={handleEditInputChange}
                                                         min="1"
                                                         required
@@ -828,16 +828,16 @@ const TripAdmin: React.FC = () => {
                                             )}
 
                                             <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-                                                <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Trip Lead Contact (Optional)</h3>
+                                                <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Outing Lead Contact (Optional)</h3>
                                                 
                                                 <div style={{ marginBottom: '15px' }}>
                                                     <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                                        Trip Lead Name
+                                                        Outing Lead Name
                                                     </label>
                                                     <input
                                                         type="text"
-                                                        name="trip_lead_name"
-                                                        value={editTrip.trip_lead_name || ''}
+                                                        name="outing_lead_name"
+                                                        value={editOuting.outing_lead_name || ''}
                                                         onChange={handleEditInputChange}
                                                         style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                                     />
@@ -845,12 +845,12 @@ const TripAdmin: React.FC = () => {
 
                                                 <div style={{ marginBottom: '15px' }}>
                                                     <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                                        Trip Lead Email
+                                                        Outing Lead Email
                                                     </label>
                                                     <input
                                                         type="email"
-                                                        name="trip_lead_email"
-                                                        value={editTrip.trip_lead_email || ''}
+                                                        name="outing_lead_email"
+                                                        value={editOuting.outing_lead_email || ''}
                                                         onChange={handleEditInputChange}
                                                         style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                                     />
@@ -858,12 +858,12 @@ const TripAdmin: React.FC = () => {
 
                                                 <div style={{ marginBottom: '15px' }}>
                                                     <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                                        Trip Lead Phone
+                                                        Outing Lead Phone
                                                     </label>
                                                     <input
                                                         type="tel"
-                                                        name="trip_lead_phone"
-                                                        value={editTrip.trip_lead_phone || ''}
+                                                        name="outing_lead_phone"
+                                                        value={editOuting.outing_lead_phone || ''}
                                                         onChange={handleEditInputChange}
                                                         style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                                     />
@@ -884,7 +884,7 @@ const TripAdmin: React.FC = () => {
                                                         fontSize: '16px'
                                                     }}
                                                 >
-                                                    {loading ? 'Updating...' : 'Update Trip'}
+                                                    {loading ? 'Updating...' : 'Update Outing'}
                                                 </button>
                                                 <button
                                                     type="button"
@@ -908,50 +908,50 @@ const TripAdmin: React.FC = () => {
                                 ) : (
                                     <>
                                         <div
-                                            onClick={() => handleTripClick(trip.id)}
+                                            onClick={() => handleOutingClick(outing.id)}
                                             style={{
                                                 padding: '20px',
                                                 cursor: 'pointer',
-                                                backgroundColor: expandedTripId === trip.id ? '#e3f2fd' : '#f9f9f9',
+                                                backgroundColor: expandedOutingId === outing.id ? '#e3f2fd' : '#f9f9f9',
                                                 transition: 'background-color 0.2s'
                                             }}
                                         >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                                         <div style={{ flex: 1 }}>
                                             <h3 style={{ marginTop: 0, marginBottom: '10px' }}>
-                                                {expandedTripId === trip.id ? '▼' : '▶'} {trip.name}
+                                                {expandedOutingId === outing.id ? '▼' : '▶'} {outing.name}
                                             </h3>
                                             <p style={{ margin: '5px 0' }}>
-                                                <strong>Date:</strong> {formatDate(trip.trip_date)}
-                                                {trip.is_overnight && trip.end_date && ` - ${formatDate(trip.end_date)}`}
+                                                <strong>Date:</strong> {formatDate(outing.outing_date)}
+                                                {outing.is_overnight && outing.end_date && ` - ${formatDate(outing.end_date)}`}
                                             </p>
-                                            <p style={{ margin: '5px 0' }}><strong>Location:</strong> {trip.location}</p>
-                                            {trip.description && <p style={{ margin: '5px 0' }}><strong>Description:</strong> {trip.description}</p>}
+                                            <p style={{ margin: '5px 0' }}><strong>Location:</strong> {outing.location}</p>
+                                            {outing.description && <p style={{ margin: '5px 0' }}><strong>Description:</strong> {outing.description}</p>}
                                             <p style={{ margin: '5px 0' }}>
-                                                <strong>Capacity Type:</strong> {trip.capacity_type === 'fixed' ? 'Fixed' : 'Vehicle-Based'}
+                                                <strong>Capacity Type:</strong> {outing.capacity_type === 'fixed' ? 'Fixed' : 'Vehicle-Based'}
                                             </p>
-                                            {trip.capacity_type === 'fixed' ? (
+                                            {outing.capacity_type === 'fixed' ? (
                                                 <p style={{ margin: '5px 0' }}>
-                                                    <strong>Capacity:</strong> {trip.signup_count} / {trip.max_participants} participants
-                                                    {trip.is_full && (
+                                                    <strong>Capacity:</strong> {outing.signup_count} / {outing.max_participants} participants
+                                                    {outing.is_full && (
                                                         <span style={{ color: '#d32f2f', marginLeft: '10px' }}>FULL</span>
                                                     )}
                                                 </p>
                                             ) : (
                                                 <>
                                                     <p style={{ margin: '5px 0' }}>
-                                                        <strong>Participants:</strong> {trip.signup_count}
+                                                        <strong>Participants:</strong> {outing.signup_count}
                                                     </p>
                                                     <p style={{ margin: '5px 0' }}>
-                                                        <strong>Vehicle Capacity:</strong> {trip.total_vehicle_capacity} seats
+                                                        <strong>Vehicle Capacity:</strong> {outing.total_vehicle_capacity} seats
                                                     </p>
                                                     <p style={{ margin: '5px 0' }}>
-                                                        <strong>Available Seats:</strong> {trip.available_spots}
-                                                        {trip.is_full && (
+                                                        <strong>Available Seats:</strong> {outing.available_spots}
+                                                        {outing.is_full && (
                                                             <span style={{ color: '#d32f2f', marginLeft: '10px' }}>FULL</span>
                                                         )}
                                                     </p>
-                                                    {trip.needs_more_drivers && (
+                                                    {outing.needs_more_drivers && (
                                                         <p style={{
                                                             color: '#f57c00',
                                                             fontWeight: 'bold',
@@ -960,31 +960,31 @@ const TripAdmin: React.FC = () => {
                                                             borderRadius: '4px',
                                                             marginTop: '10px'
                                                         }}>
-                                                            ⚠️ More drivers needed! Current vehicle capacity ({trip.total_vehicle_capacity}) is less than participants ({trip.signup_count})
+                                                            ⚠️ More drivers needed! Current vehicle capacity ({outing.total_vehicle_capacity}) is less than participants ({outing.signup_count})
                                                         </p>
                                                     )}
                                                 </>
                                             )}
-                                            {trip.is_overnight && (
+                                            {outing.is_overnight && (
                                                 <p style={{ margin: '10px 0 0 0' }}>
                                                     <span style={{
                                                         padding: '4px 8px',
                                                         backgroundColor: '#e3f2fd',
                                                         borderRadius: '4px'
-                                                    }}>Overnight Trip</span>
+                                                    }}>Overnight Outing</span>
                                                 </p>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
-                                {expandedTripId === trip.id && renderTripSignups(trip.id)}
+                                {expandedOutingId === outing.id && renderOutingSignups(outing.id)}
 
                                 <div style={{ padding: '15px 20px', backgroundColor: '#fff', borderTop: '1px solid #ddd' }}>
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleExportRosterPDF(trip.id, trip.name);
+                                            handleExportRosterPDF(outing.id, outing.name);
                                         }}
                                         disabled={loading}
                                         style={{
@@ -1004,7 +1004,7 @@ const TripAdmin: React.FC = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleExportRoster(trip.id, trip.name);
+                                            handleExportRoster(outing.id, outing.name);
                                         }}
                                         disabled={loading}
                                         style={{
@@ -1022,7 +1022,7 @@ const TripAdmin: React.FC = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleEditTrip(trip);
+                                            handleEditOuting(outing);
                                         }}
                                         disabled={loading}
                                         style={{
@@ -1035,12 +1035,12 @@ const TripAdmin: React.FC = () => {
                                             cursor: loading ? 'not-allowed' : 'pointer'
                                         }}
                                     >
-                                        ✏️ Edit Trip
+                                        ✏️ Edit Outing
                                     </button>
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleDeleteTrip(trip.id);
+                                            handleDeleteOuting(outing.id);
                                         }}
                                         disabled={loading}
                                         style={{
@@ -1052,7 +1052,7 @@ const TripAdmin: React.FC = () => {
                                             cursor: loading ? 'not-allowed' : 'pointer'
                                         }}
                                     >
-                                        Delete Trip
+                                        Delete Outing
                                             </button>
                                         </div>
                                     </>
@@ -1066,4 +1066,4 @@ const TripAdmin: React.FC = () => {
     );
 };
 
-export default TripAdmin;
+export default OutingAdmin;

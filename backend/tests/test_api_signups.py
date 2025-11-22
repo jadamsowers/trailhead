@@ -7,13 +7,13 @@ from httpx import AsyncClient
 class TestCreateSignup:
     """Test POST /api/signups endpoint (public)"""
     
-    async def test_create_signup_success(self, client: AsyncClient, test_trip, sample_signup_data):
+    async def test_create_signup_success(self, client: AsyncClient, test_outing, sample_signup_data):
         """Test creating a signup successfully"""
         response = await client.post("/api/signups", json=sample_signup_data)
         
         assert response.status_code == 201
         data = response.json()
-        assert data["trip_id"] == str(test_trip.id)
+        assert data["outing_id"] == str(test_outing.id)
         assert data["family_contact_name"] == sample_signup_data["family_contact"]["name"]
         assert len(data["participants"]) == len(sample_signup_data["participants"])
         assert "id" in data
@@ -21,12 +21,12 @@ class TestCreateSignup:
         assert "scout_count" in data
         assert "adult_count" in data
     
-    async def test_create_signup_trip_not_found(self, client: AsyncClient):
-        """Test creating signup for non-existent trip"""
+    async def test_create_signup_outing_not_found(self, client: AsyncClient):
+        """Test creating signup for non-existent outing"""
         from uuid import uuid4
         
         signup_data = {
-            "trip_id": str(uuid4()),
+            "outing_id": str(uuid4()),
             "family_contact": {
                 "name": "Test Family",
                 "email": "test@test.com",
@@ -55,26 +55,26 @@ class TestCreateSignup:
         assert response.status_code == 404
     
     async def test_create_signup_not_enough_spots(self, client: AsyncClient, db_session):
-        """Test creating signup when trip doesn't have enough spots"""
-        from app.models.trip import Trip
+        """Test creating signup when outing doesn't have enough spots"""
+        from app.models.outing import Outing
         from app.models.signup import Signup
         from app.models.participant import Participant
         from datetime import date, timedelta
         
-        # Create trip with only 1 spot
-        trip = Trip(
-            name="Small Trip",
-            trip_date=date.today() + timedelta(days=30),
+        # Create outing with only 1 spot
+        outing = Outing(
+            name="Small Outing",
+            outing_date=date.today() + timedelta(days=30),
             location="Test",
             max_participants=1,
         )
-        db_session.add(trip)
+        db_session.add(outing)
         await db_session.commit()
-        await db_session.refresh(trip)
+        await db_session.refresh(outing)
         
         # Try to signup 2 people
         signup_data = {
-            "trip_id": str(trip.id),
+            "outing_id": str(outing.id),
             "family_contact": {
                 "name": "Test Family",
                 "email": "test@test.com",
@@ -117,11 +117,11 @@ class TestCreateSignup:
         assert response.status_code == 400
         assert "available spots" in response.json()["detail"].lower()
     
-    async def test_create_signup_scouting_america_two_deep_leadership(self, client: AsyncClient, test_trip):
+    async def test_create_signup_scouting_america_two_deep_leadership(self, client: AsyncClient, test_outing):
         """Test Scouting America two-deep leadership requirement"""
         # Try to signup with only 1 adult (should fail)
         signup_data = {
-            "trip_id": str(test_trip.id),
+            "outing_id": str(test_outing.id),
             "family_contact": {
                 "name": "Test Family",
                 "email": "test@test.com",
@@ -164,11 +164,11 @@ class TestCreateSignup:
         assert response.status_code == 400
         assert "2 adults" in response.json()["detail"]
     
-    async def test_create_signup_scouting_america_female_leader_requirement(self, client: AsyncClient, test_trip):
+    async def test_create_signup_scouting_america_female_leader_requirement(self, client: AsyncClient, test_outing):
         """Test Scouting America female leader requirement when female youth present"""
         # First, add 2 male adults to satisfy two-deep leadership
         signup1_data = {
-            "trip_id": str(test_trip.id),
+            "outing_id": str(test_outing.id),
             "family_contact": {
                 "name": "Male Leaders",
                 "email": "males@test.com",
@@ -210,7 +210,7 @@ class TestCreateSignup:
         
         # Now try to add female youth without female adult (should fail)
         signup2_data = {
-            "trip_id": str(test_trip.id),
+            "outing_id": str(test_outing.id),
             "family_contact": {
                 "name": "Female Scout Family",
                 "email": "female@test.com",
@@ -240,26 +240,26 @@ class TestCreateSignup:
         assert "female adult" in response.json()["detail"].lower()
     
     async def test_create_signup_overnight_youth_protection(self, client: AsyncClient, db_session):
-        """Test youth protection requirement for overnight trips"""
-        from app.models.trip import Trip
+        """Test youth protection requirement for overnight outings"""
+        from app.models.outing import Outing
         from datetime import date, timedelta
         
-        # Create overnight trip
-        trip = Trip(
-            name="Overnight Trip",
-            trip_date=date.today() + timedelta(days=30),
+        # Create overnight outing
+        outing = Outing(
+            name="Overnight Outing",
+            outing_date=date.today() + timedelta(days=30),
             end_date=date.today() + timedelta(days=32),
             location="Camp",
             max_participants=20,
             is_overnight=True,
         )
-        db_session.add(trip)
+        db_session.add(outing)
         await db_session.commit()
-        await db_session.refresh(trip)
+        await db_session.refresh(outing)
         
         # First signup with 2 adults (one without youth protection)
         signup1_data = {
-            "trip_id": str(trip.id),
+            "outing_id": str(outing.id),
             "family_contact": {
                 "name": "First Family",
                 "email": "first@test.com",
@@ -331,7 +331,7 @@ class TestGetSignup:
 class TestCancelSignup:
     """Test DELETE /api/signups/{signup_id} endpoint (public)"""
     
-    async def test_cancel_signup_success(self, client: AsyncClient, test_trip, sample_signup_data):
+    async def test_cancel_signup_success(self, client: AsyncClient, test_outing, sample_signup_data):
         """Test canceling a signup"""
         # Create a signup
         create_response = await client.post("/api/signups", json=sample_signup_data)

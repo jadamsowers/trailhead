@@ -9,7 +9,7 @@ They do not require database fixtures or actual data.
 """
 import pytest
 from datetime import date, timedelta
-from app.schemas.trip import TripResponse, TripCreate
+from app.schemas.outing import OutingResponse, OutingCreate
 from app.schemas.signup import SignupResponse, SignupCreate, ParticipantCreate, FamilyContactCreate
 from pydantic import ValidationError
 
@@ -17,16 +17,16 @@ from pydantic import ValidationError
 pytestmark = pytest.mark.asyncio
 
 
-class TestTripContracts:
-    """Test Trip response structure matches frontend expectations"""
+class TestOutingContracts:
+    """Test Outing response structure matches frontend expectations"""
     
-    def test_trip_response_structure(self):
-        """Verify TripResponse schema matches frontend Trip type"""
-        # Create a valid trip response
-        trip_data = {
+    def test_outing_response_structure(self):
+        """Verify OutingResponse schema matches frontend Outing type"""
+        # Create a valid outing response
+        outing_data = {
             "id": "123e4567-e89b-12d3-a456-426614174000",
-            "name": "Test Trip",
-            "trip_date": date.today().isoformat(),
+            "name": "Test Outing",
+            "outing_date": date.today().isoformat(),
             "end_date": (date.today() + timedelta(days=2)).isoformat(),
             "location": "Test Location",
             "description": "Test Description",
@@ -34,50 +34,50 @@ class TestTripContracts:
             "is_overnight": True,
             "current_signups": 5,
             "available_spots": 15,
-            "trip_lead_name": "John Doe",
-            "trip_lead_email": "john@example.com",
-            "trip_lead_phone": "555-1234",
+            "outing_lead_name": "John Doe",
+            "outing_lead_email": "john@example.com",
+            "outing_lead_phone": "555-1234",
         }
         
         # Should not raise validation error
-        trip = TripResponse(**trip_data)
+        outing = OutingResponse(**outing_data)
         
         # Verify all required fields are present
-        assert trip.id == trip_data["id"]
-        assert trip.name == trip_data["name"]
-        assert trip.trip_date == date.today()
-        assert trip.end_date == date.today() + timedelta(days=2)
-        assert trip.location == trip_data["location"]
-        assert trip.description == trip_data["description"]
-        assert trip.max_participants == trip_data["max_participants"]
-        assert trip.is_overnight == trip_data["is_overnight"]
-        assert trip.current_signups == trip_data["current_signups"]
-        assert trip.available_spots == trip_data["available_spots"]
-        assert trip.trip_lead_name == trip_data["trip_lead_name"]
-        assert trip.trip_lead_email == trip_data["trip_lead_email"]
-        assert trip.trip_lead_phone == trip_data["trip_lead_phone"]
+        assert outing.id == outing_data["id"]
+        assert outing.name == outing_data["name"]
+        assert outing.outing_date == date.today()
+        assert outing.end_date == date.today() + timedelta(days=2)
+        assert outing.location == outing_data["location"]
+        assert outing.description == outing_data["description"]
+        assert outing.max_participants == outing_data["max_participants"]
+        assert outing.is_overnight == outing_data["is_overnight"]
+        assert outing.current_signups == outing_data["current_signups"]
+        assert outing.available_spots == outing_data["available_spots"]
+        assert outing.outing_lead_name == outing_data["outing_lead_name"]
+        assert outing.outing_lead_email == outing_data["outing_lead_email"]
+        assert outing.outing_lead_phone == outing_data["outing_lead_phone"]
     
-    def test_trip_create_request_structure(self):
-        """Verify TripCreate schema matches frontend expectations"""
-        trip_data = {
-            "name": "New Trip",
-            "trip_date": date.today().isoformat(),
+    def test_outing_create_request_structure(self):
+        """Verify OutingCreate schema matches frontend expectations"""
+        outing_data = {
+            "name": "New Outing",
+            "outing_date": date.today().isoformat(),
             "end_date": (date.today() + timedelta(days=2)).isoformat(),
             "location": "New Location",
             "description": "New Description",
             "max_participants": 30,
             "is_overnight": False,
-            "trip_lead_name": "Jane Doe",
-            "trip_lead_email": "jane@example.com",
-            "trip_lead_phone": "555-5678",
+            "outing_lead_name": "Jane Doe",
+            "outing_lead_email": "jane@example.com",
+            "outing_lead_phone": "555-5678",
         }
         
         # Should not raise validation error
-        trip = TripCreate(**trip_data)
+        outing = OutingCreate(**outing_data)
         
-        assert trip.name == trip_data["name"]
-        assert trip.trip_date == date.today()
-        assert trip.location == trip_data["location"]
+        assert outing.name == outing_data["name"]
+        assert outing.outing_date == date.today()
+        assert outing.location == outing_data["location"]
 
 
 class TestSignupContracts:
@@ -87,7 +87,7 @@ class TestSignupContracts:
         """Verify SignupResponse schema matches frontend SignupResponse type"""
         signup_data = {
             "id": "123e4567-e89b-12d3-a456-426614174001",
-            "trip_id": "123e4567-e89b-12d3-a456-426614174000",
+            "outing_id": "123e4567-e89b-12d3-a456-426614174000",
             "family_contact_name": "John Doe",
             "family_contact_email": "john@example.com",
             "family_contact_phone": "555-1234",
@@ -117,7 +117,7 @@ class TestSignupContracts:
         
         # Verify all required fields including warnings
         assert signup.id == signup_data["id"]
-        assert signup.trip_id == signup_data["trip_id"]
+        assert signup.outing_id == signup_data["outing_id"]
         assert signup.family_contact_name == signup_data["family_contact_name"]
         assert signup.family_contact_email == signup_data["family_contact_email"]
         assert signup.family_contact_phone == signup_data["family_contact_phone"]
@@ -128,7 +128,7 @@ class TestSignupContracts:
         """Verify SignupResponse includes warnings field (the original 422 error cause)"""
         signup_data = {
             "id": "123e4567-e89b-12d3-a456-426614174001",
-            "trip_id": "123e4567-e89b-12d3-a456-426614174000",
+            "outing_id": "123e4567-e89b-12d3-a456-426614174000",
             "family_contact_name": "John Doe",
             "family_contact_email": "john@example.com",
             "family_contact_phone": "555-1234",
@@ -163,7 +163,7 @@ class TestSignupContracts:
     def test_signup_create_request_structure(self):
         """Verify SignupCreate schema matches frontend expectations"""
         signup_data = {
-            "trip_id": "123e4567-e89b-12d3-a456-426614174000",
+            "outing_id": "123e4567-e89b-12d3-a456-426614174000",
             "family_contact": {
                 "name": "Jane Smith",
                 "email": "jane@example.com",
@@ -190,7 +190,7 @@ class TestSignupContracts:
         # Should not raise validation error
         signup = SignupCreate(**signup_data)
         
-        assert signup.trip_id == signup_data["trip_id"]
+        assert signup.outing_id == signup_data["outing_id"]
         assert signup.family_contact.name == signup_data["family_contact"]["name"]
         assert len(signup.participants) == 1
 
@@ -220,7 +220,7 @@ class TestParticipantContracts:
         # Should not raise validation error when used in SignupResponse
         signup_data = {
             "id": "123e4567-e89b-12d3-a456-426614174001",
-            "trip_id": "123e4567-e89b-12d3-a456-426614174000",
+            "outing_id": "123e4567-e89b-12d3-a456-426614174000",
             "family_contact_name": "John Doe",
             "family_contact_email": "john@example.com",
             "family_contact_phone": "555-1234",
@@ -247,15 +247,15 @@ class TestErrorContracts:
     def test_validation_error_structure(self):
         """Verify validation errors have expected structure"""
         # Test that invalid data raises ValidationError with expected structure
-        invalid_trip_data = {
+        invalid_outing_data = {
             "name": "Test",
-            "trip_date": "invalid-date",  # Invalid date format
+            "outing_date": "invalid-date",  # Invalid date format
             "location": "Test",
             "max_participants": -1,  # Invalid negative number
         }
         
         with pytest.raises(ValidationError) as exc_info:
-            TripCreate(**invalid_trip_data)
+            OutingCreate(**invalid_outing_data)
         
         # Verify error structure
         errors = exc_info.value.errors()
@@ -271,7 +271,7 @@ class TestErrorContracts:
     def test_missing_required_field_error(self):
         """Verify missing required fields raise appropriate errors"""
         incomplete_signup_data = {
-            "trip_id": "123e4567-e89b-12d3-a456-426614174000",
+            "outing_id": "123e4567-e89b-12d3-a456-426614174000",
             # Missing family_contact
             "participants": [],
         }
@@ -288,11 +288,11 @@ class TestTypeCompatibility:
     
     def test_optional_fields_are_nullable(self):
         """Verify optional fields can be None"""
-        # Test trip with minimal required fields
-        minimal_trip = {
+        # Test outing with minimal required fields
+        minimal_outing = {
             "id": "123e4567-e89b-12d3-a456-426614174000",
-            "name": "Test Trip",
-            "trip_date": date.today().isoformat(),
+            "name": "Test Outing",
+            "outing_date": date.today().isoformat(),
             "end_date": None,  # Optional
             "location": "Test",
             "description": None,  # Optional
@@ -300,15 +300,15 @@ class TestTypeCompatibility:
             "is_overnight": False,
             "current_signups": 0,
             "available_spots": 20,
-            "trip_lead_name": None,  # Optional
-            "trip_lead_email": None,  # Optional
-            "trip_lead_phone": None,  # Optional
+            "outing_lead_name": None,  # Optional
+            "outing_lead_email": None,  # Optional
+            "outing_lead_phone": None,  # Optional
         }
         
         # Should not raise validation error
-        trip = TripResponse(**minimal_trip)
-        assert trip.end_date is None
-        assert trip.description is None
+        outing = OutingResponse(**minimal_outing)
+        assert outing.end_date is None
+        assert outing.description is None
     
     def test_list_fields_default_to_empty(self):
         """Verify list fields have appropriate defaults"""
@@ -327,7 +327,7 @@ class TestTypeCompatibility:
         
         signup_data = {
             "id": "123e4567-e89b-12d3-a456-426614174001",
-            "trip_id": "123e4567-e89b-12d3-a456-426614174000",
+            "outing_id": "123e4567-e89b-12d3-a456-426614174000",
             "family_contact_name": "John Doe",
             "family_contact_email": "john@example.com",
             "family_contact_phone": "555-1234",

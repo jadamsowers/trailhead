@@ -1,4 +1,4 @@
-from app.schemas.trip import TripCreate, TripUpdate, TripResponse, TripListResponse
+from app.schemas.outing import OutingCreate, OutingUpdate, OutingResponse, OutingListResponse
 from app.schemas.signup import SignupCreate, SignupResponse, ParticipantCreate
 from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest, UserResponse
 from app.schemas.family import (
@@ -14,10 +14,10 @@ from app.schemas.family import (
 )
 
 __all__ = [
-    "TripCreate",
-    "TripUpdate",
-    "TripResponse",
-    "TripListResponse",
+    "OutingCreate",
+    "OutingUpdate",
+    "OutingResponse",
+    "OutingListResponse",
     "SignupCreate",
     "SignupResponse",
     "ParticipantCreate",

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.api.endpoints import trips, signups, csv_import, auth, registration, family, clerk_auth
+from app.api.endpoints import outings, signups, csv_import, auth, registration, family, clerk_auth
 
 # Create FastAPI application with enhanced documentation
 app = FastAPI(
@@ -11,11 +11,11 @@ app = FastAPI(
     description="""
 ## Scouting Outing Manager API
 
-A comprehensive API for managing scout troop trips, signups, and participant information.
+A comprehensive API for managing scout troop outings, signups, and participant information.
 
 ### Features
 
-* **Trip Management** - Create and manage Scouting Outings with capacity tracking
+* **Outing Management** - Create and manage Scouting Outings with capacity tracking
 * **Family Signups** - Register multiple scouts and adults per family
 * **Scouting America Compliance** - Enforce two-deep leadership and youth protection requirements
 * **Multi-Troop Support** - Track troop numbers and patrol assignments
@@ -29,8 +29,8 @@ Most admin endpoints require JWT authentication. Use the `/api/auth/login` endpo
 
 ### Getting Started
 
-1. Create trips using the admin interface
-2. Participants can view available trips and sign up
+1. Create outings using the admin interface
+2. Participants can view available outings and sign up
 3. Admins can view signups and export rosters
 
 For detailed documentation, see the individual endpoint descriptions below.
@@ -58,9 +58,9 @@ app.add_middleware(
 
 # Include routers
 app.include_router(
-    trips.router,
-    prefix=f"{settings.API_V1_STR}/trips",
-    tags=["trips"]
+    outings.router,
+    prefix=f"{settings.API_V1_STR}/outings",
+    tags=["outings"]
 )
 
 app.include_router(
@@ -114,7 +114,7 @@ async def root():
         "endpoints": {
             "health": f"{settings.API_V1_STR}/health",
             "auth": f"{settings.API_V1_STR}/auth",
-            "trips": f"{settings.API_V1_STR}/trips",
+            "outings": f"{settings.API_V1_STR}/outings",
             "signups": f"{settings.API_V1_STR}/signups",
             "csv": f"{settings.API_V1_STR}/csv",
             "family": f"{settings.API_V1_STR}/family"

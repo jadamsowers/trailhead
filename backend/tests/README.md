@@ -9,10 +9,10 @@ tests/
 ├── conftest.py                 # Pytest fixtures and configuration
 ├── test_core_security.py       # Security and authentication tests
 ├── test_core_config.py         # Configuration tests
-├── test_crud_trip.py          # Trip CRUD operations tests
+├── test_crud_outing.py          # Outing CRUD operations tests
 ├── test_crud_signup.py        # Signup CRUD operations tests
 ├── test_api_auth.py           # Authentication endpoint tests
-├── test_api_trips.py          # Trip API endpoint tests
+├── test_api_outings.py          # Outing API endpoint tests
 ├── test_api_signups.py        # Signup API endpoint tests
 └── test_models.py             # Database model tests
 ```
@@ -100,14 +100,14 @@ The test suite covers:
 - ✅ CORS settings
 
 ### CRUD Operations
-- ✅ Trip creation, retrieval, update, deletion
+- ✅ Outing creation, retrieval, update, deletion
 - ✅ Signup creation, retrieval, deletion
 - ✅ Participant management
 - ✅ Dietary restrictions and allergies
 
 ### API Endpoints
 - ✅ Authentication (login, logout, current user)
-- ✅ Trip management (CRUD operations)
+- ✅ Outing management (CRUD operations)
 - ✅ Signup management (create, view, cancel)
 - ✅ Admin-only endpoints
 - ✅ Public endpoints
@@ -116,7 +116,7 @@ The test suite covers:
 - ✅ Scouting America two-deep leadership requirement
 - ✅ Scouting America female leader requirement
 - ✅ Youth protection training validation
-- ✅ Trip capacity management
+- ✅ Outing capacity management
 - ✅ Signup validation
 
 ### Database Models
@@ -152,12 +152,12 @@ class TestFeature:
 - `test_user` - Admin user for authentication
 - `test_user_token` - JWT token for test user
 - `auth_headers` - Authorization headers with token
-- `test_trip` - Sample overnight trip
-- `test_day_trip` - Sample day trip
+- `test_outing` - Sample overnight outing
+- `test_day_outing` - Sample day outing
 - `test_signup` - Sample signup with participants
 - `test_participant_with_restrictions` - Participant with dietary needs
 - `sample_signup_data` - Sample signup request data
-- `sample_trip_data` - Sample trip request data
+- `sample_outing_data` - Sample outing request data
 
 ### Best Practices
 
