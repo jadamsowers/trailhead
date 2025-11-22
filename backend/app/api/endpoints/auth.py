@@ -2,13 +2,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel, EmailStr
+from typing import List
 import uuid
 
 from app.db.session import get_db
 from app.schemas.auth import LoginRequest, TokenResponse, UserResponse
 from app.models.user import User
 from app.core.security import verify_password, create_access_token, get_password_hash
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_current_admin_user
 
 router = APIRouter()
 
@@ -21,6 +22,10 @@ class AdminSetupRequest(BaseModel):
 
 class SetupStatusResponse(BaseModel):
     setup_complete: bool
+
+
+class UpdateUserRoleRequest(BaseModel):
+    role: str
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -180,3 +185,82 @@ async def setup_admin(
         "message": "Admin user created successfully",
         "user_id": str(admin_user.id)
     }
+
+
+@router.get("/users", response_model=List[UserResponse])
+async def list_users(
+    current_admin: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    List all users in the system. Admin only.
+    
+    Returns a list of all users with their basic information.
+    """
+    result = await db.execute(select(User))
+    users = result.scalars().all()
+    
+    return [
+        UserResponse(
+            id=user.id,
+            email=user.email,
+            full_name=user.full_name,
+            role=user.role,
+            is_initial_admin=user.is_initial_admin
+        )
+        for user in users
+    ]
+
+
+@router.patch("/users/{user_id}/role", response_model=UserResponse)
+async def update_user_role(
+    user_id: uuid.UUID,
+    role_data: UpdateUserRoleRequest,
+    current_admin: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update a user's role. Admin only.
+    
+    - **user_id**: The ID of the user to update
+    - **role**: The new role (admin, adult, or user)
+    
+    Cannot modify the initial admin user's role.
+    """
+    # Validate role
+    valid_roles = ["admin", "adult", "user"]
+    if role_data.role not in valid_roles:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid role. Must be one of: {', '.join(valid_roles)}"
+        )
+    
+    # Get the user to update
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Prevent modifying the initial admin
+    if user.is_initial_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot modify the initial admin user's role"
+        )
+    
+    # Update the role
+    user.role = role_data.role
+    await db.commit()
+    await db.refresh(user)
+    
+    return UserResponse(
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        role=user.role,
+        is_initial_admin=user.is_initial_admin
+    )

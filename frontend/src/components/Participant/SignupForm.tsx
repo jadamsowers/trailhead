@@ -821,11 +821,67 @@ const SignupForm: React.FC = () => {
                         {/* Selected Participants Summary */}
                         {!showFamilySelection && selectedFamilyMemberIds.length > 0 && (
                             <div style={{ marginBottom: '30px', padding: '20px', border: '2px solid #4caf50', borderRadius: '8px', backgroundColor: '#f1f8f4' }}>
-                                <h2 style={{ marginBottom: '15px', color: '#2e7d32' }}>Selected Participants ({selectedFamilyMemberIds.length})</h2>
+                                <h2 style={{ marginBottom: '10px', color: '#2e7d32' }}>Selected Participants ({selectedFamilyMemberIds.length})</h2>
+                                <p style={{ marginBottom: '15px', fontSize: '14px', color: '#555', fontStyle: 'italic' }}>
+                                    💡 Click on any participant to remove them from the signup
+                                </p>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '15px' }}>
                                     {familyMembers.filter(fm => selectedFamilyMemberIds.includes(fm.id)).map((member) => (
-                                        <div key={member.id} style={{ padding: '15px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #ddd' }}>
-                                            <p style={{ margin: '5px 0', fontSize: '16px' }}>
+                                        <div
+                                            key={member.id}
+                                            onClick={() => handleToggleFamilyMember(member.id)}
+                                            style={{
+                                                padding: '15px',
+                                                backgroundColor: 'white',
+                                                borderRadius: '6px',
+                                                border: '1px solid #ddd',
+                                                cursor: 'pointer',
+                                                position: 'relative',
+                                                transition: 'all 0.2s',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = '#ffebee';
+                                                e.currentTarget.style.borderColor = '#f44336';
+                                                e.currentTarget.style.transform = 'translateX(-5px)';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'white';
+                                                e.currentTarget.style.borderColor = '#ddd';
+                                                e.currentTarget.style.transform = 'translateX(0)';
+                                            }}
+                                        >
+                                            <div style={{
+                                                position: 'absolute',
+                                                top: '10px',
+                                                right: '10px',
+                                                width: '20px',
+                                                height: '20px',
+                                                borderRadius: '50%',
+                                                backgroundColor: '#e0e0e0',
+                                                color: '#757575',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                fontSize: '14px',
+                                                fontWeight: 'normal',
+                                                opacity: '0.7',
+                                                transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = '#f44336';
+                                                e.currentTarget.style.color = 'white';
+                                                e.currentTarget.style.opacity = '1';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = '#e0e0e0';
+                                                e.currentTarget.style.color = '#757575';
+                                                e.currentTarget.style.opacity = '0.7';
+                                            }}
+                                            >
+                                                ✕
+                                            </div>
+                                            <p style={{ margin: '5px 0', fontSize: '16px', paddingRight: '40px' }}>
                                                 <strong>Name:</strong> {member.name}
                                             </p>
                                             <p style={{ margin: '5px 0', fontSize: '16px' }}>
