@@ -13,8 +13,6 @@ import {
     FamilyMemberUpdate,
     FamilyMemberSummary,
     FamilyMemberListResponse,
-    AdultRegistrationRequest,
-    RegistrationResponse,
 } from '../types';
 
 // Extend Window interface for Clerk
@@ -113,9 +111,16 @@ async function getAuthHeaders(): Promise<HeadersInit> {
     };
     
     try {
-        // Wait for Clerk to be loaded
+        // Wait for Clerk to be loaded with retry logic
+        let retries = 0;
+        const maxRetries = 10;
+        while (!window.Clerk && retries < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            retries++;
+        }
+        
         if (!window.Clerk) {
-            console.error('❌ Clerk is not loaded');
+            console.error('❌ Clerk is not loaded after retries');
             throw new Error('Authentication system not initialized. Please refresh the page.');
         }
         
@@ -228,6 +233,34 @@ export const signupAPI = {
         });
         const data = await handleResponse<{ signups: SignupResponse[]; total: number }>(response);
         return data.signups;
+    },
+    async getEmails(outingId: string): Promise<{ emails: string[]; count: number }> {
+        const response = await fetch(`${API_BASE_URL}/signups/outings/${outingId}/emails`, {
+            headers: await getAuthHeaders(),
+        });
+        return handleResponse<{ emails: string[]; count: number }>(response);
+    },
+
+    async sendEmail(outingId: string, emailData: {
+        subject: string;
+        message: string;
+        from_email: string;
+    }): Promise<{
+        message: string;
+        recipient_count: number;
+        recipients: string[];
+        subject: string;
+        body: string;
+        from: string;
+        outing_name: string;
+        note: string;
+    }> {
+        const response = await fetch(`${API_BASE_URL}/signups/outings/${outingId}/send-email`, {
+            method: 'POST',
+            headers: await getAuthHeaders(),
+            body: JSON.stringify(emailData),
+        });
+        return handleResponse(response);
     },
 };
 
@@ -505,5 +538,34 @@ export const familyAPI = {
         if (!response.ok) {
             throw new APIError(response.status, 'Failed to delete family member');
         }
+    },
+};
+
+// User API (Clerk-based)
+export const userAPI = {
+    /**
+     * Get current user information including contact details
+     */
+    async getCurrentUser(): Promise<User> {
+        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+            headers: await getAuthHeaders(),
+        });
+        return handleResponse<User>(response);
+    },
+
+    /**
+     * Update current user's contact information
+     */
+    async updateContactInfo(contactInfo: {
+        phone?: string;
+        emergency_contact_name?: string;
+        emergency_contact_phone?: string;
+    }): Promise<User> {
+        const response = await fetch(`${API_BASE_URL}/auth/me/contact`, {
+            method: 'PATCH',
+            headers: await getAuthHeaders(),
+            body: JSON.stringify(contactInfo),
+        });
+        return handleResponse<User>(response);
     },
 };

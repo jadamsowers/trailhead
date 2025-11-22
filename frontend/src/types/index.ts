@@ -170,6 +170,9 @@ export interface User {
     role: 'admin' | 'user' | 'adult';
     is_active?: boolean;
     is_initial_admin?: boolean;
+    phone?: string;
+    emergency_contact_name?: string;
+    emergency_contact_phone?: string;
 }
 
 // Family Management Types

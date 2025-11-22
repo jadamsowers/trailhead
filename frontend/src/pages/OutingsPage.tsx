@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
-import SignupForm from '../components/Participant/SignupForm';
+import SignupWizard from '../components/Participant/SignupWizard';
 import { familyAPI } from '../services/api';
 
 const OutingsPage: React.FC = () => {
@@ -54,7 +54,7 @@ const OutingsPage: React.FC = () => {
         <div>
             <SignedIn>
                 {hasFamilyMembers ? (
-                    <SignupForm />
+                    <SignupWizard />
                 ) : (
                     <div className="min-h-screen flex items-center justify-center bg-gray-50">
                         <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">

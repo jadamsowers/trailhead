@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from app.db.session import get_db
 from app.core.clerk import get_clerk_client
-from app.schemas.auth import UserResponse
+from app.schemas.auth import UserResponse, UserContactUpdate
 from app.api.deps import get_current_user, get_current_admin_user
 from app.models.user import User
 
@@ -26,13 +26,48 @@ async def get_current_user_info(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Get current authenticated user information.
+    Get current authenticated user information including contact details.
     """
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
         full_name=current_user.full_name,
-        role=current_user.role
+        role=current_user.role,
+        phone=current_user.phone,
+        emergency_contact_name=current_user.emergency_contact_name,
+        emergency_contact_phone=current_user.emergency_contact_phone
+    )
+
+
+@router.patch("/me/contact", response_model=UserResponse)
+async def update_contact_info(
+    contact_update: UserContactUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update current user's contact information.
+    This serves as the default contact info for signups.
+    """
+    # Update contact fields
+    if contact_update.phone is not None:
+        current_user.phone = contact_update.phone
+    if contact_update.emergency_contact_name is not None:
+        current_user.emergency_contact_name = contact_update.emergency_contact_name
+    if contact_update.emergency_contact_phone is not None:
+        current_user.emergency_contact_phone = contact_update.emergency_contact_phone
+    
+    await db.commit()
+    await db.refresh(current_user)
+    
+    return UserResponse(
+        id=current_user.id,
+        email=current_user.email,
+        full_name=current_user.full_name,
+        role=current_user.role,
+        phone=current_user.phone,
+        emergency_contact_name=current_user.emergency_contact_name,
+        emergency_contact_phone=current_user.emergency_contact_phone
     )
 
 
@@ -75,7 +110,10 @@ async def list_users(
             email=user.email,
             full_name=user.full_name,
             role=user.role,
-            is_initial_admin=user.is_initial_admin
+            is_initial_admin=user.is_initial_admin,
+            phone=user.phone,
+            emergency_contact_name=user.emergency_contact_name,
+            emergency_contact_phone=user.emergency_contact_phone
         )
         for user in users
     ]
@@ -126,5 +164,8 @@ async def update_user_role(
         email=target_user.email,
         full_name=target_user.full_name,
         role=target_user.role,
-        is_initial_admin=target_user.is_initial_admin
+        is_initial_admin=target_user.is_initial_admin,
+        phone=target_user.phone,
+        emergency_contact_name=target_user.emergency_contact_name,
+        emergency_contact_phone=target_user.emergency_contact_phone
     )

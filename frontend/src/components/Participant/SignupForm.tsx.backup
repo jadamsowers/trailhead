@@ -4,9 +4,11 @@ import {
     Outing,
     SignupFormData,
     FamilyMemberSummary,
+    DIETARY_RESTRICTIONS,
+    ALLERGY_TYPES,
+    ALLERGY_SEVERITIES
 } from '../../types';
 import { outingAPI, signupAPI, familyAPI, APIError } from '../../services/api';
-import { formatPhoneNumber, validatePhoneWithMessage } from '../../utils/phoneUtils';
 
 const SignupForm: React.FC = () => {
     const { user, isSignedIn } = useUser();
@@ -104,20 +106,10 @@ const SignupForm: React.FC = () => {
     };
 
     const handleContactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        
-        // Apply phone formatting for phone fields
-        if (name === 'phone' || name === 'emergency_contact_phone') {
-            setFormData({
-                ...formData,
-                [name]: formatPhoneNumber(value)
-            });
-        } else {
-            setFormData({
-                ...formData,
-                [name]: value
-            });
-        }
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
     };
 
     const handleParticipantChange = (index: number, field: string, value: any) => {
@@ -227,15 +219,9 @@ const SignupForm: React.FC = () => {
     const validateForm = (): string | null => {
         if (!formData.outing_id) return 'Please select a outing';
         if (!formData.email) return 'Email is required';
-        
-        // Validate phone numbers
-        const phoneError = validatePhoneWithMessage(formData.phone, 'Phone number');
-        if (phoneError) return phoneError;
-        
+        if (!formData.phone) return 'Phone number is required';
         if (!formData.emergency_contact_name) return 'Emergency contact name is required';
-        
-        const emergencyPhoneError = validatePhoneWithMessage(formData.emergency_contact_phone, 'Emergency contact phone');
-        if (emergencyPhoneError) return emergencyPhoneError;
+        if (!formData.emergency_contact_phone) return 'Emergency contact phone is required';
         
         for (let i = 0; i < formData.participants.length; i++) {
             const p = formData.participants[i];
@@ -267,22 +253,16 @@ const SignupForm: React.FC = () => {
             setError('Email is required');
             return;
         }
-        
-        // Validate phone numbers with detailed messages
-        const phoneError = validatePhoneWithMessage(formData.phone, 'Phone number');
-        if (phoneError) {
-            setError(phoneError);
+        if (!formData.phone) {
+            setError('Phone number is required');
             return;
         }
-        
         if (!formData.emergency_contact_name) {
             setError('Emergency contact name is required');
             return;
         }
-        
-        const emergencyPhoneError = validatePhoneWithMessage(formData.emergency_contact_phone, 'Emergency contact phone');
-        if (emergencyPhoneError) {
-            setError(emergencyPhoneError);
+        if (!formData.emergency_contact_phone) {
+            setError('Emergency contact phone is required');
             return;
         }
         if (selectedFamilyMemberIds.length === 0) {
@@ -601,21 +581,18 @@ const SignupForm: React.FC = () => {
                                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
                                                         {adults.map(member => {
                                                             const isSelected = selectedFamilyMemberIds.includes(member.id);
-                                                            const isExpired = member.youth_protection_expired === true;
-                                                            const canSelect = !isExpired;
                                                             return (
                                                                 <div
                                                                     key={member.id}
-                                                                    onClick={() => canSelect && handleToggleFamilyMember(member.id)}
+                                                                    onClick={() => handleToggleFamilyMember(member.id)}
                                                                     style={{
                                                                         padding: '15px',
-                                                                        border: isSelected ? '2px solid #4caf50' : isExpired ? '2px solid #c62828' : '1px solid #ddd',
+                                                                        border: isSelected ? '2px solid #4caf50' : '1px solid #ddd',
                                                                         borderRadius: '8px',
-                                                                        cursor: canSelect ? 'pointer' : 'not-allowed',
-                                                                        backgroundColor: isSelected ? '#e8f5e9' : isExpired ? '#ffebee' : 'white',
+                                                                        cursor: 'pointer',
+                                                                        backgroundColor: isSelected ? '#e8f5e9' : 'white',
                                                                         transition: 'all 0.2s',
-                                                                        position: 'relative',
-                                                                        opacity: isExpired ? 0.7 : 1
+                                                                        position: 'relative'
                                                                     }}
                                                                 >
                                                                     {isSelected && (
@@ -663,7 +640,7 @@ const SignupForm: React.FC = () => {
                                                                             color: member.youth_protection_expired ? '#c62828' : '#2e7d32',
                                                                             fontWeight: member.youth_protection_expired ? 'bold' : 'normal'
                                                                         }}>
-                                                                            {member.youth_protection_expired ? '⚠️ Youth Protection EXPIRED - Cannot Sign Up' : member.has_youth_protection ? '✓ Youth Protection Trained' : ''}
+                                                                            {member.youth_protection_expired ? '⚠️ Youth Protection EXPIRED' : member.has_youth_protection ? '✓ Youth Protection Trained' : ''}
                                                                         </p>
                                                                     )}
                                                                 </div>
@@ -822,13 +799,9 @@ const SignupForm: React.FC = () => {
                                     name="phone"
                                     value={formData.phone}
                                     onChange={handleContactChange}
-                                    placeholder="(555) 123-4567"
                                     required
                                     style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                 />
-                                <p style={{ fontSize: '12px', color: '#666', marginTop: '4px', marginBottom: '0' }}>
-                                    Format: (XXX) XXX-XXXX
-                                </p>
                             </div>
 
                             <div style={{ marginBottom: '15px' }}>
@@ -854,13 +827,9 @@ const SignupForm: React.FC = () => {
                                     name="emergency_contact_phone"
                                     value={formData.emergency_contact_phone}
                                     onChange={handleContactChange}
-                                    placeholder="(555) 123-4567"
                                     required
                                     style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                 />
-                                <p style={{ fontSize: '12px', color: '#666', marginTop: '4px', marginBottom: '0' }}>
-                                    Format: (XXX) XXX-XXXX
-                                </p>
                             </div>
                         </div>
 

@@ -6,17 +6,24 @@ import { familyAPI } from '../services/api';
 import TopographicBackground from '../components/Shared/TopographicBackground';
 
 const FamilySetupPage: React.FC = () => {
-    const { user, isLoaded } = useUser();
+    const { user, isLoaded, isSignedIn } = useUser();
     const navigate = useNavigate();
     const [hasFamilyMembers, setHasFamilyMembers] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Only check family members after Clerk is loaded
-        if (isLoaded) {
-            checkFamilyMembers();
+        // Only check family members after Clerk is loaded AND user is signed in
+        if (isLoaded && isSignedIn) {
+            // Add a small delay to ensure Clerk session is fully initialized
+            const timer = setTimeout(() => {
+                checkFamilyMembers();
+            }, 100);
+            return () => clearTimeout(timer);
+        } else if (isLoaded && !isSignedIn) {
+            // User is not signed in, stop loading
+            setLoading(false);
         }
-    }, [isLoaded]);
+    }, [isLoaded, isSignedIn]);
 
     const checkFamilyMembers = async () => {
         try {

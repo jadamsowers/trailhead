@@ -21,9 +21,19 @@ class UserResponse(BaseModel):
     full_name: str
     role: str
     is_initial_admin: bool = False
+    phone: Optional[str] = None
+    emergency_contact_name: Optional[str] = None
+    emergency_contact_phone: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class UserContactUpdate(BaseModel):
+    """Schema for updating user contact information"""
+    phone: Optional[str] = Field(None, max_length=50, description="User phone number")
+    emergency_contact_name: Optional[str] = Field(None, max_length=255, description="Emergency contact name")
+    emergency_contact_phone: Optional[str] = Field(None, max_length=50, description="Emergency contact phone")
 
 
 class TokenResponse(BaseModel):

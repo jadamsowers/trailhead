@@ -7,6 +7,7 @@ from typing import Optional
 from app.models.outing import Outing
 from app.models.signup import Signup
 from app.models.participant import Participant
+from app.models.family import FamilyMember
 from app.schemas.outing import OutingCreate, OutingUpdate
 
 
@@ -15,7 +16,7 @@ async def get_outing(db: AsyncSession, outing_id: UUID) -> Optional[Outing]:
     result = await db.execute(
         select(Outing)
         .options(
-            selectinload(Outing.signups).selectinload(Signup.participants)
+            selectinload(Outing.signups).selectinload(Signup.participants).selectinload(Participant.family_member)
         )
         .where(Outing.id == outing_id)
     )
@@ -27,7 +28,7 @@ async def get_outings(db: AsyncSession, skip: int = 0, limit: int = 100) -> list
     result = await db.execute(
         select(Outing)
         .options(
-            selectinload(Outing.signups).selectinload(Signup.participants)
+            selectinload(Outing.signups).selectinload(Signup.participants).selectinload(Participant.family_member)
         )
         .offset(skip)
         .limit(limit)
@@ -41,7 +42,7 @@ async def get_available_outings(db: AsyncSession) -> list[Outing]:
     result = await db.execute(
         select(Outing)
         .options(
-            selectinload(Outing.signups).selectinload(Signup.participants)
+            selectinload(Outing.signups).selectinload(Signup.participants).selectinload(Participant.family_member)
         )
         .order_by(Outing.outing_date.asc())
     )

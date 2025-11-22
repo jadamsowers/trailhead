@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outing, OutingCreate, SignupResponse, ParticipantResponse } from '../../types';
 import { outingAPI, pdfAPI, signupAPI } from '../../services/api';
+import { formatPhoneNumber } from '../../utils/phoneUtils';
 
 const OutingAdmin: React.FC = () => {
     // Helper function to get next Friday-Sunday dates
@@ -46,6 +47,15 @@ const OutingAdmin: React.FC = () => {
     const [isCreateOutingExpanded, setIsCreateOutingExpanded] = useState(false);
     const [editingOutingId, setEditingOutingId] = useState<string | null>(null);
     const [editOuting, setEditOuting] = useState<OutingCreate | null>(null);
+    
+    // Email functionality state
+    const [showEmailModal, setShowEmailModal] = useState(false);
+    const [selectedOutingForEmail, setSelectedOutingForEmail] = useState<Outing | null>(null);
+    const [emailList, setEmailList] = useState<string[]>([]);
+    const [emailSubject, setEmailSubject] = useState('');
+    const [emailMessage, setEmailMessage] = useState('');
+    const [emailFrom, setEmailFrom] = useState('');
+    const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
     const [newOuting, setNewOuting] = useState<OutingCreate>({
         name: '',
         outing_date: defaultDates.friday,
@@ -123,6 +133,12 @@ const OutingAdmin: React.FC = () => {
             setNewOuting({
                 ...newOuting,
                 [name]: parseInt(value) || 0
+            });
+        } else if (name === 'outing_lead_phone') {
+            // Apply phone formatting
+            setNewOuting({
+                ...newOuting,
+                [name]: formatPhoneNumber(value)
             });
         } else {
             setNewOuting({
@@ -203,6 +219,12 @@ const OutingAdmin: React.FC = () => {
                 ...editOuting,
                 [name]: parseInt(value) || 0
             });
+        } else if (name === 'outing_lead_phone') {
+            // Apply phone formatting
+            setEditOuting({
+                ...editOuting,
+                [name]: formatPhoneNumber(value)
+            });
         } else {
             setEditOuting({
                 ...editOuting,
@@ -258,6 +280,73 @@ const OutingAdmin: React.FC = () => {
         } catch (err) {
             console.error('Error exporting roster PDF:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to export roster PDF';
+            setError(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleShowEmailModal = async (outing: Outing) => {
+        try {
+            setLoading(true);
+            setError(null);
+            setEmailSuccess(null);
+            const data = await signupAPI.getEmails(outing.id);
+            setEmailList(data.emails);
+            setSelectedOutingForEmail(outing);
+            setEmailSubject(`Update: ${outing.name}`);
+            setEmailMessage('');
+            setEmailFrom('');
+            setShowEmailModal(true);
+        } catch (err) {
+            console.error('Error loading emails:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Failed to load email addresses';
+            setError(errorMessage);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCloseEmailModal = () => {
+        setShowEmailModal(false);
+        setSelectedOutingForEmail(null);
+        setEmailList([]);
+        setEmailSubject('');
+        setEmailMessage('');
+        setEmailFrom('');
+        setEmailSuccess(null);
+    };
+
+    const handleCopyEmails = () => {
+        const emailString = emailList.join(', ');
+        navigator.clipboard.writeText(emailString);
+        setEmailSuccess('Email addresses copied to clipboard!');
+        setTimeout(() => setEmailSuccess(null), 3000);
+    };
+
+    const handleSendEmail = async () => {
+        if (!selectedOutingForEmail || !emailFrom || !emailSubject || !emailMessage) {
+            setError('Please fill in all email fields');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+            const result = await signupAPI.sendEmail(selectedOutingForEmail.id, {
+                subject: emailSubject,
+                message: emailMessage,
+                from_email: emailFrom
+            });
+            
+            setEmailSuccess(`Email prepared for ${result.recipient_count} recipients. ${result.note}`);
+            
+            // Create mailto link
+            const mailtoLink = `mailto:${emailList.join(',')}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailMessage)}`;
+            window.location.href = mailtoLink;
+        } catch (err) {
+            console.error('Error preparing email:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Failed to prepare email';
             setError(errorMessage);
         } finally {
             setLoading(false);
@@ -645,9 +734,12 @@ const OutingAdmin: React.FC = () => {
                                 name="outing_lead_phone"
                                 value={newOuting.outing_lead_phone || ''}
                                 onChange={handleInputChange}
-                                placeholder="e.g., (555) 123-4567"
+                                placeholder="(555) 123-4567"
                                 style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                             />
+                            <p style={{ fontSize: '12px', color: '#666', marginTop: '4px', marginBottom: '0' }}>
+                                Format: (XXX) XXX-XXXX
+                            </p>
                         </div>
                     </div>
 
@@ -850,8 +942,12 @@ const OutingAdmin: React.FC = () => {
                                                         name="outing_lead_phone"
                                                         value={editOuting.outing_lead_phone || ''}
                                                         onChange={handleEditInputChange}
+                                                        placeholder="(555) 123-4567"
                                                         style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                                     />
+                                                    <p style={{ fontSize: '12px', color: '#666', marginTop: '4px', marginBottom: '0' }}>
+                                                        Format: (XXX) XXX-XXXX
+                                                    </p>
                                                 </div>
                                             </div>
 
@@ -989,6 +1085,26 @@ const OutingAdmin: React.FC = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
+                                            handleShowEmailModal(outing);
+                                        }}
+                                        disabled={loading || outing.signup_count === 0}
+                                        style={{
+                                            padding: '8px 16px',
+                                            marginRight: '10px',
+                                            backgroundColor: outing.signup_count === 0 ? '#ccc' : '#4caf50',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: loading || outing.signup_count === 0 ? 'not-allowed' : 'pointer',
+                                            fontWeight: 'bold'
+                                        }}
+                                        title={outing.signup_count === 0 ? 'No signups yet' : 'Email all participants'}
+                                    >
+                                        📧 Email Participants
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
                                             handleEditOuting(outing);
                                         }}
                                         disabled={loading}
@@ -1020,7 +1136,7 @@ const OutingAdmin: React.FC = () => {
                                         }}
                                     >
                                         Delete Outing
-                                            </button>
+                                    </button>
                                         </div>
                                     </>
                                 )}
@@ -1029,6 +1145,190 @@ const OutingAdmin: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* Email Modal */}
+            {showEmailModal && selectedOutingForEmail && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        borderRadius: '8px',
+                        padding: '30px',
+                        maxWidth: '700px',
+                        width: '90%',
+                        maxHeight: '90vh',
+                        overflow: 'auto',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+                    }}>
+                        <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#1976d2' }}>
+                            📧 Email Participants - {selectedOutingForEmail.name}
+                        </h2>
+
+                        {emailSuccess && (
+                            <div style={{
+                                padding: '12px',
+                                marginBottom: '20px',
+                                backgroundColor: '#e8f5e9',
+                                color: '#2e7d32',
+                                borderRadius: '4px',
+                                border: '1px solid #4caf50'
+                            }}>
+                                {emailSuccess}
+                            </div>
+                        )}
+
+                        <div style={{ marginBottom: '20px' }}>
+                            <h3 style={{ marginBottom: '10px' }}>
+                                Email Addresses ({emailList.length})
+                            </h3>
+                            <div style={{
+                                padding: '12px',
+                                backgroundColor: '#f5f5f5',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd',
+                                maxHeight: '150px',
+                                overflow: 'auto',
+                                fontSize: '14px',
+                                wordBreak: 'break-all'
+                            }}>
+                                {emailList.length > 0 ? emailList.join(', ') : 'No email addresses found'}
+                            </div>
+                            <button
+                                onClick={handleCopyEmails}
+                                disabled={emailList.length === 0}
+                                style={{
+                                    marginTop: '10px',
+                                    padding: '8px 16px',
+                                    backgroundColor: '#2196f3',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: emailList.length === 0 ? 'not-allowed' : 'pointer',
+                                    fontSize: '14px'
+                                }}
+                            >
+                                📋 Copy Email Addresses
+                            </button>
+                        </div>
+
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                From Email *
+                            </label>
+                            <input
+                                type="email"
+                                value={emailFrom}
+                                onChange={(e) => setEmailFrom(e.target.value)}
+                                placeholder="your.email@example.com"
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    fontSize: '14px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '4px'
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                Subject *
+                            </label>
+                            <input
+                                type="text"
+                                value={emailSubject}
+                                onChange={(e) => setEmailSubject(e.target.value)}
+                                placeholder="Email subject"
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    fontSize: '14px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '4px'
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                Message *
+                            </label>
+                            <textarea
+                                value={emailMessage}
+                                onChange={(e) => setEmailMessage(e.target.value)}
+                                placeholder="Enter your message to participants..."
+                                required
+                                rows={8}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    fontSize: '14px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '4px',
+                                    fontFamily: 'inherit'
+                                }}
+                            />
+                        </div>
+
+                        <div style={{
+                            padding: '12px',
+                            backgroundColor: '#fff3e0',
+                            borderRadius: '4px',
+                            marginBottom: '20px',
+                            fontSize: '13px',
+                            color: '#e65100'
+                        }}>
+                            <strong>Note:</strong> Clicking "Send Email" will open your default email client with the recipients, subject, and message pre-filled. You can review and send from there.
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={handleCloseEmailModal}
+                                disabled={loading}
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: '#757575',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: loading ? 'not-allowed' : 'pointer',
+                                    fontSize: '16px'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSendEmail}
+                                disabled={loading || emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage}
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage ? '#ccc' : '#4caf50',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: loading || emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage ? 'not-allowed' : 'pointer',
+                                    fontSize: '16px',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                {loading ? 'Preparing...' : '📧 Send Email'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

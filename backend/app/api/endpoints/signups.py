@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from uuid import UUID
 from datetime import date
+from pydantic import BaseModel, EmailStr
 
 from app.db.session import get_db
 from app.models.user import User
@@ -17,6 +18,19 @@ from app.api.deps import get_current_user, get_current_admin_user
 from app.utils.pdf_generator import generate_outing_roster_pdf
 
 router = APIRouter()
+
+
+class EmailListResponse(BaseModel):
+    """Schema for email list response"""
+    emails: list[str]
+    count: int
+
+
+class EmailSendRequest(BaseModel):
+    """Schema for sending email to all participants"""
+    subject: str
+    message: str
+    from_email: EmailStr
 
 
 @router.post("", response_model=SignupResponse, status_code=status.HTTP_201_CREATED)
@@ -389,3 +403,83 @@ async def export_outing_roster_pdf(
             "Content-Disposition": f"attachment; filename=outing_{db_outing.name.replace(' ', '_')}_roster.pdf"
         }
     )
+
+
+@router.get("/outings/{outing_id}/emails", response_model=EmailListResponse)
+async def get_outing_emails(
+    outing_id: UUID,
+    current_user: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get all unique email addresses from signups for an outing (admin only).
+    Returns a list of family contact emails for communication purposes.
+    """
+    # Verify outing exists
+    db_outing = await crud_outing.get_outing(db, outing_id)
+    if not db_outing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Outing not found"
+        )
+    
+    # Get all signups
+    signups = await crud_signup.get_outing_signups(db, outing_id)
+    
+    # Extract unique emails
+    emails = list(set(signup.family_contact_email for signup in signups if signup.family_contact_email))
+    emails.sort()  # Sort alphabetically for consistency
+    
+    return EmailListResponse(
+        emails=emails,
+        count=len(emails)
+    )
+
+
+@router.post("/outings/{outing_id}/send-email", status_code=status.HTTP_200_OK)
+async def send_email_to_participants(
+    outing_id: UUID,
+    email_request: EmailSendRequest,
+    current_user: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Send an email to all participants of an outing (admin only).
+    
+    Note: This endpoint returns the email list and message details.
+    The actual email sending should be handled by the frontend or an external service.
+    This is a placeholder that provides the necessary data for email composition.
+    """
+    # Verify outing exists
+    db_outing = await crud_outing.get_outing(db, outing_id)
+    if not db_outing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Outing not found"
+        )
+    
+    # Get all signups
+    signups = await crud_signup.get_outing_signups(db, outing_id)
+    
+    # Extract unique emails
+    emails = list(set(signup.family_contact_email for signup in signups if signup.family_contact_email))
+    
+    if not emails:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No email addresses found for this outing"
+        )
+    
+    # Return email composition data
+    # In a production environment, you would integrate with an email service here
+    # (e.g., SendGrid, AWS SES, SMTP server, etc.)
+    return {
+        "message": "Email data prepared successfully",
+        "recipient_count": len(emails),
+        "recipients": emails,
+        "subject": email_request.subject,
+        "body": email_request.message,
+        "from": email_request.from_email,
+        "outing_name": db_outing.name,
+        "note": "Use these details to send emails via your preferred email client or service"
+    }

@@ -504,7 +504,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
 
         // Validate youth protection for adults
         if (formData.member_type === 'adult' && !formData.has_youth_protection) {
-            setError('⚠️ Youth Protection Training is required for all adults attending outings. Please complete the training at my.scouting.org and check the box to confirm.');
+            setError('⚠️ Youth Protection Training is required for all adults attending outings. Please complete the training at my.scouting.org and then enter the date of your SAFE Youth Training expiration and confirm.');
             setSubmitting(false);
             return;
         }

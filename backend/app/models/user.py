@@ -18,6 +18,12 @@ class User(Base):
     role = Column(String(50), nullable=False, default="admin", index=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_initial_admin = Column(Boolean, default=False, nullable=False)
+    
+    # Contact information (stored as defaults for signups)
+    phone = Column(String(50), nullable=True)
+    emergency_contact_name = Column(String(255), nullable=True)
+    emergency_contact_phone = Column(String(50), nullable=True)
+    
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
