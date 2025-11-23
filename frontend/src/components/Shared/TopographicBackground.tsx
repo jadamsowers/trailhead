@@ -12,6 +12,34 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
     backgroundColor = 'var(--bg-secondary)'
 }) => {
     const svgRef = useRef<SVGSVGElement>(null);
+    const [isDarkMode, setIsDarkMode] = React.useState(false);
+
+    // Detect dark mode
+    useEffect(() => {
+        const checkDarkMode = () => {
+            const htmlElement = document.documentElement;
+            const isDark = htmlElement.getAttribute('data-theme') === 'dark' ||
+                window.matchMedia('(prefers-color-scheme: dark)').matches;
+            setIsDarkMode(isDark);
+        };
+
+        checkDarkMode();
+
+        // Watch for theme changes
+        const observer = new MutationObserver(checkDarkMode);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['data-theme']
+        });
+
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', checkDarkMode);
+
+        return () => {
+            observer.disconnect();
+            mediaQuery.removeEventListener('change', checkDarkMode);
+        };
+    }, []);
 
     useEffect(() => {
         if (!svgRef.current) return;
@@ -66,7 +94,7 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
         };
 
         // Catmull-Rom spline for smooth curves
-        const catmullRomToBezier = (points: Array<{x: number, y: number}>, closed: boolean) => {
+        const catmullRomToBezier = (points: Array<{ x: number, y: number }>, closed: boolean) => {
             if (points.length < 2) return '';
 
             const pts = closed ? [...points, points[0], points[1]] : points;
@@ -116,7 +144,7 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
                 }
 
                 // Find contour points using marching squares
-                const contourPoints: Array<{x: number, y: number, gx: number, gy: number}> = [];
+                const contourPoints: Array<{ x: number, y: number, gx: number, gy: number }> = [];
 
                 for (let gy = 0; gy < gridHeight - 1; gy++) {
                     for (let gx = 0; gx < gridWidth - 1; gx++) {
@@ -140,26 +168,26 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
 
                         // Interpolate edge crossings
                         const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-                        
+
                         // Top edge
                         if ((caseValue & 3) === 1 || (caseValue & 3) === 2) {
                             const t = (level - e1) / (e2 - e1);
-                            contourPoints.push({x: lerp(x, x + resolution, t), y, gx, gy});
+                            contourPoints.push({ x: lerp(x, x + resolution, t), y, gx, gy });
                         }
                         // Right edge
                         if ((caseValue & 6) === 2 || (caseValue & 6) === 4) {
                             const t = (level - e2) / (e3 - e2);
-                            contourPoints.push({x: x + resolution, y: lerp(y, y + resolution, t), gx, gy});
+                            contourPoints.push({ x: x + resolution, y: lerp(y, y + resolution, t), gx, gy });
                         }
                         // Bottom edge
                         if ((caseValue & 12) === 4 || (caseValue & 12) === 8) {
                             const t = (level - e4) / (e3 - e4);
-                            contourPoints.push({x: lerp(x, x + resolution, t), y: y + resolution, gx, gy});
+                            contourPoints.push({ x: lerp(x, x + resolution, t), y: y + resolution, gx, gy });
                         }
                         // Left edge
                         if ((caseValue & 9) === 1 || (caseValue & 9) === 8) {
                             const t = (level - e1) / (e4 - e1);
-                            contourPoints.push({x, y: lerp(y, y + resolution, t), gx, gy});
+                            contourPoints.push({ x, y: lerp(y, y + resolution, t), gx, gy });
                         }
                     }
                 }
@@ -167,12 +195,12 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
                 // Build continuous paths
                 if (contourPoints.length > 3) {
                     const used = new Set<number>();
-                    const paths: Array<{x: number, y: number}[]> = [];
+                    const paths: Array<{ x: number, y: number }[]> = [];
 
                     for (let i = 0; i < contourPoints.length; i++) {
                         if (used.has(i)) continue;
 
-                        const path: Array<{x: number, y: number}> = [contourPoints[i]];
+                        const path: Array<{ x: number, y: number }> = [contourPoints[i]];
                         used.add(i);
 
                         // Build path by finding nearest neighbors
@@ -215,7 +243,7 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
                             const isClosed = dist < resolution * 2;
 
                             // Simplify path - remove points that are too close
-                            const simplified: Array<{x: number, y: number}> = [path[0]];
+                            const simplified: Array<{ x: number, y: number }> = [path[0]];
                             for (let j = 1; j < path.length; j++) {
                                 const prev = simplified[simplified.length - 1];
                                 const curr = path[j];
@@ -254,7 +282,7 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
             path.setAttribute('opacity', opacity.toString());
             path.setAttribute('stroke-linecap', 'round');
             path.setAttribute('stroke-linejoin', 'round');
-            
+
             svg.appendChild(path);
             pathElements.push(path);
         });
@@ -310,20 +338,8 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
                         animation: 'topoPan 120s linear infinite'
                     }}
                 >
-                    <defs>
-                        {/* Scouting America gradient: Dark Blue to Pale Blue to Tan */}
-                        <linearGradient id="topoGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style={{ stopColor: 'rgba(0, 51, 102, 0.2)', stopOpacity: 1 }} />
-                            <stop offset="50%" style={{ stopColor: 'rgba(154, 179, 213, 0.15)', stopOpacity: 1 }} />
-                            <stop offset="100%" style={{ stopColor: 'rgba(173, 157, 123, 0.18)', stopOpacity: 1 }} />
-                        </linearGradient>
-                        <radialGradient id="topoRadialGradient" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style={{ stopColor: 'rgba(233, 233, 228, 0.5)', stopOpacity: 1 }} />
-                            <stop offset="100%" style={{ stopColor: 'rgba(233, 233, 228, 0)', stopOpacity: 1 }} />
-                        </radialGradient>
-                    </defs>
                 </svg>
-                {/* Scouting America gradient overlay: Dark Blue to Pale Blue to Tan */}
+                {/* Gradient overlay - different colors for dark mode */}
                 <div
                     style={{
                         position: 'absolute',
@@ -331,11 +347,13 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
                         left: 0,
                         width: '100%',
                         height: '100%',
-                        background: 'linear-gradient(135deg, rgba(0, 51, 102, 0.25) 0%, rgba(154, 179, 213, 0.15) 40%, rgba(233, 233, 228, 0) 60%, rgba(173, 157, 123, 0.2) 100%)',
+                        background: isDarkMode
+                            ? 'linear-gradient(135deg, rgba(0, 20, 40, 0.4) 0%, rgba(10, 12, 13, 0.3) 40%, rgba(18, 20, 22, 0) 60%, rgba(28, 30, 32, 0.3) 100%)'
+                            : 'linear-gradient(135deg, rgba(0, 51, 102, 0.25) 0%, rgba(154, 179, 213, 0.15) 40%, rgba(233, 233, 228, 0) 60%, rgba(173, 157, 123, 0.2) 100%)',
                         pointerEvents: 'none'
                     }}
                 />
-                {/* Radial gradient for depth with Scouting America Light Tan */}
+                {/* Radial gradient for depth */}
                 <div
                     style={{
                         position: 'absolute',
@@ -343,7 +361,9 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
                         left: 0,
                         width: '100%',
                         height: '100%',
-                        background: 'radial-gradient(circle at 30% 30%, rgba(233, 233, 228, 0.6) 0%, rgba(233, 233, 228, 0) 60%)',
+                        background: isDarkMode
+                            ? 'radial-gradient(circle at 30% 30%, rgba(28, 30, 32, 0.3) 0%, rgba(10, 12, 13, 0) 60%)'
+                            : 'radial-gradient(circle at 30% 30%, rgba(233, 233, 228, 0.6) 0%, rgba(233, 233, 228, 0) 60%)',
                         pointerEvents: 'none'
                     }}
                 />

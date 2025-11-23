@@ -48,7 +48,7 @@ interface FamilyManagementProps {
 export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdded }) => {
     // Use SWR hook for data fetching with automatic caching
     const { familyMembers: members, isLoading: loading, error: swrError, revalidate } = useFamilyMembers();
-    
+
     const [error, setError] = useState<string | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
@@ -116,7 +116,7 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
     if (loading) {
         return (
             <div className="flex justify-center items-center p-8">
-                <div className="text-gray-600">Loading family members...</div>
+                <div style={{ color: 'var(--text-secondary)' }}>Loading family members...</div>
             </div>
         );
     }
@@ -125,146 +125,146 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
         <>
             <style>{familyManagementStyles}</style>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1976d2', margin: '0' }}>Family Members</h2>
-                <button
-                    onClick={handleAddMember}
-                    style={{
-                        padding: '12px 24px',
-                        backgroundColor: '#1976d2',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '6px',
-                        fontSize: '16px',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}
-                    onMouseOver={(e) => {
-                        e.currentTarget.style.backgroundColor = '#1565c0';
-                        e.currentTarget.style.transform = 'translateY(-1px)';
-                        e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
-                    }}
-                    onMouseOut={(e) => {
-                        e.currentTarget.style.backgroundColor = '#1976d2';
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                    }}
-                >
-                    + Add Family Member
-                </button>
-            </div>
-
-            {displayError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                    {displayError}
-                </div>
-            )}
-
-            {members.length === 0 ? (
-                <div style={{
-                    textAlign: 'center',
-                    padding: '48px 24px',
-                    backgroundColor: 'var(--bg-tertiary)',
-                    borderRadius: '8px'
-                }}>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '16px' }}>No family members added yet</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                    <h2 style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--sa-dark-blue)', margin: '0' }}>Family Members</h2>
                     <button
                         onClick={handleAddMember}
                         style={{
-                            padding: '14px 32px',
-                            backgroundColor: '#1976d2',
-                            color: 'white',
+                            padding: '12px 24px',
+                            backgroundColor: 'var(--btn-primary-bg)',
+                            color: 'var(--btn-primary-text)',
                             border: 'none',
                             borderRadius: '6px',
                             fontSize: '16px',
                             fontWeight: 'bold',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                            boxShadow: 'var(--shadow-sm)'
                         }}
                         onMouseOver={(e) => {
-                            e.currentTarget.style.backgroundColor = '#1565c0';
+                            e.currentTarget.style.backgroundColor = 'var(--btn-primary-hover)';
                             e.currentTarget.style.transform = 'translateY(-1px)';
-                            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                            e.currentTarget.style.boxShadow = 'var(--shadow-md)';
                         }}
                         onMouseOut={(e) => {
-                            e.currentTarget.style.backgroundColor = '#1976d2';
+                            e.currentTarget.style.backgroundColor = 'var(--btn-primary-bg)';
                             e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                            e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
                         }}
                     >
-                        Add Your First Family Member
+                        + Add Family Member
                     </button>
                 </div>
-            ) : (
-                <>
-                    {/* Adults Section */}
-                    {members.filter(m => m.member_type === 'adult').length > 0 && (
-                        <div style={{ marginBottom: '32px' }}>
-                            <h3 style={{
-                                fontSize: '22px',
-                                fontWeight: '600',
-                                color: '#7b1fa2',
-                                marginBottom: '16px',
-                                paddingBottom: '8px',
-                                borderBottom: '2px solid #f3e5f5'
-                            }}>
-                                🌲 Adults ({members.filter(m => m.member_type === 'adult').length})
-                            </h3>
-                            <div className="family-member-grid">
-                                {members
-                                    .filter(m => m.member_type === 'adult')
-                                    .map((member) => (
-                                        <FamilyMemberCard
-                                            key={member.id}
-                                            member={member}
-                                            onEdit={() => handleEditMember(member)}
-                                            onDelete={() => handleDeleteMember(member.id)}
-                                        />
-                                    ))}
-                            </div>
-                        </div>
-                    )}
 
-                    {/* Youth/Scouts Section */}
-                    {members.filter(m => m.member_type === 'scout').length > 0 && (
-                        <div>
-                            <h3 style={{
-                                fontSize: '22px',
-                                fontWeight: '600',
-                                color: '#1976d2',
-                                marginBottom: '16px',
-                                paddingBottom: '8px',
-                                borderBottom: '2px solid #e3f2fd'
-                            }}>
-                                🌱 Youth ({members.filter(m => m.member_type === 'scout').length})
-                            </h3>
-                            <div className="family-member-grid">
-                                {members
-                                    .filter(m => m.member_type === 'scout')
-                                    .map((member) => (
-                                        <FamilyMemberCard
-                                            key={member.id}
-                                            member={member}
-                                            onEdit={() => handleEditMember(member)}
-                                            onDelete={() => handleDeleteMember(member.id)}
-                                        />
-                                    ))}
-                            </div>
-                        </div>
-                    )}
-                </>
-            )}
+                {displayError && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                        {displayError}
+                    </div>
+                )}
 
-            {showAddForm && (
-                <FamilyMemberForm
-                    member={editingMember}
-                    onClose={handleFormClose}
-                    onSuccess={handleFormSuccess}
-                />
-            )}
+                {members.length === 0 ? (
+                    <div style={{
+                        textAlign: 'center',
+                        padding: '48px 24px',
+                        backgroundColor: 'var(--bg-tertiary)',
+                        borderRadius: '8px'
+                    }}>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '16px' }}>No family members added yet</p>
+                        <button
+                            onClick={handleAddMember}
+                            style={{
+                                padding: '14px 32px',
+                                backgroundColor: 'var(--btn-primary-bg)',
+                                color: 'var(--btn-primary-text)',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontSize: '16px',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                boxShadow: 'var(--shadow-sm)'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.backgroundColor = 'var(--btn-primary-hover)';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = 'var(--btn-primary-bg)';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                            }}
+                        >
+                            Add Your First Family Member
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        {/* Adults Section */}
+                        {members.filter(m => m.member_type === 'adult').length > 0 && (
+                            <div style={{ marginBottom: '32px' }}>
+                                <h3 style={{
+                                    fontSize: '22px',
+                                    fontWeight: '600',
+                                    color: 'var(--sa-dark-tan)',
+                                    marginBottom: '16px',
+                                    paddingBottom: '8px',
+                                    borderBottom: '2px solid var(--border-light)'
+                                }}>
+                                    🌲 Adults ({members.filter(m => m.member_type === 'adult').length})
+                                </h3>
+                                <div className="family-member-grid">
+                                    {members
+                                        .filter(m => m.member_type === 'adult')
+                                        .map((member) => (
+                                            <FamilyMemberCard
+                                                key={member.id}
+                                                member={member}
+                                                onEdit={() => handleEditMember(member)}
+                                                onDelete={() => handleDeleteMember(member.id)}
+                                            />
+                                        ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Youth/Scouts Section */}
+                        {members.filter(m => m.member_type === 'scout').length > 0 && (
+                            <div>
+                                <h3 style={{
+                                    fontSize: '22px',
+                                    fontWeight: '600',
+                                    color: 'var(--sa-dark-blue)',
+                                    marginBottom: '16px',
+                                    paddingBottom: '8px',
+                                    borderBottom: '2px solid var(--border-light)'
+                                }}>
+                                    🌱 Youth ({members.filter(m => m.member_type === 'scout').length})
+                                </h3>
+                                <div className="family-member-grid">
+                                    {members
+                                        .filter(m => m.member_type === 'scout')
+                                        .map((member) => (
+                                            <FamilyMemberCard
+                                                key={member.id}
+                                                member={member}
+                                                onEdit={() => handleEditMember(member)}
+                                                onDelete={() => handleDeleteMember(member.id)}
+                                            />
+                                        ))}
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {showAddForm && (
+                    <FamilyMemberForm
+                        member={editingMember}
+                        onClose={handleFormClose}
+                        onSuccess={handleFormSuccess}
+                    />
+                )}
             </div>
         </>
     );
@@ -285,8 +285,8 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
         <div
             className="family-member-card"
             style={{
-                backgroundColor: 'white',
-                border: '1px solid #e0e0e0',
+                backgroundColor: 'var(--card-bg)',
+                border: '1px solid var(--card-border)',
                 borderRadius: '8px',
                 padding: '20px',
                 transition: 'box-shadow 0.2s, transform 0.2s',
@@ -295,14 +295,14 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                 display: 'flex',
                 flexDirection: 'column'
             }}
-        onMouseOver={(e) => {
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-            e.currentTarget.style.transform = 'translateY(-2px)';
-        }}
-        onMouseOut={(e) => {
-            e.currentTarget.style.boxShadow = 'none';
-            e.currentTarget.style.transform = 'translateY(0)';
-        }}>
+            onMouseOver={(e) => {
+                e.currentTarget.style.boxShadow = 'var(--card-hover-shadow)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+            }}
+            onMouseOut={(e) => {
+                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.transform = 'translateY(0)';
+            }}>
             {/* Header with name and actions */}
             <div style={{
                 display: 'flex',
@@ -310,13 +310,13 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                 alignItems: 'flex-start',
                 marginBottom: '16px',
                 paddingBottom: '12px',
-                borderBottom: '2px solid #f0f0f0'
+                borderBottom: '2px solid var(--border-light)'
             }}>
                 <div style={{ flex: 1 }}>
                     <h3 style={{
                         fontSize: '20px',
                         fontWeight: '600',
-                        color: '#1976d2',
+                        color: 'var(--text-primary)',
                         marginBottom: '8px',
                         lineHeight: '1.2'
                     }}>
@@ -328,8 +328,8 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                         fontSize: '12px',
                         fontWeight: '600',
                         borderRadius: '12px',
-                        backgroundColor: member.member_type === 'scout' ? '#e3f2fd' : '#f3e5f5',
-                        color: member.member_type === 'scout' ? '#1976d2' : '#7b1fa2'
+                        backgroundColor: member.member_type === 'scout' ? 'var(--badge-scout-bg)' : 'var(--badge-adult-bg)',
+                        color: member.member_type === 'scout' ? 'var(--badge-scout-text)' : 'var(--badge-adult-text)'
                     }}>
                         {member.member_type === 'scout' ? '🌱 Scout' : '🌲 Adult'}
                     </span>
@@ -378,28 +378,28 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                 flexDirection: 'column',
                 gap: '10px',
                 fontSize: '14px',
-                color: '#666',
+                color: 'var(--text-secondary)',
                 flex: 1
             }}>
                 {age && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: '600', minWidth: '80px', color: '#333' }}>Age:</span>
+                        <span style={{ fontWeight: '600', minWidth: '80px', color: 'var(--text-primary)' }}>Age:</span>
                         <span>{age} years old</span>
                     </div>
                 )}
                 {member.troop_number && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: '600', minWidth: '80px', color: '#333' }}>Troop:</span>
+                        <span style={{ fontWeight: '600', minWidth: '80px', color: 'var(--text-primary)' }}>Troop:</span>
                         <span>{member.troop_number}</span>
                     </div>
                 )}
                 {member.patrol_name && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontWeight: '600', minWidth: '80px', color: '#333' }}>Patrol:</span>
+                        <span style={{ fontWeight: '600', minWidth: '80px', color: 'var(--text-primary)' }}>Patrol:</span>
                         <span>{member.patrol_name}</span>
                     </div>
                 )}
-                
+
                 {member.member_type === 'adult' && (
                     <>
                         <div style={{
@@ -407,7 +407,7 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                             flexDirection: 'column',
                             gap: '4px',
                             padding: '8px 12px',
-                            backgroundColor: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date()) ? '#ffebee' : '#e8f5e9',
+                            backgroundColor: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date()) ? 'var(--alert-error-bg)' : 'var(--alert-success-bg)',
                             borderRadius: '4px',
                             marginTop: '4px'
                         }}>
@@ -415,7 +415,7 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                                color: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date()) ? '#c62828' : '#2e7d32',
+                                color: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date()) ? 'var(--alert-error-text)' : 'var(--alert-success-text)',
                                 fontWeight: '500'
                             }}>
                                 {!member.has_youth_protection
@@ -426,7 +426,7 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                             </div>
                             <div style={{
                                 fontSize: '12px',
-                                color: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date()) ? '#c62828' : '#666'
+                                color: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date()) ? 'var(--alert-error-text)' : 'var(--text-secondary)'
                             }}>
                                 Expiration: {member.youth_protection_expiration
                                     ? new Date(member.youth_protection_expiration).toLocaleDateString()
@@ -435,7 +435,7 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                         </div>
                         {member.vehicle_capacity > 0 && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{ fontWeight: '600', minWidth: '80px', color: '#333' }}>Vehicle:</span>
+                                <span style={{ fontWeight: '600', minWidth: '80px', color: 'var(--text-primary)' }}>Vehicle:</span>
                                 <span>{member.vehicle_capacity} passengers</span>
                             </div>
                         )}
@@ -444,7 +444,7 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
 
                 {member.dietary_preferences.length > 0 && (
                     <div style={{ marginTop: '8px' }}>
-                        <div style={{ fontWeight: '600', color: '#333', marginBottom: '6px' }}>Dietary:</div>
+                        <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '6px' }}>Dietary:</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                             {member.dietary_preferences.map((p, idx) => (
                                 <span key={idx} style={{
@@ -464,7 +464,7 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
 
                 {member.allergies.length > 0 && (
                     <div style={{ marginTop: '8px' }}>
-                        <div style={{ fontWeight: '600', color: '#333', marginBottom: '6px' }}>⚠️ Allergies:</div>
+                        <div style={{ fontWeight: '600', color: 'var(--text-primary)', marginBottom: '6px' }}>⚠️ Allergies:</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             {member.allergies.map((a, idx) => (
                                 <span key={idx} style={{
@@ -474,7 +474,7 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                                     borderRadius: '4px',
                                     fontSize: '13px',
                                     fontWeight: '500',
-                                    border: '1px solid #ef9a9a'
+                                    border: '1px solid var(--alert-error-border)'
                                 }}>
                                     {a.allergy}{a.severity && ` (${a.severity})`}
                                 </span>
@@ -595,22 +595,22 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
             padding: '20px',
             zIndex: 1000
         }}>
-        <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            maxWidth: '700px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            boxShadow: '0 10px 40px rgba(0,0,0,0.2)'
-        }}>
-            <div style={{ padding: '32px' }}>
-                <h3 style={{
-                    fontSize: '28px',
-                    fontWeight: 'bold',
-                    marginBottom: '24px',
-                    color: '#1976d2'
-                }}>
+            <div style={{
+                backgroundColor: 'var(--card-bg)',
+                borderRadius: '8px',
+                maxWidth: '700px',
+                width: '100%',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                boxShadow: 'var(--shadow-xl)'
+            }}>
+                <div style={{ padding: '32px' }}>
+                    <h3 style={{
+                        fontSize: '28px',
+                        fontWeight: 'bold',
+                        marginBottom: '24px',
+                        color: 'var(--sa-dark-blue)'
+                    }}>
                         {member ? 'Edit Family Member' : 'Add Family Member'}
                     </h3>
 
@@ -622,7 +622,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                             borderRadius: '6px',
                             marginBottom: '20px',
                             fontSize: '14px',
-                            border: '1px solid #ef9a9a'
+                            border: '1px solid var(--alert-error-border)'
                         }}>
                             {error}
                         </div>
@@ -634,7 +634,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 display: 'block',
                                 marginBottom: '8px',
                                 fontWeight: '600',
-                                color: '#333',
+                                color: 'var(--text-primary)',
                                 fontSize: '15px'
                             }}>
                                 Name *
@@ -647,10 +647,12 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 style={{
                                     width: '100%',
                                     padding: '12px',
-                                    border: '1px solid #ddd',
+                                    border: '1px solid var(--input-border)',
                                     borderRadius: '6px',
                                     fontSize: '15px',
-                                    boxSizing: 'border-box'
+                                    boxSizing: 'border-box',
+                                    backgroundColor: 'var(--input-bg)',
+                                    color: 'var(--input-text)'
                                 }}
                                 placeholder="Enter full name"
                             />
@@ -661,7 +663,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 display: 'block',
                                 marginBottom: '8px',
                                 fontWeight: '600',
-                                color: '#333',
+                                color: 'var(--text-primary)',
                                 fontSize: '15px'
                             }}>
                                 Member Type *
@@ -673,11 +675,12 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 style={{
                                     width: '100%',
                                     padding: '12px',
-                                    border: '1px solid #ddd',
+                                    border: '1px solid var(--input-border)',
                                     borderRadius: '6px',
                                     fontSize: '15px',
                                     boxSizing: 'border-box',
-                                    backgroundColor: 'white'
+                                    backgroundColor: 'var(--input-bg)',
+                                    color: 'var(--input-text)'
                                 }}
                             >
                                 <option value="scout">Scout</option>
@@ -690,7 +693,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 display: 'block',
                                 marginBottom: '8px',
                                 fontWeight: '600',
-                                color: '#333',
+                                color: 'var(--text-primary)',
                                 fontSize: '15px'
                             }}>
                                 Date of Birth {formData.member_type === 'scout' && '*'}
@@ -703,10 +706,12 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 style={{
                                     width: '100%',
                                     padding: '12px',
-                                    border: '1px solid #ddd',
+                                    border: '1px solid var(--input-border)',
                                     borderRadius: '6px',
                                     fontSize: '15px',
-                                    boxSizing: 'border-box'
+                                    boxSizing: 'border-box',
+                                    backgroundColor: 'var(--input-bg)',
+                                    color: 'var(--input-text)'
                                 }}
                             />
                         </div>
@@ -716,7 +721,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 display: 'block',
                                 marginBottom: '8px',
                                 fontWeight: '600',
-                                color: '#333',
+                                color: 'var(--text-primary)',
                                 fontSize: '15px'
                             }}>
                                 Troop Number
@@ -728,10 +733,12 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 style={{
                                     width: '100%',
                                     padding: '12px',
-                                    border: '1px solid #ddd',
+                                    border: '1px solid var(--input-border)',
                                     borderRadius: '6px',
                                     fontSize: '15px',
-                                    boxSizing: 'border-box'
+                                    boxSizing: 'border-box',
+                                    backgroundColor: 'var(--input-bg)',
+                                    color: 'var(--input-text)'
                                 }}
                                 placeholder="e.g., 123"
                             />
@@ -743,7 +750,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                     display: 'block',
                                     marginBottom: '8px',
                                     fontWeight: '600',
-                                    color: '#333',
+                                    color: 'var(--text-primary)',
                                     fontSize: '15px'
                                 }}>
                                     Patrol Name
@@ -755,10 +762,12 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                     style={{
                                         width: '100%',
                                         padding: '12px',
-                                        border: '1px solid #ddd',
+                                        border: '1px solid var(--input-border)',
                                         borderRadius: '6px',
                                         fontSize: '15px',
-                                        boxSizing: 'border-box'
+                                        boxSizing: 'border-box',
+                                        backgroundColor: 'var(--input-bg)',
+                                        color: 'var(--input-text)'
                                     }}
                                     placeholder="e.g., Eagle Patrol"
                                 />
@@ -775,7 +784,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                         onChange={(e) => setFormData({ ...formData, has_youth_protection: e.target.checked })}
                                         style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                                     />
-                                    <label htmlFor="youth_protection" style={{ fontSize: '15px', color: '#333', cursor: 'pointer' }}>
+                                    <label htmlFor="youth_protection" style={{ fontSize: '15px', color: 'var(--text-primary)', cursor: 'pointer' }}>
                                         Youth Protection Trained (SAFE Youth Training)
                                     </label>
                                 </div>
@@ -786,7 +795,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                             display: 'block',
                                             marginBottom: '8px',
                                             fontWeight: '600',
-                                            color: '#333',
+                                            color: 'var(--text-primary)',
                                             fontSize: '15px'
                                         }}>
                                             Youth Protection Certificate Expiration Date *
@@ -799,13 +808,15 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                             style={{
                                                 width: '100%',
                                                 padding: '12px',
-                                                border: '1px solid #ddd',
+                                                border: '1px solid var(--input-border)',
                                                 borderRadius: '6px',
                                                 fontSize: '15px',
-                                                boxSizing: 'border-box'
+                                                boxSizing: 'border-box',
+                                                backgroundColor: 'var(--input-bg)',
+                                                color: 'var(--input-text)'
                                             }}
                                         />
-                                        <p style={{ fontSize: '13px', color: '#666', marginTop: '6px' }}>
+                                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px' }}>
                                             SAFE Youth Training certificates are typically valid for 2 years
                                         </p>
                                     </div>
@@ -816,7 +827,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                         display: 'block',
                                         marginBottom: '8px',
                                         fontWeight: '600',
-                                        color: '#333',
+                                        color: 'var(--text-primary)',
                                         fontSize: '15px'
                                     }}>
                                         Vehicle Capacity (passengers)
@@ -829,10 +840,12 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                         style={{
                                             width: '100%',
                                             padding: '12px',
-                                            border: '1px solid #ddd',
+                                            border: '1px solid var(--input-border)',
                                             borderRadius: '6px',
                                             fontSize: '15px',
-                                            boxSizing: 'border-box'
+                                            boxSizing: 'border-box',
+                                            backgroundColor: 'var(--input-bg)',
+                                            color: 'var(--input-text)'
                                         }}
                                         placeholder="0"
                                     />
@@ -845,7 +858,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 display: 'block',
                                 marginBottom: '8px',
                                 fontWeight: '600',
-                                color: '#333',
+                                color: 'var(--text-primary)',
                                 fontSize: '15px'
                             }}>
                                 Medical Notes
@@ -857,12 +870,14 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 style={{
                                     width: '100%',
                                     padding: '12px',
-                                    border: '1px solid #ddd',
+                                    border: '1px solid var(--input-border)',
                                     borderRadius: '6px',
                                     fontSize: '15px',
                                     boxSizing: 'border-box',
                                     fontFamily: 'inherit',
-                                    resize: 'vertical'
+                                    resize: 'vertical',
+                                    backgroundColor: 'var(--input-bg)',
+                                    color: 'var(--input-text)'
                                 }}
                                 placeholder="Any medical conditions or notes..."
                             />
@@ -873,7 +888,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 display: 'block',
                                 marginBottom: '12px',
                                 fontWeight: '600',
-                                color: '#333',
+                                color: 'var(--text-primary)',
                                 fontSize: '15px'
                             }}>
                                 Dietary Preferences
@@ -895,9 +910,9 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                             gap: '8px',
                                             cursor: 'pointer',
                                             padding: '8px',
-                                            backgroundColor: formData.dietary_preferences?.includes(preference) ? '#e3f2fd' : 'white',
+                                            backgroundColor: formData.dietary_preferences?.includes(preference) ? 'var(--badge-scout-bg)' : 'var(--input-bg)',
                                             borderRadius: '4px',
-                                            border: formData.dietary_preferences?.includes(preference) ? '2px solid #1976d2' : '1px solid #ddd',
+                                            border: formData.dietary_preferences?.includes(preference) ? '2px solid var(--sa-dark-blue)' : '1px solid var(--input-border)',
                                             transition: 'all 0.2s'
                                         }}
                                     >
@@ -907,7 +922,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                             onChange={() => toggleDietaryPreference(preference)}
                                             style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                                         />
-                                        <span style={{ fontSize: '14px', color: '#333' }}>{preference}</span>
+                                        <span style={{ fontSize: '14px', color: 'var(--text-primary)' }}>{preference}</span>
                                     </label>
                                 ))}
                             </div>
@@ -918,7 +933,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 display: 'block',
                                 marginBottom: '8px',
                                 fontWeight: '600',
-                                color: '#333',
+                                color: 'var(--text-primary)',
                                 fontSize: '15px'
                             }}>
                                 Allergies
@@ -933,10 +948,12 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                         flex: '1',
                                         minWidth: '200px',
                                         padding: '12px',
-                                        border: '1px solid #ddd',
+                                        border: '1px solid var(--input-border)',
                                         borderRadius: '6px',
                                         fontSize: '15px',
-                                        boxSizing: 'border-box'
+                                        boxSizing: 'border-box',
+                                        backgroundColor: 'var(--input-bg)',
+                                        color: 'var(--input-text)'
                                     }}
                                 />
                                 <select
@@ -944,10 +961,11 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                     onChange={(e) => setNewAllergy({ ...newAllergy, severity: e.target.value })}
                                     style={{
                                         padding: '12px',
-                                        border: '1px solid #ddd',
+                                        border: '1px solid var(--input-border)',
                                         borderRadius: '6px',
                                         fontSize: '15px',
-                                        backgroundColor: 'white',
+                                        backgroundColor: 'var(--input-bg)',
+                                        color: 'var(--input-text)',
                                         minWidth: '150px'
                                     }}
                                 >
@@ -962,8 +980,8 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                     onClick={addAllergy}
                                     style={{
                                         padding: '12px 24px',
-                                        backgroundColor: '#1976d2',
-                                        color: 'white',
+                                        backgroundColor: 'var(--btn-primary-bg)',
+                                        color: 'var(--btn-primary-text)',
                                         border: 'none',
                                         borderRadius: '6px',
                                         fontSize: '15px',
@@ -972,8 +990,8 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                         transition: 'background-color 0.2s',
                                         whiteSpace: 'nowrap'
                                     }}
-                                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1565c0'}
-                                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#1976d2'}
+                                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-primary-hover)'}
+                                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-primary-bg)'}
                                 >
                                     Add
                                 </button>
@@ -1023,8 +1041,8 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 style={{
                                     flex: '1',
                                     padding: '14px',
-                                    backgroundColor: submitting ? '#ccc' : '#1976d2',
-                                    color: 'white',
+                                    backgroundColor: submitting ? 'var(--btn-disabled-bg)' : 'var(--btn-primary-bg)',
+                                    color: submitting ? 'var(--btn-disabled-text)' : 'var(--btn-primary-text)',
                                     border: 'none',
                                     borderRadius: '6px',
                                     fontSize: '16px',
@@ -1033,10 +1051,10 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                     transition: 'background-color 0.2s'
                                 }}
                                 onMouseOver={(e) => {
-                                    if (!submitting) e.currentTarget.style.backgroundColor = '#1565c0';
+                                    if (!submitting) e.currentTarget.style.backgroundColor = 'var(--btn-primary-hover)';
                                 }}
                                 onMouseOut={(e) => {
-                                    if (!submitting) e.currentTarget.style.backgroundColor = '#1976d2';
+                                    if (!submitting) e.currentTarget.style.backgroundColor = 'var(--btn-primary-bg)';
                                 }}
                             >
                                 {submitting ? 'Saving...' : member ? 'Update' : 'Add'} Family Member

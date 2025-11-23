@@ -6,12 +6,12 @@ const FIRST_NAMES_MALE = ["James", "John", "Robert", "Michael", "William", "Davi
 const FIRST_NAMES_FEMALE = ["Mary", "Patricia", "Jennifer", "Linda", "Elizabeth", "Barbara", "Susan", "Jessica", "Sarah", "Karen"];
 const SCOUT_NAMES_MALE = ["Ethan", "Noah", "Liam", "Mason", "Jacob", "Lucas", "Logan", "Oliver", "Aiden", "Elijah"];
 const SCOUT_NAMES_FEMALE = ["Emma", "Olivia", "Ava", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn"];
-const LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", 
-              "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin"];
+const LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez",
+    "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin"];
 
 const TROOP_NUMBERS = ["123", "456", "789", "234", "567", "890"];
-const PATROL_NAMES = ["Eagle Patrol", "Wolf Patrol", "Bear Patrol", "Fox Patrol", "Hawk Patrol", "Lion Patrol", 
-                "Tiger Patrol", "Panther Patrol", "Cobra Patrol", "Dragon Patrol"];
+const PATROL_NAMES = ["Eagle Patrol", "Wolf Patrol", "Bear Patrol", "Fox Patrol", "Hawk Patrol", "Lion Patrol",
+    "Tiger Patrol", "Panther Patrol", "Cobra Patrol", "Dragon Patrol"];
 
 const DIETARY_PREFERENCES = ["vegetarian", "vegan", "gluten-free", "dairy-free", "kosher", "halal", "pescatarian"];
 const ALLERGIES = [
@@ -87,9 +87,9 @@ const randomYouthProtectionExpiration = (hasTraining: boolean): string | undefin
     if (!hasTraining) {
         return undefined;
     }
-    
+
     const today = new Date();
-    
+
     // 85% have valid (future) expiration dates
     // 15% have expired certificates
     if (Math.random() < 0.85) {
@@ -124,7 +124,7 @@ const DevDataSeeder: React.FC = () => {
         const today = new Date();
         const outingDate = new Date(today);
         outingDate.setDate(today.getDate() + daysFromNow);
-        
+
         const endDate = isOvernight ? new Date(outingDate) : null;
         if (endDate) {
             endDate.setDate(outingDate.getDate() + randomInt(1, 3));
@@ -144,12 +144,12 @@ const DevDataSeeder: React.FC = () => {
             outing_lead_email: `leader${randomInt(1, 100)}@example.com`,
             outing_lead_phone: `555-${randomInt(100, 999)}-${randomInt(1000, 9999)}`,
         };
-        
+
         // Only include end_date if it's an overnight outing
         if (endDate) {
             outingData.end_date = formatDate(endDate);
         }
-        
+
         await outingAPI.create(outingData);
     };
 
@@ -159,13 +159,13 @@ const DevDataSeeder: React.FC = () => {
         // Create primary adult
         const parent1First = randomChoice(Math.random() > 0.5 ? FIRST_NAMES_MALE : FIRST_NAMES_FEMALE);
         const parent1Name = `${parent1First} ${lastName}`;
-        
+
         const hasVehicle = Math.random() < 0.7;
         const vehicleCapacity = hasVehicle ? randomChoice([0, 4, 5, 6, 7]) : 0;
 
         const hasYouthProtection = true; // All adults must have YPT for outings
         const youthProtectionExpiration = randomYouthProtectionExpiration(hasYouthProtection);
-        
+
         const parentMember = await familyAPI.create({
             name: parent1Name,
             member_type: 'adult',
@@ -277,28 +277,66 @@ const DevDataSeeder: React.FC = () => {
     };
 
     return (
-        <div className="mb-8 p-6 bg-yellow-50 border-2 border-yellow-400 rounded-lg">
-            <div className="flex items-start justify-between">
-                <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+        <div style={{
+            marginBottom: '2rem',
+            padding: '1.5rem',
+            backgroundColor: 'var(--bg-tertiary)',
+            border: '1px solid var(--card-border)',
+            borderRadius: '0.5rem',
+            boxShadow: 'var(--card-shadow)'
+        }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+                <div style={{ flex: 1 }}>
+                    <h3 style={{
+                        fontSize: '1.25rem',
+                        fontWeight: 'bold',
+                        color: 'var(--text-primary)',
+                        marginBottom: '0.5rem',
+                        marginTop: 0
+                    }}>
                         🌱 Development Data Seeding
                     </h3>
-                    <p className="text-gray-700 mb-4">
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
                         Quickly populate the database with sample outings and family data for testing and development.
                         This will create 10 outings and 15 families with realistic test data.
                     </p>
                     {progress && (
-                        <div className="mb-4 p-4 bg-blue-100 border border-blue-400 rounded text-sm">
+                        <div style={{
+                            marginBottom: '1rem',
+                            padding: '1rem',
+                            backgroundColor: 'var(--alert-info-bg)',
+                            border: '1px solid var(--alert-info-border)',
+                            color: 'var(--alert-info-text)',
+                            borderRadius: '0.25rem',
+                            fontSize: '0.875rem'
+                        }}>
                             {progress}
                         </div>
                     )}
                     {seedMessage && (
-                        <div className="mb-4 p-4 bg-green-100 border border-green-400 rounded whitespace-pre-line text-sm">
+                        <div style={{
+                            marginBottom: '1rem',
+                            padding: '1rem',
+                            backgroundColor: 'var(--alert-success-bg)',
+                            border: '1px solid var(--alert-success-border)',
+                            color: 'var(--alert-success-text)',
+                            borderRadius: '0.25rem',
+                            whiteSpace: 'pre-line',
+                            fontSize: '0.875rem'
+                        }}>
                             {seedMessage}
                         </div>
                     )}
                     {seedError && (
-                        <div className="mb-4 p-4 bg-red-100 border border-red-400 rounded text-sm text-red-700">
+                        <div style={{
+                            marginBottom: '1rem',
+                            padding: '1rem',
+                            backgroundColor: 'var(--alert-error-bg)',
+                            border: '1px solid var(--alert-error-border)',
+                            color: 'var(--alert-error-text)',
+                            borderRadius: '0.25rem',
+                            fontSize: '0.875rem'
+                        }}>
                             {seedError}
                         </div>
                     )}
@@ -306,14 +344,24 @@ const DevDataSeeder: React.FC = () => {
                 <button
                     onClick={handleSeedData}
                     disabled={isSeeding}
-                    className={`
-                        ml-4 px-6 py-3 rounded-lg font-bold text-white
-                        ${isSeeding 
-                            ? 'bg-gray-400 cursor-not-allowed' 
-                            : 'bg-yellow-600 hover:bg-yellow-700 active:bg-yellow-800'
-                        }
-                        transition-colors duration-200
-                    `}
+                    style={{
+                        marginLeft: '1rem',
+                        padding: '0.75rem 1.5rem',
+                        borderRadius: '0.5rem',
+                        fontWeight: 'bold',
+                        color: isSeeding ? 'var(--btn-disabled-text)' : 'var(--btn-primary-text)',
+                        backgroundColor: isSeeding ? 'var(--btn-disabled-bg)' : 'var(--btn-primary-bg)',
+                        border: 'none',
+                        cursor: isSeeding ? 'not-allowed' : 'pointer',
+                        transition: 'background-color 0.2s',
+                        whiteSpace: 'nowrap'
+                    }}
+                    onMouseOver={(e) => {
+                        if (!isSeeding) e.currentTarget.style.backgroundColor = 'var(--btn-primary-hover)';
+                    }}
+                    onMouseOut={(e) => {
+                        if (!isSeeding) e.currentTarget.style.backgroundColor = 'var(--btn-primary-bg)';
+                    }}
                 >
                     {isSeeding ? '⏳ Seeding...' : '🌱 Seed Data'}
                 </button>
