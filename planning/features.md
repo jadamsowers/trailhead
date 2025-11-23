@@ -1,27 +1,45 @@
 # New Features
 
-## check-in mode: when we are about to leave for an outing, an outing leader can check in all participants
-- needs to be mobile friendly
-- needs to have an offline mode. sometimes we don't have internet access. should have the check-in list cached
-- capture who checked in so we can export it later for camping night tracking
+## Check-in Mode
+Outing leaders can check in participants before departure
 
-## ability to close signups for an outing
-- this could be date-based when setting up the outing, or a button to close signups
+- [ ] Create mobile-friendly check-in interface
+- [ ] Implement offline mode with cached check-in list
+- [ ] Capture who checked in for camping night tracking
+- [ ] Add export functionality for check-in data
 
-## rename the app to "Trailhead"
-- this would involve updating all references to scouting-outing-manager
+## Outing Configuration
+Enhancements to outing setup and management
 
-## accessibility improvements
-- the app needs a rethink to be more accessible
+- [ ] Add drop-off time and location fields
+- [ ] Add pickup time and location fields
+- [ ] Add cost field for outing
+- [ ] Add suggested gear list functionality
+- [ ] Add icon selection (emoji or Bootstrap icon)
+  - [ ] Tent icon option
+  - [ ] Canoe icon option
+  - [ ] Backpack icon option
+  - [ ] Mountain icon option
+  - [ ] Bike icon option
+  - [ ] Additional outdoor activity icons
+- [ ] Generate QR code for outing
+  - [ ] QR code links to specific outing URL
+- [ ] Add ability to close signups
+  - [ ] Date-based automatic closure option
+  - [ ] Manual close signups button
 
-## styling improvements
-- need to define a consistent color palette based on BSA branding
-- light / dark mode really need an overhaul
+## Family Configuration
+Enhancements to family profile and requests
 
-## Outing Icons
-- ability to add an icon to an outing
-- icons should use common emoji (tent, mountain, canoe, backpack, etc.)
+- [ ] Add grubmaster request functionality
+- [ ] Add gear request functionality
 
-## QR Code for Outings
-- ability to generate a QR code for an outing
-- QR code should generate a URL to the specific outing
+## Accessibility Improvements
+Make the app more accessible for all users
+
+- [ ] Conduct accessibility audit
+- [ ] Implement WCAG 2.1 AA compliance
+- [ ] Add keyboard navigation support
+- [ ] Add screen reader support
+- [ ] Improve color contrast ratios
+- [ ] Add ARIA labels and landmarks
