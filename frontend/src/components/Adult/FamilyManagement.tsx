@@ -90,7 +90,7 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
         <>
             <div className="flex flex-col gap-6">
                 <div className="flex justify-between items-center flex-wrap gap-4">
-                    <h2 className="text-3xl font-bold text-sa-dark-blue m-0">Family Members</h2>
+                    <h2 className="text-3xl font-bold m-0" style={{ color: 'var(--text-primary)' }}>Family Members</h2>
                     <button
                         onClick={handleAddMember}
                         className="px-6 py-3 bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] border-none rounded-md text-base font-bold cursor-pointer transition-all duration-200 shadow-sm hover:bg-[var(--btn-primary-hover)] hover:-translate-y-px hover:shadow-md"
@@ -100,7 +100,11 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
                 </div>
 
                 {displayError && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                    <div className="px-4 py-3 rounded border" style={{
+                        backgroundColor: 'var(--alert-error-bg)',
+                        borderColor: 'var(--alert-error-border)',
+                        color: 'var(--alert-error-text)'
+                    }}>
                         {displayError}
                     </div>
                 )}
@@ -120,7 +124,7 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
                         {/* Adults Section */}
                         {members.filter(m => m.member_type === 'adult').length > 0 && (
                             <div className="mb-8">
-                                <h3 className="text-2xl font-semibold text-sa-dark-tan mb-4 pb-2 border-b-2 border-[var(--border-light)]">
+                                <h3 className="text-2xl font-semibold mb-4 pb-2 border-b-2 border-[var(--border-light)]" style={{ color: 'var(--color-secondary)' }}>
                                     🌲 Adults ({members.filter(m => m.member_type === 'adult').length})
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
@@ -141,7 +145,7 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
                         {/* Youth/Scouts Section */}
                         {members.filter(m => m.member_type === 'scout').length > 0 && (
                             <div>
-                                <h3 className="text-2xl font-semibold text-sa-dark-blue mb-4 pb-2 border-b-2 border-[var(--border-light)]">
+                                <h3 className="text-2xl font-semibold mb-4 pb-2 border-b-2 border-[var(--border-light)]" style={{ color: 'var(--color-primary)' }}>
                                     🌱 Youth ({members.filter(m => m.member_type === 'scout').length})
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
@@ -187,32 +191,38 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
     return (
         <div className="glass-card p-8 flex flex-col h-full cursor-default group relative overflow-hidden">
             {/* Header with name and actions */}
-            <div className="flex justify-between items-start mb-4 pb-3 border-b border-gray-200/50">
+            <div className="flex justify-between items-start mb-4 pb-3 border-b" style={{ borderColor: 'var(--border-light)' }}>
                 <div className="flex-1">
-                    <h3 className="text-xl font-bold font-heading text-sa-dark-blue mb-2 leading-tight">
+                    <h3 className="text-xl font-bold font-heading mb-2 leading-tight" style={{ color: 'var(--text-primary)' }}>
                         {member.name}
                     </h3>
-                    <span className={`
-                        inline-block px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full shadow-sm
-                        ${member.member_type === 'scout'
-                            ? 'bg-gradient-to-r from-green-50 to-green-100 text-green-800 border border-green-200'
-                            : 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 border border-blue-200'
-                        }
-                    `}>
+                    <span className="inline-block px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full shadow-sm border"
+                        style={{
+                            backgroundColor: member.member_type === 'scout' ? 'var(--badge-scout-bg)' : 'var(--badge-adult-bg)',
+                            color: member.member_type === 'scout' ? 'var(--badge-scout-text)' : 'var(--badge-adult-text)',
+                            borderColor: member.member_type === 'scout' ? 'var(--badge-scout-border)' : 'var(--badge-adult-border)'
+                        }}>
                         {member.member_type === 'scout' ? '🌱 Scout' : '🌲 Adult'}
                     </span>
                 </div>
-                <div className="flex gap-2 ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute top-4 right-4 bg-white/80 backdrop-blur rounded-lg p-1 shadow-sm">
+                <div className="flex gap-2 ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute top-4 right-4 rounded-lg p-1 shadow-sm backdrop-blur"
+                    style={{ backgroundColor: 'var(--card-bg-alpha)' }}>
                     <button
                         onClick={onEdit}
-                        className="p-2 hover:bg-blue-50 rounded-md text-blue-600 transition-colors"
+                        className="p-2 rounded-md transition-colors"
+                        style={{ color: 'var(--color-info)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         title="Edit"
                     >
                         ✏️
                     </button>
                     <button
                         onClick={onDelete}
-                        className="p-2 hover:bg-red-50 rounded-md text-red-600 transition-colors"
+                        className="p-2 rounded-md transition-colors"
+                        style={{ color: 'var(--color-error)' }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--card-error-bg)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                         title="Delete"
                     >
                         🗑️
@@ -221,55 +231,55 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
             </div>
 
             {/* Details */}
-            <div className="flex flex-col gap-3 text-sm text-secondary flex-1">
+            <div className="flex flex-col gap-3 text-sm flex-1" style={{ color: 'var(--text-secondary)' }}>
                 {age && (
                     <div className="flex items-center gap-2">
-                        <span className="font-semibold min-w-[80px] text-sa-dark-blue">Age:</span>
+                        <span className="font-semibold min-w-[80px]" style={{ color: 'var(--text-primary)' }}>Age:</span>
                         <span className="font-medium">{age} years old</span>
                     </div>
                 )}
                 {member.troop_number && (
                     <div className="flex items-center gap-2">
-                        <span className="font-semibold min-w-[80px] text-sa-dark-blue">Troop:</span>
+                        <span className="font-semibold min-w-[80px]" style={{ color: 'var(--text-primary)' }}>Troop:</span>
                         <span className="font-medium">{member.troop_number}</span>
                     </div>
                 )}
                 {member.patrol_name && (
                     <div className="flex items-center gap-2">
-                        <span className="font-semibold min-w-[80px] text-sa-dark-blue">Patrol:</span>
+                        <span className="font-semibold min-w-[80px]" style={{ color: 'var(--text-primary)' }}>Patrol:</span>
                         <span className="font-medium">{member.patrol_name}</span>
                     </div>
                 )}
 
                 {member.member_type === 'adult' && (
                     <>
-                        <div className={`
-                            flex flex-col gap-1 px-4 py-3 rounded-lg mt-2 border
-                            ${!member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date())
-                                ? 'bg-red-50 border-red-100'
-                                : 'bg-green-50 border-green-100'
-                            }
-                        `}>
-                            <div className={`
-                                flex items-center gap-2 font-bold text-sm
-                                ${!member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date())
-                                    ? 'text-red-700'
-                                    : 'text-green-700'
-                                }
-                            `}>
+                        <div className="flex flex-col gap-1 px-4 py-3 rounded-lg mt-2 border"
+                            style={{
+                                backgroundColor: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date())
+                                    ? 'var(--card-error-bg)'
+                                    : 'var(--card-success-bg)',
+                                borderColor: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date())
+                                    ? 'var(--border-error)'
+                                    : 'var(--border-success)'
+                            }}>
+                            <div className="flex items-center gap-2 font-bold text-sm"
+                                style={{
+                                    color: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date())
+                                        ? 'var(--color-error)'
+                                        : 'var(--color-success)'
+                                }}>
                                 {!member.has_youth_protection
                                     ? '⚠️ Youth Protection: Not Trained'
                                     : member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date()
                                         ? '⚠️ Youth Protection: Expired'
                                         : '✓ Youth Protection: Valid'}
                             </div>
-                            <div className={`
-                                text-xs font-medium
-                                ${!member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date())
-                                    ? 'text-red-600'
-                                    : 'text-green-600'
-                                }
-                            `}>
+                            <div className="text-xs font-medium"
+                                style={{
+                                    color: !member.has_youth_protection || (member.youth_protection_expiration && new Date(member.youth_protection_expiration) < new Date())
+                                        ? 'var(--color-error)'
+                                        : 'var(--color-success)'
+                                }}>
                                 Expiration: {member.youth_protection_expiration
                                     ? new Date(member.youth_protection_expiration).toLocaleDateString()
                                     : 'N/A'}
@@ -277,7 +287,7 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                         </div>
                         {member.vehicle_capacity > 0 && (
                             <div className="flex items-center gap-2 mt-1">
-                                <span className="font-semibold min-w-[80px] text-sa-dark-blue">Vehicle:</span>
+                                <span className="font-semibold min-w-[80px]" style={{ color: 'var(--text-primary)' }}>Vehicle:</span>
                                 <span className="font-medium">{member.vehicle_capacity} passengers</span>
                             </div>
                         )}
@@ -286,10 +296,15 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
 
                 {member.dietary_preferences.length > 0 && (
                     <div className="mt-3">
-                        <div className="font-semibold text-sa-dark-blue mb-2 text-xs uppercase tracking-wider">Dietary Preferences</div>
+                        <div className="font-semibold mb-2 text-xs uppercase tracking-wider" style={{ color: 'var(--text-primary)' }}>Dietary Preferences</div>
                         <div className="flex flex-wrap gap-2">
                             {member.dietary_preferences.map((p, idx) => (
-                                <span key={idx} className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-full text-xs font-semibold shadow-sm">
+                                <span key={idx} className="px-3 py-1 rounded-full text-xs font-semibold shadow-sm border"
+                                    style={{
+                                        backgroundColor: 'var(--badge-secondary-bg)',
+                                        color: 'var(--badge-secondary-text)',
+                                        borderColor: 'var(--badge-secondary-border)'
+                                    }}>
                                     {p.preference}
                                 </span>
                             ))}
@@ -299,14 +314,19 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
 
                 {member.allergies.length > 0 && (
                     <div className="mt-3">
-                        <div className="font-semibold text-red-700 mb-2 text-xs uppercase tracking-wider flex items-center gap-1">
+                        <div className="font-semibold mb-2 text-xs uppercase tracking-wider flex items-center gap-1" style={{ color: 'var(--color-error)' }}>
                             <span>⚠️ Allergies</span>
                         </div>
                         <div className="flex flex-col gap-2">
                             {member.allergies.map((a, idx) => (
-                                <span key={idx} className="px-3 py-2 bg-red-50 text-red-700 rounded-lg text-xs font-bold border border-red-100 shadow-sm flex justify-between items-center">
+                                <span key={idx} className="px-3 py-2 rounded-lg text-xs font-bold border shadow-sm flex justify-between items-center"
+                                    style={{
+                                        backgroundColor: 'var(--card-error-bg)',
+                                        color: 'var(--color-error)',
+                                        borderColor: 'var(--border-error)'
+                                    }}>
                                     <span>{a.allergy}</span>
-                                    {a.severity && <span className="text-[10px] uppercase bg-white/50 px-1.5 py-0.5 rounded ml-2">{a.severity}</span>}
+                                    {a.severity && <span className="text-[10px] uppercase px-1.5 py-0.5 rounded ml-2" style={{ backgroundColor: 'var(--card-bg-alpha)' }}>{a.severity}</span>}
                                 </span>
                             ))}
                         </div>
@@ -418,7 +438,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-5 z-[1000]">
             <div className="bg-[var(--card-bg)] rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
                 <div className="p-8">
-                    <h3 className="text-3xl font-bold mb-6 text-sa-dark-blue">
+                    <h3 className="text-3xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
                         {member ? 'Edit Family Member' : 'Add Family Member'}
                     </h3>
 

@@ -24,31 +24,38 @@ const HomePage: React.FC = () => {
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
-            <h1 className="text-5xl mb-5 text-sa-blue">
+            <h1 className="text-5xl mb-5" style={{ color: 'var(--color-primary)' }}>
                 ⚜️ Scouting Outing Manager 🏕️
             </h1>
-            <p className="text-xl mb-10 text-secondary">
+            <p className="text-xl mb-10" style={{ color: 'var(--text-secondary)' }}>
                 Manage scout troop outings, signups, and participant information
             </p>
 
-            <div className="p-8 bg-sa-pale-blue/80 rounded-xl mb-10 border border-sa-pale-blue">
-                <h2 className="text-sa-dark-blue mb-4 text-2xl font-bold">
+            <div className="p-8 rounded-xl mb-10 glass-card" style={{
+                backgroundColor: 'var(--card-bg)',
+                borderColor: 'var(--card-border)'
+            }}>
+                <h2 className="mb-4 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
                     Get Started
                 </h2>
-                <p className="text-secondary text-base mb-5">
+                <p className="text-base mb-5" style={{ color: 'var(--text-secondary)' }}>
                     Sign in or create an account to manage your family and sign up for outings
                 </p>
                 <Link
                     to="/login"
-                    className="inline-block px-10 py-4 bg-primary text-white no-underline rounded-lg text-lg font-bold transition-colors hover:bg-primary-dark"
+                    className="inline-block px-10 py-4 no-underline rounded-lg text-lg font-bold transition-all hover:-translate-y-1"
+                    style={{
+                        backgroundColor: 'var(--btn-primary-bg)',
+                        color: 'var(--btn-primary-text)'
+                    }}
                 >
                     Sign In / Sign Up
                 </Link>
             </div>
 
-            <div className="mt-16 p-8 bg-tertiary rounded-lg">
-                <h3 className="mb-4 text-2xl font-bold">Features</h3>
-                <ul className="list-none p-0 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 text-left">
+            <div className="mt-16 p-8 rounded-lg glass-card">
+                <h3 className="mb-4 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Features</h3>
+                <ul className="list-none p-0 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 text-left" style={{ color: 'var(--text-secondary)' }}>
                     <li>✓ Multi-participant family signups</li>
                     <li>✓ Dietary restrictions tracking</li>
                     <li>✓ Allergy management</li>
@@ -68,14 +75,17 @@ const Navigation: React.FC = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     return (
-        <nav className="bg-[var(--sa-dark-blue)] text-white shadow-lg sticky top-0 z-[1000] backdrop-blur-md bg-opacity-95 border-b border-white/10">
+        <nav className="text-white shadow-lg sticky top-0 z-[1000] backdrop-blur-md bg-opacity-95 border-b border-white/10" style={{ backgroundColor: 'var(--color-primary)' }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16 items-center">
                     {/* Logo / Brand */}
                     <div className="flex-shrink-0 flex items-center">
                         <Link
                             to="/"
-                            className="text-white no-underline text-xl font-bold font-heading tracking-tight flex items-center gap-4 hover:text-sa-pale-blue transition-colors"
+                            className="text-white no-underline text-xl font-bold font-heading tracking-tight flex items-center gap-4 transition-colors"
+                            style={{ '--hover-color': 'var(--bsa-tan-300)' } as React.CSSProperties}
+                            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--bsa-tan-300)'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = 'white'}
                         >
                             <span className="text-2xl">⚜️</span>
                             <span className="hidden sm:block">Scouting Outing Manager</span>
@@ -116,7 +126,11 @@ const Navigation: React.FC = () => {
                                 <ThemeToggleCompact />
                                 <Link
                                     to="/login"
-                                    className="px-8 py-3 border border-transparent text-base font-bold rounded-lg text-sa-dark-blue bg-white hover:bg-gray-50 shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
+                                    className="px-8 py-3 border border-transparent text-base font-bold rounded-lg shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
+                                    style={{
+                                        backgroundColor: 'var(--bg-primary)',
+                                        color: 'var(--color-primary)'
+                                    }}
                                 >
                                     Sign In
                                 </Link>
@@ -148,7 +162,7 @@ const Navigation: React.FC = () => {
             </div>
 
             {/* Mobile Menu */}
-            <div className={`${mobileMenuOpen ? 'block' : 'hidden'} md:hidden bg-[var(--sa-dark-blue)] border-t border-white/10`}>
+            <div className={`${mobileMenuOpen ? 'block' : 'hidden'} md:hidden border-t border-white/10`} style={{ backgroundColor: 'var(--color-primary)' }}>
                 <div className="px-4 pt-4 pb-6 space-y-2 sm:px-6">
                     <SignedIn>
                         <Link
@@ -249,7 +263,7 @@ const App: React.FC = () => {
                         </main>
 
                         {/* Footer */}
-                        <footer className="bg-[var(--sa-dark-blue)] text-white py-8 mt-auto border-t border-white/10">
+                        <footer className="text-white py-8 mt-auto border-t border-white/10" style={{ backgroundColor: 'var(--color-primary)' }}>
                             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                                 <p className="font-heading font-bold text-lg mb-2">Scouting Outing Manager</p>
                                 <p className="text-gray-400 italic mb-4">Putting the 'outing' back in 'Scouting'</p>

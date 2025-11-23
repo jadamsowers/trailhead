@@ -10,8 +10,8 @@ const AdminPage: React.FC = () => {
 
     if (!isLoaded) {
         return (
-            <div className="min-h-screen bg-secondary flex items-center justify-center">
-                <div className="text-center text-secondary">
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <div className="text-center" style={{ color: 'var(--text-secondary)' }}>
                     <p>Loading...</p>
                 </div>
             </div>
@@ -22,10 +22,10 @@ const AdminPage: React.FC = () => {
         <div className="w-full">
             <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
-                    <h1 className="text-4xl font-bold font-heading text-sa-dark-blue mb-2">
+                    <h1 className="text-4xl font-bold font-heading mb-2" style={{ color: 'var(--text-primary)' }}>
                         Admin Dashboard
                     </h1>
-                    <p className="text-secondary mt-2 text-lg">
+                    <p className="mt-2 text-lg" style={{ color: 'var(--text-secondary)' }}>
                         Manage outings, users, and system settings
                     </p>
                 </div>
@@ -40,14 +40,21 @@ const AdminPage: React.FC = () => {
                         className={`
                             flex flex-col items-center gap-4 p-12 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out group relative overflow-hidden
                             ${activeTab === 'outings'
-                                ? 'bg-gradient-to-br from-sa-dark-blue to-sa-blue text-white shadow-xl scale-[1.02] ring-4 ring-blue-100'
-                                : 'glass-card hover:bg-white hover:-translate-y-1 hover:shadow-xl'
+                                ? 'text-white shadow-xl scale-[1.02]'
+                                : 'glass-card hover:-translate-y-1 hover:shadow-xl'
                             }
                         `}
+                        style={activeTab === 'outings' ? {
+                            background: `linear-gradient(to bottom right, var(--color-primary), var(--color-primary-light))`,
+                            boxShadow: '0 0 0 4px rgba(var(--bsa-olive-rgb), 0.1)'
+                        } : {}}
                     >
-                        <div className={`absolute inset-0 opacity-10 ${activeTab === 'outings' ? 'bg-white' : 'bg-sa-blue'} transition-opacity group-hover:opacity-20`}></div>
+                        <div className="absolute inset-0 opacity-10 transition-opacity group-hover:opacity-20" style={{
+                            backgroundColor: activeTab === 'outings' ? 'white' : 'var(--color-primary)'
+                        }}></div>
                         <svg
-                            className={`w-16 h-16 transition-transform duration-300 group-hover:scale-110 ${activeTab === 'outings' ? 'text-white' : 'text-sa-dark-blue'}`}
+                            className="w-16 h-16 transition-transform duration-300 group-hover:scale-110"
+                            style={{ color: activeTab === 'outings' ? 'white' : 'var(--color-primary)' }}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -60,10 +67,14 @@ const AdminPage: React.FC = () => {
                             />
                         </svg>
                         <div className="text-center relative z-10">
-                            <h2 className={`text-3xl font-bold m-0 font-heading ${activeTab === 'outings' ? 'text-white' : 'text-sa-dark-blue'}`}>
+                            <h2 className="text-3xl font-bold m-0 font-heading" style={{
+                                color: activeTab === 'outings' ? 'white' : 'var(--text-primary)'
+                            }}>
                                 Outing Management
                             </h2>
-                            <p className={`text-base mt-2 ${activeTab === 'outings' ? 'text-blue-100' : 'text-secondary'}`}>
+                            <p className="text-base mt-2" style={{
+                                color: activeTab === 'outings' ? 'rgba(255,255,255,0.9)' : 'var(--text-secondary)'
+                            }}>
                                 Create, edit, and manage scouting outings
                             </p>
                         </div>
@@ -74,14 +85,21 @@ const AdminPage: React.FC = () => {
                         className={`
                             flex flex-col items-center gap-4 p-12 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out group relative overflow-hidden
                             ${activeTab === 'users'
-                                ? 'bg-gradient-to-br from-sa-dark-blue to-sa-blue text-white shadow-xl scale-[1.02] ring-4 ring-blue-100'
-                                : 'glass-card hover:bg-white hover:-translate-y-1 hover:shadow-xl'
+                                ? 'text-white shadow-xl scale-[1.02]'
+                                : 'glass-card hover:-translate-y-1 hover:shadow-xl'
                             }
                         `}
+                        style={activeTab === 'users' ? {
+                            background: `linear-gradient(to bottom right, var(--color-primary), var(--color-primary-light))`,
+                            boxShadow: '0 0 0 4px rgba(var(--bsa-olive-rgb), 0.1)'
+                        } : {}}
                     >
-                        <div className={`absolute inset-0 opacity-10 ${activeTab === 'users' ? 'bg-white' : 'bg-sa-blue'} transition-opacity group-hover:opacity-20`}></div>
+                        <div className="absolute inset-0 opacity-10 transition-opacity group-hover:opacity-20" style={{
+                            backgroundColor: activeTab === 'users' ? 'white' : 'var(--color-primary)'
+                        }}></div>
                         <svg
-                            className={`w-16 h-16 transition-transform duration-300 group-hover:scale-110 ${activeTab === 'users' ? 'text-white' : 'text-sa-dark-blue'}`}
+                            className="w-16 h-16 transition-transform duration-300 group-hover:scale-110"
+                            style={{ color: activeTab === 'users' ? 'white' : 'var(--color-primary)' }}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -94,10 +112,14 @@ const AdminPage: React.FC = () => {
                             />
                         </svg>
                         <div className="text-center relative z-10">
-                            <h2 className={`text-3xl font-bold m-0 font-heading ${activeTab === 'users' ? 'text-white' : 'text-sa-dark-blue'}`}>
+                            <h2 className="text-3xl font-bold m-0 font-heading" style={{
+                                color: activeTab === 'users' ? 'white' : 'var(--text-primary)'
+                            }}>
                                 User Management
                             </h2>
-                            <p className={`text-base mt-2 ${activeTab === 'users' ? 'text-blue-100' : 'text-secondary'}`}>
+                            <p className="text-base mt-2" style={{
+                                color: activeTab === 'users' ? 'rgba(255,255,255,0.9)' : 'var(--text-secondary)'
+                            }}>
                                 Manage user accounts and permissions
                             </p>
                         </div>

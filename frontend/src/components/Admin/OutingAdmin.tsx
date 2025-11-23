@@ -397,7 +397,7 @@ const OutingAdmin: React.FC = () => {
                     boxShadow: 'var(--card-shadow)'
                 }}>
                     <thead>
-                        <tr style={{ backgroundColor: isAdult ? 'var(--sa-dark-blue)' : 'var(--sa-scouts-orange)', color: 'white' }}>
+                        <tr style={{ backgroundColor: isAdult ? 'var(--color-primary)' : 'var(--color-accent)', color: 'var(--text-on-primary)' }}>
                             <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Name</th>
                             <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Age</th>
                             <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Gender</th>
@@ -431,14 +431,14 @@ const OutingAdmin: React.FC = () => {
                                 {isAdult && (
                                     <td style={{ padding: '12px', textAlign: 'center' }}>
                                         {participant.has_youth_protection ? (
-                                            <span style={{ color: 'var(--alert-success-text)', fontWeight: 'bold' }}>✓</span>
+                                            <span style={{ color: 'var(--color-success)', fontWeight: 'bold' }}>✓</span>
                                         ) : (
-                                            <span style={{ color: 'var(--alert-error-text)' }}>✗</span>
+                                            <span style={{ color: 'var(--color-error)' }}>✗</span>
                                         )}
                                     </td>
                                 )}
                                 {isAdult && (
-                                    <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: 'var(--sa-dark-blue)' }}>
+                                    <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: 'var(--color-primary)' }}>
                                         {participant.vehicle_capacity > 0 ? `🚗 ${participant.vehicle_capacity}` : '-'}
                                     </td>
                                 )}
@@ -448,11 +448,11 @@ const OutingAdmin: React.FC = () => {
                                             {participant.dietary_restrictions.map((restriction, idx) => (
                                                 <span key={idx} style={{
                                                     padding: '2px 6px',
-                                                    backgroundColor: 'var(--alert-success-bg)',
-                                                    border: '1px solid var(--alert-success-border)',
+                                                    backgroundColor: 'var(--badge-secondary-bg)',
+                                                    border: '1px solid var(--badge-secondary-border)',
                                                     borderRadius: '3px',
                                                     fontSize: '11px',
-                                                    color: 'var(--alert-success-text)',
+                                                    color: 'var(--badge-secondary-text)',
                                                     whiteSpace: 'nowrap'
                                                 }}>
                                                     {restriction}
@@ -460,7 +460,7 @@ const OutingAdmin: React.FC = () => {
                                             ))}
                                         </div>
                                     ) : (
-                                        <span style={{ color: 'var(--text-tertiary)' }}>None</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>None</span>
                                     )}
                                 </td>
                                 <td style={{ padding: '12px' }}>
@@ -469,11 +469,11 @@ const OutingAdmin: React.FC = () => {
                                             {participant.allergies.map((allergy, idx) => (
                                                 <span key={idx} style={{
                                                     padding: '2px 6px',
-                                                    backgroundColor: 'var(--alert-error-bg)',
-                                                    border: '1px solid var(--alert-error-border)',
+                                                    backgroundColor: 'var(--card-error-bg)',
+                                                    border: '1px solid var(--border-error)',
                                                     borderRadius: '3px',
                                                     fontSize: '11px',
-                                                    color: 'var(--alert-error-text)',
+                                                    color: 'var(--color-error)',
                                                     fontWeight: 'bold',
                                                     whiteSpace: 'nowrap'
                                                 }}>
@@ -482,7 +482,7 @@ const OutingAdmin: React.FC = () => {
                                             ))}
                                         </div>
                                     ) : (
-                                        <span style={{ color: 'var(--text-tertiary)' }}>None</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>None</span>
                                     )}
                                 </td>
                                 <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-secondary)' }}>
@@ -530,8 +530,8 @@ const OutingAdmin: React.FC = () => {
                     <div style={{ marginBottom: '30px' }}>
                         <h4 style={{
                             padding: '10px',
-                            backgroundColor: 'var(--sa-dark-blue)',
-                            color: 'white',
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'var(--text-on-primary)',
                             borderRadius: '4px 4px 0 0',
                             margin: '0'
                         }}>
@@ -545,8 +545,8 @@ const OutingAdmin: React.FC = () => {
                     <div>
                         <h4 style={{
                             padding: '10px',
-                            backgroundColor: 'var(--sa-scouts-orange)',
-                            color: 'white',
+                            backgroundColor: 'var(--color-accent)',
+                            color: 'var(--text-on-accent)',
                             borderRadius: '4px 4px 0 0',
                             margin: '0'
                         }}>
@@ -561,7 +561,7 @@ const OutingAdmin: React.FC = () => {
 
     return (
         <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-            <h1 style={{ color: 'var(--text-primary)' }}>Outing Administrator Interface</h1>
+            <h1 style={{ color: 'var(--text-primary)' }}>Outing Administrator</h1>
             
             {error && (
                 <div style={{
@@ -807,7 +807,7 @@ const OutingAdmin: React.FC = () => {
                             >
                                 {editingOutingId === outing.id && editOuting ? (
                                     <div style={{ backgroundColor: 'var(--alert-warning-bg)' }}>
-                                        <div style={{ padding: '20px', borderBottom: '1px solid var(--card-border)', backgroundColor: 'var(--sa-scouts-orange)', color: 'white' }}>
+                                        <div style={{ padding: '20px', borderBottom: '1px solid var(--card-border)', backgroundColor: 'var(--color-accent)', color: 'var(--text-on-accent)' }}>
                                             <h3 style={{ margin: 0 }}>✏️ Editing: {outing.name}</h3>
                                         </div>
                                         <form onSubmit={handleUpdateOuting} style={{ padding: '20px' }}>
@@ -1105,8 +1105,8 @@ const OutingAdmin: React.FC = () => {
                                         style={{
                                             padding: '8px 16px',
                                             marginRight: '10px',
-                                            backgroundColor: 'var(--sa-pale-blue)',
-                                            color: 'var(--sa-dark-blue)',
+                                            backgroundColor: 'var(--btn-secondary-bg)',
+                                            color: 'var(--btn-secondary-text)',
                                             border: 'none',
                                             borderRadius: '4px',
                                             cursor: loading ? 'not-allowed' : 'pointer',
@@ -1125,8 +1125,8 @@ const OutingAdmin: React.FC = () => {
                                         style={{
                                             padding: '8px 16px',
                                             marginRight: '10px',
-                                            backgroundColor: outing.signup_count === 0 ? 'var(--btn-disabled-bg)' : 'var(--alert-success-bg)',
-                                            color: outing.signup_count === 0 ? 'var(--btn-disabled-text)' : 'var(--alert-success-text)',
+                                            backgroundColor: outing.signup_count === 0 ? 'var(--btn-disabled-bg)' : 'var(--btn-success-bg)',
+                                            color: outing.signup_count === 0 ? 'var(--btn-disabled-text)' : 'var(--btn-success-text)',
                                             border: 'none',
                                             borderRadius: '4px',
                                             cursor: loading || outing.signup_count === 0 ? 'not-allowed' : 'pointer',
@@ -1145,8 +1145,8 @@ const OutingAdmin: React.FC = () => {
                                         style={{
                                             padding: '8px 16px',
                                             marginRight: '10px',
-                                            backgroundColor: 'var(--sa-scouts-orange)',
-                                            color: 'white',
+                                            backgroundColor: 'var(--color-accent)',
+                                            color: 'var(--text-on-accent)',
                                             border: 'none',
                                             borderRadius: '4px',
                                             cursor: loading ? 'not-allowed' : 'pointer'
@@ -1162,9 +1162,9 @@ const OutingAdmin: React.FC = () => {
                                         disabled={loading}
                                         style={{
                                             padding: '8px 16px',
-                                            backgroundColor: 'var(--alert-error-bg)',
-                                            color: 'var(--alert-error-text)',
-                                            border: '1px solid var(--alert-error-border)',
+                                            backgroundColor: 'var(--btn-danger-bg)',
+                                            color: 'var(--btn-danger-text)',
+                                            border: 'none',
                                             borderRadius: '4px',
                                             cursor: loading ? 'not-allowed' : 'pointer',
                                             fontWeight: 'bold'
@@ -1206,7 +1206,7 @@ const OutingAdmin: React.FC = () => {
                         boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
                         border: '1px solid var(--card-border)'
                     }}>
-                        <h2 style={{ marginTop: 0, marginBottom: '20px', color: 'var(--sa-dark-blue)' }}>
+                        <h2 style={{ marginTop: 0, marginBottom: '20px', color: 'var(--text-primary)' }}>
                             📧 Email Participants - {selectedOutingForEmail.name}
                         </h2>
 
@@ -1246,8 +1246,8 @@ const OutingAdmin: React.FC = () => {
                                 style={{
                                     marginTop: '10px',
                                     padding: '8px 16px',
-                                    backgroundColor: 'var(--sa-pale-blue)',
-                                    color: 'var(--sa-dark-blue)',
+                                    backgroundColor: 'var(--btn-secondary-bg)',
+                                    color: 'var(--btn-secondary-text)',
                                     border: 'none',
                                     borderRadius: '4px',
                                     cursor: emailList.length === 0 ? 'not-allowed' : 'pointer',
@@ -1359,8 +1359,8 @@ const OutingAdmin: React.FC = () => {
                                 disabled={loading || emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage}
                                 style={{
                                     padding: '10px 20px',
-                                    backgroundColor: emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage ? 'var(--btn-disabled-bg)' : 'var(--alert-success-bg)',
-                                    color: emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage ? 'var(--btn-disabled-text)' : 'var(--alert-success-text)',
+                                    backgroundColor: emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage ? 'var(--btn-disabled-bg)' : 'var(--btn-success-bg)',
+                                    color: emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage ? 'var(--btn-disabled-text)' : 'var(--btn-success-text)',
                                     border: 'none',
                                     borderRadius: '4px',
                                     cursor: loading || emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage ? 'not-allowed' : 'pointer',

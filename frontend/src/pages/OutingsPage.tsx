@@ -44,8 +44,8 @@ const OutingsPage: React.FC = () => {
     // Show loading while Clerk is initializing or while checking family members
     if (!isLoaded || checkingFamily) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-secondary">
-                <div className="text-xl text-secondary">Loading...</div>
+            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+                <div className="text-xl" style={{ color: 'var(--text-secondary)' }}>Loading...</div>
             </div>
         );
     }
@@ -60,18 +60,22 @@ const OutingsPage: React.FC = () => {
                 ) : (
                     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[60vh] flex items-center justify-center">
                         <div className="max-w-md w-full glass-card p-10 text-center">
-                            <h2 className="text-3xl font-bold font-heading text-sa-dark-blue mb-4">
+                            <h2 className="text-3xl font-bold font-heading mb-4" style={{ color: 'var(--text-primary)' }}>
                                 Welcome to Outing Signups!
                             </h2>
-                            <p className="text-secondary mb-8 text-lg">
+                            <p className="mb-8 text-lg" style={{ color: 'var(--text-secondary)' }}>
                                 Before you can sign up for outings, you need to add family members to your account.
                             </p>
-                            <p className="text-secondary mb-8">
+                            <p className="mb-8" style={{ color: 'var(--text-secondary)' }}>
                                 Add yourself and any youth or adults who will be participating in outings.
                             </p>
                             <button
                                 onClick={() => navigate('/family-setup')}
-                                className="bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full"
+                                className="px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full"
+                                style={{
+                                    backgroundColor: 'var(--btn-primary-bg)',
+                                    color: 'var(--btn-primary-text)'
+                                }}
                             >
                                 Add Family Members
                             </button>
@@ -82,15 +86,19 @@ const OutingsPage: React.FC = () => {
             <SignedOut>
                 <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[60vh] flex items-center justify-center">
                     <div className="max-w-md w-full glass-card p-10 text-center">
-                        <h1 className="text-3xl font-bold font-heading text-sa-dark-blue mb-4">
+                        <h1 className="text-3xl font-bold font-heading mb-4" style={{ color: 'var(--text-primary)' }}>
                             Sign In Required
                         </h1>
-                        <p className="text-secondary mb-8 text-lg">
+                        <p className="mb-8 text-lg" style={{ color: 'var(--text-secondary)' }}>
                             Please sign in or create an account to view and sign up for outings.
                         </p>
                         <button
                             onClick={() => navigate('/login')}
-                            className="bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full"
+                            className="font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full px-8 py-4 rounded-lg"
+                            style={{
+                                backgroundColor: 'var(--btn-primary-bg)',
+                                color: 'var(--btn-primary-text)'
+                            }}
                         >
                             Sign In / Sign Up
                         </button>

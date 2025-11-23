@@ -49,7 +49,7 @@ const FamilySetupPage: React.FC = () => {
             <>
                 <TopographicBackground />
                 <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-5">
-                    <div className="text-center text-secondary">
+                    <div className="text-center" style={{ color: 'var(--text-secondary)' }}>
                         <p>Loading...</p>
                     </div>
                 </div>
@@ -63,11 +63,11 @@ const FamilySetupPage: React.FC = () => {
             <div className="w-full">
                 <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Welcome Header Card */}
-                    <div className="bg-[var(--card-bg)] p-10 rounded-lg shadow-[var(--card-shadow)] mb-8 text-center border border-[var(--card-border)]">
-                        <h1 className="text-3xl font-bold text-sa-dark-blue mb-2.5">
+                    <div className="p-10 rounded-lg mb-8 text-center glass-card">
+                        <h1 className="text-3xl font-bold mb-2.5" style={{ color: 'var(--text-primary)' }}>
                             Welcome, {user?.firstName || 'Adult'}!
                         </h1>
-                        <p className="text-secondary text-base mb-0">
+                        <p className="text-base mb-0" style={{ color: 'var(--text-secondary)' }}>
                             Let's set up your family members so you can easily sign up for outings
                         </p>
                     </div>
@@ -111,8 +111,8 @@ const FamilySetupPage: React.FC = () => {
 
                     {/* Help Text - Only show if no family members */}
                     {!hasFamilyMembers && (
-                        <div className="text-center p-5 bg-tertiary rounded-lg text-secondary text-sm">
-                            <p className="m-0">
+                        <div className="text-center p-5 rounded-lg text-sm glass-card">
+                            <p className="m-0" style={{ color: 'var(--text-secondary)' }}>
                                 Once you've added at least one family member, you can continue to browse and sign up for outings.
                             </p>
                         </div>
