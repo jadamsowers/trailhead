@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from uuid import UUID
 from datetime import date
@@ -12,7 +12,7 @@ from app.models.user import User
 from app.models.family import FamilyMember
 from app.models.signup import Signup
 from app.models.participant import Participant
-from app.schemas.signup import SignupCreate, SignupUpdate, SignupResponse, ParticipantResponse
+from app.schemas.signup import SignupCreate, SignupUpdate, SignupResponse, ParticipantResponse, SignupListResponse
 from app.crud import signup as crud_signup
 from app.crud import outing as crud_outing
 from app.api.deps import get_current_user, get_current_admin_user
@@ -309,9 +309,8 @@ async def list_signups(
     return SignupListResponse(signups=signup_responses, total=total)
 
 
-@router.get("/outings/{outing_id}/signups", response_model=list[SignupResponse])
+@router.get("/my-signups", response_model=list[SignupResponse])
 async def get_my_signups(
-    outing_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
