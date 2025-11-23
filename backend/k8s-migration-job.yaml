@@ -21,7 +21,11 @@ spec:
       - name: migrations
         image: scouting-outing-backend:latest
         imagePullPolicy: Always
-        command: ["alembic", "upgrade", "head"]
+        command: 
+        - sh
+        - -c
+        - |
+          atlas migrate apply --env sqlalchemy --url "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_SERVER}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable"
         env:
         # Database Configuration
         - name: POSTGRES_SERVER

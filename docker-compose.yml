@@ -53,7 +53,7 @@ services:
         condition: service_healthy
     volumes:
       - ${BACKEND_VOLUME_MOUNT:-./backend:/app}
-    command: ${BACKEND_COMMAND:-sh -c "echo 'Waiting for database...' && sleep 5 && echo 'Generating initial migration...' && alembic revision --autogenerate -m 'Initial migration' || echo 'Migration already exists' && echo 'Running migrations...' && alembic upgrade head && echo 'Initializing database...' && python -m app.db.init_db || echo 'Database already initialized' && echo 'Starting server...' && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"}
+    command: ${BACKEND_COMMAND:-sh -c "echo 'Waiting for database...' && sleep 5 && echo 'Running Atlas migrations...' && atlas migrate apply --env sqlalchemy --url \"postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable\" && echo 'Initializing database...' && python -m app.db.init_db || echo 'Database already initialized' && echo 'Starting server...' && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"}
     networks:
       - scouting-outing-network
     healthcheck:
@@ -78,6 +78,8 @@ services:
       - backend
     networks:
       - scouting-outing-network
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
 
 volumes:
   postgres_data:

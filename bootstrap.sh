@@ -98,7 +98,7 @@ if [ "$MODE_CHOICE" = "2" ]; then
     RESTART_POLICY="unless-stopped"
     DEBUG="false"
     HEALTHCHECK_INTERVAL="10s"
-    BACKEND_COMMAND="sh -c 'echo \"Running migrations...\" && alembic upgrade head && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000'"
+    BACKEND_COMMAND="sh -c 'echo \"Running migrations...\" && atlas migrate apply --url $DATABASE_URL && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000'"
     BACKEND_VOLUME_MOUNT=""
     BACKEND_PORT=""
 else
@@ -107,7 +107,7 @@ else
     RESTART_POLICY="no"
     DEBUG="true"
     HEALTHCHECK_INTERVAL="5s"
-    BACKEND_COMMAND="sh -c 'echo \"Waiting for database...\" && sleep 5 && echo \"Generating initial migration...\" && alembic revision --autogenerate -m \"Initial migration\" || echo \"Migration already exists\" && echo \"Running migrations...\" && alembic upgrade head && echo \"Initializing database...\" && python -m app.db.init_db || echo \"Database already initialized\" && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'"
+    BACKEND_COMMAND="sh -c 'echo \"Waiting for database...\" && sleep 5 && echo \"Applying migrations with Atlas...\" && atlas migrate apply --url $DATABASE_URL && echo \"Initializing database...\" && python -m app.db.init_db || echo \"Database already initialized\" && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'"
     BACKEND_VOLUME_MOUNT="./backend:/app"
     BACKEND_PORT="8000"
 fi
@@ -290,135 +290,135 @@ if [ -f "clerk-keys.txt" ]; then
         print_info "Secret Key: $MASKED_SECRET"
         print_info "Publishable Key: $MASKED_PUBLIC"
         echo ""
-        read -p "Use these keys? [Y/n]: " USE_CLERK_FILE
-        USE_CLERK_FILE=${USE_CLERK_FILE:-Y}
-        if [[ ! "$USE_CLERK_FILE" =~ ^[Yy]$ ]]; then
-            CLERK_SECRET_KEY=""
-            CLERK_PUBLISHABLE_KEY=""
+        # Build and start services
+        print_header "Building and starting services..."
+        print_info "This may take a few minutes on first run..."
+        echo ""
+
+        $DOCKER_COMPOSE $COMPOSE_PROFILE up --build -d
+
+        print_info "Waiting for services to be ready..."
+        sleep 10
+
+        # Check if services are running
+        if $DOCKER_COMPOSE ps | grep -q "Up\\|running"; then
+            print_success "Services are running!"
+            echo ""
+    
+            # Wait for database to be ready and initialize
+            print_info "Waiting for database to be ready..."
+            sleep 5
+    
+            # Run database initialization (just verifies connection with Clerk)
+            print_header "Verifying database connection..."
+    
+            if [ "$MODE" = "production" ]; then
+                docker exec scouting-outing-backend python -m app.db.init_db || {
+                    print_error "Database verification failed. Check logs with:"
+                    echo "   $DOCKER_COMPOSE logs backend"
+                    exit 1
+                }
+            else
+                $DOCKER_COMPOSE exec -T backend python -m app.db.init_db || {
+                    print_error "Database verification failed. Check logs with:"
+                    echo "   $DOCKER_COMPOSE logs backend"
+                    exit 1
+                }
+            fi
+    
+            echo ""
+    
+            # Display access information
+            print_header "=========================================="
+            print_header "Setup Complete!"
+            print_header "=========================================="
+            echo ""
+    
+            if [ "$MODE" = "development" ]; then
+                print_success "Development mode is active"
+                echo ""
+                echo "📚 API Documentation:"
+                echo "   Swagger UI: http://localhost:8000/docs"
+                echo "   ReDoc:      http://localhost:8000/redoc"
+                echo ""
+                echo "🔐 Clerk Dashboard:"
+                echo "   URL: https://dashboard.clerk.com"
+                echo ""
+                echo "🌐 Frontend:"
+                echo "   To start the frontend dev server, run:"
+                echo "   cd frontend && npm install && npm start"
+                echo "   Then access at: http://localhost:3000"
+                echo ""
+                echo "🔐 Admin Setup (Clerk-based):"
+                echo ""
+                echo -e "${YELLOW}   ╔════════════════════════════════════════════════════════╗${NC}"
+                echo -e "${YELLOW}   ║  ADMIN EMAIL: $INITIAL_ADMIN_EMAIL${NC}"
+                echo -e "${YELLOW}   ║                                                         ║${NC}"
+                echo -e "${YELLOW}   ║  To become admin:                                       ║${NC}"
+                echo -e "${YELLOW}   ║  1. Go to https://dashboard.clerk.com                   ║${NC}"
+                echo -e "${YELLOW}   ║  2. Create account with the email above                 ║${NC}"
+                echo -e "${YELLOW}   ║  3. Sign in to the app - you'll auto-get admin role     ║${NC}"
+                echo -e "${YELLOW}   ╚════════════════════════════════════════════════════════╝${NC}"
+                echo ""
+                echo ""
+                echo "📊 View logs:"
+                echo "   Backend:  $DOCKER_COMPOSE logs -f backend"
+                echo "   All:      $DOCKER_COMPOSE logs -f"
+                echo ""
+                echo "🛑 Stop services:"
+                echo "   $DOCKER_COMPOSE down"
+            else
+                print_success "Production mode is active"
+                echo ""
+                echo "🌐 Application URL:"
+                echo "   $HOST_URI"
+                echo ""
+                echo "📚 API Documentation:"
+                echo "   $HOST_URI/docs"
+                echo ""
+                echo "🔐 Clerk Dashboard:"
+                echo "   URL: https://dashboard.clerk.com"
+                echo ""
+                echo "🔐 Admin Setup (Clerk-based):"
+                echo ""
+                echo -e "${YELLOW}   ╔════════════════════════════════════════════════════════╗${NC}"
+                echo -e "${YELLOW}   ║  ADMIN EMAIL: $INITIAL_ADMIN_EMAIL${NC}"
+                echo -e "${YELLOW}   ║                                                         ║${NC}"
+                echo -e "${YELLOW}   ║  To become admin:                                       ║${NC}"
+                echo -e "${YELLOW}   ║  1. Go to https://dashboard.clerk.com                   ║${NC}"
+                echo -e "${YELLOW}   ║  2. Create account with the email above                 ║${NC}"
+                echo -e "${YELLOW}   ║  3. Sign in to the app - you'll auto-get admin role     ║${NC}"
+                echo -e "${YELLOW}   ╚════════════════════════════════════════════════════════╝${NC}"
+                echo ""
+                echo ""
+                echo "📊 View logs:"
+                echo "   $DOCKER_COMPOSE logs -f"
+                echo ""
+                echo "🛑 Stop services:"
+                echo "   $DOCKER_COMPOSE down"
+            fi
+    
+            echo ""
+            print_info "Configuration files saved:"
+            echo "   - .env (root, for docker-compose)"
+            echo "   - backend/.env"
+            echo "   - frontend/.env"
+    
+            if [ "$SAVE_CREDS" = true ]; then
+                echo ""
+                print_success "Credentials file saved:"
+                echo "   - $CREDENTIALS_FILE"
+                echo ""
+                print_info "⚠️  IMPORTANT: Keep this file secure!"
+                echo "   This file contains sensitive passwords and secrets."
+                echo "   It has been added to .gitignore to prevent accidental commits."
+            fi
+    
+        else
+            print_error "Failed to start services. Check logs with:"
+            echo "   $DOCKER_COMPOSE logs"
+            exit 1
         fi
-    else
-        print_error "clerk-keys.txt exists but keys are missing or invalid"
-        CLERK_SECRET_KEY=""
-        CLERK_PUBLISHABLE_KEY=""
-    fi
-fi
-
-# If keys not loaded from file, ask user
-if [ -z "$CLERK_SECRET_KEY" ] || [ -z "$CLERK_PUBLISHABLE_KEY" ]; then
-    print_question "Enter your Clerk API keys:"
-    echo "  You can get these from https://dashboard.clerk.com"
-    echo "  Or press Enter to use placeholder values (you'll need to update them later)"
-    echo ""
-    
-    read -p "Clerk Secret Key (starts with sk_): " CLERK_SECRET_KEY
-    if [ -z "$CLERK_SECRET_KEY" ]; then
-        CLERK_SECRET_KEY="sk_test_your_clerk_secret_key_here"
-        print_info "Using placeholder secret key - update this before running!"
-    fi
-    
-    read -p "Clerk Publishable Key (starts with pk_): " CLERK_PUBLISHABLE_KEY
-    if [ -z "$CLERK_PUBLISHABLE_KEY" ]; then
-        CLERK_PUBLISHABLE_KEY="pk_test_your_clerk_publishable_key_here"
-        print_info "Using placeholder publishable key - update this before running!"
-    fi
-    
-    # Offer to save keys to file
-    echo ""
-    print_question "Save Clerk keys to clerk-keys.txt for future use?"
-    echo "  This file will be automatically added to .gitignore"
-    read -p "Save keys? [Y/n]: " SAVE_CLERK_KEYS
-    SAVE_CLERK_KEYS=${SAVE_CLERK_KEYS:-Y}
-    if [[ "$SAVE_CLERK_KEYS" =~ ^[Yy]$ ]]; then
-        cat > clerk-keys.txt << EOF
-# Clerk API Keys
-# Generated by bootstrap.sh on $(date)
-# Get your keys from https://dashboard.clerk.com
-
-CLERK_SECRET_KEY=$CLERK_SECRET_KEY
-CLERK_PUBLISHABLE_KEY=$CLERK_PUBLISHABLE_KEY
-EOF
-        print_success "Clerk keys saved to clerk-keys.txt"
-    fi
-fi
-echo ""
-
-# Summary
-print_header "=========================================="
-print_header "Configuration Summary"
-print_header "=========================================="
-echo "Mode: $MODE"
-echo "Host URI: $HOST_URI"
-echo "PostgreSQL User: $POSTGRES_USER"
-echo "PostgreSQL Database: $POSTGRES_DB"
-echo "PostgreSQL Port: $POSTGRES_PORT"
-echo "Admin Email: $INITIAL_ADMIN_EMAIL (Clerk-based, no password needed)"
-echo "Clerk Secret Key: ${CLERK_SECRET_KEY:0:10}...${CLERK_SECRET_KEY: -4}"
-echo "Clerk Publishable Key: ${CLERK_PUBLISHABLE_KEY:0:10}...${CLERK_PUBLISHABLE_KEY: -4}"
-echo ""
-
-read -p "Continue with this configuration? [y/N]: " CONFIRM
-if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
-    print_info "Bootstrap cancelled"
-    exit 0
-fi
-echo ""
-
-# Initialize credentials file if requested
-if [ "$SAVE_CREDS" = true ]; then
-    print_header "Creating credentials file..."
-    cat > "$CREDENTIALS_FILE" << EOF
-# Scouting Outing Manager - Credentials
-# Generated by bootstrap.sh on $(date)
-#
-# ⚠️  IMPORTANT: Keep this file secure and do not commit it to version control!
-# This file is automatically added to .gitignore
-
-========================================
-DEPLOYMENT CONFIGURATION
-========================================
-Mode: $MODE
-Host URI: $HOST_URI
-Domain: $DOMAIN
-
-========================================
-DATABASE CREDENTIALS
-========================================
-PostgreSQL User: $POSTGRES_USER
-PostgreSQL Password: $POSTGRES_PASSWORD
-PostgreSQL Database: $POSTGRES_DB
-PostgreSQL Port: $POSTGRES_PORT
-
-========================================
-SECURITY CONFIGURATION
-========================================
-Secret Key: $SECRET_KEY
-Access Token Expire Minutes: $ACCESS_TOKEN_EXPIRE_MINUTES
-Refresh Token Expire Days: $REFRESH_TOKEN_EXPIRE_DAYS
-
-========================================
-ADMIN USER CONFIGURATION (CLERK-BASED)
-========================================
-Admin Email: $INITIAL_ADMIN_EMAIL
-
-NOTE: Create a Clerk account with this email address.
-On first sign-in, you will automatically be granted admin role.
-No password is stored in the database - authentication is handled by Clerk.
-
-========================================
-CLERK CONFIGURATION
-========================================
-Clerk Secret Key: $CLERK_SECRET_KEY
-Clerk Publishable Key: $CLERK_PUBLISHABLE_KEY
-
-========================================
-ACCESS URLS
-========================================
-EOF
-
-    if [ "$MODE" = "development" ]; then
-        cat >> "$CREDENTIALS_FILE" << EOF
-Frontend: http://localhost:3000
-Backend API: http://localhost:8000
 API Docs (Swagger): http://localhost:8000/docs
 API Docs (ReDoc): http://localhost:8000/redoc
 Clerk Dashboard: https://dashboard.clerk.com

@@ -7,7 +7,11 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     postgresql-client \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Atlas CLI
+RUN curl -sSf https://atlasgo.sh | sh
 
 # Copy requirements first for better caching
 COPY requirements.txt .
