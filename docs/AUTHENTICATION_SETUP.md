@@ -1,6 +1,6 @@
 # Authentication Setup Guide
 
-This guide will help you set up and test the simple password-based authentication system for the Scouting Outing Manager.
+This guide will help you set up and test the simple password-based authentication system for Trailhead.
 
 ## Overview
 

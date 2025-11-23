@@ -80,7 +80,7 @@ if ! command -v docker-compose &> /dev/null; then
 fi
 
 # Stop existing containers if running
-if [ "$(docker ps -q -f name=scouting-outing)" ]; then
+if [ "$(docker ps -q -f name=)" ]; then
     print_info "Stopping existing containers..."
     docker-compose -f docker-compose.prod.yml down
     print_success "Existing containers stopped"
@@ -95,10 +95,10 @@ print_info "Waiting for services to start..."
 sleep 10
 
 # Check if containers are running
-if [ "$(docker ps -q -f name=scouting-outing-db)" ] && \
-   [ "$(docker ps -q -f name=scouting-outing-backend)" ] && \
-   [ "$(docker ps -q -f name=scouting-outing-frontend)" ] && \
-   [ "$(docker ps -q -f name=scouting-outing-nginx)" ]; then
+if [ "$(docker ps -q -f name=-db)" ] && \
+   [ "$(docker ps -q -f name=-backend)" ] && \
+   [ "$(docker ps -q -f name=-frontend)" ] && \
+   [ "$(docker ps -q -f name=-nginx)" ]; then
     print_success "All containers are running!"
 else
     print_error "Some containers failed to start. Checking logs..."

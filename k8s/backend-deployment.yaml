@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: backend
-  namespace: scouting-outing-manager
+  namespace: -manager
   labels:
     app: backend
 spec:
@@ -19,7 +19,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
-  namespace: scouting-outing-manager
+  namespace: -manager
   labels:
     app: backend
 spec:
@@ -37,7 +37,7 @@ spec:
         image: busybox:1.35
         command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;']
       - name: run-migrations
-        image: scouting-outing-backend:latest  # Replace with your actual image
+        image: -backend:latest  # Replace with your actual image
         command: ['alembic', 'upgrade', 'head']
         env:
         - name: POSTGRES_SERVER
@@ -64,7 +64,7 @@ spec:
               key: secret-key
       containers:
       - name: backend
-        image: scouting-outing-backend:latest  # Replace with your actual image
+        image: -backend:latest  # Replace with your actual image
         imagePullPolicy: Always
         ports:
         - containerPort: 8000

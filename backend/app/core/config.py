@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     """Application settings and configuration"""
     
     # Project Info
-    PROJECT_NAME: str = "Scouting Outing Manager"
+    PROJECT_NAME: str = "Trailhead"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api"
     DEBUG: bool = False

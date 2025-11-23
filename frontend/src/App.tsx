@@ -25,7 +25,7 @@ const HomePage: React.FC = () => {
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
             <h1 className="text-5xl mb-5" style={{ color: 'var(--color-primary)' }}>
-                ⚜️ Scouting Outing Manager 🏕️
+                ⚜️ Trailhead 🏕️
             </h1>
             <p className="text-xl mb-10" style={{ color: 'var(--text-secondary)' }}>
                 Manage scout troop outings, signups, and participant information
@@ -88,8 +88,8 @@ const Navigation: React.FC = () => {
                             onMouseLeave={(e) => e.currentTarget.style.color = 'white'}
                         >
                             <span className="text-2xl">⚜️</span>
-                            <span className="hidden sm:block">Scouting Outing Manager</span>
-                            <span className="sm:hidden">SOM</span>
+                            <span className="hidden sm:block">Trailhead</span>
+                            <span className="sm:hidden">TH</span>
                         </Link>
                     </div>
 
@@ -218,7 +218,7 @@ const App: React.FC = () => {
     // Set window title with [DEV] prefix in development mode
     useEffect(() => {
         const isDevelopment = import.meta.env.DEV;
-        const baseTitle = 'Scouting Outing Manager';
+        const baseTitle = 'Trailhead';
         document.title = isDevelopment ? `[DEV] ${baseTitle}` : baseTitle;
     }, []);
 
@@ -265,10 +265,10 @@ const App: React.FC = () => {
                         {/* Footer */}
                         <footer className="text-white py-8 mt-auto border-t border-white/10" style={{ backgroundColor: 'var(--color-primary)' }}>
                             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                                <p className="font-heading font-bold text-lg mb-2">Scouting Outing Manager</p>
+                                <p className="font-heading font-bold text-lg mb-2">Trailhead</p>
                                 <p className="text-gray-400 italic mb-4">Putting the 'outing' back in 'Scouting'</p>
                                 <p className="text-sm text-gray-400">
-                                    <a href="https://github.com/jadamsowers/scouting-outing-manager" className="hover:text-white transition-colors">Vibe-coded</a> with ⚜️❤️ by <a href="https://scouthacks.net/" className="hover:text-white transition-colors">Adam Sowers</a>
+                                    <a href="https://github.com/jadamsowers/trailhead" className="hover:text-white transition-colors">Vibe-coded</a> with ⚜️❤️ by <a href="https://scouthacks.net/" className="hover:text-white transition-colors">Adam Sowers</a>
                                 </p>
                                 <p className="text-xs text-gray-500 mt-4">
                                     API Documentation: <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" className="text-sa-pale-blue hover:underline">http://localhost:8000/docs</a>

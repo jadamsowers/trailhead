@@ -1,4 +1,4 @@
-# Scouting Outing Manager - System Architecture
+# Trailhead - System Architecture
 
 ## Overview
 A full-stack web application for managing scout troop outings with PostgreSQL backend, Python FastAPI REST API, React frontend, and Kubernetes deployment.

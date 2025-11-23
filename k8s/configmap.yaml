@@ -2,14 +2,14 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: app-config
-  namespace: scouting-outing-manager
+  namespace: -manager
   labels:
-    app: scouting-outing-manager
+    app: -manager
 data:
   # Backend configuration
   access-token-expire-minutes: "30"
   refresh-token-expire-days: "7"
-  cors-origins: "http://localhost:3000,https://scouting-outings.example.com"
+  cors-origins: "http://localhost:3000,https://s.example.com"
   
   # Frontend configuration
   api-url: "http://backend:8000/api"

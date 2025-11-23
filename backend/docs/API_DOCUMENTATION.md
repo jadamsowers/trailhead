@@ -1,6 +1,6 @@
 # API Documentation Guide
 
-The Scouting Outing Manager API provides **two interactive documentation interfaces** that are automatically generated from your code.
+The Trailhead API provides **two interactive documentation interfaces** that are automatically generated from your code.
 
 ## 🎯 Quick Access
 

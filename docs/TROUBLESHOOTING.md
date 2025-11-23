@@ -5,112 +5,112 @@
 ### Architecture Overview
 
 ```
-Browser → Apache (80/443) → Frontend Container (3001) [static files]
-                          → Backend Container (8001) [API]
+Browser → Nginx (80/443) → Frontend Container (3000) [static files]
+                          → Backend Container (8000) [API]
 ```
 
-**Important**: The frontend serves static files that run in the browser. The browser makes API calls to `/api`, which Apache proxies to the backend.
+**Important**: The frontend serves static files that run in the browser. The browser makes API calls to `/api`, which Nginx proxies to the backend.
 
 ### Diagnostic Steps
 
 #### 1. Verify Containers Are Running
 
 ```bash
-docker-compose -f docker-compose.apache.yml ps
+docker-compose -f docker-compose.yml ps
 
 # You should see:
-# - scouting-outing-db (postgres) - healthy
-# - scouting-outing-backend - running on port 8001
-# - scouting-outing-frontend - running on port 3001
+# - -db (postgres) - healthy
+# - -backend - running on port 8000
+# - -frontend - running on port 3000
 ```
 
 #### 2. Test Backend Directly
 
 ```bash
 # Test backend health endpoint
-curl http://localhost:8001/api/health
+curl http://localhost:8000/api/health
 
 # Should return: {"status":"healthy"}
 
 # Test backend API docs
-curl http://localhost:8001/docs
+curl http://localhost:8000/docs
 ```
 
 #### 3. Test Frontend Directly
 
 ```bash
 # Test frontend container
-curl http://localhost:3001/
+curl http://localhost:3000/
 
 # Should return HTML content
 ```
 
-#### 4. Check Apache Configuration
+#### 4. Check Nginx Configuration
 
 ```bash
-# Test Apache config syntax
-sudo apache2ctl configtest
+# Test Nginx config syntax
+sudo nginx -t
 
 # Check if site is enabled
-sudo a2query -s scouting-outing-manager
+sudo nginx -s -manager
 
-# View Apache error logs
-sudo tail -f /var/log/apache2/scouting-outing-error.log
+# View Nginx error logs
+sudo tail -f /var/log/nginx/-error.log
 ```
 
-#### 5. Test Apache Proxying
+#### 5. Test Nginx Proxying
 
 ```bash
-# Test health endpoint through Apache
+# Test health endpoint through nginx
 curl https://outings.ivyscouts.org/health
 
-# Test API through Apache
+# Test API through nginx
 curl https://outings.ivyscouts.org/api/health
 
-# Test frontend through Apache
+# Test frontend through nginx
 curl https://outings.ivyscouts.org/
 ```
 
 ### Common Issues
 
-#### Issue: "Connection Refused" on localhost:8001
+#### Issue: "Connection Refused" on localhost:8000
 
 **Cause**: Backend container isn't running or crashed
 
 **Solution**:
 ```bash
 # Check backend logs
-docker-compose -f docker-compose.apache.yml logs backend
+docker-compose -f docker-compose.yml logs backend
 
 # Restart backend
-docker-compose -f docker-compose.apache.yml restart backend
+docker-compose -f docker-compose.yml restart backend
 ```
 
-#### Issue: "502 Bad Gateway" from Apache
+#### Issue: "502 Bad Gateway" from nginx
 
-**Cause**: Apache can't reach the backend/frontend containers
+**Cause**: nginx can't reach the backend/frontend containers
 
 **Solution**:
 ```bash
 # Verify containers are on the same network
-docker network inspect scouting-outing-manager_scouting-outing-network
+docker network inspect -manager_-network
 
 # Check if ports are accessible from host
 netstat -tlnp | grep -E ':(8001|3001)'
 
-# Restart Apache
-sudo systemctl restart apache2
+# Restart nginx
+sudo systemctl restart nginx
 ```
 
 #### Issue: Frontend loads but API calls fail
 
-**Cause**: Apache isn't proxying `/api` correctly
+**Cause**: nginx isn't proxying `/api` correctly
 
 **Solution**:
 ```bash
-# Check Apache proxy modules are enabled
-sudo a2query -m proxy
-sudo a2query -m proxy_http
+# Check nginx proxy modules are enabled
+sudo nginx -t
+sudo nginx -s -manager
 
 # If not enabled:
 sudo a2enmod proxy proxy_http
@@ -131,7 +131,7 @@ sudo a2enmod headers
 sudo systemctl restart apache2
 
 # Check if CORS headers are in Apache config
-grep -A 5 "CORS" /etc/apache2/sites-available/scouting-outing-manager.conf
+grep -A 5 "CORS" /etc/apache2/sites-available/-manager.conf
 ```
 
 ### Network Flow Test
@@ -163,8 +163,8 @@ docker network prune
 docker-compose -f docker-compose.apache.yml up -d
 
 # Verify network connectivity between containers
-docker exec scouting-outing-frontend ping -c 3 backend
-docker exec scouting-outing-backend ping -c 3 postgres
+docker exec -frontend ping -c 3 backend
+docker exec -backend ping -c 3 postgres
 ```
 
 ### Browser Developer Tools
@@ -227,7 +227,7 @@ docker-compose -f docker-compose.apache.yml logs > debug-logs.txt
 sudo apache2ctl -S > debug-apache.txt
 
 # Network info
-docker network inspect scouting-outing-manager_scouting-outing-network > debug-network.txt
+docker network inspect -manager_-network > debug-network.txt
 
 # Port bindings
 netstat -tlnp | grep -E ':(80|443|3001|8001)' > debug-ports.txt

@@ -1,6 +1,6 @@
 # HTTPS Setup Guide
 
-This guide explains how to configure HTTPS for the Scouting Outing Manager in production mode.
+This guide explains how to configure HTTPS for Trailhead in production mode.
 
 ## Overview
 
@@ -113,7 +113,7 @@ The nginx service is automatically configured in production mode:
 ```yaml
 nginx:
   image: nginx:alpine
-  container_name: scouting-outing-nginx
+  container_name: trailhead-nginx
   restart: unless-stopped
   profiles: ["production"]
   ports:

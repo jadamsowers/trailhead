@@ -18,13 +18,13 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description="""
-## Scouting Outing Manager API
+## Trailhead API
 
 A comprehensive API for managing scout troop outings, signups, and participant information.
 
 ### Features
 
-* **Outing Management** - Create and manage Scouting Outings with capacity tracking
+* **Outing Management** - Create and manage scouting outings with capacity tracking
 * **Family Signups** - Register multiple scouts and adults per family
 * **Scouting America Compliance** - Enforce two-deep leadership and youth protection requirements
 * **Multi-Troop Support** - Track troop numbers and patrol assignments
@@ -48,8 +48,8 @@ For detailed documentation, see the individual endpoint descriptions below.
     redoc_url="/redoc",  # ReDoc
     openapi_url="/openapi.json",
     contact={
-        "name": "Scouting Outing Manager Support",
-        "url": "https://github.com/jadamsowers/scouting-outing-manager",
+        "name": "Trailhead Support",
+        "url": "https://github.com/jadamsowers/trailhead",
     },
     license_info={
         "name": "MIT License",
@@ -161,7 +161,7 @@ app.include_router(
 async def root():
     """Root endpoint - provides API information and documentation links"""
     return {
-        "message": "Scouting Outing Manager API",
+        "message": "Trailhead API",
         "version": settings.VERSION,
         "documentation": {
             "swagger_ui": "/docs",

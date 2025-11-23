@@ -1,6 +1,6 @@
 # Database Migrations Guide
 
-This guide explains how to manage database schema changes using Alembic for the Scouting Outing Manager application.
+This guide explains how to manage database schema changes using Alembic for the Trailhead application.
 
 ## Overview
 
@@ -370,19 +370,19 @@ For Kubernetes deployments, migrations should run as an init container or Job:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: scouting-outing-migrations
+  name: -migrations
 spec:
   template:
     spec:
       containers:
       - name: migrations
-        image: scouting-outing-backend:latest
+        image: -backend:latest
         command: ["alembic", "upgrade", "head"]
         env:
         - name: POSTGRES_SERVER
           valueFrom:
             configMapKeyRef:
-              name: scouting-outing-config
+              name: -config
               key: postgres-server
         # ... other env vars
       restartPolicy: OnFailure
@@ -392,7 +392,7 @@ Run before deploying the application:
 
 ```bash
 kubectl apply -f k8s/migrations-job.yaml
-kubectl wait --for=condition=complete job/scouting-outing-migrations
+kubectl wait --for=condition=complete job/-migrations
 kubectl apply -f k8s/backend-deployment.yaml
 ```
 

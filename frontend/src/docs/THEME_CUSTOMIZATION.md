@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Scouting Outing Manager uses a comprehensive theming system based on official Scouting America and Scouts BSA brand colors. The theme supports both light and dark modes with automatic system preference detection and localStorage persistence.
+Trailhead uses a comprehensive theming system based on official Scouting America and Scouts BSA brand colors. The theme supports both light and dark modes with automatic system preference detection and localStorage persistence.
 
 ## Quick Start
 

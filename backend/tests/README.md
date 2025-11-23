@@ -1,6 +1,6 @@
 # Backend Tests
 
-Comprehensive unit tests for the Scouting Outing Manager backend API.
+Comprehensive unit tests for the Trailhead backend API.
 
 ## Test Structure
 

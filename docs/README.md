@@ -1,4 +1,4 @@
-# Scouting Outing Manager
+# Trailhead
 
 A comprehensive web application for managing scout troop outings, signups, and participant information with family management capabilities.
 
@@ -16,7 +16,7 @@ A comprehensive web application for managing scout troop outings, signups, and p
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd scouting-outing-manager
+   cd trailhead
    ```
 
 2. **Get Clerk API Keys**
@@ -117,7 +117,7 @@ See [CLERK_MIGRATION_GUIDE.md](CLERK_MIGRATION_GUIDE.md) for detailed setup inst
 ## 📦 Project Structure
 
 ```
-scouting-outing-manager/
+trailhead/
 ├── backend/              # FastAPI backend
 │   ├── app/
 │   │   ├── api/         # API endpoints

@@ -1,6 +1,6 @@
 # Clerk-Based Admin Setup Guide
 
-This guide explains how the admin system works with Clerk authentication in the Scouting Outing Manager application.
+This guide explains how the admin system works with Clerk authentication in the Trailhead application.
 
 ## Overview
 

@@ -1,6 +1,6 @@
 # Kubernetes Deployment Guide
 
-This directory contains Kubernetes manifests for deploying the Scouting Outing Manager application.
+This directory contains Kubernetes manifests for deploying the Trailhead application.
 
 ## Prerequisites
 
@@ -82,13 +82,13 @@ kubectl apply -f configmap.yaml
 kubectl apply -f postgres-statefulset.yaml
 
 # Wait for PostgreSQL to be ready
-kubectl wait --for=condition=ready pod -l app=postgres -n scouting-outing-manager --timeout=300s
+kubectl wait --for=condition=ready pod -l app=postgres -n  --timeout=300s
 
 # Deploy backend
 kubectl apply -f backend-deployment.yaml
 
 # Wait for backend to be ready
-kubectl wait --for=condition=ready pod -l app=backend -n scouting-outing-manager --timeout=300s
+kubectl wait --for=condition=ready pod -l app=backend -n  --timeout=300s
 
 # Deploy frontend
 kubectl apply -f frontend-deployment.yaml
@@ -101,17 +101,17 @@ kubectl apply -f ingress.yaml
 
 ```bash
 # Check all pods are running
-kubectl get pods -n scouting-outing-manager
+kubectl get pods -n 
 
 # Check services
-kubectl get svc -n scouting-outing-manager
+kubectl get svc -n 
 
 # Check ingress
-kubectl get ingress -n scouting-outing-manager
+kubectl get ingress -n 
 
 # View logs
-kubectl logs -f deployment/backend -n scouting-outing-manager
-kubectl logs -f deployment/frontend -n scouting-outing-manager
+kubectl logs -f deployment/backend -n 
+kubectl logs -f deployment/frontend -n 
 ```
 
 ## Accessing the Application
@@ -128,13 +128,13 @@ Once deployed, access the application at:
 Migrations run automatically via init container in the backend deployment. To run manually:
 
 ```bash
-kubectl exec -it deployment/backend -n scouting-outing-manager -- alembic upgrade head
+kubectl exec -it deployment/backend -n  -- alembic upgrade head
 ```
 
 ### Create Admin User
 
 ```bash
-kubectl exec -it deployment/backend -n scouting-outing-manager -- python -m app.db.init_db
+kubectl exec -it deployment/backend -n  -- python -m app.db.init_db
 ```
 
 **Note:** The admin user email and password can be configured via environment variables in your ConfigMap or Secrets:
@@ -143,27 +143,27 @@ kubectl exec -it deployment/backend -n scouting-outing-manager -- python -m app.
 
 To view the generated password, check the pod logs:
 ```bash
-kubectl logs deployment/backend -n scouting-outing-manager | grep -A 10 "Admin User Created"
+kubectl logs deployment/backend -n  | grep -A 10 "Admin User Created"
 ```
 
 ### Backup Database
 
 ```bash
 # Get PostgreSQL pod name
-POD=$(kubectl get pod -l app=postgres -n scouting-outing-manager -o jsonpath='{.items[0].metadata.name}')
+POD=$(kubectl get pod -l app=postgres -n  -o jsonpath='{.items[0].metadata.name}')
 
 # Create backup
-kubectl exec -n scouting-outing-manager $POD -- pg_dump -U postgres scouting_outings > backup.sql
+kubectl exec -n  $POD -- pg_dump -U postgres scouting_outings > backup.sql
 ```
 
 ### Restore Database
 
 ```bash
 # Get PostgreSQL pod name
-POD=$(kubectl get pod -l app=postgres -n scouting-outing-manager -o jsonpath='{.items[0].metadata.name}')
+POD=$(kubectl get pod -l app=postgres -n  -o jsonpath='{.items[0].metadata.name}')
 
 # Restore from backup
-kubectl exec -i -n scouting-outing-manager $POD -- psql -U postgres scouting_outings < backup.sql
+kubectl exec -i -n  $POD -- psql -U postgres scouting_outings < backup.sql
 ```
 
 ## Scaling
@@ -171,13 +171,13 @@ kubectl exec -i -n scouting-outing-manager $POD -- psql -U postgres scouting_out
 ### Scale Backend
 
 ```bash
-kubectl scale deployment backend --replicas=3 -n scouting-outing-manager
+kubectl scale deployment backend --replicas=3 -n 
 ```
 
 ### Scale Frontend
 
 ```bash
-kubectl scale deployment frontend --replicas=3 -n scouting-outing-manager
+kubectl scale deployment frontend --replicas=3 -n 
 ```
 
 ## Monitoring
@@ -186,22 +186,22 @@ kubectl scale deployment frontend --replicas=3 -n scouting-outing-manager
 
 ```bash
 # Backend logs
-kubectl logs -f deployment/backend -n scouting-outing-manager
+kubectl logs -f deployment/backend -n 
 
 # Frontend logs
-kubectl logs -f deployment/frontend -n scouting-outing-manager
+kubectl logs -f deployment/frontend -n 
 
 # PostgreSQL logs
-kubectl logs -f statefulset/postgres -n scouting-outing-manager
+kubectl logs -f statefulset/postgres -n 
 
 # All logs
-kubectl logs -f -l app=scouting-outing-manager -n scouting-outing-manager
+kubectl logs -f -l app= -n 
 ```
 
 ### Check Resource Usage
 
 ```bash
-kubectl top pods -n scouting-outing-manager
+kubectl top pods -n 
 kubectl top nodes
 ```
 
@@ -211,30 +211,30 @@ kubectl top nodes
 
 ```bash
 # Describe pod to see events
-kubectl describe pod <pod-name> -n scouting-outing-manager
+kubectl describe pod <pod-name> -n 
 
 # Check pod logs
-kubectl logs <pod-name> -n scouting-outing-manager
+kubectl logs <pod-name> -n 
 
 # Check previous container logs (if pod restarted)
-kubectl logs <pod-name> -n scouting-outing-manager --previous
+kubectl logs <pod-name> -n  --previous
 ```
 
 ### Database Connection Issues
 
 ```bash
 # Test database connectivity from backend pod
-kubectl exec -it deployment/backend -n scouting-outing-manager -- nc -zv postgres 5432
+kubectl exec -it deployment/backend -n  -- nc -zv postgres 5432
 
 # Check PostgreSQL logs
-kubectl logs statefulset/postgres -n scouting-outing-manager
+kubectl logs statefulset/postgres -n 
 ```
 
 ### Ingress Not Working
 
 ```bash
 # Check ingress status
-kubectl describe ingress scouting-outing-manager-ingress -n scouting-outing-manager
+kubectl describe ingress -ingress -n 
 
 # Check ingress controller logs
 kubectl logs -n ingress-nginx deployment/ingress-nginx-controller
@@ -250,7 +250,7 @@ docker build -t your-registry/scouting-outing-backend:v2 backend/
 docker push your-registry/scouting-outing-backend:v2
 
 # Update deployment
-kubectl set image deployment/backend backend=your-registry/scouting-outing-backend:v2 -n scouting-outing-manager
+kubectl set image deployment/backend backend=your-registry/scouting-outing-backend:v2 -n 
 
 # Or edit the deployment file and apply
 kubectl apply -f backend-deployment.yaml
@@ -264,7 +264,7 @@ docker build -t your-registry/scouting-outing-frontend:v2 frontend/
 docker push your-registry/scouting-outing-backend:v2
 
 # Update deployment
-kubectl set image deployment/frontend frontend=your-registry/scouting-outing-frontend:v2 -n scouting-outing-manager
+kubectl set image deployment/frontend frontend=your-registry/scouting-outing-frontend:v2 -n 
 ```
 
 ## Cleanup
@@ -272,7 +272,7 @@ kubectl set image deployment/frontend frontend=your-registry/scouting-outing-fro
 To remove the entire deployment:
 
 ```bash
-kubectl delete namespace scouting-outing-manager
+kubectl delete namespace 
 ```
 
 To remove specific components:

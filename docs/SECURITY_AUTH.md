@@ -1,8 +1,8 @@
-# Scouting Outing Manager - Authentication & Authorization
+# Trailhead - Authentication & Authorization
 
 ## Overview
 
-This document outlines the authentication and authorization strategy for securing the Scouting Outing Manager application, with a focus on protecting the admin interface while keeping participant signup accessible.
+This document outlines the authentication and authorization strategy for securing the Trailhead application, with a focus on protecting the admin interface while keeping participant signup accessible.
 
 ## Authentication Strategy
 
@@ -602,7 +602,7 @@ const App: React.FC = () => {
             }
           />
           <Route path="/participant" element={<ParticipantPage />} />
-          <Route path="/" element={<h1>Welcome to Scouting Outing Manager</h1>} />
+          <Route path="/" element={<h1>Welcome to Trailhead</h1>} />
         </Routes>
       </Router>
     </AuthProvider>

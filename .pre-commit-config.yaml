@@ -1,4 +1,4 @@
-# Pre-commit hooks for Scouting Outing Manager
+# Pre-commit hooks for Trailhead
 # Install: pip install pre-commit && pre-commit install
 # Run manually: pre-commit run --all-files
 

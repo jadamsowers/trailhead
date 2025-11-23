@@ -1,6 +1,6 @@
 # Quick Start - Deploy to VPS in 5 Minutes
 
-This is the fastest way to deploy Scouting Outing Manager to your Debian VPS.
+This is the fastest way to deploy Trailhead to your Debian VPS.
 
 ## One-Command Deployment
 
@@ -8,8 +8,8 @@ SSH into your VPS and run:
 
 ```bash
 # Clone the repository
-git clone <your-repo-url> scouting-outing-manager
-cd scouting-outing-manager
+git clone <your-repo-url> trailhead
+cd trailhead
 
 # Run the deployment script
 ./deploy.sh
@@ -30,7 +30,7 @@ After deployment completes, access your app at:
 ## Create Admin User
 
 ```bash
-docker exec -it scouting-outing-backend python -m app.db.init_db
+docker exec -it trailhead-backend python -m app.db.init_db
 ```
 
 **Admin User Configuration:**

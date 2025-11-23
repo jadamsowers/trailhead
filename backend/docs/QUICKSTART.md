@@ -1,4 +1,4 @@
-# Scouting Outing Manager Backend - Quick Start Guide
+# Trailhead Backend - Quick Start Guide
 
 Get the backend up and running in 5 minutes!
 

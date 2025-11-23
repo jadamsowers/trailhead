@@ -1,6 +1,6 @@
-# Scouting Outing Manager - Frontend
+# Trailhead - Frontend
 
-React-based frontend application for the Scouting Outing Manager system.
+React-based frontend application for the Trailhead system.
 
 ## Technology Stack
 

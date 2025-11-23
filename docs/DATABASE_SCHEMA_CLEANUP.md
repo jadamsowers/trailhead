@@ -1,7 +1,7 @@
 # Database Schema Cleanup Plan
 
 ## Overview
-This document outlines the cleanup plan for the Scouting Outing Manager database schema, addressing migration file proliferation and schema inconsistencies.
+This document outlines the cleanup plan for the Trailhead database schema, addressing migration file proliferation and schema inconsistencies.
 
 ## Current Issues
 
