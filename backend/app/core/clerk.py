@@ -79,7 +79,7 @@ class ClerkClient:
                 token,
                 signing_key.key,
                 algorithms=["RS256"],
-                options={"verify_exp": True}
+                options={"verify_exp": True, "verify_iat": False, "leeway": 60}
             )
             
             print(f"✅ Token verified successfully for user: {payload.get('sub')}")
