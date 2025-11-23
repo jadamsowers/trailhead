@@ -23,26 +23,7 @@ async def get_available_outings(
     outings = await crud_outing.get_available_outings(db)
     
     # Convert to response format with computed fields
-    outing_responses = []
-    for outing in outings:
-        outing_responses.append(OutingResponse(
-            id=outing.id,
-            name=outing.name,
-            outing_date=outing.outing_date,
-            end_date=outing.end_date,
-            location=outing.location,
-            description=outing.description,
-            max_participants=outing.max_participants,
-            capacity_type=outing.capacity_type,
-            is_overnight=outing.is_overnight,
-            signup_count=outing.signup_count,
-            available_spots=outing.available_spots,
-            is_full=outing.is_full,
-            total_vehicle_capacity=outing.total_vehicle_capacity,
-            needs_more_drivers=outing.needs_more_drivers,
-            created_at=outing.created_at,
-            updated_at=outing.updated_at
-        ))
+    outing_responses = [OutingResponse.model_validate(outing) for outing in outings]
     
     return OutingListResponse(outings=outing_responses, total=len(outing_responses))
 
@@ -61,32 +42,7 @@ async def get_all_outings(
     total = await crud_outing.get_outing_count(db)
     
     # Convert to response format with computed fields
-    outing_responses = []
-    for outing in outings:
-        outing_responses.append(OutingResponse(
-            id=outing.id,
-            name=outing.name,
-            outing_date=outing.outing_date,
-            end_date=outing.end_date,
-            location=outing.location,
-            description=outing.description,
-            max_participants=outing.max_participants,
-            capacity_type=outing.capacity_type,
-            is_overnight=outing.is_overnight,
-            outing_lead_name=outing.outing_lead_name,
-            outing_lead_email=outing.outing_lead_email,
-            outing_lead_phone=outing.outing_lead_phone,
-            signup_count=outing.signup_count,
-            available_spots=outing.available_spots,
-            is_full=outing.is_full,
-            total_vehicle_capacity=outing.total_vehicle_capacity,
-            needs_more_drivers=outing.needs_more_drivers,
-            adult_count=outing.adult_count,
-            needs_two_deep_leadership=outing.needs_two_deep_leadership,
-            needs_female_leader=outing.needs_female_leader,
-            created_at=outing.created_at,
-            updated_at=outing.updated_at
-        ))
+    outing_responses = [OutingResponse.model_validate(outing) for outing in outings]
     
     return OutingListResponse(outings=outing_responses, total=total)
 

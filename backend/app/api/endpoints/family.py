@@ -305,7 +305,40 @@ async def delete_family_member(
             detail="Family member not found"
         )
     
+    # Get signups that this family member is part of before deletion
+    from app.models.participant import Participant
+    from app.models.signup import Signup
+    
+    participant_signups_result = await db.execute(
+        select(Participant.signup_id)
+        .where(Participant.family_member_id == member.id)
+    )
+    signup_ids = participant_signups_result.scalars().all()
+    
     await db.delete(member)
+    await db.flush()  # Flush to trigger cascades
+    
+    # Check for empty signups and delete them
+    if signup_ids:
+        # We need to check each signup to see if it has any participants left
+        # Since we flushed, the participants for this member are gone
+        for signup_id in set(signup_ids):
+            # Count remaining participants
+            count_result = await db.execute(
+                select(Participant)
+                .where(Participant.signup_id == signup_id)
+            )
+            remaining = count_result.scalars().all()
+            
+            if not remaining:
+                # Delete the empty signup
+                signup_result = await db.execute(
+                    select(Signup).where(Signup.id == signup_id)
+                )
+                signup = signup_result.scalar_one_or_none()
+                if signup:
+                    await db.delete(signup)
+    
     await db.commit()
     
     return None

@@ -37,6 +37,7 @@ class EmailSendRequest(BaseModel):
 @router.post("", response_model=SignupResponse, status_code=status.HTTP_201_CREATED)
 async def create_signup(
     signup: SignupCreate,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
@@ -67,6 +68,14 @@ async def create_signup(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Family member with ID {family_member_id} not found"
             )
+        
+        # Security check: Ensure family member belongs to current user
+        if family_member.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"You do not have permission to sign up family member {family_member.name}"
+            )
+            
         family_members.append(family_member)
     
     # Check if outing has enough spots
@@ -217,8 +226,92 @@ async def create_signup(
     )
 
 
-@router.get("/my-signups", response_model=list[SignupResponse])
+@router.get("", response_model=SignupListResponse)
+async def list_signups(
+    outing_id: UUID = None,
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    List all signups (admin only).
+    Optionally filter by outing_id.
+    """
+    query = select(Signup).options(
+        selectinload(Signup.participants)
+        .selectinload(Participant.family_member)
+        .selectinload(FamilyMember.dietary_preferences)
+    ).options(
+        selectinload(Signup.participants)
+        .selectinload(Participant.family_member)
+        .selectinload(FamilyMember.allergies)
+    ).order_by(Signup.created_at.desc())
+    
+    if outing_id:
+        query = query.where(Signup.outing_id == outing_id)
+        
+    # Get total count
+    count_query = select(func.count()).select_from(Signup)
+    if outing_id:
+        count_query = count_query.where(Signup.outing_id == outing_id)
+    
+    total_result = await db.execute(count_query)
+    total = total_result.scalar_one()
+    
+    # Get paginated results
+    query = query.offset(skip).limit(limit)
+    result = await db.execute(query)
+    signups = result.scalars().all()
+    
+    # Convert to response format
+    signup_responses = []
+    for signup in signups:
+        participant_responses = []
+        for participant in signup.participants:
+            # Get dietary restrictions from family member
+            dietary_restrictions = [dp.preference for dp in participant.family_member.dietary_preferences] if participant.family_member else []
+            
+            # Get allergies from family member
+            allergies = [a.allergy for a in participant.family_member.allergies] if participant.family_member else []
+            
+            participant_responses.append(ParticipantResponse(
+                id=participant.id,
+                name=participant.name,
+                age=participant.age,
+                participant_type=participant.participant_type,
+                is_adult=participant.is_adult,
+                gender=participant.gender,
+                troop_number=participant.troop_number,
+                patrol_name=participant.patrol_name,
+                has_youth_protection=participant.has_youth_protection,
+                vehicle_capacity=participant.vehicle_capacity,
+                dietary_restrictions=dietary_restrictions,
+                allergies=allergies,
+                medical_notes=participant.medical_notes,
+                created_at=participant.created_at
+            ))
+        
+        signup_responses.append(SignupResponse(
+            id=signup.id,
+            outing_id=signup.outing_id,
+            family_contact_name=signup.family_contact_name,
+            family_contact_email=signup.family_contact_email,
+            family_contact_phone=signup.family_contact_phone,
+            participants=participant_responses,
+            participant_count=signup.participant_count,
+            scout_count=signup.scout_count,
+            adult_count=signup.adult_count,
+            created_at=signup.created_at,
+            warnings=[]
+        ))
+    
+    return SignupListResponse(signups=signup_responses, total=total)
+
+
+@router.get("/outings/{outing_id}/signups", response_model=list[SignupResponse])
 async def get_my_signups(
+    outing_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -499,11 +592,12 @@ async def update_signup(
 @router.get("/{signup_id}", response_model=SignupResponse)
 async def get_signup(
     signup_id: UUID,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Get a specific signup by ID (public endpoint).
-    Families can view their signup details.
+    Get a specific signup by ID.
+    Users can view their own signups. Admins can view any signup.
     """
     db_signup = await crud_signup.get_signup(db, signup_id)
     if not db_signup:
@@ -511,6 +605,39 @@ async def get_signup(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Signup not found"
         )
+    
+    # Check ownership unless user is admin
+    if current_user.role != "admin":
+        # Get all participants for this signup
+        participants_result = await db.execute(
+            select(Participant)
+            .where(Participant.signup_id == signup_id)
+        )
+        participants = participants_result.scalars().all()
+        
+        if not participants:
+            # Even if empty, we shouldn't show it to non-admins if they don't own it
+            # But since we can't check ownership easily without participants, 
+            # we'll block access to empty signups for non-admins to be safe
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to view this signup"
+            )
+        
+        # Check if any participant's family member belongs to current user
+        family_member_ids = [p.family_member_id for p in participants]
+        family_members_result = await db.execute(
+            select(FamilyMember)
+            .where(FamilyMember.id.in_(family_member_ids))
+            .where(FamilyMember.user_id == current_user.id)
+        )
+        user_family_members = family_members_result.scalars().all()
+        
+        if not user_family_members:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to view this signup"
+            )
     
     # Convert to response format
     participant_responses = []

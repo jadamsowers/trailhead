@@ -73,19 +73,28 @@ async def update_contact_info(
 
 @router.post("/sync-role")
 async def sync_user_role(
-    role: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Sync user role from Clerk metadata to local database.
-    This endpoint can be called after updating role in Clerk dashboard.
+    This endpoint fetches the role directly from Clerk to ensure security.
     """
-    if role not in ["admin", "adult", "user"]:
+    # Fetch user metadata from Clerk
+    clerk = get_clerk_client()
+    try:
+        metadata = await clerk.get_user_metadata(str(current_user.id))
+        public_metadata = metadata.get("public_metadata", {})
+        role = public_metadata.get("role", "user")
+    except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid role. Must be one of: admin, adult, user"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch role from Clerk: {str(e)}"
         )
+    
+    if role not in ["admin", "adult", "user"]:
+        # Default to user if invalid role found
+        role = "user"
     
     current_user.role = role
     await db.commit()
