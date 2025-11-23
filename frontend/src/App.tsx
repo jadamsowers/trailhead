@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
 import { ClerkProvider, SignedIn, SignedOut, UserButton, useUser, SignUp } from '@clerk/clerk-react';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -388,6 +388,13 @@ const Navigation: React.FC = () => {
 };
 
 const App: React.FC = () => {
+    // Set window title with [DEV] prefix in development mode
+    useEffect(() => {
+        const isDevelopment = import.meta.env.DEV;
+        const baseTitle = 'Scouting Outing Manager';
+        document.title = isDevelopment ? `[DEV] ${baseTitle}` : baseTitle;
+    }, []);
+
     return (
         <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
             <BackendHealthCheck>

@@ -124,15 +124,40 @@ const styles = `
 const SignupWizard: React.FC = () => {
     const { user, isSignedIn } = useUser();
     
+    // Helper function to format date, omitting year if it's the current year
+    const formatOutingDate = (dateString: string): string => {
+        const date = new Date(dateString);
+        const currentYear = new Date().getFullYear();
+        const dateYear = date.getFullYear();
+        
+        if (dateYear === currentYear) {
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            });
+        } else {
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+    };
+    
     // Wizard state
     const [currentStep, setCurrentStep] = useState<WizardStep>('select-trip');
     const [selectedOuting, setSelectedOuting] = useState<Outing | null>(null);
     const [editingSignupId, setEditingSignupId] = useState<string | null>(null);
     
     // Use SWR hooks for data fetching with automatic caching
-    const { outings = [], isLoading: outingsLoading, error: outingsError } = useAvailableOutings();
+    const { outings: rawOutings = [], isLoading: outingsLoading, error: outingsError } = useAvailableOutings();
     const { signups: mySignups = [], isLoading: signupsLoading, error: signupsError } = useMySignups();
     const { familyMembers = [], isLoading: familyLoading, error: familyError } = useFamilySummary(selectedOuting?.id);
+    
+    // Sort outings by date (earliest first)
+    const outings = [...rawOutings].sort((a, b) =>
+        new Date(a.outing_date).getTime() - new Date(b.outing_date).getTime()
+    );
     
     // Derived state
     const mySignupOutingIds = new Set(mySignups.map(s => s.outing_id));
@@ -597,10 +622,18 @@ const SignupWizard: React.FC = () => {
                                     >
                                         <div className="outing-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <div style={{ flex: 1 }}>
-                                                <h3 style={{ margin: '0 0 10px 0', color: '#2e7d32' }}>✓ {outing.name}</h3>
-                                                <p style={{ margin: '5px 0' }}>
-                                                    <strong>Date:</strong> {new Date(outing.outing_date).toLocaleDateString()}
-                                                </p>
+                                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                                                    <h3 style={{ margin: 0, color: '#2e7d32' }}>✓ {outing.name}</h3>
+                                                    <span style={{
+                                                        fontSize: '18px',
+                                                        fontWeight: 'bold',
+                                                        color: '#2e7d32',
+                                                        whiteSpace: 'nowrap'
+                                                    }}>
+                                                        📅 {formatOutingDate(outing.outing_date)}
+                                                        {outing.end_date && ` - ${formatOutingDate(outing.end_date)}`}
+                                                    </span>
+                                                </div>
                                                 <div style={{ margin: '10px 0 0 0' }}>
                                                     <strong>Participants ({signup.participant_count}):</strong>
                                                     <div style={{ marginTop: '8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -797,11 +830,18 @@ const SignupWizard: React.FC = () => {
                                     >
                                         <div className="outing-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <div style={{ flex: 1 }}>
-                                                <h3 style={{ margin: '0 0 10px 0' }}>{outing.name}</h3>
-                                                <p style={{ margin: '5px 0' }}>
-                                                    <strong>Date:</strong> {new Date(outing.outing_date).toLocaleDateString()}
-                                                    {outing.end_date && ` - ${new Date(outing.end_date).toLocaleDateString()}`}
-                                                </p>
+                                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                                                    <h3 style={{ margin: 0 }}>{outing.name}</h3>
+                                                    <span style={{
+                                                        fontSize: '18px',
+                                                        fontWeight: 'bold',
+                                                        color: '#1976d2',
+                                                        whiteSpace: 'nowrap'
+                                                    }}>
+                                                        📅 {formatOutingDate(outing.outing_date)}
+                                                        {outing.end_date && ` - ${formatOutingDate(outing.end_date)}`}
+                                                    </span>
+                                                </div>
                                                 <p style={{ margin: '5px 0' }}><strong>Location:</strong> {outing.location}</p>
                                                 {outing.description && <p style={{ margin: '10px 0 0 0' }}>{outing.description}</p>}
                                             </div>
@@ -965,7 +1005,7 @@ const SignupWizard: React.FC = () => {
                                                 border: isSelected ? '3px solid #4caf50' : isExpired ? '2px solid #c62828' : '1px solid #ddd',
                                                 borderRadius: '8px',
                                                 cursor: canSelect ? 'pointer' : 'not-allowed',
-                                                backgroundColor: isSelected ? 'var(--alert-success-bg)' : isExpired ? 'var(--alert-error-bg)' : 'var(--card-bg)',
+                                                backgroundColor: isSelected ? 'var(--card-success-bg)' : isExpired ? 'var(--card-error-bg)' : 'var(--card-bg)',
                                                 position: 'relative',
                                                 opacity: isExpired ? 0.7 : 1
                                             }}
@@ -987,9 +1027,9 @@ const SignupWizard: React.FC = () => {
                                                 }}>✓</div>
                                             )}
                                             <h3 style={{ margin: '0 0 10px 0' }}>{member.name}</h3>
-                                            {member.vehicle_capacity && member.vehicle_capacity > 0 && (
+                                            {(member.vehicle_capacity ?? 0) > 0 && (
                                                 <p style={{ margin: '5px 0', color: '#1976d2', fontWeight: 'bold' }}>
-                                                    🚗 {member.vehicle_capacity} seats
+                                                    🚗 {member.vehicle_capacity ?? 0} seats
                                                 </p>
                                             )}
                                             {member.has_youth_protection !== undefined && (
@@ -1055,9 +1095,9 @@ const SignupWizard: React.FC = () => {
                                                 border: isSelected ? '3px solid #4caf50' : '1px solid #ddd',
                                                 borderRadius: '8px',
                                                 cursor: canSelect ? 'pointer' : 'not-allowed',
-                                                backgroundColor: isSelected ? 'var(--alert-success-bg)' : canSelect ? 'var(--card-bg)' : 'var(--bg-tertiary)',
+                                                backgroundColor: isSelected ? 'var(--card-success-bg)' : canSelect ? 'var(--card-bg)' : 'var(--bg-tertiary)',
                                                 position: 'relative',
-                                                opacity: canSelect ? 1 : 0.6
+                                                opacity: canSelect ? 1 : 0.7
                                             }}
                                         >
                                             {isSelected && (

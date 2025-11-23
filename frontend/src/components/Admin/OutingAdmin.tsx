@@ -4,6 +4,26 @@ import { outingAPI, pdfAPI, signupAPI } from '../../services/api';
 import { formatPhoneNumber } from '../../utils/phoneUtils';
 
 const OutingAdmin: React.FC = () => {
+    // Helper function to format date, omitting year if it's the current year
+    const formatOutingDate = (dateString: string): string => {
+        const date = new Date(dateString);
+        const currentYear = new Date().getFullYear();
+        const dateYear = date.getFullYear();
+        
+        if (dateYear === currentYear) {
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            });
+        } else {
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+    };
+
     // Helper function to get next Friday-Sunday dates
     const getNextWeekendDates = () => {
         const today = new Date();
@@ -80,7 +100,11 @@ const OutingAdmin: React.FC = () => {
             setLoading(true);
             setError(null);
             const data = await outingAPI.getAll();
-            setOutings(data);
+            // Sort outings by date (earliest first)
+            const sortedData = [...data].sort((a, b) =>
+                new Date(a.outing_date).getTime() - new Date(b.outing_date).getTime()
+            );
+            setOutings(sortedData);
         } catch (err) {
             console.error('Error loading outings:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to load outings';
@@ -558,7 +582,7 @@ const OutingAdmin: React.FC = () => {
                     style={{
                         padding: '20px',
                         cursor: 'pointer',
-                        backgroundColor: isCreateOutingExpanded ? 'var(--bg-secondary)' : 'var(--bg-tertiary)',
+                        backgroundColor: isCreateOutingExpanded ? 'var(--badge-info-bg)' : 'var(--bg-tertiary)',
                         transition: 'background-color 0.2s',
                         borderBottom: isCreateOutingExpanded ? '1px solid var(--card-border)' : 'none'
                     }}
@@ -994,19 +1018,26 @@ const OutingAdmin: React.FC = () => {
                                             style={{
                                                 padding: '20px',
                                                 cursor: 'pointer',
-                                                backgroundColor: expandedOutingId === outing.id ? 'var(--bg-secondary)' : 'var(--bg-tertiary)',
+                                                backgroundColor: expandedOutingId === outing.id ? 'var(--badge-info-bg)' : 'var(--bg-tertiary)',
                                                 transition: 'background-color 0.2s'
                                             }}
                                         >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                                         <div style={{ flex: 1 }}>
-                                            <h3 style={{ marginTop: 0, marginBottom: '10px' }}>
-                                                {expandedOutingId === outing.id ? '▼' : '▶'} {outing.name}
-                                            </h3>
-                                            <p style={{ margin: '5px 0' }}>
-                                                <strong>Date:</strong> {formatDate(outing.outing_date)}
-                                                {outing.is_overnight && outing.end_date && ` - ${formatDate(outing.end_date)}`}
-                                            </p>
+                                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
+                                                <h3 style={{ margin: 0 }}>
+                                                    {expandedOutingId === outing.id ? '▼' : '▶'} {outing.name}
+                                                </h3>
+                                                <span style={{
+                                                    fontSize: '18px',
+                                                    fontWeight: 'bold',
+                                                    color: '#1976d2',
+                                                    whiteSpace: 'nowrap'
+                                                }}>
+                                                    📅 {formatOutingDate(outing.outing_date)}
+                                                    {outing.is_overnight && outing.end_date && ` - ${formatOutingDate(outing.end_date)}`}
+                                                </span>
+                                            </div>
                                             <p style={{ margin: '5px 0' }}><strong>Location:</strong> {outing.location}</p>
                                             {outing.description && <p style={{ margin: '5px 0' }}><strong>Description:</strong> {outing.description}</p>}
                                             <p style={{ margin: '5px 0' }}>

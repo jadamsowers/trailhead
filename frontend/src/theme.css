@@ -132,6 +132,8 @@
   --card-border: var(--border-light);
   --card-shadow: rgba(0, 0, 0, 0.08);
   --card-hover-shadow: rgba(0, 0, 0, 0.12);
+  --card-error-bg: rgb(206, 149, 155);
+  --card-success-bg: rgb(151, 215, 170);
   
   /* Forms */
   --input-bg: #FFFFFF;
@@ -141,32 +143,32 @@
   --input-placeholder: var(--text-muted);
   
   /* Alerts */
-  --alert-success-bg: rgba(36, 62, 44, 0.1);
+  --alert-success-bg: rgba(36, 62, 44, 0.25);
   --alert-success-border: var(--scouts-olive);
   --alert-success-text: var(--scouts-olive);
   
-  --alert-error-bg: rgba(206, 17, 38, 0.1);
+  --alert-error-bg: rgba(206, 17, 38, 0.25);
   --alert-error-border: var(--scouts-red);
   --alert-error-text: var(--scouts-red);
   
-  --alert-warning-bg: rgba(212, 160, 23, 0.1);
+  --alert-warning-bg: rgba(212, 160, 23, 0.25);
   --alert-warning-border: var(--color-warning);
   --alert-warning-text: var(--color-warning-dark);
   
-  --alert-info-bg: rgba(154, 179, 213, 0.1);
+  --alert-info-bg: rgba(154, 179, 213, 0.4);
   --alert-info-border: var(--sa-pale-blue);
   --alert-info-text: var(--sa-dark-blue);
   
   /* Badges/Tags */
-  --badge-adult-bg: rgba(173, 157, 123, 0.2);
+  --badge-adult-bg: rgba(173, 157, 123, 0.3);
   --badge-adult-text: var(--sa-dark-tan);
   --badge-adult-border: var(--sa-tan);
   
-  --badge-scout-bg: rgba(154, 179, 213, 0.2);
+  --badge-scout-bg: rgba(154, 179, 213, 0.3);
   --badge-scout-text: var(--sa-dark-blue);
   --badge-scout-border: var(--sa-pale-blue);
   
-  --badge-info-bg: rgba(154, 179, 213, 0.15);
+  --badge-info-bg: rgba(154, 179, 213, 0.4);
   --badge-info-text: var(--sa-dark-blue);
   --badge-info-border: var(--sa-pale-blue);
   
