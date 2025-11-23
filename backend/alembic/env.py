@@ -21,8 +21,6 @@ from app.models import (
     Outing,
     Signup,
     Participant,
-    DietaryRestriction,
-    Allergy,
     RefreshToken,
     FamilyMember,
     FamilyMemberDietaryPreference,
