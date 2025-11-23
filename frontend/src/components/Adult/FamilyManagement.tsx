@@ -5,6 +5,7 @@ import {
     FamilyMemberCreate,
     FamilyMemberUpdate,
 } from '../../types';
+import { useFamilyMembers, invalidateFamilyData } from '../../hooks/useSWR';
 
 // Responsive styles for family management
 const familyManagementStyles = `
@@ -45,38 +46,30 @@ interface FamilyManagementProps {
 }
 
 export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdded }) => {
-    const [members, setMembers] = useState<FamilyMember[]>([]);
-    const [loading, setLoading] = useState(true);
+    // Use SWR hook for data fetching with automatic caching
+    const { familyMembers: members, isLoading: loading, error: swrError, revalidate } = useFamilyMembers();
+    
     const [error, setError] = useState<string | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingMember, setEditingMember] = useState<FamilyMember | null>(null);
 
+    // Log family members data when it changes (for diagnostics)
     useEffect(() => {
-        loadFamilyMembers();
-    }, []);
-
-    const loadFamilyMembers = async () => {
-        try {
-            setLoading(true);
-            setError(null);
+        if (loading) {
             console.log('🔄 Loading family members...');
-            const response = await familyAPI.getAll();
-            console.log('✅ Family members loaded:', response);
-            setMembers(response.members);
-        } catch (err: any) {
-            const errorMessage = err?.message || 'Failed to load family members';
+        } else if (swrError) {
+            const errorMessage = swrError?.message || 'Failed to load family members';
             console.error('❌ Error loading family members:', {
-                error: err,
+                error: swrError,
                 message: errorMessage,
-                status: err?.status
             });
-            
-            // Display the error message from the API or authentication system
-            setError(errorMessage);
-        } finally {
-            setLoading(false);
+        } else if (members) {
+            console.log('✅ Family members loaded:', { members, total: members.length });
         }
-    };
+    }, [members, loading, swrError]);
+
+    // Convert SWR error to string for display
+    const displayError = error || (swrError ? swrError.message || 'Failed to load family members' : null);
 
     const handleAddMember = () => {
         setShowAddForm(true);
@@ -94,11 +87,14 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
         }
 
         try {
+            console.log('🗑️ Deleting family member:', id);
             await familyAPI.delete(id);
-            await loadFamilyMembers();
+            console.log('✅ Family member deleted, invalidating cache...');
+            // Invalidate cache to trigger refetch
+            await invalidateFamilyData();
         } catch (err) {
+            console.error('❌ Failed to delete family member:', err);
             setError('Failed to delete family member');
-            console.error(err);
         }
     };
 
@@ -108,7 +104,9 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
     };
 
     const handleFormSuccess = async () => {
-        await loadFamilyMembers();
+        console.log('✅ Family member saved, invalidating cache...');
+        // Invalidate cache to trigger refetch
+        await invalidateFamilyData();
         handleFormClose();
         if (onMemberAdded) {
             onMemberAdded();
@@ -158,9 +156,9 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
                 </button>
             </div>
 
-            {error && (
+            {displayError && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                    {error}
+                    {displayError}
                 </div>
             )}
 

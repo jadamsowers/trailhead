@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Outing, FamilyMemberSummary, SignupResponse } from '../../types';
-import { outingAPI, signupAPI, familyAPI, userAPI, APIError } from '../../services/api';
+import { signupAPI, userAPI, APIError } from '../../services/api';
 import { formatPhoneNumber, validatePhoneWithMessage } from '../../utils/phoneUtils';
+import {
+    useAvailableOutings,
+    useFamilySummary,
+    useMySignups,
+    invalidateOutings,
+    invalidateSignups,
+    invalidateFamilyData
+} from '../../hooks/useSWR';
 
 type WizardStep = 'select-trip' | 'contact-info' | 'select-adults' | 'select-scouts' | 'review';
 
@@ -121,12 +129,14 @@ const SignupWizard: React.FC = () => {
     const [selectedOuting, setSelectedOuting] = useState<Outing | null>(null);
     const [editingSignupId, setEditingSignupId] = useState<string | null>(null);
     
-    // Data state
-    const [outings, setOutings] = useState<Outing[]>([]);
-    const [mySignups, setMySignups] = useState<SignupResponse[]>([]);
-    const [mySignupOutingIds, setMySignupOutingIds] = useState<Set<string>>(new Set());
+    // Use SWR hooks for data fetching with automatic caching
+    const { outings = [], isLoading: outingsLoading, error: outingsError } = useAvailableOutings();
+    const { signups: mySignups = [], isLoading: signupsLoading, error: signupsError } = useMySignups();
+    const { familyMembers = [], isLoading: familyLoading, error: familyError } = useFamilySummary(selectedOuting?.id);
+    
+    // Derived state
+    const mySignupOutingIds = new Set(mySignups.map(s => s.outing_id));
     const [expandedSignupId, setExpandedSignupId] = useState<string>('');
-    const [familyMembers, setFamilyMembers] = useState<FamilyMemberSummary[]>([]);
     const [selectedAdultIds, setSelectedAdultIds] = useState<string[]>([]);
     const [selectedScoutIds, setSelectedScoutIds] = useState<string[]>([]);
     
@@ -145,14 +155,43 @@ const SignupWizard: React.FC = () => {
     const [success, setSuccess] = useState(false);
     const [warnings, setWarnings] = useState<string[]>([]);
 
+    // Load user contact info on mount
     useEffect(() => {
-        loadOutings();
         if (isSignedIn) {
-            loadFamilyMembers(selectedOuting?.id);
             loadUserContactInfo();
-            loadMySignups();
         }
-    }, [isSignedIn, user, selectedOuting?.id]);
+    }, [isSignedIn, user]);
+
+    // Log data loading status for diagnostics
+    useEffect(() => {
+        if (outingsLoading) {
+            console.log('🔄 Loading outings...');
+        } else if (outingsError) {
+            console.error('❌ Error loading outings:', outingsError);
+        } else if (outings) {
+            console.log('✅ Outings loaded:', { count: outings.length });
+        }
+    }, [outings, outingsLoading, outingsError]);
+
+    useEffect(() => {
+        if (signupsLoading) {
+            console.log('🔄 Loading my signups...');
+        } else if (signupsError) {
+            console.error('❌ Error loading signups:', signupsError);
+        } else if (mySignups) {
+            console.log('✅ My signups loaded:', { count: mySignups.length });
+        }
+    }, [mySignups, signupsLoading, signupsError]);
+
+    useEffect(() => {
+        if (familyLoading) {
+            console.log('🔄 Loading family members...');
+        } else if (familyError) {
+            console.error('❌ Error loading family members:', familyError);
+        } else if (familyMembers) {
+            console.log('✅ Family members loaded:', { count: familyMembers.length });
+        }
+    }, [familyMembers, familyLoading, familyError]);
 
     const loadUserContactInfo = async () => {
         try {
@@ -176,48 +215,6 @@ const SignupWizard: React.FC = () => {
         }
     };
 
-    const loadOutings = async () => {
-        try {
-            setLoading(true);
-            const data = await outingAPI.getAll();
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const futureOutings = data.filter(outing => {
-                const outingDate = new Date(outing.outing_date);
-                outingDate.setHours(0, 0, 0, 0);
-                return outingDate >= today;
-            });
-            setOutings(futureOutings);
-        } catch (err) {
-            setError(err instanceof APIError ? err.message : 'Failed to load outings');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const loadFamilyMembers = async (outingId?: string) => {
-        try {
-            const data = await familyAPI.getSummary(outingId);
-            setFamilyMembers(data);
-        } catch (err) {
-            console.error('Failed to load family members:', err);
-        }
-    };
-
-    const loadMySignups = async () => {
-        try {
-            const signups = await signupAPI.getMySignups();
-            setMySignups(signups);
-            const signupOutingIds = new Set(signups.map(s => s.outing_id));
-            setMySignupOutingIds(signupOutingIds);
-        } catch (err) {
-            console.error('Failed to load my signups:', err);
-            // Don't show error to user - just log it and continue
-            // This allows the page to work even if my-signups endpoint fails
-            setMySignups([]);
-            setMySignupOutingIds(new Set());
-        }
-    };
 
     const handleCancelSignup = async (signupId: string, outingName: string) => {
         if (!window.confirm(`Are you sure you want to cancel your signup for "${outingName}"? This action cannot be undone.`)) {
@@ -227,11 +224,17 @@ const SignupWizard: React.FC = () => {
         try {
             setCancelingSignupId(signupId);
             setError(null);
+            console.log('🗑️ Canceling signup:', signupId);
             await signupAPI.cancelSignup(signupId);
-            await loadMySignups();
-            await loadOutings();
+            console.log('✅ Signup canceled, invalidating caches...');
+            // Invalidate caches to trigger refetch
+            await Promise.all([
+                invalidateSignups(),
+                invalidateOutings()
+            ]);
             setExpandedSignupId('');
         } catch (err) {
+            console.error('❌ Failed to cancel signup:', err);
             setError(err instanceof APIError ? err.message : 'Failed to cancel signup');
         } finally {
             setCancelingSignupId(null);
@@ -333,6 +336,7 @@ const SignupWizard: React.FC = () => {
             setLoading(true);
             setError(null);
             
+            console.log('💾 Saving contact info as default...');
             // Save contact info as user's default for future signups
             try {
                 await userAPI.updateContactInfo({
@@ -340,8 +344,9 @@ const SignupWizard: React.FC = () => {
                     emergency_contact_name: contactInfo.emergency_contact_name,
                     emergency_contact_phone: contactInfo.emergency_contact_phone
                 });
+                console.log('✅ Contact info saved');
             } catch (err) {
-                console.error('Failed to save contact info as default:', err);
+                console.error('⚠️ Failed to save contact info as default:', err);
                 // Continue with signup even if saving defaults fails
             }
             
@@ -357,28 +362,37 @@ const SignupWizard: React.FC = () => {
 
             let response;
             if (editingSignupId) {
+                console.log('✏️ Updating signup:', editingSignupId);
                 // Update existing signup
                 response = await signupAPI.updateSignup(editingSignupId, signupData);
+                console.log('✅ Signup updated');
                 setSuccess(true);
                 setWarnings([]);
             } else {
+                console.log('➕ Creating new signup for outing:', selectedOuting.id);
                 // Create new signup
                 response = await signupAPI.create({
                     outing_id: selectedOuting.id,
                     ...signupData
                 });
+                console.log('✅ Signup created');
                 setSuccess(true);
                 setWarnings(response.warnings || []);
             }
             
-            // Reload signups and outings to update the lists
-            await loadMySignups();
-            await loadOutings();
+            console.log('🔄 Invalidating caches...');
+            // Invalidate caches to trigger refetch
+            await Promise.all([
+                invalidateSignups(),
+                invalidateOutings(),
+                invalidateFamilyData()
+            ]);
             
             setTimeout(() => {
                 resetForm();
             }, 3000);
         } catch (err) {
+            console.error('❌ Failed to submit signup:', err);
             setError(err instanceof APIError ? err.message : `Failed to ${editingSignupId ? 'update' : 'submit'} signup`);
         } finally {
             setLoading(false);
@@ -751,8 +765,10 @@ const SignupWizard: React.FC = () => {
                 {currentStep === 'select-trip' && (
                     <div>
                         <h2>{mySignups.length > 0 ? 'Sign Up for Another Trip' : 'Select a Trip'}</h2>
-                        {loading && outings.length === 0 ? (
+                        {outingsLoading && outings.length === 0 ? (
                             <p>Loading available outings...</p>
+                        ) : outingsError ? (
+                            <p style={{ color: '#c62828' }}>Error loading outings: {outingsError.message}</p>
                         ) : outings.filter(o => !mySignupOutingIds.has(o.id)).length === 0 ? (
                             <p>No upcoming outings available{mySignups.length > 0 ? ' (you\'re signed up for all available outings)' : ''}.</p>
                         ) : (
