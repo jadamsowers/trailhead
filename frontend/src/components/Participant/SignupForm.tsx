@@ -520,7 +520,7 @@ const SignupForm: React.FC = () => {
                                                                 {participant.name}
                                                             </p>
                                                             <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                                                                <strong>Type:</strong> {participant.is_adult ? '👨‍👩‍👧‍👦 Adult' : '🎒 Scout'}
+                                                                <strong>Type:</strong> {participant.is_adult ? '🌲 Adult' : '🌱 Scout'}
                                                             </p>
                                                             {participant.age && (
                                                                 <p style={{ margin: '4px 0', fontSize: '14px' }}>
