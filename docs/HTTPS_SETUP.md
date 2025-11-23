@@ -9,12 +9,23 @@ In production mode, the application uses nginx as a reverse proxy to handle HTTP
 ## Architecture
 
 ```
-Internet (HTTPS) → Nginx (SSL Termination) → Frontend/Backend (HTTP)
+Internet → Nginx (Port 8443 HTTPS) → Frontend (Port 80) + Backend (Port 8000)
+                                      ↓                      ↓
+                                   Static Files          /api endpoints
 ```
 
+**External Access:**
 - **Port 8080**: HTTP (redirects to HTTPS)
-- **Port 8443**: HTTPS (SSL/TLS)
-- **Internal**: Backend runs on port 8000, Frontend on port 80 (within Docker network)
+- **Port 8443**: HTTPS (SSL/TLS) - All traffic goes through here
+
+**Internal Docker Network:**
+- **Frontend**: Port 80 (nginx container serves static files)
+- **Backend**: Port 8000 (only accessible within Docker network)
+- **Nginx**: Reverse proxy that routes:
+  - `/` → Frontend container
+  - `/api` → Backend container
+
+**Important**: In production, the backend is NOT exposed externally. All API requests go through nginx at `https://your-domain.com:8443/api`
 
 ## Prerequisites
 
@@ -112,7 +123,15 @@ nginx:
     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     - ${SSL_CERT_PATH}:/etc/nginx/ssl/fullchain.pem:ro
     - ${SSL_KEY_PATH}:/etc/nginx/ssl/privkey.pem:ro
+  depends_on:
+    - frontend
+    - backend
 ```
+
+**Key Points:**
+- Backend port is NOT exposed in production (no `ports:` mapping for backend service)
+- All traffic flows through nginx on port 8443
+- Frontend API calls use relative path `/api` which nginx proxies to backend
 
 ## Nginx Configuration
 
@@ -146,8 +165,11 @@ Or use the deploy script:
 ## Accessing the Application
 
 - **Application**: `https://your-domain.com:8443`
+- **API Endpoints**: `https://your-domain.com:8443/api/*`
 - **API Documentation**: `https://your-domain.com:8443/docs`
 - **Health Check**: `http://your-domain.com:8080/health` (or HTTPS)
+
+**Note**: The backend is only accessible through nginx. Direct access to backend:8000 is not available from outside the Docker network.
 
 ## Certificate Renewal
 

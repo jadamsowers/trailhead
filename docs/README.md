@@ -50,7 +50,9 @@ A comprehensive web application for managing scout troop outings, signups, and p
 
 ## 📚 Documentation
 
+- [Quick Start Guide](QUICK_START.md) - Get started quickly
 - [Clerk Migration Guide](CLERK_MIGRATION_GUIDE.md) - Complete guide for Clerk authentication setup
+- [HTTPS Setup Guide](HTTPS_SETUP.md) - Production HTTPS configuration with SSL certificates
 - [Architecture](ARCHITECTURE.md) - System architecture and design
 - [API Documentation](backend/API_DOCUMENTATION.md) - Backend API reference
 - [Deployment Guide](DEPLOYMENT.md) - Production deployment instructions
@@ -184,12 +186,24 @@ npm test
 
 ## 🚢 Deployment
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for production deployment instructions.
+### Production Deployment
 
-Quick production start:
-```bash
-docker-compose -f docker-compose.prod.yml up -d
-```
+For production deployment with HTTPS:
+
+1. **Run the bootstrap script**
+   ```bash
+   ./bootstrap.sh
+   ```
+   - Select "Production" mode
+   - Provide your domain name
+   - Configure SSL certificates (Let's Encrypt recommended)
+
+2. **Start the services**
+   ```bash
+   docker compose --profile production up -d
+   ```
+
+See [HTTPS_SETUP.md](HTTPS_SETUP.md) for detailed HTTPS configuration and [DEPLOYMENT.md](DEPLOYMENT.md) for additional deployment options.
 
 ## 🤝 Contributing
 
