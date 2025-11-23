@@ -143,6 +143,57 @@ else
 fi
 echo ""
 
+# SSL Certificate Configuration (Production only)
+if [ "$MODE" = "production" ]; then
+    print_header "SSL Certificate Configuration"
+    print_info "For HTTPS support, we need SSL certificates."
+    print_info "If you're using Let's Encrypt, certificates are typically in:"
+    print_info "  /etc/letsencrypt/live/YOUR_DOMAIN/"
+    echo ""
+    
+    # Default Let's Encrypt path
+    DEFAULT_CERT_DIR="/etc/letsencrypt/live/$DOMAIN"
+    
+    print_question "Enter the directory containing your SSL certificates:"
+    echo "  Expected files: fullchain.pem and privkey.pem"
+    read -p "Certificate directory (default: $DEFAULT_CERT_DIR): " SSL_CERT_DIR
+    SSL_CERT_DIR=${SSL_CERT_DIR:-$DEFAULT_CERT_DIR}
+    
+    # Validate certificate files exist
+    if [ -f "$SSL_CERT_DIR/fullchain.pem" ] && [ -f "$SSL_CERT_DIR/privkey.pem" ]; then
+        print_success "Found SSL certificates in $SSL_CERT_DIR"
+        SSL_CERT_PATH="$SSL_CERT_DIR/fullchain.pem"
+        SSL_KEY_PATH="$SSL_CERT_DIR/privkey.pem"
+    else
+        print_error "SSL certificate files not found in $SSL_CERT_DIR"
+        print_info "Expected files:"
+        echo "  - fullchain.pem (or cert.pem)"
+        echo "  - privkey.pem (or key.pem)"
+        echo ""
+        print_question "Do you want to:"
+        echo "  1) Enter a different certificate directory"
+        echo "  2) Continue without SSL (HTTP only - not recommended for production)"
+        read -p "Enter choice [1-2]: " SSL_CHOICE
+        
+        if [ "$SSL_CHOICE" = "1" ]; then
+            read -p "Certificate directory: " SSL_CERT_DIR
+            if [ -f "$SSL_CERT_DIR/fullchain.pem" ] && [ -f "$SSL_CERT_DIR/privkey.pem" ]; then
+                print_success "Found SSL certificates"
+                SSL_CERT_PATH="$SSL_CERT_DIR/fullchain.pem"
+                SSL_KEY_PATH="$SSL_CERT_DIR/privkey.pem"
+            else
+                print_error "Certificates still not found. Exiting."
+                exit 1
+            fi
+        else
+            print_info "Continuing without SSL (HTTP only)"
+            SSL_CERT_PATH=""
+            SSL_KEY_PATH=""
+        fi
+    fi
+    echo ""
+fi
+
 # Database configuration
 if [ "$USE_DEFAULTS" = true ]; then
     POSTGRES_USER="scouting_outing"
@@ -585,6 +636,10 @@ if [ "$MODE" = "production" ]; then
 
 # Frontend Build
 VITE_API_URL=$API_URL
+
+# SSL Configuration
+SSL_CERT_PATH=$SSL_CERT_PATH
+SSL_KEY_PATH=$SSL_KEY_PATH
 EOF
 fi
 
