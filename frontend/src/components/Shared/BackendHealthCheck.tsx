@@ -78,7 +78,8 @@ const BackendHealthCheck: React.FC<BackendHealthCheckProps> = ({ children }) => 
             }}>
                 <div style={{
                     maxWidth: '600px',
-                    backgroundColor: 'white',
+                    backgroundColor: 'var(--card-bg)',
+                    color: 'var(--text-primary)',
                     borderRadius: '12px',
                     padding: '40px',
                     boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
@@ -91,14 +92,14 @@ const BackendHealthCheck: React.FC<BackendHealthCheckProps> = ({ children }) => 
                         ⚠️
                     </div>
                     <h1 style={{
-                        color: '#d32f2f',
+                        color: 'var(--alert-error-text)',
                         marginBottom: '20px',
                         fontSize: '28px'
                     }}>
                         Backend Connection Error
                     </h1>
                     <p style={{
-                        color: '#666',
+                        color: 'var(--text-secondary)',
                         fontSize: '16px',
                         marginBottom: '30px',
                         lineHeight: '1.6'
@@ -130,7 +131,7 @@ const BackendHealthCheck: React.FC<BackendHealthCheckProps> = ({ children }) => 
                         padding: '15px',
                         marginBottom: '30px'
                     }}>
-                        <p style={{ color: '#c62828', fontSize: '14px', margin: 0 }}>
+                        <p style={{ color: 'var(--alert-error-text)', fontSize: '14px', margin: 0 }}>
                             <strong>Error:</strong> {errorMessage}
                         </p>
                     </div>
