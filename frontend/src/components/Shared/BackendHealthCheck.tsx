@@ -9,6 +9,7 @@ const BackendHealthCheck: React.FC<BackendHealthCheckProps> = ({ children }) => 
     const [isHealthy, setIsHealthy] = useState<boolean | null>(null);
     const [isChecking, setIsChecking] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string>('');
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
     useEffect(() => {
         checkBackendHealth();
@@ -118,7 +119,7 @@ const BackendHealthCheck: React.FC<BackendHealthCheckProps> = ({ children }) => 
                             Troubleshooting Steps:
                         </h3>
                         <ol style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.8', paddingLeft: '20px' }}>
-                            <li>Verify the backend server is running on <code style={{ backgroundColor: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-primary)' }}>http://localhost:8000</code></li>
+                            <li>Verify the backend server is running on <code style={{ backgroundColor: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-primary)' }}>{apiUrl}</code></li>
                             <li>Check that your <code style={{ backgroundColor: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-primary)' }}>VITE_API_URL</code> environment variable is set correctly</li>
                             <li>Ensure there are no firewall or network issues blocking the connection</li>
                             <li>Review the backend logs for any startup errors</li>
