@@ -36,7 +36,7 @@ const HomePage: React.FC = () => {
             <p style={{ fontSize: '20px', marginBottom: '40px', color: 'var(--text-secondary)' }}>
                 Manage scout troop outings, signups, and participant information
             </p>
-            
+
             <div style={{
                 padding: '30px',
                 backgroundColor: 'var(--alert-info-bg)',
@@ -224,7 +224,7 @@ const Navigation: React.FC = () => {
                     >
                         ⚜️ Scouting Outing Manager 🏕️
                     </Link>
-                    
+
                     {/* Desktop Menu */}
                     <div className="nav-desktop-menu">
                         <SignedIn>
@@ -270,9 +270,6 @@ const Navigation: React.FC = () => {
                             >
                                 Admin
                             </Link>
-                            <span className="nav-user-email" style={{ color: 'white', fontSize: '14px' }}>
-                                {user?.primaryEmailAddress?.emailAddress}
-                            </span>
                             {/* Theme Toggle */}
                             <ThemeToggleCompact />
                             <UserButton afterSignOutUrl="/" />
@@ -297,7 +294,7 @@ const Navigation: React.FC = () => {
                             </Link>
                         </SignedOut>
                     </div>
-                    
+
                     {/* Mobile Menu Toggle */}
                     <button
                         className="nav-mobile-toggle"
@@ -307,7 +304,7 @@ const Navigation: React.FC = () => {
                         {mobileMenuOpen ? '✕' : '☰'}
                     </button>
                 </div>
-                
+
                 {/* Mobile Menu */}
                 <div className="nav-mobile-menu">
                     <SignedIn>
@@ -434,23 +431,23 @@ const App: React.FC = () => {
                             <Route path="/participant" element={<Navigate to="/outings" replace />} />
                         </Routes>
 
-                    {/* Footer */}
-                    <footer style={{
-                        backgroundColor: '#333',
-                        color: 'white',
-                        padding: '20px',
-                        textAlign: 'center',
-                        marginTop: '60px'
-                    }}>
-                        <p>Scouting Outing Manager </p>
-                        <p><em>Putting the 'outing' back in 'Scouting'</em></p>
-                        <p><a href="https://github.com/jadamsowers/scouting-outing-manager">Vibe-coded</a> with ⚜️❤️ by <a href="https://scouthacks.net/">Adam Sowers</a></p>
-                        <p style={{ fontSize: '14px', color: '#999', marginTop: '10px' }}>
-                            API Documentation: <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" style={{ color: '#64b5f6' }}>http://localhost:8000/docs</a>
-                        </p>
-                    </footer>
-                </div>
-            </Router>
+                        {/* Footer */}
+                        <footer style={{
+                            backgroundColor: '#333',
+                            color: 'white',
+                            padding: '20px',
+                            textAlign: 'center',
+                            marginTop: '60px'
+                        }}>
+                            <p>Scouting Outing Manager </p>
+                            <p><em>Putting the 'outing' back in 'Scouting'</em></p>
+                            <p><a href="https://github.com/jadamsowers/scouting-outing-manager">Vibe-coded</a> with ⚜️❤️ by <a href="https://scouthacks.net/">Adam Sowers</a></p>
+                            <p style={{ fontSize: '14px', color: '#999', marginTop: '10px' }}>
+                                API Documentation: <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" style={{ color: '#64b5f6' }}>http://localhost:8000/docs</a>
+                            </p>
+                        </footer>
+                    </div>
+                </Router>
             </BackendHealthCheck>
         </ClerkProvider>
     );
