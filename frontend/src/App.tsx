@@ -4,6 +4,7 @@ import { ClerkProvider, SignedIn, SignedOut, UserButton, useUser, SignUp } from 
 import ProtectedRoute from './components/ProtectedRoute';
 import BackendHealthCheck from './components/Shared/BackendHealthCheck';
 import TopographicBackground from './components/Shared/TopographicBackground';
+import { ThemeToggleCompact } from './components/Shared/ThemeToggle';
 import AdminPage from './pages/AdminPage';
 import ParticipantPage from './pages/ParticipantPage';
 import LoginPage from './pages/LoginPage';
@@ -29,23 +30,24 @@ const HomePage: React.FC = () => {
             margin: '0 auto',
             textAlign: 'center'
         }}>
-            <h1 style={{ fontSize: '48px', marginBottom: '20px', color: '#1976d2' }}>
+            <h1 style={{ fontSize: '48px', marginBottom: '20px', color: 'var(--sa-dark-blue)' }}>
                 ⚜️ Scouting Outing Manager 🏕️
             </h1>
-            <p style={{ fontSize: '20px', marginBottom: '40px', color: '#666' }}>
+            <p style={{ fontSize: '20px', marginBottom: '40px', color: 'var(--text-secondary)' }}>
                 Manage scout troop outings, signups, and participant information
             </p>
             
             <div style={{
                 padding: '30px',
-                backgroundColor: '#e3f2fd',
+                backgroundColor: 'var(--alert-info-bg)',
                 borderRadius: '12px',
-                marginBottom: '40px'
+                marginBottom: '40px',
+                border: '1px solid var(--alert-info-border)'
             }}>
-                <h2 style={{ color: '#1976d2', marginBottom: '15px' }}>
+                <h2 style={{ color: 'var(--alert-info-text)', marginBottom: '15px' }}>
                     Get Started
                 </h2>
-                <p style={{ color: '#666', fontSize: '16px', marginBottom: '20px' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '16px', marginBottom: '20px' }}>
                     Sign in or create an account to manage your family and sign up for outings
                 </p>
                 <Link
@@ -53,16 +55,16 @@ const HomePage: React.FC = () => {
                     style={{
                         display: 'inline-block',
                         padding: '15px 40px',
-                        backgroundColor: '#1976d2',
-                        color: 'white',
+                        backgroundColor: 'var(--btn-primary-bg)',
+                        color: 'var(--btn-primary-text)',
                         textDecoration: 'none',
                         borderRadius: '8px',
                         fontSize: '18px',
                         fontWeight: 'bold',
                         transition: 'background-color 0.2s'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1565c0'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#1976d2'}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-primary-hover)'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-primary-bg)'}
                 >
                     Sign In / Sign Up
                 </Link>
@@ -71,7 +73,7 @@ const HomePage: React.FC = () => {
             <div style={{
                 marginTop: '60px',
                 padding: '30px',
-                backgroundColor: '#f5f5f5',
+                backgroundColor: 'var(--bg-tertiary)',
                 borderRadius: '8px'
             }}>
                 <h3 style={{ marginBottom: '15px' }}>Features</h3>
@@ -147,7 +149,7 @@ const Navigation: React.FC = () => {
                 top: 100%;
                 left: 0;
                 right: 0;
-                background-color: #1565c0;
+                background-color: var(--sa-dark-blue);
                 box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                 z-index: 1000;
             }
@@ -195,11 +197,12 @@ const Navigation: React.FC = () => {
         <>
             <style>{navStyles}</style>
             <nav style={{
-                backgroundColor: '#1976d2',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                backgroundColor: 'var(--sa-dark-blue)',
+                boxShadow: 'var(--shadow-md)',
                 position: 'sticky',
                 top: 0,
-                zIndex: 1000
+                zIndex: 1000,
+                transition: 'background-color var(--transition-base)'
             }}>
                 <div className="nav-container" style={{
                     padding: '15px 30px',
@@ -270,9 +273,13 @@ const Navigation: React.FC = () => {
                             <span className="nav-user-email" style={{ color: 'white', fontSize: '14px' }}>
                                 {user?.primaryEmailAddress?.emailAddress}
                             </span>
+                            {/* Theme Toggle */}
+                            <ThemeToggleCompact />
                             <UserButton afterSignOutUrl="/" />
                         </SignedIn>
                         <SignedOut>
+                            {/* Theme Toggle */}
+                            <ThemeToggleCompact />
                             <Link
                                 to="/login"
                                 style={{
@@ -335,6 +342,16 @@ const Navigation: React.FC = () => {
                             Admin
                         </Link>
                         <div style={{
+                            padding: '12px 20px',
+                            borderBottom: '1px solid rgba(255,255,255,0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                        }}>
+                            <span style={{ color: 'white', fontSize: '14px' }}>Theme</span>
+                            <ThemeToggleCompact />
+                        </div>
+                        <div style={{
                             color: 'white',
                             fontSize: '14px',
                             display: 'flex',
@@ -346,6 +363,16 @@ const Navigation: React.FC = () => {
                         </div>
                     </SignedIn>
                     <SignedOut>
+                        <div style={{
+                            padding: '12px 20px',
+                            borderBottom: '1px solid rgba(255,255,255,0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                        }}>
+                            <span style={{ color: 'white', fontSize: '14px' }}>Theme</span>
+                            <ThemeToggleCompact />
+                        </div>
                         <Link
                             to="/login"
                             onClick={() => setMobileMenuOpen(false)}

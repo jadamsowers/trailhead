@@ -106,82 +106,159 @@ const UserManagement: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem 0' }}>
+                <div style={{
+                    animation: 'spin 1s linear infinite',
+                    borderRadius: '50%',
+                    height: '3rem',
+                    width: '3rem',
+                    borderWidth: '2px',
+                    borderStyle: 'solid',
+                    borderColor: 'var(--sa-dark-blue) transparent transparent transparent'
+                }}></div>
             </div>
         );
     }
 
     return (
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
-                <p className="text-sm text-gray-600 mt-1">
+        <div style={{
+            backgroundColor: 'var(--card-bg)',
+            boxShadow: 'var(--card-shadow)',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            border: '1px solid var(--card-border)'
+        }}>
+            <div style={{
+                padding: '1.5rem',
+                borderBottom: '1px solid var(--card-border)'
+            }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>User Management</h2>
+                <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
                     Manage user roles and permissions
                 </p>
             </div>
 
             {error && (
-                <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-                    <p className="text-sm text-red-800">{error}</p>
+                <div style={{
+                    margin: '1rem 1.5rem 0',
+                    padding: '1rem',
+                    backgroundColor: 'var(--alert-error-bg)',
+                    border: '1px solid var(--alert-error-border)',
+                    borderRadius: '4px'
+                }}>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--alert-error-text)' }}>{error}</p>
                 </div>
             )}
 
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+            <div style={{ overflowX: 'auto' }}>
+                <table style={{ minWidth: '100%', borderCollapse: 'collapse' }}>
+                    <thead style={{ backgroundColor: 'var(--bg-tertiary)' }}>
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th style={{
+                                padding: '0.75rem 1.5rem',
+                                textAlign: 'left',
+                                fontSize: '0.75rem',
+                                fontWeight: '500',
+                                color: 'var(--text-secondary)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em',
+                                borderBottom: '1px solid var(--card-border)'
+                            }}>
                                 User
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th style={{
+                                padding: '0.75rem 1.5rem',
+                                textAlign: 'left',
+                                fontSize: '0.75rem',
+                                fontWeight: '500',
+                                color: 'var(--text-secondary)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em',
+                                borderBottom: '1px solid var(--card-border)'
+                            }}>
                                 Email
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th style={{
+                                padding: '0.75rem 1.5rem',
+                                textAlign: 'left',
+                                fontSize: '0.75rem',
+                                fontWeight: '500',
+                                color: 'var(--text-secondary)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em',
+                                borderBottom: '1px solid var(--card-border)'
+                            }}>
                                 Current Role
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th style={{
+                                padding: '0.75rem 1.5rem',
+                                textAlign: 'left',
+                                fontSize: '0.75rem',
+                                fontWeight: '500',
+                                color: 'var(--text-secondary)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em',
+                                borderBottom: '1px solid var(--card-border)'
+                            }}>
                                 Actions
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {users.map((user) => (
-                            <tr key={user.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center">
+                    <tbody style={{ backgroundColor: 'var(--card-bg)' }}>
+                        {users.map((user, index) => (
+                            <tr key={user.id} style={{
+                                borderBottom: index < users.length - 1 ? '1px solid var(--card-border)' : 'none'
+                            }}>
+                                <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center' }}>
                                         <div>
-                                            <div className="text-sm font-medium text-gray-900">
+                                            <div style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-primary)' }}>
                                                 {user.full_name}
                                             </div>
                                             {user.is_initial_admin && (
-                                                <div className="text-xs text-gray-500">
+                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                                                     Initial Admin
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900">{user.email}</div>
+                                <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap' }}>
+                                    <div style={{ fontSize: '0.875rem', color: 'var(--text-primary)' }}>{user.email}</div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
+                                <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap' }}>
+                                    <span style={{
+                                        padding: '0.25rem 0.5rem',
+                                        display: 'inline-flex',
+                                        fontSize: '0.75rem',
+                                        lineHeight: '1.25rem',
+                                        fontWeight: '600',
+                                        borderRadius: '9999px',
+                                        backgroundColor: user.role === 'admin' ? 'var(--alert-error-bg)' : user.role === 'adult' ? 'var(--badge-info-bg)' : 'var(--bg-tertiary)',
+                                        color: user.role === 'admin' ? 'var(--alert-error-text)' : user.role === 'adult' ? 'var(--badge-info-text)' : 'var(--text-secondary)'
+                                    }}>
                                         {user.role}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                <td style={{ padding: '1rem 1.5rem', whiteSpace: 'nowrap', fontSize: '0.875rem' }}>
                                     {user.is_initial_admin ? (
-                                        <span className="text-gray-400 italic">
+                                        <span style={{ color: 'var(--text-tertiary)', fontStyle: 'italic' }}>
                                             Cannot modify initial admin
                                         </span>
                                     ) : (
-                                        <div className="flex space-x-2">
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
                                             {user.role !== 'admin' && (
                                                 <button
                                                     onClick={() => updateUserRole(user.id, 'admin')}
                                                     disabled={updatingUserId === user.id}
-                                                    className="text-blue-600 hover:text-blue-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    style={{
+                                                        color: 'var(--sa-dark-blue)',
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        cursor: updatingUserId === user.id ? 'not-allowed' : 'pointer',
+                                                        opacity: updatingUserId === user.id ? 0.5 : 1,
+                                                        textDecoration: 'underline'
+                                                    }}
                                                 >
                                                     {updatingUserId === user.id ? 'Updating...' : 'Promote to Admin'}
                                                 </button>
@@ -191,15 +268,29 @@ const UserManagement: React.FC = () => {
                                                     <button
                                                         onClick={() => updateUserRole(user.id, 'adult')}
                                                         disabled={updatingUserId === user.id}
-                                                        className="text-orange-600 hover:text-orange-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        style={{
+                                                            color: 'var(--sa-scouts-orange)',
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            cursor: updatingUserId === user.id ? 'not-allowed' : 'pointer',
+                                                            opacity: updatingUserId === user.id ? 0.5 : 1,
+                                                            textDecoration: 'underline'
+                                                        }}
                                                     >
                                                         {updatingUserId === user.id ? 'Updating...' : 'Demote to Adult'}
                                                     </button>
-                                                    <span className="text-gray-300">|</span>
+                                                    <span style={{ color: 'var(--text-tertiary)' }}>|</span>
                                                     <button
                                                         onClick={() => updateUserRole(user.id, 'user')}
                                                         disabled={updatingUserId === user.id}
-                                                        className="text-orange-600 hover:text-orange-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        style={{
+                                                            color: 'var(--sa-scouts-orange)',
+                                                            background: 'none',
+                                                            border: 'none',
+                                                            cursor: updatingUserId === user.id ? 'not-allowed' : 'pointer',
+                                                            opacity: updatingUserId === user.id ? 0.5 : 1,
+                                                            textDecoration: 'underline'
+                                                        }}
                                                     >
                                                         {updatingUserId === user.id ? 'Updating...' : 'Demote to User'}
                                                     </button>
@@ -209,7 +300,14 @@ const UserManagement: React.FC = () => {
                                                 <button
                                                     onClick={() => updateUserRole(user.id, 'user')}
                                                     disabled={updatingUserId === user.id}
-                                                    className="text-orange-600 hover:text-orange-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    style={{
+                                                        color: 'var(--sa-scouts-orange)',
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        cursor: updatingUserId === user.id ? 'not-allowed' : 'pointer',
+                                                        opacity: updatingUserId === user.id ? 0.5 : 1,
+                                                        textDecoration: 'underline'
+                                                    }}
                                                 >
                                                     {updatingUserId === user.id ? 'Updating...' : 'Demote to User'}
                                                 </button>
@@ -218,7 +316,14 @@ const UserManagement: React.FC = () => {
                                                 <button
                                                     onClick={() => updateUserRole(user.id, 'adult')}
                                                     disabled={updatingUserId === user.id}
-                                                    className="text-green-600 hover:text-green-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    style={{
+                                                        color: 'var(--alert-success-text)',
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        cursor: updatingUserId === user.id ? 'not-allowed' : 'pointer',
+                                                        opacity: updatingUserId === user.id ? 0.5 : 1,
+                                                        textDecoration: 'underline'
+                                                    }}
                                                 >
                                                     {updatingUserId === user.id ? 'Updating...' : 'Promote to Adult'}
                                                 </button>
@@ -233,8 +338,8 @@ const UserManagement: React.FC = () => {
             </div>
 
             {users.length === 0 && !loading && (
-                <div className="text-center py-12">
-                    <p className="text-gray-500">No users found</p>
+                <div style={{ textAlign: 'center', padding: '3rem 0' }}>
+                    <p style={{ color: 'var(--text-secondary)' }}>No users found</p>
                 </div>
             )}
         </div>

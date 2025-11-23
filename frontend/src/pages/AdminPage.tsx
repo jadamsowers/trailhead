@@ -10,8 +10,14 @@ const AdminPage: React.FC = () => {
 
     if (!isLoaded) {
         return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-                <div className="text-center text-gray-600">
+            <div style={{
+                minHeight: '100vh',
+                backgroundColor: 'var(--bg-secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}>
+                <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
                     <p>Loading...</p>
                 </div>
             </div>
@@ -19,13 +25,18 @@ const AdminPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 flex justify-center">
+        <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-secondary)', display: 'flex', justifyContent: 'center' }}>
             <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-                <div className="mb-8">
-                    <h1 className="text-4xl font-heading font-bold text-gray-900 mb-2">
+                <div style={{ marginBottom: '2rem' }}>
+                    <h1 style={{
+                        fontSize: '2.25rem',
+                        fontWeight: 'bold',
+                        color: 'var(--text-primary)',
+                        marginBottom: '0.5rem'
+                    }}>
                         Admin Dashboard
                     </h1>
-                    <p className="text-gray-600 mt-2">
+                    <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
                         Manage outings, users, and system settings
                     </p>
                 </div>

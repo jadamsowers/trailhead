@@ -7,9 +7,9 @@ interface TopographicBackgroundProps {
 }
 
 const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
-    opacity = 0.12,
-    lineColor = '#1976d2',
-    backgroundColor = '#fafafa'
+    opacity = 0.15,
+    lineColor = 'var(--sa-dark-blue)',
+    backgroundColor = 'var(--bg-secondary)'
 }) => {
     const svgRef = useRef<SVGSVGElement>(null);
 
@@ -311,18 +311,19 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
                     }}
                 >
                     <defs>
+                        {/* Scouting America gradient: Dark Blue to Pale Blue to Tan */}
                         <linearGradient id="topoGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style={{ stopColor: 'rgba(25, 118, 210, 0.25)', stopOpacity: 1 }} />
-                            <stop offset="50%" style={{ stopColor: 'rgba(25, 118, 210, 0.15)', stopOpacity: 1 }} />
-                            <stop offset="100%" style={{ stopColor: 'rgba(156, 39, 176, 0.2)', stopOpacity: 1 }} />
+                            <stop offset="0%" style={{ stopColor: 'rgba(0, 51, 102, 0.2)', stopOpacity: 1 }} />
+                            <stop offset="50%" style={{ stopColor: 'rgba(154, 179, 213, 0.15)', stopOpacity: 1 }} />
+                            <stop offset="100%" style={{ stopColor: 'rgba(173, 157, 123, 0.18)', stopOpacity: 1 }} />
                         </linearGradient>
                         <radialGradient id="topoRadialGradient" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style={{ stopColor: 'rgba(255, 255, 255, 0.6)', stopOpacity: 1 }} />
-                            <stop offset="100%" style={{ stopColor: 'rgba(255, 255, 255, 0)', stopOpacity: 1 }} />
+                            <stop offset="0%" style={{ stopColor: 'rgba(233, 233, 228, 0.5)', stopOpacity: 1 }} />
+                            <stop offset="100%" style={{ stopColor: 'rgba(233, 233, 228, 0)', stopOpacity: 1 }} />
                         </radialGradient>
                     </defs>
                 </svg>
-                {/* Gradient overlay */}
+                {/* Scouting America gradient overlay: Dark Blue to Pale Blue to Tan */}
                 <div
                     style={{
                         position: 'absolute',
@@ -330,11 +331,11 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
                         left: 0,
                         width: '100%',
                         height: '100%',
-                        background: 'linear-gradient(135deg, rgba(25, 118, 210, 0.35) 0%, rgba(255, 255, 255, 0) 50%, rgba(156, 39, 176, 0.3) 100%)',
+                        background: 'linear-gradient(135deg, rgba(0, 51, 102, 0.25) 0%, rgba(154, 179, 213, 0.15) 40%, rgba(233, 233, 228, 0) 60%, rgba(173, 157, 123, 0.2) 100%)',
                         pointerEvents: 'none'
                     }}
                 />
-                {/* Radial gradient for depth */}
+                {/* Radial gradient for depth with Scouting America Light Tan */}
                 <div
                     style={{
                         position: 'absolute',
@@ -342,7 +343,7 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
                         left: 0,
                         width: '100%',
                         height: '100%',
-                        background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 60%)',
+                        background: 'radial-gradient(circle at 30% 30%, rgba(233, 233, 228, 0.6) 0%, rgba(233, 233, 228, 0) 60%)',
                         pointerEvents: 'none'
                     }}
                 />

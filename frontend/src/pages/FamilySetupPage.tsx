@@ -55,7 +55,7 @@ const FamilySetupPage: React.FC = () => {
                     justifyContent: 'center',
                     padding: '20px'
                 }}>
-                    <div style={{ textAlign: 'center', color: '#666' }}>
+                    <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
                         <p>Loading...</p>
                     </div>
                 </div>
@@ -76,23 +76,24 @@ const FamilySetupPage: React.FC = () => {
                 }}>
                     {/* Welcome Header Card */}
                     <div style={{
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--card-bg)',
                         padding: '40px',
                         borderRadius: '8px',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                        boxShadow: 'var(--card-shadow)',
                         marginBottom: '30px',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        border: '1px solid var(--card-border)'
                     }}>
                         <h1 style={{
                             fontSize: '32px',
                             fontWeight: 'bold',
-                            color: '#1976d2',
+                            color: 'var(--sa-dark-blue)',
                             marginBottom: '10px'
                         }}>
                             Welcome, {user?.firstName || 'Adult'}!
                         </h1>
                         <p style={{
-                            color: '#666',
+                            color: 'var(--text-secondary)',
                             fontSize: '16px',
                             marginBottom: '0'
                         }}>
@@ -103,8 +104,8 @@ const FamilySetupPage: React.FC = () => {
                     {/* Instructions Card - Only show if no family members */}
                     {!hasFamilyMembers && (
                         <div style={{
-                            backgroundColor: '#e3f2fd',
-                            border: '1px solid #90caf9',
+                            backgroundColor: 'var(--alert-info-bg)',
+                            border: '1px solid var(--alert-info-border)',
                             borderRadius: '8px',
                             padding: '30px',
                             marginBottom: '30px'
@@ -112,7 +113,7 @@ const FamilySetupPage: React.FC = () => {
                             <h2 style={{
                                 fontSize: '24px',
                                 fontWeight: '600',
-                                color: '#1565c0',
+                                color: 'var(--alert-info-text)',
                                 marginBottom: '15px',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -122,7 +123,7 @@ const FamilySetupPage: React.FC = () => {
                                 Add Your Family Members
                             </h2>
                             <p style={{
-                                color: '#1565c0',
+                                color: 'var(--alert-info-text)',
                                 marginBottom: '20px',
                                 fontSize: '15px',
                                 lineHeight: '1.6'
@@ -131,7 +132,7 @@ const FamilySetupPage: React.FC = () => {
                                 This information will be saved and can be reused for future outing signups, saving you time!
                             </p>
                             <ul style={{
-                                color: '#1565c0',
+                                color: 'var(--alert-info-text)',
                                 paddingLeft: '20px',
                                 margin: '0',
                                 lineHeight: '2'
@@ -146,11 +147,12 @@ const FamilySetupPage: React.FC = () => {
 
                     {/* Family Management Section */}
                     <div style={{
-                        backgroundColor: 'white',
+                        backgroundColor: 'var(--card-bg)',
                         padding: '40px',
                         borderRadius: '8px',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                        marginBottom: '30px'
+                        boxShadow: 'var(--card-shadow)',
+                        marginBottom: '30px',
+                        border: '1px solid var(--card-border)'
                     }}>
                         <FamilyManagement onMemberAdded={handleMemberAdded} />
                     </div>
@@ -165,8 +167,8 @@ const FamilySetupPage: React.FC = () => {
                                 onClick={handleContinue}
                                 style={{
                                     padding: '16px 48px',
-                                    backgroundColor: '#2e7d32',
-                                    color: 'white',
+                                    backgroundColor: 'var(--btn-success-bg)',
+                                    color: 'var(--btn-success-text)',
                                     border: 'none',
                                     borderRadius: '8px',
                                     fontSize: '18px',
@@ -176,12 +178,12 @@ const FamilySetupPage: React.FC = () => {
                                     transition: 'all 0.2s'
                                 }}
                                 onMouseOver={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#1b5e20';
+                                    e.currentTarget.style.backgroundColor = 'var(--btn-success-hover)';
                                     e.currentTarget.style.transform = 'translateY(-2px)';
                                     e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
                                 }}
                                 onMouseOut={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#2e7d32';
+                                    e.currentTarget.style.backgroundColor = 'var(--btn-success-bg)';
                                     e.currentTarget.style.transform = 'translateY(0)';
                                     e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
                                 }}
@@ -196,9 +198,9 @@ const FamilySetupPage: React.FC = () => {
                         <div style={{
                             textAlign: 'center',
                             padding: '20px',
-                            backgroundColor: '#f5f5f5',
+                            backgroundColor: 'var(--bg-tertiary)',
                             borderRadius: '8px',
-                            color: '#666',
+                            color: 'var(--text-secondary)',
                             fontSize: '14px'
                         }}>
                             <p style={{ margin: '0' }}>

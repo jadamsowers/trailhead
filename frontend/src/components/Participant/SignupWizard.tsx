@@ -455,8 +455,8 @@ const SignupWizard: React.FC = () => {
                 <div style={{
                     padding: '15px',
                     marginBottom: '20px',
-                    backgroundColor: '#e3f2fd',
-                    color: '#1976d2',
+                    backgroundColor: 'var(--alert-info-bg)',
+                    color: 'var(--alert-info-text)',
                     borderRadius: '4px',
                     border: '2px solid #1976d2'
                 }}>
@@ -469,8 +469,8 @@ const SignupWizard: React.FC = () => {
                     <div style={{
                         padding: '15px',
                         marginBottom: '20px',
-                        backgroundColor: '#e8f5e9',
-                        color: '#2e7d32',
+                        backgroundColor: 'var(--alert-success-bg)',
+                        color: 'var(--alert-success-text)',
                         borderRadius: '4px',
                         fontWeight: 'bold'
                     }}>
@@ -481,8 +481,8 @@ const SignupWizard: React.FC = () => {
                         <div style={{
                             padding: '15px',
                             marginBottom: '20px',
-                            backgroundColor: '#fff3e0',
-                            color: '#e65100',
+                            backgroundColor: 'var(--alert-warning-bg)',
+                            color: 'var(--alert-warning-text)',
                             borderRadius: '4px'
                         }}>
                             <strong>Important Reminders:</strong>
@@ -498,8 +498,8 @@ const SignupWizard: React.FC = () => {
                 <div className="progress-step-label" style={{
                     padding: '15px',
                     marginBottom: '20px',
-                    backgroundColor: '#ffebee',
-                    color: '#c62828',
+                    backgroundColor: 'var(--alert-error-bg)',
+                    color: 'var(--alert-error-text)',
                     borderRadius: '4px'
                 }}>
                     {error}
@@ -508,7 +508,7 @@ const SignupWizard: React.FC = () => {
 
             {/* Progress Indicator - Only show after trip selection */}
             {currentStep !== 'select-trip' && (
-                <div className="progress-indicator" style={{ marginBottom: '30px', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+                <div className="progress-indicator" style={{ marginBottom: '30px', padding: '20px', backgroundColor: 'var(--bg-tertiary)', borderRadius: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         {[
                             { key: 'contact-info', label: 'Contact', number: 1 },
@@ -584,7 +584,7 @@ const SignupWizard: React.FC = () => {
                                         border: isExpanded ? '2px solid #2e7d32' : '1px solid #c8e6c9',
                                         borderRadius: '8px',
                                         overflow: 'hidden',
-                                        backgroundColor: '#f1f8f4'
+                                        backgroundColor: 'var(--alert-success-bg)'
                                     }}
                                 >
                                     <div
@@ -612,8 +612,8 @@ const SignupWizard: React.FC = () => {
                                                                     display: 'inline-flex',
                                                                     alignItems: 'center',
                                                                     padding: '4px 10px',
-                                                                    backgroundColor: '#e3f2fd',
-                                                                    color:  '#1976d2',
+                                                                    backgroundColor: 'var(--badge-scout-bg)',
+                                                                    color: 'var(--badge-scout-text)',
                                                                     borderRadius: '12px',
                                                                     fontSize: '13px',
                                                                     fontWeight: '500',
@@ -638,7 +638,7 @@ const SignupWizard: React.FC = () => {
                                     </div>
 
                                     {isExpanded && (
-                                        <div style={{ padding: '20px', backgroundColor: 'white', borderTop: '2px solid #2e7d32' }}>
+                                        <div style={{ padding: '20px', backgroundColor: 'var(--card-bg)', borderTop: '2px solid #2e7d32' }}>
                                             <div style={{ marginBottom: '20px' }}>
                                                 <h4 style={{ marginBottom: '10px' }}>Outing Details</h4>
                                                 <p style={{ margin: '5px 0' }}><strong>Location:</strong> {outing.location}</p>
@@ -653,14 +653,14 @@ const SignupWizard: React.FC = () => {
                                                             key={participant.id}
                                                             style={{
                                                                 padding: '12px',
-                                                                backgroundColor: '#f5f5f5',
+                                                                backgroundColor: 'var(--bg-tertiary)',
                                                                 borderRadius: '6px',
                                                                 border: '1px solid #ddd'
                                                             }}
                                                         >
                                                             <p style={{ margin: '0 0 6px 0', fontWeight: 'bold' }}>{participant.name}</p>
                                                             <p style={{ margin: '4px 0', fontSize: '14px' }}>
-                                                                {participant.is_adult ? '👨‍👩‍👧‍👦 Adult' : '🎒 Scout'}
+                                                                {participant.is_adult ? '🌲 Adult' : '🌱 Scout'}
                                                             </p>
                                                             {participant.troop_number && (
                                                                 <p style={{ margin: '4px 0', fontSize: '14px' }}>Troop {participant.troop_number}</p>
@@ -675,7 +675,7 @@ const SignupWizard: React.FC = () => {
                                                 </div>
                                             </div>
 
-                                            <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f5f5f5', borderRadius: '6px' }}>
+                                            <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: 'var(--bg-tertiary)', borderRadius: '6px' }}>
                                                 <h4 style={{ marginBottom: '8px', fontSize: '14px' }}>Contact Information</h4>
                                                 <p style={{ margin: '4px 0', fontSize: '14px' }}><strong>Email:</strong> {signup.family_contact_email}</p>
                                                 <p style={{ margin: '4px 0', fontSize: '14px' }}><strong>Phone:</strong> {signup.family_contact_phone}</p>
@@ -787,10 +787,10 @@ const SignupWizard: React.FC = () => {
                                         }}
                                         style={{
                                             padding: '20px',
-                                            border: selectedOuting?.id === outing.id ? '3px solid #1976d2' : '1px solid #ddd',
+                                            border: selectedOuting?.id === outing.id ? '3px solid #1976d2' : '1px solid var(--card-border)',
                                             borderRadius: '8px',
                                             cursor: 'pointer',
-                                            backgroundColor: selectedOuting?.id === outing.id ? '#e3f2fd' : 'white',
+                                            backgroundColor: selectedOuting?.id === outing.id ? 'var(--badge-info-bg)' : 'var(--card-bg)',
                                             transition: 'all 0.2s',
                                             position: 'relative'
                                         }}
@@ -841,8 +841,8 @@ const SignupWizard: React.FC = () => {
                                             <div style={{
                                                 marginTop: '10px',
                                                 padding: '10px',
-                                                backgroundColor: '#fff3e0',
-                                                color: '#e65100',
+                                                backgroundColor: 'var(--alert-warning-bg)',
+                                                color: 'var(--alert-warning-text)',
                                                 borderRadius: '4px',
                                                 fontSize: '13px',
                                                 fontWeight: 'bold'
@@ -855,8 +855,8 @@ const SignupWizard: React.FC = () => {
                                             <div style={{
                                                 marginTop: '10px',
                                                 padding: '10px',
-                                                backgroundColor: '#fff3e0',
-                                                color: '#e65100',
+                                                backgroundColor: 'var(--alert-warning-bg)',
+                                                color: 'var(--alert-warning-text)',
                                                 borderRadius: '4px',
                                                 fontSize: '13px',
                                                 fontWeight: 'bold'
@@ -869,8 +869,8 @@ const SignupWizard: React.FC = () => {
                                             <div style={{
                                                 marginTop: '10px',
                                                 padding: '10px',
-                                                backgroundColor: '#fff3e0',
-                                                color: '#e65100',
+                                                backgroundColor: 'var(--alert-warning-bg)',
+                                                color: 'var(--alert-warning-text)',
                                                 borderRadius: '4px',
                                                 fontSize: '13px',
                                                 fontWeight: 'bold'
@@ -891,7 +891,7 @@ const SignupWizard: React.FC = () => {
                         <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
                             This information will be saved as your default for future signups. You can change it for each trip if needed.
                         </p>
-                        <div style={{ display: 'grid', gap: '20px', padding: '20px', backgroundColor: 'white', borderRadius: '8px' }}>
+                        <div style={{ display: 'grid', gap: '20px', padding: '20px', backgroundColor: 'var(--card-bg)', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email *</label>
                                 <input
@@ -965,7 +965,7 @@ const SignupWizard: React.FC = () => {
                                                 border: isSelected ? '3px solid #4caf50' : isExpired ? '2px solid #c62828' : '1px solid #ddd',
                                                 borderRadius: '8px',
                                                 cursor: canSelect ? 'pointer' : 'not-allowed',
-                                                backgroundColor: isSelected ? '#e8f5e9' : isExpired ? '#ffebee' : 'white',
+                                                backgroundColor: isSelected ? 'var(--alert-success-bg)' : isExpired ? 'var(--alert-error-bg)' : 'var(--card-bg)',
                                                 position: 'relative',
                                                 opacity: isExpired ? 0.7 : 1
                                             }}
@@ -1013,7 +1013,7 @@ const SignupWizard: React.FC = () => {
                             </div>
                         )}
                         {selectedOuting?.capacity_type === 'vehicle' && selectedAdultIds.length > 0 && (
-                            <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px' }}>
+                            <div style={{ marginTop: '20px', padding: '15px', backgroundColor: 'var(--alert-info-bg)', borderRadius: '8px' }}>
                                 <p style={{ margin: '0', fontWeight: 'bold' }}>
                                     Available Seats: {calculateAvailableSeats()}
                                 </p>
@@ -1029,7 +1029,7 @@ const SignupWizard: React.FC = () => {
                             Select scouts attending (optional - skip if no scouts)
                         </p>
                         {selectedOuting?.capacity_type === 'vehicle' && (
-                            <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#e3f2fd', borderRadius: '8px' }}>
+                            <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: 'var(--alert-info-bg)', borderRadius: '8px' }}>
                                 <p style={{ margin: '0', fontWeight: 'bold' }}>
                                     Available Seats: {calculateAvailableSeats()}
                                 </p>
@@ -1055,7 +1055,7 @@ const SignupWizard: React.FC = () => {
                                                 border: isSelected ? '3px solid #4caf50' : '1px solid #ddd',
                                                 borderRadius: '8px',
                                                 cursor: canSelect ? 'pointer' : 'not-allowed',
-                                                backgroundColor: isSelected ? '#e8f5e9' : canSelect ? 'white' : '#f5f5f5',
+                                                backgroundColor: isSelected ? 'var(--alert-success-bg)' : canSelect ? 'var(--card-bg)' : 'var(--bg-tertiary)',
                                                 position: 'relative',
                                                 opacity: canSelect ? 1 : 0.6
                                             }}
@@ -1090,7 +1090,7 @@ const SignupWizard: React.FC = () => {
                 {currentStep === 'review' && (
                     <div>
                         <h2>Review Signup</h2>
-                        <div style={{ marginBottom: '20px', padding: '20px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+                        <div style={{ marginBottom: '20px', padding: '20px', backgroundColor: 'var(--bg-tertiary)', borderRadius: '8px' }}>
                             <h3>Trip: {selectedOuting?.name}</h3>
                             <p><strong>Contact:</strong> {contactInfo.email} | {contactInfo.phone}</p>
                             <p><strong>Adults:</strong> {selectedAdultIds.length}</p>
@@ -1128,9 +1128,9 @@ const SignupWizard: React.FC = () => {
                             disabled={loading}
                             style={{
                                 padding: '12px 24px',
-                                backgroundColor: 'white',
-                                color: '#d32f2f',
-                                border: '2px solid #d32f2f',
+                                backgroundColor: 'var(--card-bg)',
+                                color: 'var(--alert-error-text)',
+                                border: '2px solid var(--alert-error-border)',
                                 borderRadius: '4px',
                                 cursor: loading ? 'not-allowed' : 'pointer',
                                 fontSize: '16px',

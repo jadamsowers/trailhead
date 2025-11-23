@@ -166,10 +166,10 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
                 <div style={{
                     textAlign: 'center',
                     padding: '48px 24px',
-                    backgroundColor: '#f5f5f5',
+                    backgroundColor: 'var(--bg-tertiary)',
                     borderRadius: '8px'
                 }}>
-                    <p style={{ color: '#666', marginBottom: '24px', fontSize: '16px' }}>No family members added yet</p>
+                    <p style={{ color: 'var(--text-secondary)', marginBottom: '24px', fontSize: '16px' }}>No family members added yet</p>
                     <button
                         onClick={handleAddMember}
                         style={{
@@ -449,8 +449,8 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                             {member.dietary_preferences.map((p, idx) => (
                                 <span key={idx} style={{
                                     padding: '4px 10px',
-                                    backgroundColor: '#e3f2fd',
-                                    color: '#1976d2',
+                                    backgroundColor: 'var(--badge-scout-bg)',
+                                    color: 'var(--badge-scout-text)',
                                     borderRadius: '12px',
                                     fontSize: '12px',
                                     fontWeight: '500'
@@ -469,8 +469,8 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                             {member.allergies.map((a, idx) => (
                                 <span key={idx} style={{
                                     padding: '6px 10px',
-                                    backgroundColor: '#ffebee',
-                                    color: '#c62828',
+                                    backgroundColor: 'var(--alert-error-bg)',
+                                    color: 'var(--alert-error-text)',
                                     borderRadius: '4px',
                                     fontSize: '13px',
                                     fontWeight: '500',
@@ -617,8 +617,8 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                     {error && (
                         <div style={{
                             padding: '12px',
-                            backgroundColor: '#ffebee',
-                            color: '#c62828',
+                            backgroundColor: 'var(--alert-error-bg)',
+                            color: 'var(--alert-error-text)',
                             borderRadius: '6px',
                             marginBottom: '20px',
                             fontSize: '14px',
@@ -883,7 +883,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
                                 gap: '12px',
                                 padding: '16px',
-                                backgroundColor: '#f5f5f5',
+                                backgroundColor: 'var(--bg-tertiary)',
                                 borderRadius: '6px'
                             }}>
                                 {commonDietaryPreferences.map((preference) => (
@@ -983,8 +983,8 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                     <div
                                         key={index}
                                         style={{
-                                            backgroundColor: '#ffebee',
-                                            border: '1px solid #ef9a9a',
+                                            backgroundColor: 'var(--alert-error-bg)',
+                                            border: '1px solid var(--alert-error-border)',
                                             padding: '12px 16px',
                                             borderRadius: '6px',
                                             display: 'flex',
@@ -992,7 +992,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                             alignItems: 'center'
                                         }}
                                     >
-                                        <span style={{ fontSize: '14px', color: '#c62828', fontWeight: '500' }}>
+                                        <span style={{ fontSize: '14px', color: 'var(--alert-error-text)', fontWeight: '500' }}>
                                             {allergy.allergy}
                                             {allergy.severity && ` (${allergy.severity})`}
                                         </span>
@@ -1000,7 +1000,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                             type="button"
                                             onClick={() => removeAllergy(index)}
                                             style={{
-                                                color: '#c62828',
+                                                color: 'var(--alert-error-text)',
                                                 background: 'none',
                                                 border: 'none',
                                                 fontSize: '20px',
@@ -1047,8 +1047,8 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 style={{
                                     flex: '1',
                                     padding: '14px',
-                                    backgroundColor: '#e0e0e0',
-                                    color: '#333',
+                                    backgroundColor: 'var(--btn-secondary-bg)',
+                                    color: 'var(--btn-secondary-text)',
                                     border: 'none',
                                     borderRadius: '6px',
                                     fontSize: '16px',
@@ -1056,8 +1056,8 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                     cursor: 'pointer',
                                     transition: 'background-color 0.2s'
                                 }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#d0d0d0'}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#e0e0e0'}
+                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-secondary-hover)'}
+                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-secondary-bg)'}
                             >
                                 Cancel
                             </button>

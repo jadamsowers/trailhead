@@ -42,7 +42,7 @@ const BackendHealthCheck: React.FC<BackendHealthCheckProps> = ({ children }) => 
                 justifyContent: 'center',
                 alignItems: 'center',
                 minHeight: '100vh',
-                backgroundColor: '#fafafa'
+                backgroundColor: 'var(--bg-secondary)'
             }}>
                 <div style={{ textAlign: 'center' }}>
                     <div style={{
@@ -73,7 +73,7 @@ const BackendHealthCheck: React.FC<BackendHealthCheckProps> = ({ children }) => 
                 justifyContent: 'center',
                 alignItems: 'center',
                 minHeight: '100vh',
-                backgroundColor: '#fafafa',
+                backgroundColor: 'var(--bg-secondary)',
                 padding: '20px'
             }}>
                 <div style={{
@@ -106,8 +106,8 @@ const BackendHealthCheck: React.FC<BackendHealthCheckProps> = ({ children }) => 
                         Unable to connect to the backend server. Please ensure the backend is running and accessible.
                     </p>
                     <div style={{
-                        backgroundColor: '#fff3e0',
-                        border: '1px solid #ffb74d',
+                        backgroundColor: 'var(--alert-warning-bg)',
+                        border: '1px solid var(--alert-warning-border)',
                         borderRadius: '8px',
                         padding: '20px',
                         marginBottom: '30px',
@@ -116,16 +116,16 @@ const BackendHealthCheck: React.FC<BackendHealthCheckProps> = ({ children }) => 
                         <h3 style={{ color: '#f57c00', marginBottom: '10px', fontSize: '16px' }}>
                             Troubleshooting Steps:
                         </h3>
-                        <ol style={{ color: '#666', fontSize: '14px', lineHeight: '1.8', paddingLeft: '20px' }}>
-                            <li>Verify the backend server is running on <code style={{ backgroundColor: '#f5f5f5', padding: '2px 6px', borderRadius: '4px' }}>http://localhost:8000</code></li>
-                            <li>Check that your <code style={{ backgroundColor: '#f5f5f5', padding: '2px 6px', borderRadius: '4px' }}>VITE_API_URL</code> environment variable is set correctly</li>
+                        <ol style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.8', paddingLeft: '20px' }}>
+                            <li>Verify the backend server is running on <code style={{ backgroundColor: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-primary)' }}>http://localhost:8000</code></li>
+                            <li>Check that your <code style={{ backgroundColor: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-primary)' }}>VITE_API_URL</code> environment variable is set correctly</li>
                             <li>Ensure there are no firewall or network issues blocking the connection</li>
                             <li>Review the backend logs for any startup errors</li>
                         </ol>
                     </div>
                     <div style={{
-                        backgroundColor: '#ffebee',
-                        border: '1px solid #ef5350',
+                        backgroundColor: 'var(--alert-error-bg)',
+                        border: '1px solid var(--alert-error-border)',
                         borderRadius: '8px',
                         padding: '15px',
                         marginBottom: '30px'

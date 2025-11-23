@@ -71,8 +71,8 @@ const AdminSetupPage: React.FC = () => {
 
     if (checkingSetup) {
         return (
-            <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-5">
-                <div className="text-center">
+            <div style={{ minHeight: 'calc(100vh - 200px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}>
+                <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
                     <p>Checking setup status...</p>
                 </div>
             </div>
@@ -81,17 +81,26 @@ const AdminSetupPage: React.FC = () => {
 
     if (setupComplete) {
         return (
-            <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-5">
-                <div className="max-w-lg w-full bg-white p-10 rounded-lg shadow-lg text-center">
-                    <h1 className="font-heading text-primary-500 mb-5">
+            <div style={{ minHeight: 'calc(100vh - 200px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}>
+                <div style={{ maxWidth: '32rem', width: '100%', backgroundColor: 'var(--card-bg)', padding: '2.5rem', borderRadius: '8px', boxShadow: 'var(--card-shadow)', textAlign: 'center', border: '1px solid var(--card-border)' }}>
+                    <h1 style={{ fontWeight: 'bold', color: 'var(--sa-dark-blue)', marginBottom: '1.25rem', fontSize: '1.875rem' }}>
                         Setup Already Complete
                     </h1>
-                    <p className="mb-8 text-gray-600">
+                    <p style={{ marginBottom: '2rem', color: 'var(--text-secondary)' }}>
                         An admin account has already been created for this system.
                     </p>
                     <button
                         onClick={() => navigate('/login')}
-                        className="px-6 py-3 bg-primary-500 text-white border-0 rounded font-bold text-base cursor-pointer hover:bg-primary-600 transition-colors"
+                        style={{
+                            padding: '0.75rem 1.5rem',
+                            backgroundColor: 'var(--btn-primary-bg)',
+                            color: 'var(--btn-primary-text)',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontWeight: 'bold',
+                            fontSize: '1rem',
+                            cursor: 'pointer'
+                        }}
                     >
                         Go to Login
                     </button>
@@ -101,19 +110,19 @@ const AdminSetupPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-5">
-            <div className="max-w-lg w-full bg-white p-10 rounded-lg shadow-lg">
-                <h1 className="font-heading text-center mb-2.5 text-primary-500">
+        <div style={{ minHeight: 'calc(100vh - 200px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.25rem' }}>
+            <div style={{ maxWidth: '32rem', width: '100%', backgroundColor: 'var(--card-bg)', padding: '2.5rem', borderRadius: '8px', boxShadow: 'var(--card-shadow)', border: '1px solid var(--card-border)' }}>
+                <h1 style={{ fontWeight: 'bold', textAlign: 'center', marginBottom: '0.625rem', color: 'var(--sa-dark-blue)', fontSize: '1.875rem' }}>
                     Initial Admin Setup
                 </h1>
-                <p className="text-center mb-8 text-gray-600 text-sm">
+                <p style={{ textAlign: 'center', marginBottom: '2rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
                     Create the first administrator account for this system.
                     This page will only be accessible until the first admin is created.
                 </p>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="mb-5">
-                        <label className="block mb-2 font-bold text-gray-800">
+                    <div style={{ marginBottom: '1.25rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                             Full Name:
                         </label>
                         <input
@@ -122,13 +131,23 @@ const AdminSetupPage: React.FC = () => {
                             onChange={(e) => setFullName(e.target.value)}
                             required
                             disabled={loading}
-                            className="w-full p-3 border border-gray-300 rounded text-base box-border disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                border: '1px solid var(--input-border)',
+                                borderRadius: '4px',
+                                fontSize: '1rem',
+                                backgroundColor: 'var(--input-bg)',
+                                color: 'var(--text-primary)',
+                                opacity: loading ? 0.5 : 1,
+                                cursor: loading ? 'not-allowed' : 'text'
+                            }}
                             placeholder="John Doe"
                         />
                     </div>
 
-                    <div className="mb-5">
-                        <label className="block mb-2 font-bold text-gray-800">
+                    <div style={{ marginBottom: '1.25rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                             Email:
                         </label>
                         <input
@@ -137,13 +156,23 @@ const AdminSetupPage: React.FC = () => {
                             onChange={(e) => setEmail(e.target.value)}
                             required
                             disabled={loading}
-                            className="w-full p-3 border border-gray-300 rounded text-base box-border disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                border: '1px solid var(--input-border)',
+                                borderRadius: '4px',
+                                fontSize: '1rem',
+                                backgroundColor: 'var(--input-bg)',
+                                color: 'var(--text-primary)',
+                                opacity: loading ? 0.5 : 1,
+                                cursor: loading ? 'not-allowed' : 'text'
+                            }}
                             placeholder="admin@example.com"
                         />
                     </div>
 
-                    <div className="mb-5">
-                        <label className="block mb-2 font-bold text-gray-800">
+                    <div style={{ marginBottom: '1.25rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                             Password:
                         </label>
                         <input
@@ -152,13 +181,23 @@ const AdminSetupPage: React.FC = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             disabled={loading}
-                            className="w-full p-3 border border-gray-300 rounded text-base box-border disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                border: '1px solid var(--input-border)',
+                                borderRadius: '4px',
+                                fontSize: '1rem',
+                                backgroundColor: 'var(--input-bg)',
+                                color: 'var(--text-primary)',
+                                opacity: loading ? 0.5 : 1,
+                                cursor: loading ? 'not-allowed' : 'text'
+                            }}
                             placeholder="Minimum 8 characters"
                         />
                     </div>
 
-                    <div className="mb-5">
-                        <label className="block mb-2 font-bold text-gray-800">
+                    <div style={{ marginBottom: '1.25rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold', color: 'var(--text-primary)' }}>
                             Confirm Password:
                         </label>
                         <input
@@ -167,13 +206,31 @@ const AdminSetupPage: React.FC = () => {
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
                             disabled={loading}
-                            className="w-full p-3 border border-gray-300 rounded text-base box-border disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                border: '1px solid var(--input-border)',
+                                borderRadius: '4px',
+                                fontSize: '1rem',
+                                backgroundColor: 'var(--input-bg)',
+                                color: 'var(--text-primary)',
+                                opacity: loading ? 0.5 : 1,
+                                cursor: loading ? 'not-allowed' : 'text'
+                            }}
                             placeholder="Re-enter password"
                         />
                     </div>
 
                     {error && (
-                        <div className="p-3 bg-red-50 text-red-800 rounded mb-5 text-sm">
+                        <div style={{
+                            padding: '0.75rem',
+                            backgroundColor: 'var(--alert-error-bg)',
+                            color: 'var(--alert-error-text)',
+                            borderRadius: '4px',
+                            marginBottom: '1.25rem',
+                            fontSize: '0.875rem',
+                            border: '1px solid var(--alert-error-border)'
+                        }}>
                             {error}
                         </div>
                     )}
@@ -181,13 +238,31 @@ const AdminSetupPage: React.FC = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full p-3 bg-primary-500 text-white border-0 rounded text-base font-bold cursor-pointer transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-primary-600"
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            backgroundColor: loading ? 'var(--btn-disabled-bg)' : 'var(--btn-primary-bg)',
+                            color: loading ? 'var(--btn-disabled-text)' : 'var(--btn-primary-text)',
+                            border: 'none',
+                            borderRadius: '4px',
+                            fontSize: '1rem',
+                            fontWeight: 'bold',
+                            cursor: loading ? 'not-allowed' : 'pointer'
+                        }}
                     >
                         {loading ? 'Creating Admin Account...' : 'Create Admin Account'}
                     </button>
                 </form>
 
-                <div className="mt-5 p-4 bg-orange-50 rounded text-sm text-orange-800">
+                <div style={{
+                    marginTop: '1.25rem',
+                    padding: '1rem',
+                    backgroundColor: 'var(--alert-warning-bg)',
+                    borderRadius: '4px',
+                    fontSize: '0.875rem',
+                    color: 'var(--alert-warning-text)',
+                    border: '1px solid var(--alert-warning-border)'
+                }}>
                     <strong>⚠️ Important:</strong><br />
                     This is a one-time setup. After creating the admin account, this page will no longer be accessible.
                     Make sure to save your credentials securely.

@@ -1,0 +1,413 @@
+/**
+ * Scouting America Theme
+ * 
+ * This file contains all color variables and theme configuration for the application.
+ * To customize the theme, simply modify the CSS variables in the :root selector.
+ * 
+ * Color Palette:
+ * - Scouting America Blues: Primary brand colors
+ * - Scouting America Tans/Grays: Neutral colors for backgrounds and text
+ * - Scouts BSA Colors: Accent colors for specific elements
+ */
+
+:root {
+  /* ===== SCOUTING AMERICA PRIMARY COLORS ===== */
+  
+  /* Blues - Primary Brand Colors */
+  --sa-pale-blue: #9AB3D5;
+  --sa-blue: rgb(154, 179, 213);
+  --sa-dark-blue: #003366;
+  --sa-dark-blue-rgb: rgb(0, 51, 102);
+  
+  /* Tans - Neutral/Background Colors */
+  --sa-light-tan: #E9E9E4;
+  --sa-light-tan-rgb: rgb(233, 233, 228);
+  --sa-tan: #AD9D7B;
+  --sa-tan-rgb: rgb(173, 157, 123);
+  --sa-dark-tan: #8B7D5F; /* Derived darker shade */
+  
+  /* Grays - Text and UI Elements */
+  --sa-pale-gray: #858787;
+  --sa-pale-gray-rgb: rgb(133, 135, 135);
+  --sa-gray: #5A5C5C; /* Derived medium shade */
+  --sa-dark-gray: #232528;
+  --sa-dark-gray-rgb: rgb(35, 37, 40);
+  
+  /* ===== SCOUTS BSA ACCENT COLORS ===== */
+  
+  --scouts-tan: #D6CEBD;
+  --scouts-tan-rgb: rgb(214, 206, 189);
+  --scouts-red: #CE1126;
+  --scouts-red-rgb: rgb(206, 17, 38);
+  --scouts-olive: #243E2C;
+  --scouts-olive-rgb: rgb(36, 62, 44);
+  
+  /* ===== SEMANTIC COLOR MAPPINGS ===== */
+  
+  /* Primary - Main brand color for buttons, links, headers */
+  --color-primary: var(--sa-dark-blue);
+  --color-primary-light: var(--sa-pale-blue);
+  --color-primary-dark: #002244;
+  --color-primary-rgb: var(--sa-dark-blue-rgb);
+  
+  /* Secondary - Accent color for secondary actions */
+  --color-secondary: var(--sa-tan);
+  --color-secondary-light: var(--scouts-tan);
+  --color-secondary-dark: var(--sa-dark-tan);
+  --color-secondary-rgb: var(--sa-tan-rgb);
+  
+  /* Success - Positive actions, confirmations */
+  --color-success: var(--scouts-olive);
+  --color-success-light: #2E5038;
+  --color-success-dark: #1A2E20;
+  --color-success-rgb: var(--scouts-olive-rgb);
+  
+  /* Error/Danger - Warnings, errors, destructive actions */
+  --color-error: var(--scouts-red);
+  --color-error-light: #E63946;
+  --color-error-dark: #A00E1E;
+  --color-error-rgb: var(--scouts-red-rgb);
+  
+  /* Warning - Caution, important notices */
+  --color-warning: #D4A017;
+  --color-warning-light: #F4C430;
+  --color-warning-dark: #B8860B;
+  
+  /* Info - Informational messages */
+  --color-info: var(--sa-pale-blue);
+  --color-info-light: #B8D4F1;
+  --color-info-dark: #7A9BC4;
+  
+  /* ===== BACKGROUND COLORS ===== */
+  
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8F8F6;
+  --bg-tertiary: var(--sa-light-tan);
+  --bg-dark: var(--sa-dark-gray);
+  --bg-overlay: rgba(0, 0, 0, 0.5);
+  
+  /* ===== TEXT COLORS ===== */
+  
+  --text-primary: var(--sa-dark-gray);
+  --text-secondary: #4A4A4A;
+  --text-tertiary: #757575;
+  --text-light: #FFFFFF;
+  --text-muted: #999999;
+  --text-link: var(--sa-dark-blue);
+  --text-link-hover: #004080;
+  
+  /* ===== BORDER COLORS ===== */
+  
+  --border-light: #E5E5E5;
+  --border-medium: #CCCCCC;
+  --border-dark: #999999;
+  --border-primary: var(--sa-dark-blue);
+  --border-success: var(--scouts-olive);
+  --border-error: var(--scouts-red);
+  
+  /* ===== COMPONENT-SPECIFIC COLORS ===== */
+  
+  /* Buttons */
+  --btn-primary-bg: var(--color-primary);
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-hover: var(--color-primary-dark);
+  
+  --btn-secondary-bg: var(--sa-light-tan);
+  --btn-secondary-text: var(--sa-dark-gray);
+  --btn-secondary-hover: var(--sa-tan);
+  
+  --btn-success-bg: var(--color-success);
+  --btn-success-text: #FFFFFF;
+  --btn-success-hover: var(--color-success-dark);
+  
+  --btn-danger-bg: var(--color-error);
+  --btn-danger-text: #FFFFFF;
+  --btn-danger-hover: var(--color-error-dark);
+  
+  --btn-disabled-bg: #E5E5E5;
+  --btn-disabled-text: #999999;
+  
+  /* Cards */
+  --card-bg: #FFFFFF;
+  --card-border: var(--border-light);
+  --card-shadow: rgba(0, 0, 0, 0.08);
+  --card-hover-shadow: rgba(0, 0, 0, 0.12);
+  
+  /* Forms */
+  --input-bg: #FFFFFF;
+  --input-border: var(--border-medium);
+  --input-border-focus: var(--border-primary);
+  --input-text: var(--text-primary);
+  --input-placeholder: var(--text-muted);
+  
+  /* Alerts */
+  --alert-success-bg: rgba(36, 62, 44, 0.1);
+  --alert-success-border: var(--scouts-olive);
+  --alert-success-text: var(--scouts-olive);
+  
+  --alert-error-bg: rgba(206, 17, 38, 0.1);
+  --alert-error-border: var(--scouts-red);
+  --alert-error-text: var(--scouts-red);
+  
+  --alert-warning-bg: rgba(212, 160, 23, 0.1);
+  --alert-warning-border: var(--color-warning);
+  --alert-warning-text: var(--color-warning-dark);
+  
+  --alert-info-bg: rgba(154, 179, 213, 0.1);
+  --alert-info-border: var(--sa-pale-blue);
+  --alert-info-text: var(--sa-dark-blue);
+  
+  /* Badges/Tags */
+  --badge-adult-bg: rgba(173, 157, 123, 0.2);
+  --badge-adult-text: var(--sa-dark-tan);
+  --badge-adult-border: var(--sa-tan);
+  
+  --badge-scout-bg: rgba(154, 179, 213, 0.2);
+  --badge-scout-text: var(--sa-dark-blue);
+  --badge-scout-border: var(--sa-pale-blue);
+  
+  --badge-info-bg: rgba(154, 179, 213, 0.15);
+  --badge-info-text: var(--sa-dark-blue);
+  --badge-info-border: var(--sa-pale-blue);
+  
+  /* Scouts BSA accent colors */
+  --sa-scouts-orange: #FF6B35;
+  --sa-scouts-green: #4CAF50;
+  
+  /* ===== SPACING & SIZING ===== */
+  
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+  --border-radius-xl: 12px;
+  --border-radius-full: 9999px;
+  
+  /* ===== SHADOWS ===== */
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  
+  /* ===== TRANSITIONS ===== */
+  
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 200ms ease-in-out;
+  --transition-slow: 300ms ease-in-out;
+  
+  /* ===== TYPOGRAPHY ===== */
+  
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-family-mono: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+
+/* Dark mode when explicitly set via data attribute */
+[data-theme="dark"] {
+  --bg-primary: #0A0C0D;
+  --bg-secondary: #121416;
+  --bg-tertiary: #1C1E20;
+  --bg-dark: #000000;
+  
+  --text-primary: #FFFFFF;
+  --text-secondary: #B8BABB;
+  --text-tertiary: #808487;
+  --text-light: #FFFFFF;
+  --text-muted: #6B6E70;
+  --text-link: #9AB3D5;
+  --text-link-hover: #B8D4F1;
+  
+  --border-light: #2A2D2F;
+  --border-medium: #3A3D3F;
+  --border-dark: #4A4D4F;
+  
+  --card-bg: #1A1D1F;
+  --card-border: #2F3234;
+  --card-shadow: rgba(0, 0, 0, 0.6);
+  --card-hover-shadow: rgba(0, 0, 0, 0.8);
+  
+  --input-bg: #1A1D1F;
+  --input-border: #3A3D3F;
+  --input-border-focus: var(--sa-pale-blue);
+  --input-text: #FFFFFF;
+  --input-placeholder: #6B6E70;
+  
+  /* Adjust button colors for dark mode */
+  --btn-primary-bg: var(--sa-pale-blue);
+  --btn-primary-text: #0A0C0D;
+  --btn-primary-hover: #B8D4F1;
+  
+  --btn-secondary-bg: #2A2D2F;
+  --btn-secondary-text: #FFFFFF;
+  --btn-secondary-hover: #3A3D3F;
+  
+  --btn-disabled-bg: #2A2D2F;
+  --btn-disabled-text: #6B6E70;
+  
+  /* Adjust alert backgrounds for dark mode - more opaque for better contrast */
+  --alert-success-bg: rgba(95, 184, 120, 0.15);
+  --alert-success-border: #5FB878;
+  --alert-success-text: #A8E6A8;
+  
+  --alert-error-bg: rgba(206, 17, 38, 0.3);
+  --alert-error-border: #A00E1E;
+  --alert-error-text: #FF9999;
+  
+  --alert-warning-bg: rgba(212, 160, 23, 0.3);
+  --alert-warning-border: #B8860B;
+  --alert-warning-text: #FFD966;
+  
+  --alert-info-bg: rgba(154, 179, 213, 0.2);
+  --alert-info-border: #7A9BC4;
+  --alert-info-text: #B8D4F1;
+  
+  /* Adjust badge backgrounds for dark mode */
+  --badge-adult-bg: rgba(173, 157, 123, 0.3);
+  --badge-adult-text: #E0D5C0;
+  --badge-adult-border: #8B7D5F;
+  
+  --badge-scout-bg: rgba(154, 179, 213, 0.3);
+  --badge-scout-text: #B8D4F1;
+  --badge-scout-border: #7A9BC4;
+  
+  --badge-info-bg: rgba(154, 179, 213, 0.2);
+  --badge-info-text: #B8D4F1;
+  --badge-info-border: #7A9BC4;
+  
+  /* Scouts BSA colors adjusted for dark mode */
+  --sa-scouts-orange: #FF8C42;
+  --sa-scouts-green: #5FB878;
+}
+
+/* Auto dark mode based on system preference (if no explicit preference set) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-primary: #0A0C0D;
+    --bg-secondary: #121416;
+    --bg-tertiary: #1C1E20;
+    --bg-dark: #000000;
+    
+    --text-primary: #FFFFFF;
+    --text-secondary: #B8BABB;
+    --text-tertiary: #808487;
+    --text-light: #FFFFFF;
+    --text-muted: #6B6E70;
+    --text-link: #9AB3D5;
+    --text-link-hover: #B8D4F1;
+    
+    --border-light: #2A2D2F;
+    --border-medium: #3A3D3F;
+    --border-dark: #4A4D4F;
+    
+    --card-bg: #1A1D1F;
+    --card-border: #2F3234;
+    --card-shadow: rgba(0, 0, 0, 0.6);
+    --card-hover-shadow: rgba(0, 0, 0, 0.8);
+    
+    --input-bg: #1A1D1F;
+    --input-border: #3A3D3F;
+    --input-border-focus: var(--sa-pale-blue);
+    --input-text: #FFFFFF;
+    --input-placeholder: #6B6E70;
+    
+    --btn-primary-bg: var(--sa-pale-blue);
+    --btn-primary-text: #0A0C0D;
+    --btn-primary-hover: #B8D4F1;
+    
+    --btn-secondary-bg: #2A2D2F;
+    --btn-secondary-text: #FFFFFF;
+    --btn-secondary-hover: #3A3D3F;
+    
+    --btn-disabled-bg: #2A2D2F;
+    --btn-disabled-text: #6B6E70;
+    
+    --alert-success-bg: rgba(95, 184, 120, 0.15);
+    --alert-success-border: #5FB878;
+    --alert-success-text: #A8E6A8;
+    
+    --alert-error-bg: rgba(206, 17, 38, 0.3);
+    --alert-error-border: #A00E1E;
+    --alert-error-text: #FF9999;
+    
+    --alert-warning-bg: rgba(212, 160, 23, 0.3);
+    --alert-warning-border: #B8860B;
+    --alert-warning-text: #FFD966;
+    
+    --alert-info-bg: rgba(154, 179, 213, 0.2);
+    --alert-info-border: #7A9BC4;
+    --alert-info-text: #B8D4F1;
+    
+    --badge-adult-bg: rgba(173, 157, 123, 0.3);
+    --badge-adult-text: #E0D5C0;
+    --badge-adult-border: #8B7D5F;
+    
+    --badge-scout-bg: rgba(154, 179, 213, 0.3);
+    --badge-scout-text: #B8D4F1;
+    --badge-scout-border: #7A9BC4;
+    
+    --badge-info-bg: rgba(154, 179, 213, 0.2);
+    --badge-info-text: #B8D4F1;
+    --badge-info-border: #7A9BC4;
+    
+    --sa-scouts-orange: #FF8C42;
+    --sa-scouts-green: #5FB878;
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+/* Background Colors */
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-tertiary { background-color: var(--bg-tertiary); }
+.bg-dark { background-color: var(--bg-dark); }
+
+/* Text Colors */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-light { color: var(--text-light); }
+.text-muted { color: var(--text-muted); }
+.text-link { color: var(--text-link); }
+
+/* Brand Colors */
+.text-sa-blue { color: var(--sa-dark-blue); }
+.text-sa-tan { color: var(--sa-tan); }
+.text-scouts-red { color: var(--scouts-red); }
+.text-scouts-olive { color: var(--scouts-olive); }
+
+.bg-sa-blue { background-color: var(--sa-dark-blue); }
+.bg-sa-pale-blue { background-color: var(--sa-pale-blue); }
+.bg-sa-tan { background-color: var(--sa-tan); }
+.bg-sa-light-tan { background-color: var(--sa-light-tan); }
+.bg-scouts-tan { background-color: var(--scouts-tan); }
+
+/* Border Colors */
+.border-primary { border-color: var(--border-primary); }
+.border-success { border-color: var(--border-success); }
+.border-error { border-color: var(--border-error); }

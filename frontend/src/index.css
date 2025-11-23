@@ -1,30 +1,33 @@
 @import "tailwindcss";
 
+/* Import Scouting America Theme */
+@import "./theme.css";
+
 /* Global Styles - Scouting Outing Manager */
 
-/* Custom theme configuration */
+/* Custom theme configuration for Tailwind */
 @theme {
   /* Font families */
   --font-heading: "Roboto Slab", serif;
   --font-body: Inter, sans-serif;
   
-  /* Custom colors */
+  /* Map Scouting America colors to Tailwind primary scale */
   --color-primary-50: #e3f2fd;
   --color-primary-100: #bbdefb;
   --color-primary-200: #90caf9;
-  --color-primary-300: #64b5f6;
-  --color-primary-400: #42a5f5;
-  --color-primary-500: #1976d2;
-  --color-primary-600: #1565c0;
-  --color-primary-700: #0d47a1;
-  --color-primary-800: #0a3d91;
-  --color-primary-900: #062e70;
+  --color-primary-300: #9AB3D5;  /* SA Pale Blue */
+  --color-primary-400: #6B8DB8;
+  --color-primary-500: #003366;  /* SA Dark Blue */
+  --color-primary-600: #002952;
+  --color-primary-700: #001f3d;
+  --color-primary-800: #001529;
+  --color-primary-900: #000a14;
   
-  /* Custom gradients */
-  --color-gradient-scout: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #6366f1 100%);
-  --color-gradient-scout-light: linear-gradient(135deg, #22d3ee 0%, #60a5fa 50%, #818cf8 100%);
-  --color-gradient-user: linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #8b5cf6 100%);
-  --color-gradient-user-light: linear-gradient(135deg, #f472b6 0%, #c084fc 50%, #a78bfa 100%);
+  /* Custom gradients using Scouting America colors */
+  --color-gradient-scout: linear-gradient(135deg, #9AB3D5 0%, #003366 50%, #243E2C 100%);
+  --color-gradient-scout-light: linear-gradient(135deg, #9AB3D5 0%, #6B8DB8 50%, #9AB3D5 100%);
+  --color-gradient-user: linear-gradient(135deg, #AD9D7B 0%, #D6CEBD 50%, #E9E9E4 100%);
+  --color-gradient-user-light: linear-gradient(135deg, #D6CEBD 0%, #E9E9E4 50%, #FFFFFF 100%);
   
   /* Custom shadows */
   --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
@@ -44,62 +47,65 @@ html, body, #root {
 }
 
 body {
-  font-family: var(--font-body);
-  font-size: 16px;
-  line-height: 1.5;
-  color: #333;
-  background-color: #f5f5f5;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transition-base), color var(--transition-base);
 }
 
 /* Typography - h1 and h2 use Roboto Slab */
 h1, h2 {
   font-family: var(--font-heading);
-  font-weight: 700;
-  line-height: 1.2;
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
   margin-bottom: 0.5em;
-  color: #1a1a1a;
+  color: var(--sa-dark-blue);
 }
 
 h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  font-weight: 700;
-  line-height: 1.2;
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
   margin-bottom: 0.5em;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: var(--font-size-4xl);
   font-weight: 800;
   letter-spacing: -0.02em;
+  color: var(--sa-dark-blue);
 }
 
 h2 {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
   letter-spacing: -0.01em;
+  color: var(--sa-dark-blue);
 }
 
 h3 {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
 }
 
 h4 {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
 }
 
 h5 {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
 }
 
 h6 {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Body text uses Inter */
@@ -114,43 +120,49 @@ p {
 
 /* Form Elements */
 input, textarea, select {
-  font-family: var(--font-body);
-  font-size: 14px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-sm);
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--input-border);
+  border-radius: var(--border-radius-md);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: #1976d2;
-  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--input-placeholder);
 }
 
 label {
-  font-weight: 500;
-  color: #333;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
 }
 
 /* Links */
 a {
-  color: #1976d2;
+  color: var(--text-link);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color var(--transition-base);
 }
 
 a:hover {
-  color: #1565c0;
+  color: var(--text-link-hover);
   text-decoration: underline;
 }
 
 /* Buttons */
 button {
-  font-family: var(--font-body);
-  font-weight: 600;
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-semibold);
   letter-spacing: 0.01em;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-base);
 }
 
 button:hover:not(:disabled) {
