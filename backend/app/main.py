@@ -181,7 +181,7 @@ async def root():
 @app.get(f"{settings.API_V1_STR}/health")
 async def health_check():
     """Health check endpoint - returns healthy status"""
-    return {"status": "healthy"}
+    return {"status": "healthy", "message": "Backend is running"}
 
 
 @app.get(f"{settings.API_V1_STR}/ready")
