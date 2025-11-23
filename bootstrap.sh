@@ -98,7 +98,7 @@ if [ "$MODE_CHOICE" = "2" ]; then
     RESTART_POLICY="unless-stopped"
     DEBUG="false"
     HEALTHCHECK_INTERVAL="10s"
-    BACKEND_COMMAND="sh -c 'echo \"Running migrations...\" && atlas migrate apply --url $DATABASE_URL && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000'"
+    BACKEND_COMMAND="sh -c 'echo \"Running migrations...\" && export DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_SERVER:$POSTGRES_PORT/$POSTGRES_DB && atlas migrate apply --url $DATABASE_URL && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000'"
     BACKEND_VOLUME_MOUNT=""
     BACKEND_PORT=""
 else
@@ -107,7 +107,7 @@ else
     RESTART_POLICY="no"
     DEBUG="true"
     HEALTHCHECK_INTERVAL="5s"
-    BACKEND_COMMAND="sh -c 'echo \"Waiting for database...\" && sleep 5 && echo \"Applying migrations with Atlas...\" && atlas migrate apply --url $DATABASE_URL && echo \"Initializing database...\" && python -m app.db.init_db || echo \"Database already initialized\" && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'"
+    BACKEND_COMMAND="sh -c 'echo \"Waiting for database...\" && sleep 5 && echo \"Applying migrations with Atlas...\" && export DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_SERVER:$POSTGRES_PORT/$POSTGRES_DB && atlas migrate apply --url $DATABASE_URL && echo \"Initializing database...\" && python -m app.db.init_db || echo \"Database already initialized\" && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'"
     BACKEND_VOLUME_MOUNT="./backend:/app"
     BACKEND_PORT="8000"
 fi
