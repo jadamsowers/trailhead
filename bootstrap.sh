@@ -518,7 +518,11 @@ print_header "Creating frontend .env file..."
 
 # Determine API URL based on mode
 if [ "$MODE" = "production" ]; then
-    API_URL="/api"
+    # Extract protocol and domain from HOST_URI
+    PROTOCOL=$(echo "$HOST_URI" | sed -e 's|^\([^:]*://\).*|\1|')
+    DOMAIN_ONLY=$(echo "$HOST_URI" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
+    # Construct backend API URL with port 8000
+    API_URL="${PROTOCOL}${DOMAIN_ONLY}:8000/api"
 else
     API_URL="http://localhost:8000/api"
 fi
