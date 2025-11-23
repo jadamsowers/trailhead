@@ -10,14 +10,8 @@ const AdminPage: React.FC = () => {
 
     if (!isLoaded) {
         return (
-            <div style={{
-                minHeight: '100vh',
-                backgroundColor: 'var(--bg-secondary)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-            }}>
-                <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+            <div className="min-h-screen bg-secondary flex items-center justify-center">
+                <div className="text-center text-secondary">
                     <p>Loading...</p>
                 </div>
             </div>
@@ -25,18 +19,13 @@ const AdminPage: React.FC = () => {
     }
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg-secondary)', display: 'flex', justifyContent: 'center' }}>
-            <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-                <div style={{ marginBottom: '2rem' }}>
-                    <h1 style={{
-                        fontSize: '2.25rem',
-                        fontWeight: 'bold',
-                        color: 'var(--text-primary)',
-                        marginBottom: '0.5rem'
-                    }}>
+        <div className="w-full">
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="mb-8">
+                    <h1 className="text-4xl font-bold font-heading text-sa-dark-blue mb-2">
                         Admin Dashboard
                     </h1>
-                    <p style={{ color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
+                    <p className="text-secondary mt-2 text-lg">
                         Manage outings, users, and system settings
                     </p>
                 </div>
@@ -45,39 +34,20 @@ const AdminPage: React.FC = () => {
                 <DevDataSeeder />
 
                 {/* Large Colorful Button Navigation */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8 mb-8">
                     <button
                         onClick={() => setActiveTab('outings')}
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '1rem',
-                            padding: '3rem',
-                            borderRadius: '1rem',
-                            border: activeTab === 'outings' ? '2px solid var(--btn-primary-bg)' : '1px solid var(--card-border)',
-                            backgroundColor: activeTab === 'outings' ? 'var(--btn-primary-bg)' : 'var(--card-bg)',
-                            color: activeTab === 'outings' ? 'var(--btn-primary-text)' : 'var(--text-primary)',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease-in-out',
-                            boxShadow: activeTab === 'outings' ? 'var(--shadow-elevated)' : 'var(--card-shadow)',
-                            transform: activeTab === 'outings' ? 'scale(1.02)' : 'scale(1)'
-                        }}
-                        onMouseOver={(e) => {
-                            if (activeTab !== 'outings') {
-                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                e.currentTarget.style.boxShadow = 'var(--card-hover-shadow)';
+                        className={`
+                            flex flex-col items-center gap-4 p-12 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out group relative overflow-hidden
+                            ${activeTab === 'outings'
+                                ? 'bg-gradient-to-br from-sa-dark-blue to-sa-blue text-white shadow-xl scale-[1.02] ring-4 ring-blue-100'
+                                : 'glass-card hover:bg-white hover:-translate-y-1 hover:shadow-xl'
                             }
-                        }}
-                        onMouseOut={(e) => {
-                            if (activeTab !== 'outings') {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = 'var(--card-shadow)';
-                            }
-                        }}
+                        `}
                     >
+                        <div className={`absolute inset-0 opacity-10 ${activeTab === 'outings' ? 'bg-white' : 'bg-sa-blue'} transition-opacity group-hover:opacity-20`}></div>
                         <svg
-                            style={{ width: '3rem', height: '3rem' }}
+                            className={`w-16 h-16 transition-transform duration-300 group-hover:scale-110 ${activeTab === 'outings' ? 'text-white' : 'text-sa-dark-blue'}`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -85,26 +55,15 @@ const AdminPage: React.FC = () => {
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                strokeWidth={2}
+                                strokeWidth={1.5}
                                 d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
                             />
                         </svg>
-                        <div style={{ textAlign: 'center' }}>
-                            <h2 style={{
-                                fontSize: '1.875rem',
-                                fontWeight: 'bold',
-                                margin: 0,
-                                color: 'inherit',
-                                fontFamily: 'var(--font-heading)'
-                            }}>
+                        <div className="text-center relative z-10">
+                            <h2 className={`text-3xl font-bold m-0 font-heading ${activeTab === 'outings' ? 'text-white' : 'text-sa-dark-blue'}`}>
                                 Outing Management
                             </h2>
-                            <p style={{
-                                fontSize: '1rem',
-                                opacity: 0.9,
-                                margin: '0.5rem 0 0 0',
-                                color: 'inherit'
-                            }}>
+                            <p className={`text-base mt-2 ${activeTab === 'outings' ? 'text-blue-100' : 'text-secondary'}`}>
                                 Create, edit, and manage scouting outings
                             </p>
                         </div>
@@ -112,36 +71,17 @@ const AdminPage: React.FC = () => {
 
                     <button
                         onClick={() => setActiveTab('users')}
-                        style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '1rem',
-                            padding: '3rem',
-                            borderRadius: '1rem',
-                            border: activeTab === 'users' ? '2px solid var(--btn-primary-bg)' : '1px solid var(--card-border)',
-                            backgroundColor: activeTab === 'users' ? 'var(--btn-primary-bg)' : 'var(--card-bg)',
-                            color: activeTab === 'users' ? 'var(--btn-primary-text)' : 'var(--text-primary)',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s ease-in-out',
-                            boxShadow: activeTab === 'users' ? 'var(--shadow-elevated)' : 'var(--card-shadow)',
-                            transform: activeTab === 'users' ? 'scale(1.02)' : 'scale(1)'
-                        }}
-                        onMouseOver={(e) => {
-                            if (activeTab !== 'users') {
-                                e.currentTarget.style.transform = 'translateY(-2px)';
-                                e.currentTarget.style.boxShadow = 'var(--card-hover-shadow)';
+                        className={`
+                            flex flex-col items-center gap-4 p-12 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out group relative overflow-hidden
+                            ${activeTab === 'users'
+                                ? 'bg-gradient-to-br from-sa-dark-blue to-sa-blue text-white shadow-xl scale-[1.02] ring-4 ring-blue-100'
+                                : 'glass-card hover:bg-white hover:-translate-y-1 hover:shadow-xl'
                             }
-                        }}
-                        onMouseOut={(e) => {
-                            if (activeTab !== 'users') {
-                                e.currentTarget.style.transform = 'translateY(0)';
-                                e.currentTarget.style.boxShadow = 'var(--card-shadow)';
-                            }
-                        }}
+                        `}
                     >
+                        <div className={`absolute inset-0 opacity-10 ${activeTab === 'users' ? 'bg-white' : 'bg-sa-blue'} transition-opacity group-hover:opacity-20`}></div>
                         <svg
-                            style={{ width: '3rem', height: '3rem' }}
+                            className={`w-16 h-16 transition-transform duration-300 group-hover:scale-110 ${activeTab === 'users' ? 'text-white' : 'text-sa-dark-blue'}`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -149,26 +89,15 @@ const AdminPage: React.FC = () => {
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                strokeWidth={2}
+                                strokeWidth={1.5}
                                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
                             />
                         </svg>
-                        <div style={{ textAlign: 'center' }}>
-                            <h2 style={{
-                                fontSize: '1.875rem',
-                                fontWeight: 'bold',
-                                margin: 0,
-                                color: 'inherit',
-                                fontFamily: 'var(--font-heading)'
-                            }}>
+                        <div className="text-center relative z-10">
+                            <h2 className={`text-3xl font-bold m-0 font-heading ${activeTab === 'users' ? 'text-white' : 'text-sa-dark-blue'}`}>
                                 User Management
                             </h2>
-                            <p style={{
-                                fontSize: '1rem',
-                                opacity: 0.9,
-                                margin: '0.5rem 0 0 0',
-                                color: 'inherit'
-                            }}>
+                            <p className={`text-base mt-2 ${activeTab === 'users' ? 'text-blue-100' : 'text-secondary'}`}>
                                 Manage user accounts and permissions
                             </p>
                         </div>

@@ -14,7 +14,7 @@ const LoginPage: React.FC = () => {
     }, [isSignedIn, navigate]);
 
     return (
-        <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-5 flex-col gap-8">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-200px)] flex items-center justify-center flex-col gap-8">
             <div className="max-w-md w-full bg-white p-10 rounded-lg shadow-lg text-center">
                 <h1 className="font-heading mb-2.5 text-primary-500">
                     Welcome Back

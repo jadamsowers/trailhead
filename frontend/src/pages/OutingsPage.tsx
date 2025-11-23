@@ -12,7 +12,7 @@ const OutingsPage: React.FC = () => {
 
     useEffect(() => {
         let mounted = true;
-        
+
         const checkFamilyMembers = async () => {
             // Only check family members when Clerk is loaded and user is available
             if (!isLoaded || !user) {
@@ -21,9 +21,9 @@ const OutingsPage: React.FC = () => {
 
             try {
                 const data = await familyAPI.getSummary();
-                
+
                 if (!mounted) return;
-                
+
                 setHasFamilyMembers(data.length > 0);
             } catch (err) {
                 console.error('Failed to check family members:', err);
@@ -35,7 +35,7 @@ const OutingsPage: React.FC = () => {
         };
 
         checkFamilyMembers();
-        
+
         return () => {
             mounted = false;
         };
@@ -44,77 +44,34 @@ const OutingsPage: React.FC = () => {
     // Show loading while Clerk is initializing or while checking family members
     if (!isLoaded || checkingFamily) {
         return (
-            <div style={{
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'var(--bg-secondary)'
-            }}>
-                <div style={{ fontSize: '1.25rem', color: 'var(--text-secondary)' }}>Loading...</div>
+            <div className="min-h-screen flex items-center justify-center bg-secondary">
+                <div className="text-xl text-secondary">Loading...</div>
             </div>
         );
     }
 
     return (
-        <div>
+        <div className="w-full">
             <SignedIn>
                 {hasFamilyMembers ? (
-                    <SignupWizard />
+                    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        <SignupWizard />
+                    </div>
                 ) : (
-                    <div style={{
-                        minHeight: '100vh',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        backgroundColor: 'var(--bg-secondary)',
-                        padding: '20px'
-                    }}>
-                        <div style={{
-                            maxWidth: '28rem',
-                            width: '100%',
-                            backgroundColor: 'var(--card-bg)',
-                            borderRadius: '8px',
-                            boxShadow: 'var(--card-shadow)',
-                            padding: '2rem',
-                            textAlign: 'center',
-                            border: '1px solid var(--card-border)'
-                        }}>
-                            <h2 style={{
-                                fontSize: '1.875rem',
-                                fontWeight: 'bold',
-                                color: 'var(--text-primary)',
-                                marginBottom: '1rem'
-                            }}>
+                    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[60vh] flex items-center justify-center">
+                        <div className="max-w-md w-full glass-card p-10 text-center">
+                            <h2 className="text-3xl font-bold font-heading text-sa-dark-blue mb-4">
                                 Welcome to Outing Signups!
                             </h2>
-                            <p style={{
-                                color: 'var(--text-secondary)',
-                                marginBottom: '1.5rem'
-                            }}>
+                            <p className="text-secondary mb-8 text-lg">
                                 Before you can sign up for outings, you need to add family members to your account.
                             </p>
-                            <p style={{
-                                color: 'var(--text-secondary)',
-                                marginBottom: '2rem'
-                            }}>
+                            <p className="text-secondary mb-8">
                                 Add yourself and any youth or adults who will be participating in outings.
                             </p>
                             <button
                                 onClick={() => navigate('/family-setup')}
-                                style={{
-                                    backgroundColor: 'var(--btn-primary-bg)',
-                                    color: 'var(--btn-primary-text)',
-                                    padding: '0.75rem 1.5rem',
-                                    borderRadius: '8px',
-                                    fontWeight: '600',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    width: '100%',
-                                    transition: 'background-color 0.2s'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-primary-hover)'}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-primary-bg)'}
+                                className="bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full"
                             >
                                 Add Family Members
                             </button>
@@ -123,53 +80,17 @@ const OutingsPage: React.FC = () => {
                 )}
             </SignedIn>
             <SignedOut>
-                <div style={{
-                    minHeight: '100vh',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: 'var(--bg-secondary)',
-                    padding: '20px'
-                }}>
-                    <div style={{
-                        maxWidth: '28rem',
-                        width: '100%',
-                        backgroundColor: 'var(--card-bg)',
-                        borderRadius: '8px',
-                        boxShadow: 'var(--card-shadow)',
-                        padding: '2rem',
-                        textAlign: 'center',
-                        border: '1px solid var(--card-border)'
-                    }}>
-                        <h1 style={{
-                            fontSize: '1.875rem',
-                            fontWeight: 'bold',
-                            color: 'var(--text-primary)',
-                            marginBottom: '1rem'
-                        }}>
+                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[60vh] flex items-center justify-center">
+                    <div className="max-w-md w-full glass-card p-10 text-center">
+                        <h1 className="text-3xl font-bold font-heading text-sa-dark-blue mb-4">
                             Sign In Required
                         </h1>
-                        <p style={{
-                            color: 'var(--text-secondary)',
-                            marginBottom: '1.5rem'
-                        }}>
+                        <p className="text-secondary mb-8 text-lg">
                             Please sign in or create an account to view and sign up for outings.
                         </p>
                         <button
                             onClick={() => navigate('/login')}
-                            style={{
-                                backgroundColor: 'var(--btn-primary-bg)',
-                                color: 'var(--btn-primary-text)',
-                                padding: '0.75rem 1.5rem',
-                                borderRadius: '8px',
-                                fontWeight: '600',
-                                border: 'none',
-                                cursor: 'pointer',
-                                width: '100%',
-                                transition: 'background-color 0.2s'
-                            }}
-                            onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-primary-hover)'}
-                            onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-primary-bg)'}
+                            className="bg-[var(--btn-primary-bg)] text-[var(--btn-primary-text)] font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full"
                         >
                             Sign In / Sign Up
                         </button>

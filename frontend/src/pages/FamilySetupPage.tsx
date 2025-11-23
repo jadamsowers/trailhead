@@ -48,14 +48,8 @@ const FamilySetupPage: React.FC = () => {
         return (
             <>
                 <TopographicBackground />
-                <div style={{
-                    minHeight: 'calc(100vh - 200px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '20px'
-                }}>
-                    <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
+                <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-5">
+                    <div className="text-center text-secondary">
                         <p>Loading...</p>
                     </div>
                 </div>
@@ -66,77 +60,30 @@ const FamilySetupPage: React.FC = () => {
     return (
         <>
             <TopographicBackground />
-            <div style={{
-                minHeight: 'calc(100vh - 200px)',
-                padding: '40px 20px'
-            }}>
-                <div style={{
-                    maxWidth: '1200px',
-                    margin: '0 auto'
-                }}>
+            <div className="w-full">
+                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     {/* Welcome Header Card */}
-                    <div style={{
-                        backgroundColor: 'var(--card-bg)',
-                        padding: '40px',
-                        borderRadius: '8px',
-                        boxShadow: 'var(--card-shadow)',
-                        marginBottom: '30px',
-                        textAlign: 'center',
-                        border: '1px solid var(--card-border)'
-                    }}>
-                        <h1 style={{
-                            fontSize: '32px',
-                            fontWeight: 'bold',
-                            color: 'var(--sa-dark-blue)',
-                            marginBottom: '10px'
-                        }}>
+                    <div className="bg-[var(--card-bg)] p-10 rounded-lg shadow-[var(--card-shadow)] mb-8 text-center border border-[var(--card-border)]">
+                        <h1 className="text-3xl font-bold text-sa-dark-blue mb-2.5">
                             Welcome, {user?.firstName || 'Adult'}!
                         </h1>
-                        <p style={{
-                            color: 'var(--text-secondary)',
-                            fontSize: '16px',
-                            marginBottom: '0'
-                        }}>
+                        <p className="text-secondary text-base mb-0">
                             Let's set up your family members so you can easily sign up for outings
                         </p>
                     </div>
 
                     {/* Instructions Card - Only show if no family members */}
                     {!hasFamilyMembers && (
-                        <div style={{
-                            backgroundColor: 'var(--alert-info-bg)',
-                            border: '1px solid var(--alert-info-border)',
-                            borderRadius: '8px',
-                            padding: '30px',
-                            marginBottom: '30px'
-                        }}>
-                            <h2 style={{
-                                fontSize: '24px',
-                                fontWeight: '600',
-                                color: 'var(--alert-info-text)',
-                                marginBottom: '15px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px'
-                            }}>
-                                <span style={{ fontSize: '28px' }}>👨‍👩‍👧‍👦</span>
+                        <div className="bg-[var(--alert-info-bg)] border border-[var(--alert-info-border)] rounded-lg p-8 mb-8">
+                            <h2 className="text-2xl font-semibold text-[var(--alert-info-text)] mb-4 flex items-center gap-2.5">
+                                <span className="text-3xl">👨‍👩‍👧‍👦</span>
                                 Add Your Family Members
                             </h2>
-                            <p style={{
-                                color: 'var(--alert-info-text)',
-                                marginBottom: '20px',
-                                fontSize: '15px',
-                                lineHeight: '1.6'
-                            }}>
+                            <p className="text-[var(--alert-info-text)] mb-5 text-[15px] leading-relaxed">
                                 Before you can sign up for outings, please add at least one family member (scout or adult).
                                 This information will be saved and can be reused for future outing signups, saving you time!
                             </p>
-                            <ul style={{
-                                color: 'var(--alert-info-text)',
-                                paddingLeft: '20px',
-                                margin: '0',
-                                lineHeight: '2'
-                            }}>
+                            <ul className="text-[var(--alert-info-text)] pl-5 m-0 leading-loose">
                                 <li>Add scouts with their troop information</li>
                                 <li>Add parents/adults with youth protection training status</li>
                                 <li>Include dietary restrictions and allergies</li>
@@ -146,47 +93,16 @@ const FamilySetupPage: React.FC = () => {
                     )}
 
                     {/* Family Management Section */}
-                    <div style={{
-                        backgroundColor: 'var(--card-bg)',
-                        padding: '40px',
-                        borderRadius: '8px',
-                        boxShadow: 'var(--card-shadow)',
-                        marginBottom: '30px',
-                        border: '1px solid var(--card-border)'
-                    }}>
+                    <div className="mb-8">
                         <FamilyManagement onMemberAdded={handleMemberAdded} />
                     </div>
 
                     {/* Continue Button - Only show if has family members */}
                     {hasFamilyMembers && (
-                        <div style={{
-                            textAlign: 'center',
-                            marginBottom: '30px'
-                        }}>
+                        <div className="text-center mb-8">
                             <button
                                 onClick={handleContinue}
-                                style={{
-                                    padding: '16px 48px',
-                                    backgroundColor: 'var(--btn-success-bg)',
-                                    color: 'var(--btn-success-text)',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontSize: '18px',
-                                    fontWeight: 'bold',
-                                    cursor: 'pointer',
-                                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                                    transition: 'all 0.2s'
-                                }}
-                                onMouseOver={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'var(--btn-success-hover)';
-                                    e.currentTarget.style.transform = 'translateY(-2px)';
-                                    e.currentTarget.style.boxShadow = '0 6px 12px rgba(0,0,0,0.15)';
-                                }}
-                                onMouseOut={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'var(--btn-success-bg)';
-                                    e.currentTarget.style.transform = 'translateY(0)';
-                                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-                                }}
+                                className="px-12 py-4 bg-[var(--btn-success-bg)] text-[var(--btn-success-text)] border-none rounded-lg text-lg font-bold cursor-pointer shadow-md transition-all duration-200 hover:bg-[var(--btn-success-hover)] hover:-translate-y-0.5 hover:shadow-lg"
                             >
                                 Continue to Outing Signups →
                             </button>
@@ -195,15 +111,8 @@ const FamilySetupPage: React.FC = () => {
 
                     {/* Help Text - Only show if no family members */}
                     {!hasFamilyMembers && (
-                        <div style={{
-                            textAlign: 'center',
-                            padding: '20px',
-                            backgroundColor: 'var(--bg-tertiary)',
-                            borderRadius: '8px',
-                            color: 'var(--text-secondary)',
-                            fontSize: '14px'
-                        }}>
-                            <p style={{ margin: '0' }}>
+                        <div className="text-center p-5 bg-tertiary rounded-lg text-secondary text-sm">
+                            <p className="m-0">
                                 Once you've added at least one family member, you can continue to browse and sign up for outings.
                             </p>
                         </div>

@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-ro
 import { ClerkProvider, SignedIn, SignedOut, UserButton, useUser, SignUp } from '@clerk/clerk-react';
 import ProtectedRoute from './components/ProtectedRoute';
 import BackendHealthCheck from './components/Shared/BackendHealthCheck';
-import TopographicBackground from './components/Shared/TopographicBackground';
 import { ThemeToggleCompact } from './components/Shared/ThemeToggle';
 import AdminPage from './pages/AdminPage';
 import ParticipantPage from './pages/ParticipantPage';
@@ -24,67 +23,32 @@ const HomePage: React.FC = () => {
     }
 
     return (
-        <div style={{
-            padding: '40px',
-            maxWidth: '800px',
-            margin: '0 auto',
-            textAlign: 'center'
-        }}>
-            <h1 style={{ fontSize: '48px', marginBottom: '20px', color: 'var(--sa-dark-blue)' }}>
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
+            <h1 className="text-5xl mb-5 text-sa-blue">
                 ⚜️ Scouting Outing Manager 🏕️
             </h1>
-            <p style={{ fontSize: '20px', marginBottom: '40px', color: 'var(--text-secondary)' }}>
+            <p className="text-xl mb-10 text-secondary">
                 Manage scout troop outings, signups, and participant information
             </p>
 
-            <div style={{
-                padding: '30px',
-                backgroundColor: 'var(--alert-info-bg)',
-                borderRadius: '12px',
-                marginBottom: '40px',
-                border: '1px solid var(--alert-info-border)'
-            }}>
-                <h2 style={{ color: 'var(--alert-info-text)', marginBottom: '15px' }}>
+            <div className="p-8 bg-sa-pale-blue/80 rounded-xl mb-10 border border-sa-pale-blue">
+                <h2 className="text-sa-dark-blue mb-4 text-2xl font-bold">
                     Get Started
                 </h2>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '16px', marginBottom: '20px' }}>
+                <p className="text-secondary text-base mb-5">
                     Sign in or create an account to manage your family and sign up for outings
                 </p>
                 <Link
                     to="/login"
-                    style={{
-                        display: 'inline-block',
-                        padding: '15px 40px',
-                        backgroundColor: 'var(--btn-primary-bg)',
-                        color: 'var(--btn-primary-text)',
-                        textDecoration: 'none',
-                        borderRadius: '8px',
-                        fontSize: '18px',
-                        fontWeight: 'bold',
-                        transition: 'background-color 0.2s'
-                    }}
-                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-primary-hover)'}
-                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'var(--btn-primary-bg)'}
+                    className="inline-block px-10 py-4 bg-primary text-white no-underline rounded-lg text-lg font-bold transition-colors hover:bg-primary-dark"
                 >
                     Sign In / Sign Up
                 </Link>
             </div>
 
-            <div style={{
-                marginTop: '60px',
-                padding: '30px',
-                backgroundColor: 'var(--bg-tertiary)',
-                borderRadius: '8px'
-            }}>
-                <h3 style={{ marginBottom: '15px' }}>Features</h3>
-                <ul style={{
-                    listStyle: 'none',
-                    padding: 0,
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '15px',
-                    textAlign: 'left'
-                }}>
+            <div className="mt-16 p-8 bg-tertiary rounded-lg">
+                <h3 className="mb-4 text-2xl font-bold">Features</h3>
+                <ul className="list-none p-0 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 text-left">
                     <li>✓ Multi-participant family signups</li>
                     <li>✓ Dietary restrictions tracking</li>
                     <li>✓ Allergy management</li>
@@ -103,287 +67,136 @@ const Navigation: React.FC = () => {
     const { user } = useUser();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    const navStyles = `
-        .nav-container {
-            padding: 15px 30px;
-        }
-        
-        .nav-desktop-menu {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-        
-        .nav-mobile-toggle {
-            display: none;
-        }
-        
-        .nav-mobile-menu {
-            display: none;
-        }
-        
-        @media (max-width: 768px) {
-            .nav-container {
-                padding: 12px 20px !important;
-            }
-            
-            .nav-desktop-menu {
-                display: none !important;
-            }
-            
-            .nav-mobile-toggle {
-                display: block;
-                background: none;
-                border: none;
-                color: white;
-                font-size: 24px;
-                cursor: pointer;
-                padding: 5px;
-                line-height: 1;
-            }
-            
-            .nav-mobile-menu {
-                display: ${mobileMenuOpen ? 'flex' : 'none'};
-                flex-direction: column;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background-color: var(--sa-dark-blue);
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                z-index: 1000;
-            }
-            
-            .nav-mobile-menu a,
-            .nav-mobile-menu > div {
-                padding: 12px 20px;
-                border-bottom: 1px solid rgba(255,255,255,0.1);
-            }
-            
-            .nav-mobile-menu a:hover {
-                background-color: rgba(255,255,255,0.1);
-            }
-            
-            .nav-brand {
-                font-size: 18px !important;
-            }
-            
-            .nav-user-email {
-                display: none;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .nav-container {
-                padding: 10px 15px !important;
-            }
-            
-            .nav-mobile-menu a,
-            .nav-mobile-menu > div {
-                padding: 10px 15px;
-            }
-            
-            .nav-mobile-toggle {
-                font-size: 22px;
-            }
-            
-            .nav-brand {
-                font-size: 15px !important;
-            }
-        }
-    `;
-
     return (
-        <>
-            <style>{navStyles}</style>
-            <nav style={{
-                backgroundColor: 'var(--sa-dark-blue)',
-                boxShadow: 'var(--shadow-md)',
-                position: 'sticky',
-                top: 0,
-                zIndex: 1000,
-                transition: 'background-color var(--transition-base)'
-            }}>
-                <div className="nav-container" style={{
-                    padding: '15px 30px',
-                    maxWidth: '1200px',
-                    margin: '0 auto',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}>
-                    <Link
-                        to="/"
-                        className="nav-brand"
-                        style={{
-                            color: 'white',
-                            textDecoration: 'none',
-                            fontSize: '24px',
-                            fontWeight: 'bold'
-                        }}
-                    >
-                        ⚜️ Scouting Outing Manager 🏕️
-                    </Link>
+        <nav className="bg-[var(--sa-dark-blue)] text-white shadow-lg sticky top-0 z-[1000] backdrop-blur-md bg-opacity-95 border-b border-white/10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between h-16 items-center">
+                    {/* Logo / Brand */}
+                    <div className="flex-shrink-0 flex items-center">
+                        <Link
+                            to="/"
+                            className="text-white no-underline text-xl font-bold font-heading tracking-tight flex items-center gap-4 hover:text-sa-pale-blue transition-colors"
+                        >
+                            <span className="text-2xl">⚜️</span>
+                            <span className="hidden sm:block">Scouting Outing Manager</span>
+                            <span className="sm:hidden">SOM</span>
+                        </Link>
+                    </div>
 
                     {/* Desktop Menu */}
-                    <div className="nav-desktop-menu">
+                    <div className="hidden md:flex md:items-center">
                         <SignedIn>
-                            <Link
-                                to="/outings"
-                                style={{
-                                    color: 'white',
-                                    textDecoration: 'none',
-                                    padding: '8px 16px',
-                                    borderRadius: '4px',
-                                    transition: 'background-color 0.2s'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                            >
-                                Outings
-                            </Link>
-                            <Link
-                                to="/family-setup"
-                                style={{
-                                    color: 'white',
-                                    textDecoration: 'none',
-                                    padding: '8px 16px',
-                                    borderRadius: '4px',
-                                    transition: 'background-color 0.2s'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                            >
-                                My Family
-                            </Link>
-                            <Link
-                                to="/admin"
-                                style={{
-                                    color: 'white',
-                                    textDecoration: 'none',
-                                    padding: '8px 16px',
-                                    borderRadius: '4px',
-                                    transition: 'background-color 0.2s'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                            >
-                                Admin
-                            </Link>
-                            {/* Theme Toggle */}
-                            <ThemeToggleCompact />
-                            <UserButton afterSignOutUrl="/" />
+                            <div className="flex items-center gap-8 lg:gap-12">
+                                <Link
+                                    to="/outings"
+                                    className="text-gray-100 hover:bg-white/10 hover:text-white px-6 py-4 rounded-lg text-base font-bold transition-all hover:shadow-md"
+                                >
+                                    Outings
+                                </Link>
+                                <Link
+                                    to="/family-setup"
+                                    className="text-gray-100 hover:bg-white/10 hover:text-white px-6 py-4 rounded-lg text-base font-bold transition-all hover:shadow-md"
+                                >
+                                    My Family
+                                </Link>
+                                <Link
+                                    to="/admin"
+                                    className="text-gray-100 hover:bg-white/10 hover:text-white px-6 py-4 rounded-lg text-base font-bold transition-all hover:shadow-md"
+                                >
+                                    Admin
+                                </Link>
+                                <div className="flex items-center gap-5 pl-8 border-l-2 border-white/20 h-10">
+                                    <ThemeToggleCompact />
+                                    <UserButton afterSignOutUrl="/" />
+                                </div>
+                            </div>
                         </SignedIn>
                         <SignedOut>
-                            {/* Theme Toggle */}
-                            <ThemeToggleCompact />
-                            <Link
-                                to="/login"
-                                style={{
-                                    color: 'white',
-                                    textDecoration: 'none',
-                                    padding: '8px 16px',
-                                    borderRadius: '4px',
-                                    border: '1px solid white',
-                                    transition: 'background-color 0.2s'
-                                }}
-                                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
-                                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                            >
-                                Sign In
-                            </Link>
+                            <div className="flex items-center gap-6">
+                                <ThemeToggleCompact />
+                                <Link
+                                    to="/login"
+                                    className="px-8 py-3 border border-transparent text-base font-bold rounded-lg text-sa-dark-blue bg-white hover:bg-gray-50 shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
+                                >
+                                    Sign In
+                                </Link>
+                            </div>
                         </SignedOut>
                     </div>
 
-                    {/* Mobile Menu Toggle */}
-                    <button
-                        className="nav-mobile-toggle"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        aria-label="Toggle menu"
-                    >
-                        {mobileMenuOpen ? '✕' : '☰'}
-                    </button>
+                    {/* Mobile Menu Button */}
+                    <div className="flex items-center md:hidden">
+                        <button
+                            type="button"
+                            className="inline-flex items-center justify-center p-2 rounded-md text-gray-200 hover:text-white hover:bg-white/10 focus:outline-none transition-colors"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            aria-expanded="false"
+                        >
+                            <span className="sr-only">Open main menu</span>
+                            {mobileMenuOpen ? (
+                                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            ) : (
+                                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                            )}
+                        </button>
+                    </div>
                 </div>
+            </div>
 
-                {/* Mobile Menu */}
-                <div className="nav-mobile-menu">
+            {/* Mobile Menu */}
+            <div className={`${mobileMenuOpen ? 'block' : 'hidden'} md:hidden bg-[var(--sa-dark-blue)] border-t border-white/10`}>
+                <div className="px-4 pt-4 pb-6 space-y-2 sm:px-6">
                     <SignedIn>
                         <Link
                             to="/outings"
                             onClick={() => setMobileMenuOpen(false)}
-                            style={{
-                                color: 'white',
-                                textDecoration: 'none'
-                            }}
+                            className="text-gray-100 hover:bg-white/10 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
                         >
                             Outings
                         </Link>
                         <Link
                             to="/family-setup"
                             onClick={() => setMobileMenuOpen(false)}
-                            style={{
-                                color: 'white',
-                                textDecoration: 'none'
-                            }}
+                            className="text-gray-100 hover:bg-white/10 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
                         >
                             My Family
                         </Link>
                         <Link
                             to="/admin"
                             onClick={() => setMobileMenuOpen(false)}
-                            style={{
-                                color: 'white',
-                                textDecoration: 'none'
-                            }}
+                            className="text-gray-100 hover:bg-white/10 hover:text-white block px-4 py-3 rounded-md text-base font-medium"
                         >
                             Admin
                         </Link>
-                        <div style={{
-                            padding: '12px 20px',
-                            borderBottom: '1px solid rgba(255,255,255,0.1)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between'
-                        }}>
-                            <span style={{ color: 'white', fontSize: '14px' }}>Theme</span>
+                        <div className="px-3 py-2 flex items-center justify-between border-t border-white/10 mt-2 pt-3">
+                            <span className="text-gray-300 text-sm">Theme</span>
                             <ThemeToggleCompact />
                         </div>
-                        <div style={{
-                            color: 'white',
-                            fontSize: '14px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px'
-                        }}>
-                            <span>{user?.primaryEmailAddress?.emailAddress}</span>
+                        <div className="px-3 py-2 flex items-center gap-3">
                             <UserButton afterSignOutUrl="/" />
+                            <span className="text-gray-300 text-sm">{user?.primaryEmailAddress?.emailAddress}</span>
                         </div>
                     </SignedIn>
                     <SignedOut>
-                        <div style={{
-                            padding: '12px 20px',
-                            borderBottom: '1px solid rgba(255,255,255,0.1)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between'
-                        }}>
-                            <span style={{ color: 'white', fontSize: '14px' }}>Theme</span>
+                        <div className="px-3 py-2 flex items-center justify-between border-b border-white/10 mb-2">
+                            <span className="text-gray-300 text-sm">Theme</span>
                             <ThemeToggleCompact />
                         </div>
                         <Link
                             to="/login"
                             onClick={() => setMobileMenuOpen(false)}
-                            style={{
-                                color: 'white',
-                                textDecoration: 'none'
-                            }}
+                            className="text-gray-100 hover:bg-white/10 hover:text-white block px-4 py-3 rounded-md text-base font-medium"
                         >
                             Sign In
                         </Link>
                     </SignedOut>
                 </div>
-            </nav>
-        </>
+            </div>
+        </nav>
     );
 };
 
@@ -399,59 +212,54 @@ const App: React.FC = () => {
         <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
             <BackendHealthCheck>
                 <Router>
-                    <TopographicBackground />
-                    <div style={{ minHeight: '100vh', position: 'relative' }}>
+                    <div className="min-h-screen relative flex flex-col">
                         {/* Navigation Bar */}
                         <Navigation />
 
                         {/* Main Content */}
-                        <Routes>
-                            <Route path="/" element={<HomePage />} />
-                            <Route path="/login" element={<LoginPage />} />
-                            <Route path="/sign-up" element={
-                                <div style={{
-                                    minHeight: 'calc(100vh - 200px)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    padding: '20px'
-                                }}>
-                                    <SignUp
-                                        afterSignUpUrl="/family-setup"
-                                        signInUrl="/login"
-                                    />
-                                </div>
-                            } />
-                            <Route path="/admin-setup" element={<AdminSetupPage />} />
-                            <Route
-                                path="/admin"
-                                element={<AdminPage />}
-                            />
-                            <Route path="/family-setup" element={
-                                <SignedIn>
-                                    <FamilySetupPage />
-                                </SignedIn>
-                            } />
-                            <Route path="/outings" element={<OutingsPage />} />
-                            {/* Legacy routes - redirect to new flow */}
-                            <Route path="/outings" element={<Navigate to="/outings" replace />} />
-                            <Route path="/participant" element={<Navigate to="/outings" replace />} />
-                        </Routes>
+                        <main className="flex-grow w-full">
+                            <Routes>
+                                <Route path="/" element={<HomePage />} />
+                                <Route path="/login" element={<LoginPage />} />
+                                <Route path="/sign-up" element={
+                                    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-5">
+                                        <div className="glass-panel p-8 rounded-xl w-full max-w-md">
+                                            <SignUp
+                                                afterSignUpUrl="/family-setup"
+                                                signInUrl="/login"
+                                            />
+                                        </div>
+                                    </div>
+                                } />
+                                <Route path="/admin-setup" element={<AdminSetupPage />} />
+                                <Route
+                                    path="/admin"
+                                    element={<AdminPage />}
+                                />
+                                <Route path="/family-setup" element={
+                                    <SignedIn>
+                                        <FamilySetupPage />
+                                    </SignedIn>
+                                } />
+                                <Route path="/outings" element={<OutingsPage />} />
+                                {/* Legacy routes - redirect to new flow */}
+                                <Route path="/outings" element={<Navigate to="/outings" replace />} />
+                                <Route path="/participant" element={<Navigate to="/outings" replace />} />
+                            </Routes>
+                        </main>
 
                         {/* Footer */}
-                        <footer style={{
-                            backgroundColor: '#333',
-                            color: 'white',
-                            padding: '20px',
-                            textAlign: 'center',
-                            marginTop: '60px'
-                        }}>
-                            <p>Scouting Outing Manager </p>
-                            <p><em>Putting the 'outing' back in 'Scouting'</em></p>
-                            <p><a href="https://github.com/jadamsowers/scouting-outing-manager">Vibe-coded</a> with ⚜️❤️ by <a href="https://scouthacks.net/">Adam Sowers</a></p>
-                            <p style={{ fontSize: '14px', color: '#999', marginTop: '10px' }}>
-                                API Documentation: <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" style={{ color: '#64b5f6' }}>http://localhost:8000/docs</a>
-                            </p>
+                        <footer className="bg-[var(--sa-dark-blue)] text-white py-8 mt-auto border-t border-white/10">
+                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                                <p className="font-heading font-bold text-lg mb-2">Scouting Outing Manager</p>
+                                <p className="text-gray-400 italic mb-4">Putting the 'outing' back in 'Scouting'</p>
+                                <p className="text-sm text-gray-400">
+                                    <a href="https://github.com/jadamsowers/scouting-outing-manager" className="hover:text-white transition-colors">Vibe-coded</a> with ⚜️❤️ by <a href="https://scouthacks.net/" className="hover:text-white transition-colors">Adam Sowers</a>
+                                </p>
+                                <p className="text-xs text-gray-500 mt-4">
+                                    API Documentation: <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" className="text-sa-pale-blue hover:underline">http://localhost:8000/docs</a>
+                                </p>
+                            </div>
                         </footer>
                     </div>
                 </Router>

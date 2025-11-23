@@ -8,29 +8,33 @@
 /* Custom theme configuration for Tailwind */
 @theme {
   /* Font families */
-  --font-heading: "Roboto Slab", serif;
-  --font-body: Inter, sans-serif;
-  
+  --font-heading: "Outfit", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-slab: "Roboto Slab", serif;
+
   /* Map Scouting America colors to Tailwind primary scale */
   --color-primary-50: #e3f2fd;
   --color-primary-100: #bbdefb;
   --color-primary-200: #90caf9;
-  --color-primary-300: #9AB3D5;  /* SA Pale Blue */
+  --color-primary-300: #9AB3D5;
+  /* SA Pale Blue */
   --color-primary-400: #6B8DB8;
-  --color-primary-500: #003366;  /* SA Dark Blue */
+  --color-primary-500: #003366;
+  /* SA Dark Blue */
   --color-primary-600: #002952;
   --color-primary-700: #001f3d;
   --color-primary-800: #001529;
   --color-primary-900: #000a14;
-  
+
   /* Custom gradients using Scouting America colors */
   --color-gradient-scout: linear-gradient(135deg, #9AB3D5 0%, #003366 50%, #243E2C 100%);
   --color-gradient-scout-light: linear-gradient(135deg, #9AB3D5 0%, #6B8DB8 50%, #9AB3D5 100%);
   --color-gradient-user: linear-gradient(135deg, #AD9D7B 0%, #D6CEBD 50%, #E9E9E4 100%);
   --color-gradient-user-light: linear-gradient(135deg, #D6CEBD 0%, #E9E9E4 50%, #FFFFFF 100%);
-  
+
   /* Custom shadows */
   --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 0 15px rgba(0, 51, 102, 0.3);
 }
 
 /* Base styles */
@@ -40,134 +44,144 @@
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   width: 100%;
   margin: 0;
   padding: 0;
+  min-height: 100vh;
 }
 
 body {
-  font-family: var(--font-family-base);
+  font-family: var(--font-body);
   font-size: var(--font-size-base);
-  line-height: var(--line-height-normal);
+  line-height: 1.8;
   color: var(--text-primary);
-  background-color: var(--bg-secondary);
+  background-color: #f0f4f8;
+  background-image:
+    radial-gradient(at 0% 0%, rgba(154, 179, 213, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(0, 51, 102, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(36, 62, 44, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(214, 206, 189, 0.15) 0px, transparent 50%);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color var(--transition-base), color var(--transition-base);
 }
 
-/* Typography - h1 and h2 use Roboto Slab */
-h1, h2 {
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-tight);
-  margin-bottom: 0.5em;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.75em;
   color: var(--sa-dark-blue);
-}
-
-h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-tight);
-  margin-bottom: 0.5em;
-  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 h1 {
-  font-size: var(--font-size-4xl);
+  font-size: 2.5rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--sa-dark-blue);
 }
 
 h2 {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: -0.01em;
-  color: var(--sa-dark-blue);
+  font-size: 2rem;
 }
 
 h3 {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
+  font-size: 1.5rem;
 }
 
 h4 {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
+  font-size: 1.25rem;
 }
 
 h5 {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-size: 1.125rem;
 }
 
 h6 {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
+  font-size: 1rem;
 }
 
-/* Body text uses Inter */
-p, span, div, label, input, textarea, select, button {
-  font-family: var(--font-body);
-}
-
+/* Body text */
 p {
   margin-bottom: 1em;
-  line-height: 1.6;
+  color: var(--text-secondary);
 }
 
 /* Form Elements */
-input, textarea, select {
-  font-family: var(--font-family-base);
-  font-size: var(--font-size-sm);
-  background-color: var(--input-bg);
-  color: var(--input-text);
-  border: 1px solid var(--input-border);
-  border-radius: var(--border-radius-md);
-  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+input,
+textarea,
+select {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  transition: all 0.2s ease;
+  width: 100%;
 }
 
-input:focus, textarea:focus, select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   outline: none;
-  border-color: var(--input-border-focus);
-  box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
-}
-
-input::placeholder, textarea::placeholder {
-  color: var(--input-placeholder);
+  border-color: var(--sa-blue);
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(0, 51, 102, 0.1);
 }
 
 label {
-  font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
+  display: block;
+  font-weight: 600;
+  color: var(--sa-dark-blue);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
 }
 
 /* Links */
 a {
-  color: var(--text-link);
+  color: var(--sa-blue);
   text-decoration: none;
-  transition: color var(--transition-base);
+  font-weight: 500;
+  transition: color 0.2s;
 }
 
 a:hover {
-  color: var(--text-link-hover);
-  text-decoration: underline;
+  color: var(--sa-dark-blue);
 }
 
 /* Buttons */
 button {
-  font-family: var(--font-family-base);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.01em;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: 0.02em;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  gap: 0.75rem;
 }
 
 button:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 button:active:not(:disabled) {
@@ -177,6 +191,39 @@ button:active:not(:disabled) {
 button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+  filter: grayscale(1);
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding: 2.5rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  padding: 2rem;
+  border-radius: 1.5rem;
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1), 0 8px 8px -5px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 255, 255, 0.8);
 }
 
 /* Code */
@@ -184,31 +231,14 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
-/* Custom utility classes for gradients */
-.bg-gradient-scout {
+/* Utility Classes */
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.text-gradient-scout {
   background: var(--color-gradient-scout);
-}
-
-.bg-gradient-scout-light {
-  background: var(--color-gradient-scout-light);
-}
-
-.bg-gradient-user {
-  background: var(--color-gradient-user);
-}
-
-.bg-gradient-user-light {
-  background: var(--color-gradient-user-light);
-}
-
-.shadow-elevated {
-  box-shadow: var(--shadow-elevated);
-}
-
-.font-heading {
-  font-family: var(--font-heading);
-}
-
-.font-body {
-  font-family: var(--font-body);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
