@@ -20,8 +20,6 @@ class Participant(Base):
     # Relationships
     signup = relationship("Signup", back_populates="participants")
     family_member = relationship("FamilyMember", backref="participant_signups")
-    dietary_restrictions = relationship("DietaryRestriction", back_populates="participant", cascade="all, delete-orphan")
-    allergies = relationship("Allergy", back_populates="participant", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Participant(id={self.id}, signup_id={self.signup_id}, family_member_id={self.family_member_id})>"
@@ -71,33 +69,3 @@ class Participant(Base):
     @property
     def participant_type(self):
         return self.family_member.member_type if self.family_member else None
-
-
-class DietaryRestriction(Base):
-    """Dietary restriction model for tracking participant dietary needs"""
-    __tablename__ = "dietary_restrictions"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    participant_id = Column(UUID(as_uuid=True), ForeignKey("participants.id", ondelete="CASCADE"), nullable=False, index=True)
-    restriction_type = Column(String(100), nullable=False)  # vegetarian, vegan, gluten-free, etc.
-
-    # Relationships
-    participant = relationship("Participant", back_populates="dietary_restrictions")
-
-    def __repr__(self):
-        return f"<DietaryRestriction(id={self.id}, type={self.restriction_type})>"
-
-
-class Allergy(Base):
-    """Allergy model for tracking participant allergies"""
-    __tablename__ = "allergies"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    participant_id = Column(UUID(as_uuid=True), ForeignKey("participants.id", ondelete="CASCADE"), nullable=False, index=True)
-    allergy_type = Column(String(100), nullable=False)  # peanuts, tree nuts, shellfish, etc.
-
-    # Relationships
-    participant = relationship("Participant", back_populates="allergies")
-
-    def __repr__(self):
-        return f"<Allergy(id={self.id}, type={self.allergy_type})>"

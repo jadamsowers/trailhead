@@ -5,7 +5,7 @@ from uuid import UUID
 from typing import Optional
 
 from app.models.signup import Signup
-from app.models.participant import Participant, DietaryRestriction, Allergy
+from app.models.participant import Participant
 from app.models.family import FamilyMember
 from app.schemas.signup import SignupCreate, SignupUpdate
 
@@ -23,14 +23,6 @@ async def get_signup(db: AsyncSession, signup_id: UUID) -> Optional[Signup]:
             selectinload(Signup.participants)
             .selectinload(Participant.family_member)
             .selectinload(FamilyMember.allergies)
-        )
-        .options(
-            selectinload(Signup.participants)
-            .selectinload(Participant.dietary_restrictions)
-        )
-        .options(
-            selectinload(Signup.participants)
-            .selectinload(Participant.allergies)
         )
         .where(Signup.id == signup_id)
     )
@@ -50,14 +42,6 @@ async def get_outing_signups(db: AsyncSession, outing_id: UUID) -> list[Signup]:
             selectinload(Signup.participants)
             .selectinload(Participant.family_member)
             .selectinload(FamilyMember.allergies)
-        )
-        .options(
-            selectinload(Signup.participants)
-            .selectinload(Participant.dietary_restrictions)
-        )
-        .options(
-            selectinload(Signup.participants)
-            .selectinload(Participant.allergies)
         )
         .where(Signup.outing_id == outing_id)
         .order_by(Signup.created_at.desc())
@@ -111,14 +95,6 @@ async def create_signup(db: AsyncSession, signup: SignupCreate) -> Signup:
             selectinload(Signup.participants)
             .selectinload(Participant.family_member)
             .selectinload(FamilyMember.allergies)
-        )
-        .options(
-            selectinload(Signup.participants)
-            .selectinload(Participant.dietary_restrictions)
-        )
-        .options(
-            selectinload(Signup.participants)
-            .selectinload(Participant.allergies)
         )
         .where(Signup.id == db_signup.id)
     )
@@ -178,14 +154,6 @@ async def update_signup(db: AsyncSession, signup_id: UUID, signup_update: Signup
             selectinload(Signup.participants)
             .selectinload(Participant.family_member)
             .selectinload(FamilyMember.allergies)
-        )
-        .options(
-            selectinload(Signup.participants)
-            .selectinload(Participant.dietary_restrictions)
-        )
-        .options(
-            selectinload(Signup.participants)
-            .selectinload(Participant.allergies)
         )
         .where(Signup.id == signup_id)
     )
