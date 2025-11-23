@@ -98,8 +98,6 @@ if [ "$MODE_CHOICE" = "2" ]; then
     RESTART_POLICY="unless-stopped"
     DEBUG="false"
     HEALTHCHECK_INTERVAL="10s"
-    BACKEND_COMMAND="sh -c 'echo \"Running migrations...\" && export DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_SERVER:$POSTGRES_PORT/$POSTGRES_DB && atlas migrate apply --url $DATABASE_URL && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000'"
-    BACKEND_VOLUME_MOUNT=""
     BACKEND_PORT=""
 else
     MODE="development"
@@ -107,7 +105,6 @@ else
     RESTART_POLICY="no"
     DEBUG="true"
     HEALTHCHECK_INTERVAL="5s"
-    BACKEND_COMMAND="sh -c 'echo \"Waiting for database...\" && sleep 5 && echo \"Applying migrations with Atlas...\" && export DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_SERVER:$POSTGRES_PORT/$POSTGRES_DB && atlas migrate apply --url $DATABASE_URL && echo \"Initializing database...\" && python -m app.db.init_db || echo \"Database already initialized\" && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'"
     BACKEND_VOLUME_MOUNT="./backend:/app"
     BACKEND_PORT="8000"
 fi
@@ -170,6 +167,13 @@ else
     read -p "PostgreSQL Port (default: 5432): " POSTGRES_PORT
     POSTGRES_PORT=${POSTGRES_PORT:-5432}
     echo ""
+fi
+
+# Set BACKEND_COMMAND now that database variables are defined
+if [ "$MODE" = "production" ]; then
+    BACKEND_COMMAND="sh -c 'echo \"Waiting for database...\" && sleep 5 && echo \"Applying migrations with Atlas...\" && export DATABASE_URL=postgresql+asyncpg://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:$POSTGRES_PORT/$POSTGRES_DB && atlas migrate apply --url \$DATABASE_URL && echo \"Initializing database...\" && python -m app.db.init_db || echo \"Database already initialized\" && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'"
+else
+    BACKEND_COMMAND="sh -c 'echo \"Waiting for database...\" && sleep 5 && echo \"Applying migrations with Atlas...\" && export DATABASE_URL=postgresql+asyncpg://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:$POSTGRES_PORT/$POSTGRES_DB && atlas migrate apply --url \$DATABASE_URL && echo \"Initializing database...\" && python -m app.db.init_db || echo \"Database already initialized\" && echo \"Starting server...\" && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'"
 fi
 
 # Security configuration
@@ -567,7 +571,7 @@ CLERK_PUBLISHABLE_KEY=$CLERK_PUBLISHABLE_KEY
 FRONTEND_URL=$([ "$MODE" = "development" ] && echo "http://localhost:3000" || echo "$HOST_URI")
 
 # Backend Configuration
-BACKEND_COMMAND=$BACKEND_COMMAND
+BACKEND_COMMAND=sh -c 'echo "Waiting for database..." && sleep 5 && echo "Applying migrations with Atlas..." && atlas migrate apply --url "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:$POSTGRES_PORT/$POSTGRES_DB?sslmode=disable" && echo "Initializing database..." && python -m app.db.init_db || echo "Database already initialized" && echo "Starting server..." && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'
 BACKEND_VOLUME_MOUNT=$BACKEND_VOLUME_MOUNT
 BACKEND_PORT=$BACKEND_PORT
 EOF
