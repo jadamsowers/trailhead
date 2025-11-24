@@ -1,7 +1,11 @@
+// Get Clerk publishable key from environment
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_your_clerk_publishable_key_here';
 import React, { useState, useEffect } from 'react';
+import { useAuth } from './contexts/AuthContext';
 import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
 import { ClerkProvider, SignedIn, SignedOut, UserButton, useUser, SignUp } from '@clerk/clerk-react';
 import BackendHealthCheck from './components/Shared/BackendHealthCheck';
+import { BackgroundSync } from './components/BackgroundSync';
 import { ThemeToggleCompact } from './components/Shared/ThemeToggle';
 import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
@@ -10,8 +14,58 @@ import FamilySetupPage from './pages/FamilySetupPage';
 import OutingsPage from './pages/OutingsPage';
 import CheckInPage from './pages/CheckInPage';
 
-// Get Clerk publishable key from environment
-const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_your_clerk_publishable_key_here';
+// Offline message component
+type OfflineMessageProps = {
+    isAdmin?: boolean;
+    onAdminClick?: () => void;
+};
+
+const OfflineMessage: React.FC<OfflineMessageProps> = ({ isAdmin, onAdminClick }) => (
+    <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--color-primary)',
+        color: 'var(--text-on-primary)',
+        textAlign: 'center',
+        padding: '2rem',
+    }}>
+        <img src="/icon/icon-large-bordered.png" alt="Trailhead Logo" style={{ height: '4em', marginBottom: '1em' }} />
+        <h1 style={{ fontSize: '2.5em', marginBottom: '0.5em' }}>You've gone off-trail!</h1>
+        <p style={{ fontSize: '1.2em', marginBottom: '1.5em' }}>
+            Trailhead cannot connect to the internet.<br />
+            Please reconnect to access all features.<br />
+            {isAdmin ? (
+                <>
+                    <br />As an outing lead or administrator, you can access cached admin features.<br />
+                    <button
+                        onClick={onAdminClick}
+                        style={{
+                            marginTop: '1.5em',
+                            padding: '0.75em 2em',
+                            fontSize: '1.1em',
+                            fontWeight: 600,
+                            borderRadius: '0.5em',
+                            background: 'var(--btn-primary-bg, #1565c0)',
+                            color: 'var(--btn-primary-text, #fff)',
+                            border: 'none',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+                            transition: 'background 0.2s',
+                        }}
+                    >
+                        Enter Admin Mode
+                    </button>
+                </>
+            ) : (
+                <>If you are an outing lead or administrator, you may have limited access to cached admin features.</>
+            )}
+        </p>
+        <span style={{ fontSize: '1em', opacity: 0.7 }}>Trailhead works best online, but you can still view some information offline.</span>
+    </div>
+);
 
 const HomePage: React.FC = () => {
     const { isSignedIn } = useUser();
@@ -158,19 +212,34 @@ const Navigation: React.FC = () => {
                     <div className="flex items-center md:hidden">
                         <button
                             type="button"
-                            className="inline-flex items-center justify-center p-2"
-                            style={{ ...navButtonStyle, borderRadius: '0.5rem' }}
+                            className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20"
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            aria-expanded="false"
+                            aria-expanded={mobileMenuOpen}
                         >
                             <span className="sr-only">Open main menu</span>
                             {mobileMenuOpen ? (
-                                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                <svg 
+                                    className="block h-6 w-6" 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    fill="none" 
+                                    viewBox="0 0 24 24" 
+                                    strokeWidth={2}
+                                    stroke="currentColor" 
+                                    aria-hidden="true"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             ) : (
-                                <svg className="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                                <svg 
+                                    className="block h-6 w-6" 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    fill="none" 
+                                    viewBox="0 0 24 24" 
+                                    strokeWidth={2}
+                                    stroke="currentColor" 
+                                    aria-hidden="true"
+                                >
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
                                 </svg>
                             )}
                         </button>
@@ -249,13 +318,102 @@ const Navigation: React.FC = () => {
 };
 
 const App: React.FC = () => {
-    // Set window title with [DEV] prefix in development mode
+    const [isOffline, setIsOffline] = useState(!navigator.onLine);
+    const [cachedUser, setCachedUser] = useState<any>(null);
+
+    // Load cached user for offline detection
+    useEffect(() => {
+        const cached = localStorage.getItem('cached_user');
+        console.log('Loading cached user:', cached);
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                console.log('Parsed cached user:', parsed);
+                setCachedUser(parsed);
+            } catch (e) {
+                console.error('Failed to parse cached user:', e);
+            }
+        }
+    }, [isOffline]);
+
+    const isAdmin = cachedUser?.role === 'admin';
+    console.log('App offline state:', { isOffline, cachedUser, isAdmin });
+
     useEffect(() => {
         const isDevelopment = import.meta.env.DEV;
         const baseTitle = 'Trailhead';
         document.title = isDevelopment ? `[DEV] ${baseTitle}` : baseTitle;
     }, []);
 
+    useEffect(() => {
+        const handleOnline = () => {
+            console.log('Network: ONLINE');
+            setIsOffline(false);
+        };
+        const handleOffline = () => {
+            console.log('Network: OFFLINE');
+            setIsOffline(true);
+        };
+        
+        // Set initial state
+        console.log('Initial network state:', navigator.onLine ? 'ONLINE' : 'OFFLINE');
+        setIsOffline(!navigator.onLine);
+        
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    // If offline, show appropriate content
+    // AdminPage needs ClerkProvider even offline, so we wrap everything
+    if (isOffline) {
+        console.log('🔴 OFFLINE MODE - Rendering offline UI');
+        console.log('   isAdmin:', isAdmin, 'cachedUser:', cachedUser);
+        return (
+            <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+                <Router>
+                    <Routes>
+                        <Route path="/admin" element={
+                            cachedUser && isAdmin ? (
+                                <>
+                                    {console.log('✅ Showing AdminPage for cached admin')}
+                                    <AdminPage />
+                                </>
+                            ) : (
+                                <>
+                                    {console.log('❌ Showing OfflineMessage (not admin or no cached user)')}
+                                    <OfflineMessage
+                                        isAdmin={isAdmin}
+                                        onAdminClick={() => {
+                                            console.log('🔘 Admin button clicked, navigating to /admin');
+                                            window.location.href = '/admin';
+                                        }}
+                                    />
+                                </>
+                            )
+                        } />
+                        <Route path="*" element={
+                            <>
+                                {console.log('📍 Catch-all route - showing OfflineMessage')}
+                                <OfflineMessage
+                                    isAdmin={isAdmin}
+                                    onAdminClick={() => {
+                                        console.log('🔘 Admin button clicked, navigating to /admin');
+                                        window.location.href = '/admin';
+                                    }}
+                                />
+                            </>
+                        } />
+                    </Routes>
+                </Router>
+            </ClerkProvider>
+        );
+    }
+
+    console.log('🟢 ONLINE MODE - Rendering normal app');
     return (
         <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
             <BackendHealthCheck>
@@ -263,7 +421,8 @@ const App: React.FC = () => {
                     <div className="min-h-screen relative flex flex-col">
                         {/* Navigation Bar */}
                         <Navigation />
-
+                        {/* Background Sync (global) */}
+                        <BackgroundSync />
                         {/* Main Content */}
                         <main className="flex-grow w-full">
                             <Routes>
@@ -280,25 +439,12 @@ const App: React.FC = () => {
                                     </div>
                                 } />
                                 <Route path="/admin-setup" element={<AdminSetupPage />} />
-                                <Route
-                                    path="/admin"
-                                    element={<AdminPage />}
-                                />
-                                <Route path="/family-setup" element={
-                                    <SignedIn>
-                                        <FamilySetupPage />
-                                    </SignedIn>
-                                } />
+                                <Route path="/admin" element={<AdminPage />} />
+                                <Route path="/family-setup" element={<SignedIn><FamilySetupPage /></SignedIn>} />
                                 <Route path="/outings" element={<OutingsPage />} />
-                                <Route path="/check-in/:outingId" element={
-                                    <SignedIn>
-                                        <CheckInPage />
-                                    </SignedIn>
-                                } />
-
+                                <Route path="/check-in/:outingId" element={<SignedIn><CheckInPage /></SignedIn>} />
                             </Routes>
                         </main>
-
                         {/* Footer */}
                         <footer className="py-4 sm:py-8 mt-auto border-t border-white/10" style={{ backgroundColor: 'var(--color-primary)', color: 'var(--text-on-primary)' }}>
                             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

@@ -40,13 +40,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else {
             // Check for existing token
             const token = localStorage.getItem('access_token');
-            if (token) {
+            if (token && navigator.onLine) {
                 verifyToken(token);
             } else {
+                // If offline, try to load cached user
+                const cachedUser = localStorage.getItem('cached_user');
+                if (cachedUser) {
+                    setUser(JSON.parse(cachedUser));
+                }
                 setLoading(false);
             }
         }
     }, []);
+
+    // Always cache user object when it changes
+    useEffect(() => {
+        if (user) {
+            localStorage.setItem('cached_user', JSON.stringify(user));
+            console.debug('Cached user updated:', user);
+        } else {
+            localStorage.removeItem('cached_user');
+            console.debug('Cached user removed');
+        }
+    }, [user]);
 
     const verifyToken = async (token: string) => {
         try {
@@ -54,9 +70,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             try {
                 const userData = await oauthAPI.getCurrentUser(token);
                 setUser(userData);
+                localStorage.setItem('cached_user', JSON.stringify(userData));
             } catch {
                 const userData = await authAPI.getCurrentUser(token);
                 setUser(userData);
+                localStorage.setItem('cached_user', JSON.stringify(userData));
             }
         } catch (error) {
             console.error('Token verification failed:', error);
@@ -68,11 +86,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 } catch {
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('refresh_token');
+                    localStorage.removeItem('cached_user');
                     setLoading(false);
                 }
             } else {
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
+                localStorage.removeItem('cached_user');
                 setLoading(false);
             }
         } finally {
@@ -106,6 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Get user info
         const userData = await oauthAPI.getCurrentUser(accessToken);
         setUser(userData);
+        localStorage.setItem('cached_user', JSON.stringify(userData));
         setLoading(false);
         
         // Clean up URL
@@ -121,6 +142,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
             const userData = await oauthAPI.getCurrentUser(response.access_token);
             setUser(userData);
+            localStorage.setItem('cached_user', JSON.stringify(userData));
             return response;
         } catch {
             // Try legacy refresh
@@ -131,6 +153,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }
             const userData = await authAPI.getCurrentUser(response.access_token);
             setUser(userData);
+            localStorage.setItem('cached_user', JSON.stringify(userData));
             return response;
         }
     };
@@ -145,6 +168,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         const userData = await authAPI.getCurrentUser(response.access_token);
         setUser(userData);
+        localStorage.setItem('cached_user', JSON.stringify(userData));
     };
 
     const loginWithOAuth = () => {
@@ -163,6 +187,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('cached_user');
         setUser(null);
     };
 

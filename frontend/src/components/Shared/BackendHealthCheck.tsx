@@ -9,6 +9,7 @@ const BackendHealthCheck: React.FC<BackendHealthCheckProps> = ({ children }) => 
     const [isHealthy, setIsHealthy] = useState<boolean | null>(null);
     const [isChecking, setIsChecking] = useState(true);
     const [errorMessage, setErrorMessage] = useState<string>('');
+    const [showBanner, setShowBanner] = useState(true);
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
     useEffect(() => {
@@ -36,130 +37,67 @@ const BackendHealthCheck: React.FC<BackendHealthCheckProps> = ({ children }) => 
         checkBackendHealth();
     };
 
-    if (isChecking) {
-        return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                minHeight: '100vh',
-                backgroundColor: 'var(--bg-secondary)'
-            }}>
-                <div style={{ textAlign: 'center' }}>
-                    <div style={{
-                        width: '50px',
-                        height: '50px',
-                        border: '5px solid #e0e0e0',
-                        borderTop: '5px solid #1976d2',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite',
-                        margin: '0 auto 20px'
-                    }} />
-                    <p style={{ color: '#666', fontSize: '18px' }}>Connecting to backend...</p>
-                    <style>{`
-                        @keyframes spin {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                    `}</style>
-                </div>
-            </div>
-        );
-    }
+    // Banner for backend connection issues
+    const showConnectionBanner = !isChecking && isHealthy === false && showBanner;
 
-    if (isHealthy === false) {
-        return (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                minHeight: '100vh',
-                backgroundColor: 'var(--bg-secondary)',
-                padding: '20px'
-            }}>
+    return (
+        <>
+            {showConnectionBanner && (
                 <div style={{
-                    maxWidth: '600px',
-                    backgroundColor: 'var(--card-bg)',
-                    color: 'var(--text-primary)',
-                    borderRadius: '12px',
-                    padding: '40px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-                    textAlign: 'center'
+                    backgroundColor: 'var(--alert-error-bg, #fff3f3)',
+                    border: '1px solid var(--alert-error-border, #e57373)',
+                    color: 'var(--alert-error-text, #b71c1c)',
+                    padding: '10px 18px',
+                    borderRadius: '8px 8px 0 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    position: 'fixed',
+                    bottom: 24,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    minWidth: 0,
+                    maxWidth: 360,
+                    width: '90%',
+                    zIndex: 2000,
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.18)',
+                    opacity: 0.97,
+                    fontSize: 14
                 }}>
-                    <div style={{
-                        fontSize: '64px',
-                        marginBottom: '20px'
-                    }}>
-                        ⚠️
-                    </div>
-                    <h1 style={{
-                        color: 'var(--alert-error-text)',
-                        marginBottom: '20px',
-                        fontSize: '28px'
-                    }}>
-                        Backend Connection Error
-                    </h1>
-                    <p style={{
-                        color: 'var(--text-secondary)',
-                        fontSize: '16px',
-                        marginBottom: '30px',
-                        lineHeight: '1.6'
-                    }}>
-                        Unable to connect to the backend server. Please ensure the backend is running and accessible.
-                    </p>
-                    <div style={{
-                        backgroundColor: 'var(--alert-warning-bg)',
-                        border: '1px solid var(--alert-warning-border)',
-                        borderRadius: '8px',
-                        padding: '20px',
-                        marginBottom: '30px',
-                        textAlign: 'left'
-                    }}>
-                        <h3 style={{ color: '#f57c00', marginBottom: '10px', fontSize: '16px' }}>
-                            Troubleshooting Steps:
-                        </h3>
-                        <ol style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: '1.8', paddingLeft: '20px' }}>
-                            <li>Verify the backend server is running on <code style={{ backgroundColor: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-primary)' }}>{apiUrl}</code></li>
-                            <li>Check that your <code style={{ backgroundColor: 'var(--bg-tertiary)', padding: '2px 6px', borderRadius: '4px', color: 'var(--text-primary)' }}>VITE_API_URL</code> environment variable is set correctly</li>
-                            <li>Ensure there are no firewall or network issues blocking the connection</li>
-                            <li>Review the backend logs for any startup errors</li>
-                        </ol>
-                    </div>
-                    <div style={{
-                        backgroundColor: 'var(--alert-error-bg)',
-                        border: '1px solid var(--alert-error-border)',
-                        borderRadius: '8px',
-                        padding: '15px',
-                        marginBottom: '30px'
-                    }}>
-                        <p style={{ color: 'var(--alert-error-text)', fontSize: '14px', margin: 0 }}>
-                            <strong>Error:</strong> {errorMessage}
-                        </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 18, marginRight: 6 }}>⚠️</span>
+                        <span style={{ fontWeight: 600, fontSize: 14 }}>
+                            Unable to connect to the backend.
+                        </span>
+                        <span style={{ fontSize: 13, color: 'var(--text-secondary)', marginLeft: 8 }}>
+                            <button onClick={retryConnection} style={{ color: 'inherit', background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', fontSize: 13, padding: 0 }}>Retry</button>
+                        </span>
+                        {errorMessage && (
+                            <span style={{ fontSize: 12, color: 'var(--alert-error-text)', marginLeft: 10 }}>
+                                <strong>Error:</strong> {errorMessage}
+                            </span>
+                        )}
                     </div>
                     <button
-                        onClick={retryConnection}
+                        onClick={() => setShowBanner(false)}
                         style={{
-                            backgroundColor: '#1976d2',
-                            color: 'white',
+                            background: 'none',
                             border: 'none',
-                            padding: '12px 32px',
-                            borderRadius: '6px',
-                            fontSize: '16px',
+                            color: 'var(--alert-error-text)',
+                            fontSize: 18,
                             cursor: 'pointer',
-                            transition: 'background-color 0.2s',
-                            fontWeight: '500'
+                            marginLeft: 10,
+                            padding: 0
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#1565c0'}
-                        onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#1976d2'}
+                        aria-label="Dismiss backend connection error"
                     >
-                        🔄 Retry Connection
+                        ✕
                     </button>
                 </div>
-            </div>
-        );
-    }
-
-    return <>{children}</>;
+            )}
+            {children}
+        </>
+    );
 };
 
 export default BackendHealthCheck;

@@ -13,8 +13,6 @@ const CheckInPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<'all' | 'scouts' | 'adults' | 'checked-in' | 'not-checked-in'>('all');
-    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-    const [processing, setProcessing] = useState(false);
 
     const [isOffline, setIsOffline] = useState(!navigator.onLine);
     const [isSyncing, setIsSyncing] = useState(false);
@@ -79,33 +77,27 @@ const CheckInPage: React.FC = () => {
         if (!outingId || !user) return;
 
         try {
-            setProcessing(true);
             await checkInAPI.checkInParticipants(outingId, {
                 participant_ids: participantIds,
                 checked_in_by: user.fullName || user.primaryEmailAddress?.emailAddress || 'Unknown'
             });
             await loadCheckInData();
-            setSelectedIds(new Set());
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to check in participants');
             console.error('Error checking in:', err);
-        } finally {
-            setProcessing(false);
         }
     };
 
+                // Removed setUsingOfflineCache(false); as it is not defined or used
     const handleUndoCheckIn = async (participantId: string) => {
         if (!outingId) return;
 
         try {
-            setProcessing(true);
             await checkInAPI.undoCheckIn(outingId, participantId);
             await loadCheckInData();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to undo check-in');
             console.error('Error undoing check-in:', err);
-        } finally {
-            setProcessing(false);
         }
     };
 
@@ -122,28 +114,6 @@ const CheckInPage: React.FC = () => {
         }
     };
 
-    const toggleSelection = (participantId: string) => {
-        const newSelected = new Set(selectedIds);
-        if (newSelected.has(participantId)) {
-            newSelected.delete(participantId);
-        } else {
-            newSelected.add(participantId);
-        }
-        setSelectedIds(newSelected);
-    };
-
-    const toggleSelectAll = () => {
-        if (!summary) return;
-
-        const filteredParticipants = getFilteredParticipants();
-        const allSelected = filteredParticipants.every(p => selectedIds.has(p.id));
-
-        if (allSelected) {
-            setSelectedIds(new Set());
-        } else {
-            setSelectedIds(new Set(filteredParticipants.map(p => p.id)));
-        }
-    };
 
     const getFilteredParticipants = (): CheckInParticipant[] => {
         if (!summary) return [];
@@ -178,6 +148,7 @@ const CheckInPage: React.FC = () => {
             if (a.member_type !== b.member_type) {
                 return a.member_type.localeCompare(b.member_type);
             }
+        // Removed unused offline/cached warning for usingOfflineCache
 
             // 2. Last Name
             const getNameParts = (name: string) => (name || '').trim().split(/\s+/);
@@ -237,11 +208,6 @@ const CheckInPage: React.FC = () => {
     }
 
     const filteredParticipants = getFilteredParticipants();
-    const selectedCount = selectedIds.size;
-    const uncheckedSelected = Array.from(selectedIds).filter(id => {
-        const participant = summary.participants.find(p => p.id === id);
-        return participant && !participant.is_checked_in;
-    });
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">

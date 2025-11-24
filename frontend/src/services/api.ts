@@ -617,7 +617,7 @@ export const userAPI = {
      * Get current user information including contact details
      */
     async getCurrentUser(): Promise<User> {
-        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        const response = await fetch(`${API_BASE_URL}/clerk/me`, {
             headers: await getAuthHeaders(),
         });
         return handleResponse<User>(response);
@@ -631,7 +631,7 @@ export const userAPI = {
         emergency_contact_name?: string;
         emergency_contact_phone?: string;
     }): Promise<User> {
-        const response = await fetch(`${API_BASE_URL}/auth/me/contact`, {
+        const response = await fetch(`${API_BASE_URL}/clerk/me/contact`, {
             method: 'PATCH',
             headers: await getAuthHeaders(),
             body: JSON.stringify(contactInfo),

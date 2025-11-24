@@ -2,46 +2,61 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 import SignupWizard from '../components/Participant/SignupWizard';
-import { familyAPI } from '../services/api';
+import { familyAPI, outingAPI } from '../services/api';
+
+const OUTINGS_CACHE_KEY = 'cached_outings';
 
 const OutingsPage: React.FC = () => {
     const { user, isLoaded } = useUser();
     const navigate = useNavigate();
     const [checkingFamily, setCheckingFamily] = useState(true);
     const [hasFamilyMembers, setHasFamilyMembers] = useState(false);
+    const [outings, setOutings] = useState<any[] | null>(null);
+    const [outingsError, setOutingsError] = useState<string | null>(null);
 
     useEffect(() => {
         let mounted = true;
 
         const checkFamilyMembers = async () => {
-            // Only check family members when Clerk is loaded and user is available
-            if (!isLoaded || !user) {
-                return;
-            }
-
+            if (!isLoaded || !user) return;
             try {
                 const data = await familyAPI.getSummary();
-
                 if (!mounted) return;
-
                 setHasFamilyMembers(data.length > 0);
             } catch (err) {
                 console.error('Failed to check family members:', err);
             } finally {
-                if (mounted) {
-                    setCheckingFamily(false);
-                }
+                if (mounted) setCheckingFamily(false);
             }
         };
 
         checkFamilyMembers();
-
-        return () => {
-            mounted = false;
-        };
+        return () => { mounted = false; };
     }, [isLoaded, user]);
 
-    // Show loading while Clerk is initializing or while checking family members
+    // Fetch outings (online or from cache)
+    useEffect(() => {
+        let mounted = true;
+        const fetchOutings = async () => {
+            try {
+                const data = await outingAPI.getAll();
+                if (!mounted) return;
+                setOutings(data);
+            } catch (err) {
+                // Try cache if offline or fetch fails
+                const cached = localStorage.getItem(OUTINGS_CACHE_KEY);
+                if (cached) {
+                    setOutings(JSON.parse(cached));
+                    setOutingsError('Showing offline data');
+                } else {
+                    setOutingsError('Unable to load outings');
+                }
+            }
+        };
+        fetchOutings();
+        return () => { mounted = false; };
+    }, []);
+
     if (!isLoaded || checkingFamily) {
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-secondary)' }}>
@@ -53,9 +68,13 @@ const OutingsPage: React.FC = () => {
     return (
         <div className="w-full">
             <SignedIn>
+                {outingsError && (
+                    <div style={{ color: 'var(--alert-warning-text)', background: 'var(--alert-warning-bg)', padding: 8, borderRadius: 6, margin: '12px 0', textAlign: 'center' }}>{outingsError}</div>
+                )}
                 {hasFamilyMembers ? (
                     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                        <SignupWizard />
+                        {/* Pass outings to SignupWizard or render your own list here if needed */}
+                        <SignupWizard outings={outings || []} />
                     </div>
                 ) : (
                     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[60vh] flex items-center justify-center">
