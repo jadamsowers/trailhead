@@ -600,6 +600,10 @@ RESTART_POLICY=$RESTART_POLICY
 DEBUG=$DEBUG
 HEALTHCHECK_INTERVAL=$HEALTHCHECK_INTERVAL
 
+# Compose profiles (useful for `docker compose` v2 profiles)
+# Will be set to 'production' when running in production mode
+COMPOSE_PROFILES=$([ "$MODE" = "production" ] && echo "production" || echo "")
+
 # Database Configuration
 POSTGRES_USER=$POSTGRES_USER
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
