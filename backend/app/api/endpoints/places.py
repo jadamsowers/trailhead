@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 from uuid import UUID
 
@@ -12,25 +12,25 @@ router = APIRouter()
 
 
 @router.get("/places", response_model=List[PlaceResponse])
-def list_places(
+async def list_places(
     skip: int = 0,
     limit: int = 100,
     search: Optional[str] = Query(None, description="Search by name or address"),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Get all places with optional search filter"""
-    return crud_place.get_places(db, skip=skip, limit=limit, search=search)
+    return await crud_place.get_places(db, skip=skip, limit=limit, search=search)
 
 
 @router.get("/places/{place_id}", response_model=PlaceResponse)
-def get_place(
+async def get_place(
     place_id: UUID,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Get a specific place by ID"""
-    place = crud_place.get_place(db, place_id)
+    place = await crud_place.get_place(db, place_id)
     if not place:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -40,9 +40,9 @@ def get_place(
 
 
 @router.post("/places", response_model=PlaceResponse, status_code=status.HTTP_201_CREATED)
-def create_place(
+async def create_place(
     place: PlaceCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Create a new place (admin only)"""
@@ -51,14 +51,30 @@ def create_place(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admins can create places"
         )
-    return crud_place.create_place(db, place)
+    
+    try:
+        new_place = await crud_place.create_place(db, place)
+        if not new_place or not new_place.id:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to create place - database operation returned invalid data"
+            )
+        return new_place
+    except HTTPException:
+        raise
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create place: {str(e)}"
+        )
 
 
 @router.put("/places/{place_id}", response_model=PlaceResponse)
-def update_place(
+async def update_place(
     place_id: UUID,
     place: PlaceUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Update a place (admin only)"""
@@ -68,7 +84,7 @@ def update_place(
             detail="Only admins can update places"
         )
     
-    updated = crud_place.update_place(db, place_id, place)
+    updated = await crud_place.update_place(db, place_id, place)
     if not updated:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -78,9 +94,9 @@ def update_place(
 
 
 @router.delete("/places/{place_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_place(
+async def delete_place(
     place_id: UUID,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Delete a place (admin only)"""
@@ -90,7 +106,7 @@ def delete_place(
             detail="Only admins can delete places"
         )
     
-    success = crud_place.delete_place(db, place_id)
+    success = await crud_place.delete_place(db, place_id)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -99,11 +115,11 @@ def delete_place(
 
 
 @router.get("/places/search/{name}", response_model=List[PlaceResponse])
-def search_places(
+async def search_places(
     name: str,
     limit: int = Query(10, le=50, description="Maximum number of results"),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Search places by name (for autocomplete)"""
-    return crud_place.search_places_by_name(db, name, limit=limit)
+    return await crud_place.search_places_by_name(db, name, limit=limit)

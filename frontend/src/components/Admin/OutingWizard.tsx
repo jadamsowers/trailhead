@@ -7,6 +7,8 @@ import type {
   OutingRequirementCreate,
   OutingMeritBadgeCreate,
   Place,
+  RankRequirement,
+  MeritBadge,
 } from "../../types";
 import { outingAPI, requirementsAPI } from "../../services/api";
 import { PlacePicker } from "./PlacePicker";
@@ -36,6 +38,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   const [suggestions, setSuggestions] = useState<OutingSuggestions | null>(
     null
   );
+  // Fallback catalogs when suggestions unavailable
+  const [allRequirements, setAllRequirements] = useState<RankRequirement[]>([]);
+  const [allMeritBadges, setAllMeritBadges] = useState<MeritBadge[]>([]);
 
   // Step 1: Basic Info
   const [name, setName] = useState("");
@@ -79,6 +84,24 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   useEffect(() => {
     if (activeStep === 1 && name) {
       loadSuggestions();
+    }
+    if (activeStep === 2 && !suggestions) {
+      // Load full catalogs for manual selection fallback
+      (async () => {
+        try {
+          setLoading(true);
+          const [reqs, badges] = await Promise.all([
+            requirementsAPI.getRankRequirements(),
+            requirementsAPI.getMeritBadges(),
+          ]);
+          setAllRequirements(reqs);
+          setAllMeritBadges(badges);
+        } catch (e) {
+          console.error("Failed loading catalogs", e);
+        } finally {
+          setLoading(false);
+        }
+      })();
     }
   }, [activeStep]);
 
@@ -341,6 +364,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   value={outingAddress}
                   onChange={setOutingAddress}
                   helperText="Where is the outing taking place?"
+                  autoName={location}
                 />
               </div>
 
@@ -448,6 +472,12 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   merit badges after creating the outing.
                 </div>
               )}
+            {!suggestions && !loading && (
+              <div className="p-4 rounded border border-[rgba(33,150,243,0.3)] bg-[rgba(33,150,243,0.1)]">
+                Suggestions unavailable. You can still choose from the full
+                catalog on the next step.
+              </div>
+            )}
           </div>
         );
 
@@ -458,69 +488,81 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               Select the rank requirements and merit badges that scouts can work
               on during this outing.
             </p>
-
-            {suggestions && (
+            {suggestions ||
+            allRequirements.length > 0 ||
+            allMeritBadges.length > 0 ? (
               <div className="grid gap-8">
                 <div>
                   <h3>🏆 Rank Requirements</h3>
-                  {suggestions.requirements.length === 0 ? (
-                    <p className="text-secondary">No suggestions available</p>
+                  {(
+                    suggestions
+                      ? suggestions.requirements.length === 0
+                      : allRequirements.length === 0
+                  ) ? (
+                    <p className="text-secondary">No requirements available</p>
                   ) : (
                     <div className="grid gap-4">
-                      {suggestions.requirements.map((req) => (
-                        <div
-                          key={req.requirement.id}
-                          className={
-                            `p-4 rounded-lg border border-card ` +
-                            (selectedRequirements.has(req.requirement.id)
-                              ? "bg-[rgba(var(--bsa-olive-rgb),0.05)]"
-                              : "bg-tertiary")
-                          }
-                        >
-                          <label className="flex items-start gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={selectedRequirements.has(
-                                req.requirement.id
-                              )}
-                              onChange={() => handleToggleRequirement(req)}
-                              className="mt-1"
-                            />
-                            <div className="flex-1">
-                              <div className="font-bold mb-1">
-                                {req.requirement.rank} -{" "}
-                                {req.requirement.category}
-                                <span className="ml-2 text-xs py-0.5 px-2 rounded-xl bg-[rgba(var(--bsa-olive-rgb),0.2)]">
-                                  {(req.match_score * 100).toFixed(0)}% match
-                                </span>
-                              </div>
-                              <div className="text-sm text-secondary">
-                                {req.requirement.requirement_text}
-                              </div>
-                            </div>
-                          </label>
-                          {selectedRequirements.has(req.requirement.id) && (
-                            <div className="mt-2 ml-7">
+                      {(suggestions
+                        ? suggestions.requirements
+                        : allRequirements.map((r) => ({
+                            requirement: r,
+                            match_score: 0,
+                            matched_keywords: [] as string[],
+                          }))
+                      ).map((req) => {
+                        const reqObj = req.requirement;
+                        const id = reqObj.id;
+                        return (
+                          <div
+                            key={id}
+                            className={
+                              `p-4 rounded-lg border border-card ` +
+                              (selectedRequirements.has(id)
+                                ? "bg-[rgba(var(--bsa-olive-rgb),0.05)]"
+                                : "bg-tertiary")
+                            }
+                          >
+                            <label className="flex items-start gap-2 cursor-pointer">
                               <input
-                                type="text"
-                                placeholder="Add specific details or instructions (optional)..."
-                                value={
-                                  selectedRequirements.get(
-                                    req.requirement.id
-                                  ) || ""
-                                }
-                                onChange={(e) =>
-                                  handleRequirementNotesChange(
-                                    req.requirement.id,
-                                    e.target.value
-                                  )
-                                }
-                                className="form-input"
+                                type="checkbox"
+                                checked={selectedRequirements.has(id)}
+                                onChange={() => handleToggleRequirement(req)}
+                                className="mt-1"
                               />
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                              <div className="flex-1">
+                                <div className="font-bold mb-1">
+                                  {reqObj.rank} - {reqObj.category}
+                                  {suggestions && (
+                                    <span className="ml-2 text-xs py-0.5 px-2 rounded-xl bg-[rgba(var(--bsa-olive-rgb),0.2)]">
+                                      {(req.match_score * 100).toFixed(0)}%
+                                      match
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-sm text-secondary">
+                                  {reqObj.requirement_text}
+                                </div>
+                              </div>
+                            </label>
+                            {selectedRequirements.has(id) && (
+                              <div className="mt-2 ml-7">
+                                <input
+                                  type="text"
+                                  placeholder="Add specific details or instructions (optional)..."
+                                  value={selectedRequirements.get(id) || ""}
+                                  onChange={(e) =>
+                                    handleRequirementNotesChange(
+                                      id,
+                                      e.target.value
+                                    )
+                                  }
+                                  className="form-input"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -529,67 +571,81 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
 
                 <div>
                   <h3>🎖️ Merit Badges</h3>
-                  {suggestions.merit_badges.length === 0 ? (
-                    <p className="text-secondary">No suggestions available</p>
+                  {(
+                    suggestions
+                      ? suggestions.merit_badges.length === 0
+                      : allMeritBadges.length === 0
+                  ) ? (
+                    <p className="text-secondary">No merit badges available</p>
                   ) : (
                     <div className="grid gap-4">
-                      {suggestions.merit_badges.map((badge) => (
-                        <div
-                          key={badge.merit_badge.id}
-                          className={
-                            `p-4 rounded-lg border border-card ` +
-                            (selectedMeritBadges.has(badge.merit_badge.id)
-                              ? "bg-[rgba(0,150,0,0.05)]"
-                              : "bg-tertiary")
-                          }
-                        >
-                          <label className="flex items-start gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={selectedMeritBadges.has(
-                                badge.merit_badge.id
-                              )}
-                              onChange={() => handleToggleMeritBadge(badge)}
-                              className="mt-1"
-                            />
-                            <div className="flex-1">
-                              <div className="font-bold mb-1">
-                                {badge.merit_badge.name}
-                                <span className="ml-2 text-xs py-0.5 px-2 rounded-xl bg-[rgba(0,150,0,0.2)]">
-                                  {(badge.match_score * 100).toFixed(0)}% match
-                                </span>
-                              </div>
-                              <div className="text-sm text-secondary">
-                                {badge.merit_badge.description}
-                              </div>
-                            </div>
-                          </label>
-                          {selectedMeritBadges.has(badge.merit_badge.id) && (
-                            <div className="mt-2 ml-7">
+                      {(suggestions
+                        ? suggestions.merit_badges
+                        : allMeritBadges.map((b) => ({
+                            merit_badge: b,
+                            match_score: 0,
+                            matched_keywords: [] as string[],
+                          }))
+                      ).map((badge) => {
+                        const badgeObj = badge.merit_badge;
+                        const id = badgeObj.id;
+                        return (
+                          <div
+                            key={id}
+                            className={
+                              `p-4 rounded-lg border border-card ` +
+                              (selectedMeritBadges.has(id)
+                                ? "bg-[rgba(0,150,0,0.05)]"
+                                : "bg-tertiary")
+                            }
+                          >
+                            <label className="flex items-start gap-2 cursor-pointer">
                               <input
-                                type="text"
-                                placeholder="Add specific details or instructions (optional)..."
-                                value={
-                                  selectedMeritBadges.get(
-                                    badge.merit_badge.id
-                                  ) || ""
-                                }
-                                onChange={(e) =>
-                                  handleMeritBadgeNotesChange(
-                                    badge.merit_badge.id,
-                                    e.target.value
-                                  )
-                                }
-                                className="form-input"
+                                type="checkbox"
+                                checked={selectedMeritBadges.has(id)}
+                                onChange={() => handleToggleMeritBadge(badge)}
+                                className="mt-1"
                               />
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                              <div className="flex-1">
+                                <div className="font-bold mb-1">
+                                  {badgeObj.name}
+                                  {suggestions && (
+                                    <span className="ml-2 text-xs py-0.5 px-2 rounded-xl bg-[rgba(0,150,0,0.2)]">
+                                      {(badge.match_score * 100).toFixed(0)}%
+                                      match
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-sm text-secondary">
+                                  {badgeObj.description}
+                                </div>
+                              </div>
+                            </label>
+                            {selectedMeritBadges.has(id) && (
+                              <div className="mt-2 ml-7">
+                                <input
+                                  type="text"
+                                  placeholder="Add specific details or instructions (optional)..."
+                                  value={selectedMeritBadges.get(id) || ""}
+                                  onChange={(e) =>
+                                    handleMeritBadgeNotesChange(
+                                      id,
+                                      e.target.value
+                                    )
+                                  }
+                                  className="form-input"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
               </div>
+            ) : (
+              <div className="text-secondary">Loading catalogs...</div>
             )}
           </div>
         );

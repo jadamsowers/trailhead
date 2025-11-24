@@ -16,6 +16,7 @@ interface PlacePickerProps {
   }) => void;
   required?: boolean;
   helperText?: string;
+  autoName?: string; // Preferred name (e.g., outing location) to seed search & new place creation
 }
 
 export const PlacePicker: React.FC<PlacePickerProps> = ({
@@ -24,12 +25,13 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
   onChange,
   required = false,
   helperText,
+  autoName,
 }) => {
   const [options, setOptions] = useState<Place[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [customAddress, setCustomAddress] = useState(value.address || "");
-  const [showCustomInput, setShowCustomInput] = useState(!value.placeId);
+  const [showCustomInput, setShowCustomInput] = useState(false); // Hidden until no results
   const [showDropdown, setShowDropdown] = useState(false);
 
   // Load initial place if placeId is provided
@@ -83,6 +85,13 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
     };
   }, [searchValue, showCustomInput]);
 
+  // Seed search with autoName once
+  useEffect(() => {
+    if (autoName && !searchValue) {
+      setSearchValue(autoName);
+    }
+  }, [autoName]);
+
   const handlePlaceSelect = (place: Place | null) => {
     if (place) {
       setSearchValue(place.name);
@@ -114,17 +123,17 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
 
   const handleSaveAsPlace = async () => {
     if (!customAddress.trim()) return;
-
     try {
       const addressLines = customAddress.trim().split("\n");
-      const placeName = addressLines[0].substring(0, 100);
+      const baseName =
+        autoName && autoName.trim() ? autoName.trim() : addressLines[0];
+      const placeName = baseName.substring(0, 100);
 
       const newPlace = await placesAPI.createPlace({
         name: placeName,
         address: customAddress,
       });
 
-      // Switch to using the saved place
       onChange({
         address: newPlace.address,
         placeId: newPlace.id,
@@ -154,16 +163,33 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
           {label}
           {required && <span className="text-red-600"> *</span>}
         </label>
-        <button
-          type="button"
-          onClick={() => {
-            setShowCustomInput(!showCustomInput);
-            setShowDropdown(false);
-          }}
-          className="px-2 py-1 text-xs rounded border border-[var(--bsa-olive)] text-[var(--bsa-olive)] bg-transparent hover:bg-[var(--bsa-olive)] hover:text-white transition-colors"
-        >
-          {showCustomInput ? "← Use Saved Place" : "+ Custom Address"}
-        </button>
+        {!showCustomInput &&
+          searchValue &&
+          options.length === 0 &&
+          !loading && (
+            <button
+              type="button"
+              onClick={() => {
+                setShowCustomInput(true);
+                setShowDropdown(false);
+              }}
+              className="px-2 py-1 text-xs rounded border border-[var(--bsa-olive)] text-[var(--bsa-olive)] bg-transparent hover:bg-[var(--bsa-olive)] hover:text-white transition-colors"
+            >
+              + New Place
+            </button>
+          )}
+        {showCustomInput && (
+          <button
+            type="button"
+            onClick={() => {
+              setShowCustomInput(false);
+              setCustomAddress("");
+            }}
+            className="px-2 py-1 text-xs rounded border border-[var(--bsa-olive)] text-[var(--bsa-olive)] bg-transparent hover:bg-[var(--bsa-olive)] hover:text-white transition-colors"
+          >
+            ← Back
+          </button>
+        )}
       </div>
 
       {helperText && (
@@ -210,7 +236,7 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
           )}
           {showDropdown && searchValue && options.length === 0 && !loading && (
             <div className="absolute top-full left-0 right-0 mt-0.5 px-3 py-2 text-sm bg-[var(--bg-tertiary)] border border-[var(--card-border)] rounded text-[var(--text-secondary)]">
-              No saved places found
+              No saved places found. Create a new one?
             </div>
           )}
         </div>
