@@ -22,7 +22,8 @@
   }
 
   /* Form base styles using CSS variables */
-  .form-input, .form-textarea {
+  .form-input,
+  .form-textarea {
     width: 100%;
     padding: 0.5rem; /* 8px */
     font-size: 0.875rem; /* 14px */
@@ -31,7 +32,8 @@
     background-color: var(--input-bg);
     color: var(--input-text);
   }
-  .form-input:focus, .form-textarea:focus {
+  .form-input:focus,
+  .form-textarea:focus {
     outline: none;
     box-shadow: 0 0 0 4px rgba(var(--bsa-olive-rgb), 0.1);
     border-color: var(--input-border-focus);
