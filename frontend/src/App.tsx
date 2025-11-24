@@ -13,6 +13,7 @@ import AdminSetupPage from './pages/AdminSetupPage';
 import FamilySetupPage from './pages/FamilySetupPage';
 import OutingsPage from './pages/OutingsPage';
 import CheckInPage from './pages/CheckInPage';
+import ProfilePage from './pages/ProfilePage';
 
 // Offline message component
 type OfflineMessageProps = {
@@ -183,6 +184,13 @@ const Navigation: React.FC = () => {
                                 >
                                     Admin
                                 </Link>
+                                <Link
+                                    to="/profile"
+                                    className="px-6 py-4 text-base font-bold"
+                                    style={navTextStyle}
+                                >
+                                    Profile
+                                </Link>
                                 <div className="flex items-center gap-5 pl-8 border-l-2 border-white/20 h-10">
                                     <ThemeToggleCompact />
                                     <UserButton afterSignOutUrl="/" appearance={{ 
@@ -280,6 +288,16 @@ const Navigation: React.FC = () => {
                             tabIndex={0}
                         >
                             Admin
+                        </Link>
+                        <Link
+                            to="/profile"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block px-6 py-4 text-lg font-medium border-b border-white/10 hover:bg-white/5 transition-colors"
+                            style={navTextStyle}
+                            role="menuitem"
+                            tabIndex={0}
+                        >
+                            Profile
                         </Link>
                         <div className="px-6 py-4 flex items-center justify-between border-b border-white/10 hover:bg-white/5 transition-colors">
                             <span style={{ color: 'var(--text-on-primary)', fontSize: '1rem', fontWeight: 500 }}>Theme</span>
@@ -441,6 +459,7 @@ const App: React.FC = () => {
                                 <Route path="/admin-setup" element={<AdminSetupPage />} />
                                 <Route path="/admin" element={<AdminPage />} />
                                 <Route path="/family-setup" element={<SignedIn><FamilySetupPage /></SignedIn>} />
+                                <Route path="/profile" element={<SignedIn><ProfilePage /></SignedIn>} />
                                 <Route path="/outings" element={<OutingsPage />} />
                                 <Route path="/check-in/:outingId" element={<SignedIn><CheckInPage /></SignedIn>} />
                             </Routes>
