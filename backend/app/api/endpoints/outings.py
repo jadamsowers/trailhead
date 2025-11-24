@@ -74,7 +74,8 @@ async def create_outing(
         total_vehicle_capacity=db_outing.total_vehicle_capacity,
         needs_more_drivers=db_outing.needs_more_drivers,
         created_at=db_outing.created_at,
-        updated_at=db_outing.updated_at
+        updated_at=db_outing.updated_at,
+        icon=db_outing.icon
     )
 
 

@@ -246,89 +246,26 @@ const UserManagement: React.FC = () => {
                                             Cannot modify initial admin
                                         </span>
                                     ) : (
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                            {user.role !== 'admin' && (
-                                                <button
-                                                    onClick={() => updateUserRole(user.id, 'admin')}
-                                                    disabled={updatingUserId === user.id}
-                                                    style={{
-                                                        color: 'var(--sa-dark-blue)',
-                                                        background: 'none',
-                                                        border: 'none',
-                                                        cursor: updatingUserId === user.id ? 'not-allowed' : 'pointer',
-                                                        opacity: updatingUserId === user.id ? 0.5 : 1,
-                                                        textDecoration: 'underline'
-                                                    }}
-                                                >
-                                                    {updatingUserId === user.id ? 'Updating...' : 'Promote to Admin'}
-                                                </button>
-                                            )}
-                                            {user.role === 'admin' && (
-                                                <>
-                                                    <button
-                                                        onClick={() => updateUserRole(user.id, 'adult')}
-                                                        disabled={updatingUserId === user.id}
-                                                        style={{
-                                                            color: 'var(--sa-scouts-orange)',
-                                                            background: 'none',
-                                                            border: 'none',
-                                                            cursor: updatingUserId === user.id ? 'not-allowed' : 'pointer',
-                                                            opacity: updatingUserId === user.id ? 0.5 : 1,
-                                                            textDecoration: 'underline'
-                                                        }}
-                                                    >
-                                                        {updatingUserId === user.id ? 'Updating...' : 'Demote to Adult'}
-                                                    </button>
-                                                    <span style={{ color: 'var(--text-tertiary)' }}>|</span>
-                                                    <button
-                                                        onClick={() => updateUserRole(user.id, 'user')}
-                                                        disabled={updatingUserId === user.id}
-                                                        style={{
-                                                            color: 'var(--sa-scouts-orange)',
-                                                            background: 'none',
-                                                            border: 'none',
-                                                            cursor: updatingUserId === user.id ? 'not-allowed' : 'pointer',
-                                                            opacity: updatingUserId === user.id ? 0.5 : 1,
-                                                            textDecoration: 'underline'
-                                                        }}
-                                                    >
-                                                        {updatingUserId === user.id ? 'Updating...' : 'Demote to User'}
-                                                    </button>
-                                                </>
-                                            )}
-                                            {user.role === 'adult' && (
-                                                <button
-                                                    onClick={() => updateUserRole(user.id, 'user')}
-                                                    disabled={updatingUserId === user.id}
-                                                    style={{
-                                                        color: 'var(--sa-scouts-orange)',
-                                                        background: 'none',
-                                                        border: 'none',
-                                                        cursor: updatingUserId === user.id ? 'not-allowed' : 'pointer',
-                                                        opacity: updatingUserId === user.id ? 0.5 : 1,
-                                                        textDecoration: 'underline'
-                                                    }}
-                                                >
-                                                    {updatingUserId === user.id ? 'Updating...' : 'Demote to User'}
-                                                </button>
-                                            )}
-                                            {user.role === 'user' && (
-                                                <button
-                                                    onClick={() => updateUserRole(user.id, 'adult')}
-                                                    disabled={updatingUserId === user.id}
-                                                    style={{
-                                                        color: 'var(--alert-success-text)',
-                                                        background: 'none',
-                                                        border: 'none',
-                                                        cursor: updatingUserId === user.id ? 'not-allowed' : 'pointer',
-                                                        opacity: updatingUserId === user.id ? 0.5 : 1,
-                                                        textDecoration: 'underline'
-                                                    }}
-                                                >
-                                                    {updatingUserId === user.id ? 'Updating...' : 'Promote to Adult'}
-                                                </button>
-                                            )}
-                                        </div>
+                                        <select
+                                            value={user.role}
+                                            onChange={e => updateUserRole(user.id, e.target.value)}
+                                            disabled={updatingUserId === user.id}
+                                            style={{
+                                                padding: '0.25rem 0.5rem',
+                                                fontSize: '0.875rem',
+                                                borderRadius: '4px',
+                                                border: '1px solid var(--card-border)',
+                                                background: 'var(--input-bg)',
+                                                color: 'var(--text-primary)',
+                                                minWidth: 100,
+                                                cursor: updatingUserId === user.id ? 'not-allowed' : 'pointer',
+                                                opacity: updatingUserId === user.id ? 0.5 : 1
+                                            }}
+                                        >
+                                            <option value="admin">Admin</option>
+                                            <option value="adult">Adult</option>
+                                            <option value="user">User</option>
+                                        </select>
                                     )}
                                 </td>
                             </tr>

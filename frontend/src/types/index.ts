@@ -23,6 +23,7 @@ export interface Outing {
     outing_lead_phone?: string;
     created_at: string;
     updated_at: string;
+    icon?: string;
 }
 
 export interface OutingCreate {
@@ -37,6 +38,7 @@ export interface OutingCreate {
     outing_lead_name?: string;
     outing_lead_email?: string;
     outing_lead_phone?: string;
+    icon?: string;
 }
 
 export interface FamilyContact {

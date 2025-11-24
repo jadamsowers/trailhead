@@ -25,6 +25,7 @@ class Outing(Base):
     outing_lead_phone = Column(String(50), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    icon = Column(String(50), nullable=True)  # Outing icon (Bootstrap icon name or emoji)
 
     # Relationships
     signups = relationship("Signup", back_populates="outing", cascade="all, delete-orphan")

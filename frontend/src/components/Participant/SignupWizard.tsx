@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { FamilyMember, Outing } from '../../types';
+import { OutingIconDisplay } from '../OutingIconDisplay';
 import { signupAPI, userAPI, APIError } from '../../services/api';
 import { formatPhoneNumber, validatePhoneWithMessage } from '../../utils/phoneUtils';
 import {
@@ -502,11 +503,12 @@ const SignupWizard: React.FC = () => {
                                             <div className="flex justify-between items-start">
                                                 <div className="flex-1">
                                                     <div className="flex items-baseline gap-3 mb-2 flex-wrap">
-                                                        <h3 className="m-0 font-bold text-lg" style={{ color: 'var(--color-success)' }}>✓ {outing.name}</h3>
+                                                        <OutingIconDisplay icon={outing.icon} />
                                                         <span className="text-lg font-bold whitespace-nowrap" style={{ color: 'var(--color-success)' }}>
                                                             📅 {formatOutingDate(outing.outing_date)}
                                                             {outing.end_date && ` - ${formatOutingDate(outing.end_date)} `}
                                                         </span>
+                                                        <h3 className="m-0 font-bold text-lg" style={{ color: 'var(--color-success)' }}>✓ {outing.name}</h3>
                                                     </div>
                                                     <div className="mt-2">
                                                         <strong style={{ color: 'var(--text-primary)' }}>Participants ({signup.participant_count}):</strong>
@@ -696,11 +698,12 @@ ${selectedOuting?.id === outing.id
                                             <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                                                 <div className="flex-1">
                                                     <div className="flex items-baseline gap-3 mb-2 flex-wrap">
-                                                        <h3 className="text-xl font-bold font-heading text-sa-dark-blue m-0">{outing.name}</h3>
+                                                        <OutingIconDisplay icon={outing.icon} />
                                                         <span className="text-lg font-bold text-sa-blue whitespace-nowrap">
                                                             📅 {formatOutingDate(outing.outing_date)}
                                                             {outing.end_date && ` - ${formatOutingDate(outing.end_date)} `}
                                                         </span>
+                                                        <h3 className="text-xl font-bold font-heading text-sa-dark-blue m-0">{outing.name}</h3>
                                                     </div>
                                                     <p className="my-1 text-gray-700"><strong>Location:</strong> {outing.location}</p>
                                                     {outing.description && <p className="mt-2 text-gray-600">{outing.description}</p>}

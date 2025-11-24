@@ -16,6 +16,44 @@ const CheckInPage: React.FC = () => {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [processing, setProcessing] = useState(false);
 
+    const [isOffline, setIsOffline] = useState(!navigator.onLine);
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    useEffect(() => {
+        const handleOnline = () => {
+            setIsOffline(false);
+            syncData();
+        };
+        const handleOffline = () => setIsOffline(true);
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
+        // Initial sync check
+        if (navigator.onLine) {
+            syncData();
+        }
+
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    const syncData = async () => {
+        try {
+            setIsSyncing(true);
+            const result = await checkInAPI.syncOfflineData();
+            if (result.synced > 0) {
+                await loadCheckInData();
+            }
+        } catch (err) {
+            console.error('Sync failed:', err);
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
     useEffect(() => {
         loadCheckInData();
     }, [outingId]);
@@ -207,6 +245,27 @@ const CheckInPage: React.FC = () => {
 
     return (
         <div className="max-w-6xl mx-auto px-4 py-8">
+            {/* Offline/Sync Status Banner */}
+            {(isOffline || isSyncing) && (
+                <div className="mb-6 p-4 rounded-lg flex items-center justify-between" style={{
+                    backgroundColor: isOffline ? 'var(--alert-warning-bg)' : 'var(--alert-info-bg)',
+                    border: `1px solid ${isOffline ? 'var(--alert-warning-border)' : 'var(--alert-info-border)'}`,
+                    color: isOffline ? 'var(--alert-warning-text)' : 'var(--alert-info-text)'
+                }}>
+                    <div className="flex items-center gap-2">
+                        <span className="text-xl">{isOffline ? '📡' : '🔄'}</span>
+                        <span className="font-semibold">
+                            {isOffline ? 'Offline Mode' : 'Syncing Data...'}
+                        </span>
+                    </div>
+                    <div className="text-sm">
+                        {isOffline
+                            ? 'Changes will be saved locally and synced when online.'
+                            : 'Please wait while we update the server.'}
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <div className="mb-6">
                 <button

@@ -641,15 +641,49 @@ export const userAPI = {
 };
 
 // Check-in API
+// Check-in API
+const CHECKIN_STORAGE_PREFIX = 'checkin_data_';
+const CHECKIN_QUEUE_KEY = 'checkin_queue';
+
+interface QueueItem {
+    type: 'checkin' | 'undo';
+    outingId: string;
+    data?: import('../types').CheckInCreate;
+    participantId?: string;
+    timestamp: number;
+    id: string;
+}
+
 export const checkInAPI = {
     /**
      * Get check-in status for an outing
      */
     async getCheckInStatus(outingId: string): Promise<import('../types').CheckInSummary> {
-        const response = await fetch(`${API_BASE_URL}/outings/${outingId}/checkin`, {
-            headers: await getAuthHeaders(),
-        });
-        return handleResponse<import('../types').CheckInSummary>(response);
+        try {
+            const response = await fetch(`${API_BASE_URL}/outings/${outingId}/checkin`, {
+                headers: await getAuthHeaders(),
+            });
+            const data = await handleResponse<import('../types').CheckInSummary>(response);
+
+            // Cache the data
+            try {
+                localStorage.setItem(`${CHECKIN_STORAGE_PREFIX}${outingId}`, JSON.stringify(data));
+            } catch (e) {
+                console.warn('Failed to cache check-in data:', e);
+            }
+
+            return data;
+        } catch (error) {
+            // If network error, try cache
+            if (error instanceof TypeError || (error instanceof Error && error.message.includes('Failed to fetch'))) {
+                const cached = localStorage.getItem(`${CHECKIN_STORAGE_PREFIX}${outingId}`);
+                if (cached) {
+                    console.log('📱 Serving cached check-in data');
+                    return JSON.parse(cached);
+                }
+            }
+            throw error;
+        }
     },
 
     /**
@@ -659,23 +693,155 @@ export const checkInAPI = {
         outingId: string,
         data: import('../types').CheckInCreate
     ): Promise<import('../types').CheckInResponse> {
-        const response = await fetch(`${API_BASE_URL}/outings/${outingId}/checkin`, {
-            method: 'POST',
-            headers: await getAuthHeaders(),
-            body: JSON.stringify(data),
-        });
-        return handleResponse<import('../types').CheckInResponse>(response);
+        try {
+            const response = await fetch(`${API_BASE_URL}/outings/${outingId}/checkin`, {
+                method: 'POST',
+                headers: await getAuthHeaders(),
+                body: JSON.stringify(data),
+            });
+            return handleResponse<import('../types').CheckInResponse>(response);
+        } catch (error) {
+            if (error instanceof TypeError || (error instanceof Error && error.message.includes('Failed to fetch'))) {
+                console.log('📱 Offline: Queuing check-in');
+
+                // 1. Update local cache optimistically
+                const cacheKey = `${CHECKIN_STORAGE_PREFIX}${outingId}`;
+                const cachedStr = localStorage.getItem(cacheKey);
+                if (cachedStr) {
+                    const cached = JSON.parse(cachedStr) as import('../types').CheckInSummary;
+                    const now = new Date().toISOString();
+
+                    cached.participants = cached.participants.map(p => {
+                        if (data.participant_ids.includes(p.id)) {
+                            return {
+                                ...p,
+                                is_checked_in: true,
+                                checked_in_at: now,
+                                checked_in_by: data.checked_in_by
+                            };
+                        }
+                        return p;
+                    });
+
+                    cached.checked_in_count = cached.participants.filter(p => p.is_checked_in).length;
+                    localStorage.setItem(cacheKey, JSON.stringify(cached));
+                }
+
+                // 2. Add to queue
+                const queue: QueueItem[] = JSON.parse(localStorage.getItem(CHECKIN_QUEUE_KEY) || '[]');
+                queue.push({
+                    type: 'checkin',
+                    outingId,
+                    data,
+                    timestamp: Date.now(),
+                    id: Math.random().toString(36).substring(7)
+                });
+                localStorage.setItem(CHECKIN_QUEUE_KEY, JSON.stringify(queue));
+
+                // Return mock response
+                return {
+                    message: 'Offline: Check-in queued',
+                    checked_in_count: data.participant_ids.length,
+                    participant_ids: data.participant_ids,
+                    checked_in_at: new Date().toISOString()
+                };
+            }
+            throw error;
+        }
     },
 
     /**
      * Undo a check-in for a participant
      */
     async undoCheckIn(outingId: string, participantId: string): Promise<{ message: string }> {
-        const response = await fetch(`${API_BASE_URL}/outings/${outingId}/checkin/${participantId}`, {
-            method: 'DELETE',
-            headers: await getAuthHeaders(),
-        });
-        return handleResponse<{ message: string }>(response);
+        try {
+            const response = await fetch(`${API_BASE_URL}/outings/${outingId}/checkin/${participantId}`, {
+                method: 'DELETE',
+                headers: await getAuthHeaders(),
+            });
+            return handleResponse<{ message: string }>(response);
+        } catch (error) {
+            if (error instanceof TypeError || (error instanceof Error && error.message.includes('Failed to fetch'))) {
+                console.log('📱 Offline: Queuing undo check-in');
+
+                // 1. Update local cache optimistically
+                const cacheKey = `${CHECKIN_STORAGE_PREFIX}${outingId}`;
+                const cachedStr = localStorage.getItem(cacheKey);
+                if (cachedStr) {
+                    const cached = JSON.parse(cachedStr) as import('../types').CheckInSummary;
+
+                    cached.participants = cached.participants.map(p => {
+                        if (p.id === participantId) {
+                            return {
+                                ...p,
+                                is_checked_in: false,
+                                checked_in_at: undefined,
+                                checked_in_by: undefined
+                            };
+                        }
+                        return p;
+                    });
+
+                    cached.checked_in_count = cached.participants.filter(p => p.is_checked_in).length;
+                    localStorage.setItem(cacheKey, JSON.stringify(cached));
+                }
+
+                // 2. Add to queue
+                const queue: QueueItem[] = JSON.parse(localStorage.getItem(CHECKIN_QUEUE_KEY) || '[]');
+                queue.push({
+                    type: 'undo',
+                    outingId,
+                    participantId,
+                    timestamp: Date.now(),
+                    id: Math.random().toString(36).substring(7)
+                });
+                localStorage.setItem(CHECKIN_QUEUE_KEY, JSON.stringify(queue));
+
+                return { message: 'Offline: Undo queued' };
+            }
+            throw error;
+        }
+    },
+
+    /**
+     * Sync offline data
+     */
+    async syncOfflineData(): Promise<{ synced: number; errors: number }> {
+        const queueStr = localStorage.getItem(CHECKIN_QUEUE_KEY);
+        if (!queueStr) return { synced: 0, errors: 0 };
+
+        const queue: QueueItem[] = JSON.parse(queueStr);
+        if (queue.length === 0) return { synced: 0, errors: 0 };
+
+        console.log(`🔄 Syncing ${queue.length} offline actions...`);
+        let synced = 0;
+        let errors = 0;
+        const remainingQueue: QueueItem[] = [];
+
+        for (const item of queue) {
+            try {
+                if (item.type === 'checkin' && item.data) {
+                    await fetch(`${API_BASE_URL}/outings/${item.outingId}/checkin`, {
+                        method: 'POST',
+                        headers: await getAuthHeaders(),
+                        body: JSON.stringify(item.data),
+                    });
+                } else if (item.type === 'undo' && item.participantId) {
+                    await fetch(`${API_BASE_URL}/outings/${item.outingId}/checkin/${item.participantId}`, {
+                        method: 'DELETE',
+                        headers: await getAuthHeaders(),
+                    });
+                }
+                synced++;
+            } catch (error) {
+                console.error('Failed to sync item:', item, error);
+                errors++;
+                remainingQueue.push(item); // Keep failed items in queue
+            }
+        }
+
+        localStorage.setItem(CHECKIN_QUEUE_KEY, JSON.stringify(remainingQueue));
+        return { synced, errors };
     },
 
     /**

@@ -119,7 +119,8 @@ const DevDataSeeder: React.FC = () => {
         daysFromNow: number,
         isOvernight: boolean,
         capacityType: 'fixed' | 'vehicle',
-        maxParticipants: number
+        maxParticipants: number,
+        icon?: string
     ) => {
         const today = new Date();
         const outingDate = new Date(today);
@@ -140,6 +141,7 @@ const DevDataSeeder: React.FC = () => {
             max_participants: maxParticipants,
             capacity_type: capacityType,
             is_overnight: isOvernight,
+            icon: icon,
             outing_lead_name: `${randomChoice(FIRST_NAMES_MALE)} ${randomChoice(LAST_NAMES)}`,
             outing_lead_email: `leader${randomInt(1, 100)}@example.com`,
             outing_lead_phone: `555-${randomInt(100, 999)}-${randomInt(1000, 9999)}`,
@@ -222,22 +224,22 @@ const DevDataSeeder: React.FC = () => {
         try {
             // Create outings
             setProgress('Creating outings...');
-            const outingConfigs: [string, string, number, boolean, 'fixed' | 'vehicle', number][] = [
-                [TRIP_NAMES[0], LOCATIONS[0], 7, true, 'fixed', 25],
-                [TRIP_NAMES[1], LOCATIONS[1], 14, false, 'fixed', 30],
-                [TRIP_NAMES[2], LOCATIONS[2], 21, false, 'vehicle', 40],
-                [TRIP_NAMES[3], LOCATIONS[3], 28, false, 'fixed', 20],
-                [TRIP_NAMES[4], LOCATIONS[4], 35, true, 'vehicle', 35],
-                [TRIP_NAMES[5], LOCATIONS[5], 45, false, 'fixed', 25],
-                [TRIP_NAMES[6], LOCATIONS[6], 60, false, 'fixed', 30],
-                [TRIP_NAMES[7], LOCATIONS[7], 75, true, 'vehicle', 20],
-                [TRIP_NAMES[8], LOCATIONS[8], 90, false, 'vehicle', 35],
-                [TRIP_NAMES[9], LOCATIONS[9], 105, false, 'fixed', 40],
+            const outingConfigs: [string, string, number, boolean, 'fixed' | 'vehicle', number, string][] = [
+                [TRIP_NAMES[0], LOCATIONS[0], 7, true, 'fixed', 25, 'Camping'],
+                [TRIP_NAMES[1], LOCATIONS[1], 14, false, 'fixed', 30, 'Hiking'],
+                [TRIP_NAMES[2], LOCATIONS[2], 21, false, 'vehicle', 40, 'Canoeing'],
+                [TRIP_NAMES[3], LOCATIONS[3], 28, false, 'fixed', 20, 'Rock Climbing'],
+                [TRIP_NAMES[4], LOCATIONS[4], 35, true, 'vehicle', 35, 'Backpacking'],
+                [TRIP_NAMES[5], LOCATIONS[5], 45, false, 'fixed', 25, 'Service Project'],
+                [TRIP_NAMES[6], LOCATIONS[6], 60, false, 'fixed', 30, 'Fishing'],
+                [TRIP_NAMES[7], LOCATIONS[7], 75, true, 'vehicle', 20, 'Camping'],
+                [TRIP_NAMES[8], LOCATIONS[8], 90, false, 'vehicle', 35, 'Canoeing'],
+                [TRIP_NAMES[9], LOCATIONS[9], 105, false, 'fixed', 40, 'Navigation'],
             ];
 
-            for (const [name, location, days, overnight, capType, maxPart] of outingConfigs) {
+            for (const [name, location, days, overnight, capType, maxPart, icon] of outingConfigs) {
                 try {
-                    await createOuting(name, location, days, overnight, capType, maxPart);
+                    await createOuting(name, location, days, overnight, capType, maxPart, icon);
                     outingsCreated++;
                     setProgress(`Created ${outingsCreated}/${outingConfigs.length} outings...`);
                 } catch (error) {
@@ -247,14 +249,14 @@ const DevDataSeeder: React.FC = () => {
 
             // Create families
             setProgress('Creating families...');
-            for (let i = 0; i < 15; i++) {
+            for (let i = 0; i < 5; i++) {
                 const lastName = LAST_NAMES[i];
                 try {
                     const numScouts = randomChoice([1, 1, 1, 1, 1, 1, 2, 2, 2, 3]); // Weighted: 60% 1, 30% 2, 10% 3
                     const members = await createFamily(lastName, numScouts);
                     familiesCreated++;
                     totalMembers += members.length;
-                    setProgress(`Created ${familiesCreated}/15 families (${totalMembers} members)...`);
+                    setProgress(`Created ${familiesCreated}/5 families (${totalMembers} members)...`);
                 } catch (error) {
                     console.error(`Error creating family ${lastName}:`, error);
                 }
@@ -298,7 +300,7 @@ const DevDataSeeder: React.FC = () => {
                     </h3>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
                         Quickly populate the database with sample outings and family data for testing and development.
-                        This will create 10 outings and 15 families with realistic test data.
+                        This will create 10 outings and 5 families with realistic test data.
                     </p>
                     {progress && (
                         <div style={{

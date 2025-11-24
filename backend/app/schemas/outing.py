@@ -17,6 +17,7 @@ class OutingBase(BaseModel):
     outing_lead_name: Optional[str] = Field(None, max_length=255, description="Outing lead name")
     outing_lead_email: Optional[str] = Field(None, max_length=255, description="Outing lead email")
     outing_lead_phone: Optional[str] = Field(None, max_length=50, description="Outing lead phone")
+    icon: Optional[str] = Field(None, max_length=50, description="Outing icon (Bootstrap icon name or emoji)")
 
     @field_validator('capacity_type')
     @classmethod

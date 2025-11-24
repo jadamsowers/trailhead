@@ -1,8 +1,11 @@
+import { OutingIconDisplay } from '../OutingIconDisplay';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Outing, OutingCreate, SignupResponse, ParticipantResponse } from '../../types';
+import { OutingIconPicker } from '../OutingIconPicker';
 import { outingAPI, pdfAPI, signupAPI } from '../../services/api';
 import { formatPhoneNumber } from '../../utils/phoneUtils';
+import OutingQRCode from './OutingQRCode';
 
 const OutingAdmin: React.FC = () => {
     // Helper function to format date, omitting year if it's the current year
@@ -77,6 +80,11 @@ const OutingAdmin: React.FC = () => {
     const [emailMessage, setEmailMessage] = useState('');
     const [emailFrom, setEmailFrom] = useState('');
     const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
+    
+    // QR Code modal state
+    const [showQRCode, setShowQRCode] = useState(false);
+    const [qrCodeOuting, setQrCodeOuting] = useState<{ id: string; name: string } | null>(null);
+    
     const [newOuting, setNewOuting] = useState<OutingCreate>({
         name: '',
         outing_date: defaultDates.friday,
@@ -88,7 +96,8 @@ const OutingAdmin: React.FC = () => {
         is_overnight: true,
         outing_lead_name: '',
         outing_lead_email: '',
-        outing_lead_phone: ''
+        outing_lead_phone: '',
+        icon: ''
     });
 
     // Load outings on component mount
@@ -143,6 +152,10 @@ const OutingAdmin: React.FC = () => {
             setExpandedOutingId(outingId);
             await loadOutingSignups(outingId);
         }
+    };
+
+    const handleIconChange = (icon: string) => {
+        setNewOuting({ ...newOuting, icon });
     };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -311,21 +324,42 @@ const OutingAdmin: React.FC = () => {
         }
     };
 
+    const handleShowQRCode = (outingId: string, outingName: string) => {
+        setQrCodeOuting({ id: outingId, name: outingName });
+        setShowQRCode(true);
+    };
+
+    const handleCloseQRCode = () => {
+        setShowQRCode(false);
+        setQrCodeOuting(null);
+    };
+
     const handleShowEmailModal = async (outing: Outing) => {
         try {
             setLoading(true);
             setError(null);
             setEmailSuccess(null);
-            const data = await signupAPI.getEmails(outing.id);
-            setEmailList(data.emails);
+
+            // Load signups for this outing to get email addresses
+            const signups = await signupAPI.getByOuting(outing.id);
+            
+            // Extract unique email addresses from family contacts
+            const emails = new Set<string>();
+            signups.forEach(signup => {
+                if (signup.family_contact_email) {
+                    emails.add(signup.family_contact_email);
+                }
+            });
+
+            setEmailList(Array.from(emails));
             setSelectedOutingForEmail(outing);
-            setEmailSubject(`Update: ${outing.name}`);
+            setEmailSubject(`${outing.name} - Important Information`);
             setEmailMessage('');
             setEmailFrom('');
             setShowEmailModal(true);
         } catch (err) {
-            console.error('Error loading emails:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Failed to load email addresses';
+            console.error('Error loading email data:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Failed to load email data';
             setError(errorMessage);
         } finally {
             setLoading(false);
@@ -342,105 +376,68 @@ const OutingAdmin: React.FC = () => {
         setEmailSuccess(null);
     };
 
-    const handleCopyEmails = () => {
-        const emailString = emailList.join(', ');
-        navigator.clipboard.writeText(emailString);
-        setEmailSuccess('Email addresses copied to clipboard!');
-        setTimeout(() => setEmailSuccess(null), 3000);
-    };
-
-    const handleSendEmail = async () => {
-        if (!selectedOutingForEmail || !emailFrom || !emailSubject || !emailMessage) {
-            setError('Please fill in all email fields');
-            return;
-        }
-
+    const handleCopyEmails = async () => {
         try {
-            setLoading(true);
-            setError(null);
-            const result = await signupAPI.sendEmail(selectedOutingForEmail.id, {
-                subject: emailSubject,
-                message: emailMessage,
-                from_email: emailFrom
-            });
-
-            setEmailSuccess(`Email prepared for ${result.recipient_count} recipients. ${result.note}`);
-
-            // Create mailto link
-            const mailtoLink = `mailto:${emailList.join(',')}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailMessage)}`;
-            window.location.href = mailtoLink;
+            await navigator.clipboard.writeText(emailList.join(', '));
+            setEmailSuccess('Email addresses copied to clipboard!');
+            setTimeout(() => setEmailSuccess(null), 3000);
         } catch (err) {
-            console.error('Error preparing email:', err);
-            const errorMessage = err instanceof Error ? err.message : 'Failed to prepare email';
-            setError(errorMessage);
-        } finally {
-            setLoading(false);
+            console.error('Error copying emails:', err);
+            setError('Failed to copy email addresses');
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
+    const handleSendEmail = () => {
+        const mailtoLink = `mailto:${emailFrom}?bcc=${emailList.join(',')}&subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailMessage)}`;
+        window.location.href = mailtoLink;
+        setEmailSuccess('Opening your email client...');
+        setTimeout(() => {
+            handleCloseEmailModal();
+        }, 2000);
     };
 
     const renderParticipantsTable = (participants: ParticipantResponse[], isAdult: boolean) => {
-        if (participants.length === 0) return null;
-
         return (
-            <div style={{ overflowX: 'auto', marginBottom: '20px' }}>
+            <div style={{ overflowX: 'auto' }}>
                 <table style={{
                     width: '100%',
                     borderCollapse: 'collapse',
                     backgroundColor: 'var(--card-bg)',
-                    boxShadow: 'var(--card-shadow)'
+                    border: '1px solid var(--card-border)'
                 }}>
                     <thead>
-                        <tr style={{ backgroundColor: isAdult ? 'var(--color-primary)' : 'var(--color-accent)', color: 'var(--text-on-primary)' }}>
-                            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Name</th>
-                            <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Age</th>
-                            <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Gender</th>
-                            {!isAdult && <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Troop/Patrol</th>}
-                            {isAdult && <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Training</th>}
-                            {isAdult && <th style={{ padding: '12px', textAlign: 'center', borderBottom: '2px solid #ddd' }}>Passengers</th>}
-                            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Dietary</th>
-                            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Allergies</th>
-                            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Notes</th>
+                        <tr style={{ backgroundColor: 'var(--bg-tertiary)' }}>
+                            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid var(--card-border)' }}>Name</th>
+                            {isAdult && (
+                                <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid var(--card-border)' }}>Vehicle Capacity</th>
+                            )}
+                            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid var(--card-border)' }}>Dietary Restrictions</th>
+                            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid var(--card-border)' }}>Allergies</th>
+                            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid var(--card-border)' }}>Medical Notes</th>
                         </tr>
                     </thead>
                     <tbody>
                         {participants.map((participant, index) => (
                             <tr key={participant.id} style={{
-                                backgroundColor: index % 2 === 0 ? 'var(--bg-tertiary)' : 'var(--card-bg)',
+                                backgroundColor: index % 2 === 0 ? 'var(--card-bg)' : 'var(--bg-tertiary)',
                                 borderBottom: '1px solid var(--card-border)'
                             }}>
-                                <td style={{ padding: '12px', fontWeight: '500' }}>{participant.name}</td>
-                                <td style={{ padding: '12px', textAlign: 'center' }}>{isAdult ? '21+' : participant.age}</td>
-                                <td style={{ padding: '12px', textAlign: 'center', textTransform: 'capitalize' }}>{participant.gender}</td>
-                                {!isAdult && (
+                                <td style={{ padding: '12px', fontWeight: 'bold' }}>{participant.name}</td>
+                                {isAdult && (
                                     <td style={{ padding: '12px' }}>
-                                        {participant.troop_number && (
-                                            <div>
-                                                <div><strong>Troop:</strong> {participant.troop_number}</div>
-                                                {participant.patrol_name && <div><strong>Patrol:</strong> {participant.patrol_name}</div>}
-                                            </div>
-                                        )}
-                                    </td>
-                                )}
-                                {isAdult && (
-                                    <td style={{ padding: '12px', textAlign: 'center' }}>
-                                        {participant.has_youth_protection ? (
-                                            <span style={{ color: 'var(--color-success)', fontWeight: 'bold' }}>✓</span>
+                                        {participant.vehicle_capacity > 0 ? (
+                                            <span style={{
+                                                padding: '4px 8px',
+                                                backgroundColor: 'var(--badge-success-bg)',
+                                                color: 'var(--badge-success-text)',
+                                                borderRadius: '4px',
+                                                fontWeight: 'bold'
+                                            }}>
+                                                🚗 {participant.vehicle_capacity} seats
+                                            </span>
                                         ) : (
-                                            <span style={{ color: 'var(--color-error)' }}>✗</span>
+                                            <span style={{ color: 'var(--text-muted)' }}>No vehicle</span>
                                         )}
-                                    </td>
-                                )}
-                                {isAdult && (
-                                    <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: 'var(--color-primary)' }}>
-                                        {participant.vehicle_capacity > 0 ? `🚗 ${participant.vehicle_capacity}` : '-'}
                                     </td>
                                 )}
                                 <td style={{ padding: '12px' }}>
@@ -622,6 +619,13 @@ const OutingAdmin: React.FC = () => {
                             </label>
                         </div>
 
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                Outing Icon
+                            </label>
+                            <OutingIconPicker value={newOuting.icon || ''} onChange={handleIconChange} />
+                        </div>
+
                         <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: newOuting.is_overnight ? '1fr 1fr' : '1fr', gap: '15px' }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
@@ -784,8 +788,10 @@ const OutingAdmin: React.FC = () => {
                         >
                             {loading ? 'Creating...' : 'Create Outing'}
                         </button>
+                        
                     </form>
                 )}
+                
             </div>
 
             <div>
@@ -837,6 +843,13 @@ const OutingAdmin: React.FC = () => {
                                                     />
                                                     <span style={{ fontWeight: 'bold' }}>Overnight Outing</span>
                                                 </label>
+                                            </div>
+
+                                            <div style={{ marginBottom: '15px' }}>
+                                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                                    Outing Icon
+                                                </label>
+                                                <OutingIconPicker value={editOuting.icon || ''} onChange={icon => setEditOuting({ ...editOuting, icon })} />
                                             </div>
 
                                             <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: editOuting.is_overnight ? '1fr 1fr' : '1fr', gap: '15px' }}>
@@ -1025,8 +1038,10 @@ const OutingAdmin: React.FC = () => {
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                                                 <div style={{ flex: 1 }}>
                                                     <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
-                                                        <h3 style={{ margin: 0 }}>
-                                                            {expandedOutingId === outing.id ? '▼' : '▶'} {outing.name}
+                                                        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                            {expandedOutingId === outing.id ? '▼' : '▶'}
+                                                            <OutingIconDisplay icon={outing.icon} />
+                                                            {outing.name}
                                                         </h3>
                                                         <span style={{
                                                             fontSize: '18px',
@@ -1138,6 +1153,26 @@ const OutingAdmin: React.FC = () => {
                                             >
                                                 📋 Check-in Mode
                                             </Link>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleShowQRCode(outing.id, outing.name);
+                                                }}
+                                                disabled={loading}
+                                                style={{
+                                                    padding: '8px 16px',
+                                                    marginRight: '10px',
+                                                    backgroundColor: 'var(--btn-info-bg)',
+                                                    color: 'var(--btn-info-text)',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    cursor: loading ? 'not-allowed' : 'pointer',
+                                                    fontWeight: 'bold'
+                                                }}
+                                                title="Show QR code for easy sharing"
+                                            >
+                                                📱 QR Code
+                                            </button>
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -1395,6 +1430,16 @@ const OutingAdmin: React.FC = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* QR Code Modal */}
+            {qrCodeOuting && (
+                <OutingQRCode
+                    outingId={qrCodeOuting.id}
+                    outingName={qrCodeOuting.name}
+                    isVisible={showQRCode}
+                    onClose={handleCloseQRCode}
+                />
             )}
         </div>
     );

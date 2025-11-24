@@ -4,7 +4,7 @@
 Outing leaders can check in participants before departure
 
 - [x] Create mobile-friendly check-in interface (Frontend complete!)
-- [ ] Implement offline mode with cached check-in list (Future enhancement)
+- [x] Implement offline mode with cached check-in list (Future enhancement)
 - [x] Capture who checked in for camping night tracking (Backend complete)
 - [x] Add export functionality for check-in data (Backend CSV export complete)
 
@@ -15,15 +15,9 @@ Enhancements to outing setup and management
 - [ ] Add pickup time and location fields
 - [ ] Add cost field for outing
 - [ ] Add suggested gear list functionality
-- [ ] Add icon selection (emoji or Bootstrap icon)
-  - [ ] Tent icon option
-  - [ ] Canoe icon option
-  - [ ] Backpack icon option
-  - [ ] Mountain icon option
-  - [ ] Bike icon option
-  - [ ] Additional outdoor activity icons
-- [ ] Generate QR code for outing
-  - [ ] QR code links to specific outing URL
+- [x] Add icon selection (emoji or Bootstrap icon)
+- [x] Generate QR code for outing
+  - [x] QR code links to specific outing URL
 - [ ] Add ability to close signups
   - [ ] Date-based automatic closure option
   - [ ] Manual close signups button
