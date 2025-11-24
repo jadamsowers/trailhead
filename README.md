@@ -226,7 +226,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Built for scout troops to simplify outing management
 - Designed with Scouting America youth protection in mind
-- Vibe-coded with ⚜️❤️
+- Vibe-coded with ⚜️❤️﹠🤖
 
 ## 📞 Support
 

@@ -1,7 +1,8 @@
 from pydantic import BaseModel, Field, field_validator
-from datetime import date, datetime
+from datetime import date, datetime, time
 from uuid import UUID
 from typing import Optional
+from decimal import Decimal
 
 
 class OutingBase(BaseModel):
@@ -17,6 +18,12 @@ class OutingBase(BaseModel):
     outing_lead_name: Optional[str] = Field(None, max_length=255, description="Outing lead name")
     outing_lead_email: Optional[str] = Field(None, max_length=255, description="Outing lead email")
     outing_lead_phone: Optional[str] = Field(None, max_length=50, description="Outing lead phone")
+    drop_off_time: Optional[time] = Field(None, description="Drop-off time")
+    drop_off_location: Optional[str] = Field(None, max_length=255, description="Drop-off location")
+    pickup_time: Optional[time] = Field(None, description="Pickup time")
+    pickup_location: Optional[str] = Field(None, max_length=255, description="Pickup location")
+    cost: Optional[Decimal] = Field(None, ge=0, description="Cost of the outing in dollars")
+    gear_list: Optional[str] = Field(None, description="Suggested gear list for participants")
     icon: Optional[str] = Field(None, max_length=50, description="Outing icon (Bootstrap icon name or emoji)")
 
     @field_validator('capacity_type')

@@ -11,16 +11,18 @@ Outing leaders can check in participants before departure
 ## Outing Configuration
 Enhancements to outing setup and management
 
-- [ ] Add drop-off time and location fields
-- [ ] Add pickup time and location fields
-- [ ] Add cost field for outing
-- [ ] Add suggested gear list functionality
+- [x] Add drop-off time and location fields
+- [x] Add pickup time and location fields
+- [x] Add cost field for outing
+- [x] Add suggested gear list functionality
+  - [ ] ability to select from pre-defined gear lists (backpacking, truck camping, cold weather) and also add in trip-specific needs
 - [x] Add icon selection (emoji or Bootstrap icon)
 - [x] Generate QR code for outing
   - [x] QR code links to specific outing URL
 - [ ] Add ability to close signups
   - [ ] Date-based automatic closure option
   - [ ] Manual close signups button
+- [ ] Ability to draft an email whenever a change is made to the trip
 
 ## Signup Configuration
 Enhancements to family profile and requests
@@ -42,6 +44,6 @@ Make the app more accessible for all users
 - [ ] Add ARIA labels and landmarks
 
 ## Troop Management
-- [ ] Add troop management interface
+- [ ] Add troop management interface (ability to add troop numbers, chartering orgs, and meeting locations)
 - [ ] Add troop configuration interface
 - [ ] Add option to restrict signup by troop for outings

@@ -84,6 +84,10 @@ const OutingAdmin: React.FC = () => {
     const [showQRCode, setShowQRCode] = useState(false);
     const [qrCodeOuting, setQrCodeOuting] = useState<{ id: string; name: string } | null>(null);
 
+    // Collapsible sections state
+    const [collapsedLogistics, setCollapsedLogistics] = useState<{ [outingId: string]: boolean }>({});
+    const [collapsedGear, setCollapsedGear] = useState<{ [outingId: string]: boolean }>({});
+
     const [newOuting, setNewOuting] = useState<OutingCreate>({
         name: '',
         outing_date: defaultDates.friday,
@@ -96,6 +100,12 @@ const OutingAdmin: React.FC = () => {
         outing_lead_name: '',
         outing_lead_email: '',
         outing_lead_phone: '',
+        drop_off_time: '',
+        drop_off_location: '',
+        pickup_time: '',
+        pickup_location: '',
+        cost: undefined,
+        gear_list: '',
         icon: ''
     });
 
@@ -171,6 +181,11 @@ const OutingAdmin: React.FC = () => {
                 ...newOuting,
                 [name]: parseInt(value) || 0
             });
+        } else if (name === 'cost') {
+            setNewOuting({
+                ...newOuting,
+                [name]: value === '' ? undefined : parseFloat(value)
+            });
         } else if (name === 'outing_lead_phone') {
             // Apply phone formatting
             setNewOuting({
@@ -204,7 +219,13 @@ const OutingAdmin: React.FC = () => {
                 is_overnight: true,
                 outing_lead_name: '',
                 outing_lead_email: '',
-                outing_lead_phone: ''
+                outing_lead_phone: '',
+                drop_off_time: '',
+                drop_off_location: '',
+                pickup_time: '',
+                pickup_location: '',
+                cost: undefined,
+                gear_list: ''
             });
             // Reload outings
             await loadOutings();
@@ -230,7 +251,13 @@ const OutingAdmin: React.FC = () => {
             is_overnight: outing.is_overnight,
             outing_lead_name: outing.outing_lead_name || '',
             outing_lead_email: outing.outing_lead_email || '',
-            outing_lead_phone: outing.outing_lead_phone || ''
+            outing_lead_phone: outing.outing_lead_phone || '',
+            drop_off_time: outing.drop_off_time || '',
+            drop_off_location: outing.drop_off_location || '',
+            pickup_time: outing.pickup_time || '',
+            pickup_location: outing.pickup_location || '',
+            cost: outing.cost,
+            gear_list: outing.gear_list || ''
         });
         setExpandedOutingId(null);
     };
@@ -255,6 +282,11 @@ const OutingAdmin: React.FC = () => {
             setEditOuting({
                 ...editOuting,
                 [name]: parseInt(value) || 0
+            });
+        } else if (name === 'cost') {
+            setEditOuting({
+                ...editOuting,
+                [name]: value === '' ? undefined : parseFloat(value)
             });
         } else if (name === 'outing_lead_phone') {
             // Apply phone formatting
@@ -605,6 +637,13 @@ const OutingAdmin: React.FC = () => {
                         </div>
 
                         <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                Outing Icon
+                            </label>
+                            <OutingIconPicker value={newOuting.icon || ''} onChange={handleIconChange} />
+                        </div>
+
+                        <div style={{ marginBottom: '15px' }}>
                             <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: '10px' }}>
                                 <input
                                     type="checkbox"
@@ -617,14 +656,7 @@ const OutingAdmin: React.FC = () => {
                             </label>
                         </div>
 
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                Outing Icon
-                            </label>
-                            <OutingIconPicker value={newOuting.icon || ''} onChange={handleIconChange} />
-                        </div>
-
-                        <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: newOuting.is_overnight ? '1fr 1fr' : '1fr', gap: '15px' }}>
+                        <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: newOuting.is_overnight ? '2fr 1fr 2fr' : '2fr 1fr 2fr', gap: '15px' }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                     {newOuting.is_overnight ? 'Start Date *' : 'Outing Date *'}
@@ -638,7 +670,35 @@ const OutingAdmin: React.FC = () => {
                                     style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                 />
                             </div>
-                            {newOuting.is_overnight && (
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                    Drop-off Time
+                                </label>
+                                <input
+                                    type="time"
+                                    name="drop_off_time"
+                                    value={newOuting.drop_off_time || ''}
+                                    onChange={handleInputChange}
+                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                    Drop-off Location
+                                </label>
+                                <input
+                                    type="text"
+                                    name="drop_off_location"
+                                    value={newOuting.drop_off_location || ''}
+                                    onChange={handleInputChange}
+                                    placeholder="e.g., Troop Meeting Location"
+                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                />
+                            </div>
+                        </div>
+
+                        {newOuting.is_overnight && (
+                            <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: '2fr 1fr 2fr', gap: '15px' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                         End Date *
@@ -653,8 +713,33 @@ const OutingAdmin: React.FC = () => {
                                         style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                     />
                                 </div>
-                            )}
-                        </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                        Pickup Time
+                                    </label>
+                                    <input
+                                        type="time"
+                                        name="pickup_time"
+                                        value={newOuting.pickup_time || ''}
+                                        onChange={handleInputChange}
+                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                        Pickup Location
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="pickup_location"
+                                        value={newOuting.pickup_location || ''}
+                                        onChange={handleInputChange}
+                                        placeholder="e.g., Troop Meeting Location"
+                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                    />
+                                </div>
+                            </div>
+                        )}
 
                         <div style={{ marginBottom: '15px' }}>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
@@ -721,6 +806,36 @@ const OutingAdmin: React.FC = () => {
                                 />
                             </div>
                         )}
+
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                Cost (USD)
+                            </label>
+                            <input
+                                type="number"
+                                name="cost"
+                                value={newOuting.cost ?? ''}
+                                onChange={handleInputChange}
+                                min="0"
+                                step="0.01"
+                                placeholder="e.g., 25.00"
+                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                Suggested Gear List
+                            </label>
+                            <textarea
+                                name="gear_list"
+                                value={newOuting.gear_list || ''}
+                                onChange={handleInputChange}
+                                placeholder="e.g., Sleeping bag, tent, flashlight, water bottle..."
+                                rows={4}
+                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                            />
+                        </div>
 
                         <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: 'var(--bg-tertiary)', borderRadius: '4px' }}>
                             <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Outing Lead Contact Information (Optional)</h3>
@@ -812,7 +927,7 @@ const OutingAdmin: React.FC = () => {
                             >
                                 {editingOutingId === outing.id && editOuting ? (
                                     <div style={{ backgroundColor: 'var(--alert-warning-bg)' }}>
-                                        <div style={{ padding: '20px', borderBottom: '1px solid var(--card-border)', backgroundColor: 'var(--color-accent)', color: 'var(--text-on-accent)' }}>
+                                        <div style={{ padding: '20px', borderBottom: '1px solid var(--card-border)', backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)' }}>
                                             <h3 style={{ margin: 0 }}>✏️ Editing: {outing.name}</h3>
                                         </div>
                                         <form onSubmit={handleUpdateOuting} style={{ padding: '20px' }}>
@@ -831,6 +946,13 @@ const OutingAdmin: React.FC = () => {
                                             </div>
 
                                             <div style={{ marginBottom: '15px' }}>
+                                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                                    Outing Icon
+                                                </label>
+                                                <OutingIconPicker value={editOuting.icon || ''} onChange={icon => setEditOuting({ ...editOuting, icon })} />
+                                            </div>
+
+                                            <div style={{ marginBottom: '15px' }}>
                                                 <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
                                                     <input
                                                         type="checkbox"
@@ -843,14 +965,7 @@ const OutingAdmin: React.FC = () => {
                                                 </label>
                                             </div>
 
-                                            <div style={{ marginBottom: '15px' }}>
-                                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                                    Outing Icon
-                                                </label>
-                                                <OutingIconPicker value={editOuting.icon || ''} onChange={icon => setEditOuting({ ...editOuting, icon })} />
-                                            </div>
-
-                                            <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: editOuting.is_overnight ? '1fr 1fr' : '1fr', gap: '15px' }}>
+                                            <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: editOuting.is_overnight ? '2fr 1fr 2fr' : '2fr 1fr 2fr', gap: '15px' }}>
                                                 <div>
                                                     <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                                         {editOuting.is_overnight ? 'Start Date *' : 'Outing Date *'}
@@ -864,7 +979,35 @@ const OutingAdmin: React.FC = () => {
                                                         style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                                     />
                                                 </div>
-                                                {editOuting.is_overnight && (
+                                                <div>
+                                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                                        Drop-off Time
+                                                    </label>
+                                                    <input
+                                                        type="time"
+                                                        name="drop_off_time"
+                                                        value={editOuting.drop_off_time || ''}
+                                                        onChange={handleEditInputChange}
+                                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                                        Drop-off Location
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        name="drop_off_location"
+                                                        value={editOuting.drop_off_location || ''}
+                                                        onChange={handleEditInputChange}
+                                                        placeholder="e.g., Troop Meeting Location"
+                                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {editOuting.is_overnight && (
+                                                <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: '2fr 1fr 2fr', gap: '15px' }}>
                                                     <div>
                                                         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                                             End Date *
@@ -879,8 +1022,33 @@ const OutingAdmin: React.FC = () => {
                                                             style={{ width: '100%', padding: '8px', fontSize: '14px' }}
                                                         />
                                                     </div>
-                                                )}
-                                            </div>
+                                                    <div>
+                                                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                                            Pickup Time
+                                                        </label>
+                                                        <input
+                                                            type="time"
+                                                            name="pickup_time"
+                                                            value={editOuting.pickup_time || ''}
+                                                            onChange={handleEditInputChange}
+                                                            style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                                            Pickup Location
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            name="pickup_location"
+                                                            value={editOuting.pickup_location || ''}
+                                                            onChange={handleEditInputChange}
+                                                            placeholder="e.g., Troop Meeting Location"
+                                                            style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             <div style={{ marginBottom: '15px' }}>
                                                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
@@ -940,6 +1108,36 @@ const OutingAdmin: React.FC = () => {
                                                     />
                                                 </div>
                                             )}
+
+                                            <div style={{ marginBottom: '15px' }}>
+                                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                                    Cost (USD)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="cost"
+                                                    value={editOuting.cost ?? ''}
+                                                    onChange={handleEditInputChange}
+                                                    min="0"
+                                                    step="0.01"
+                                                    placeholder="e.g., 25.00"
+                                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                />
+                                            </div>
+
+                                            <div style={{ marginBottom: '15px' }}>
+                                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                                    Suggested Gear List
+                                                </label>
+                                                <textarea
+                                                    name="gear_list"
+                                                    value={editOuting.gear_list || ''}
+                                                    onChange={handleEditInputChange}
+                                                    placeholder="e.g., Sleeping bag, tent, flashlight, water bottle..."
+                                                    rows={4}
+                                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                />
+                                            </div>
 
                                             <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: 'var(--bg-tertiary)', borderRadius: '4px' }}>
                                                 <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Outing Lead Contact (Optional)</h3>
@@ -1044,7 +1242,7 @@ const OutingAdmin: React.FC = () => {
                                                         <span style={{
                                                             fontSize: '18px',
                                                             fontWeight: 'bold',
-                                                            color: '#1976d2',
+                                                            color: 'var(--text-primary)',
                                                             whiteSpace: 'nowrap'
                                                         }}>
                                                             📅 {formatOutingDate(outing.outing_date)}
@@ -1053,7 +1251,9 @@ const OutingAdmin: React.FC = () => {
                                                     </div>
                                                     <p style={{ margin: '5px 0' }}><strong>Location:</strong> {outing.location}</p>
                                                     {outing.description && <p style={{ margin: '5px 0' }}><strong>Description:</strong> {outing.description}</p>}
-                                                    <p style={{ margin: '5px 0' }}>
+                                                    
+                                                    {/* Capacity Type and Status */}
+                                                    <p style={{ margin: '10px 0 5px 0' }}>
                                                         <strong>Capacity Type:</strong> {outing.capacity_type === 'fixed' ? 'Fixed' : 'Vehicle-Based'}
                                                     </p>
                                                     {outing.capacity_type === 'fixed' ? (
@@ -1092,15 +1292,85 @@ const OutingAdmin: React.FC = () => {
                                                             )}
                                                         </>
                                                     )}
-                                                    {outing.is_overnight && (
-                                                        <p style={{ margin: '10px 0 0 0' }}>
-                                                            <span style={{
-                                                                padding: '4px 8px',
-                                                                backgroundColor: 'var(--badge-info-bg)',
-                                                                color: 'var(--badge-info-text)',
-                                                                borderRadius: '4px'
-                                                            }}>Overnight Outing</span>
+                                                    
+                                                    {/* Cost */}
+                                                    {outing.cost && (
+                                                        <p style={{ margin: '10px 0 5px 0' }}>
+                                                            <strong>Cost:</strong> ${typeof outing.cost === 'number' ? outing.cost.toFixed(2) : parseFloat(outing.cost as any).toFixed(2)}
                                                         </p>
+                                                    )}
+                                                    
+                                                    {/* Collapsible Logistics Information */}
+                                                    {(outing.drop_off_time || outing.drop_off_location || outing.pickup_time || outing.pickup_location) && (
+                                                        <div style={{ margin: '10px 0' }}>
+                                                            <div 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setCollapsedLogistics(prev => ({
+                                                                        ...prev,
+                                                                        [outing.id]: !prev[outing.id]
+                                                                    }));
+                                                                }}
+                                                                style={{ 
+                                                                    padding: '10px', 
+                                                                    backgroundColor: 'var(--bg-secondary)', 
+                                                                    borderRadius: '4px', 
+                                                                    border: '1px solid var(--card-border)',
+                                                                    cursor: 'pointer',
+                                                                    userSelect: 'none'
+                                                                }}
+                                                            >
+                                                                <p style={{ margin: '0', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                                                                    {collapsedLogistics[outing.id] === false ? '▼' : '▶'} 📍 Logistics
+                                                                </p>
+                                                            </div>
+                                                            {collapsedLogistics[outing.id] === false && (
+                                                                <div style={{ padding: '10px', backgroundColor: 'var(--bg-secondary)', borderRadius: '0 0 4px 4px', border: '1px solid var(--card-border)', borderTop: 'none' }}>
+                                                                    {(outing.drop_off_time || outing.drop_off_location) && (
+                                                                        <p style={{ margin: '5px 0 5px 10px', fontSize: '14px' }}>
+                                                                            <strong>Drop-off:</strong> {outing.drop_off_time && `${outing.drop_off_time}`}{outing.drop_off_time && outing.drop_off_location && ' at '}{outing.drop_off_location}
+                                                                        </p>
+                                                                    )}
+                                                                    {(outing.pickup_time || outing.pickup_location) && (
+                                                                        <p style={{ margin: '5px 0 5px 10px', fontSize: '14px' }}>
+                                                                            <strong>Pickup:</strong> {outing.pickup_time && `${outing.pickup_time}`}{outing.pickup_time && outing.pickup_location && ' at '}{outing.pickup_location}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Collapsible Suggested Gear */}
+                                                    {outing.gear_list && (
+                                                        <div style={{ margin: '10px 0' }}>
+                                                            <div 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setCollapsedGear(prev => ({
+                                                                        ...prev,
+                                                                        [outing.id]: !prev[outing.id]
+                                                                    }));
+                                                                }}
+                                                                style={{ 
+                                                                    padding: '10px', 
+                                                                    backgroundColor: 'var(--bg-secondary)', 
+                                                                    borderRadius: '4px', 
+                                                                    border: '1px solid var(--card-border)',
+                                                                    cursor: 'pointer',
+                                                                    userSelect: 'none'
+                                                                }}
+                                                            >
+                                                                <p style={{ margin: '0', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                                                                    {collapsedGear[outing.id] === false ? '▼' : '▶'} 🎒 Suggested Gear
+                                                                </p>
+                                                            </div>
+                                                            {collapsedGear[outing.id] === false && (
+                                                                <div style={{ padding: '10px', backgroundColor: 'var(--bg-secondary)', borderRadius: '0 0 4px 4px', border: '1px solid var(--card-border)', borderTop: 'none' }}>
+                                                                    <p style={{ margin: '5px 0', fontSize: '14px', whiteSpace: 'pre-wrap' }}>{outing.gear_list}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
@@ -1227,7 +1497,7 @@ const OutingAdmin: React.FC = () => {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    backgroundColor: 'var(--modal-overlay-bg)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1241,7 +1511,7 @@ const OutingAdmin: React.FC = () => {
                         width: '90%',
                         maxHeight: '90vh',
                         overflow: 'auto',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                        boxShadow: 'var(--shadow-lg)',
                         border: '1px solid var(--card-border)'
                     }}>
                         <h2 style={{ marginTop: 0, marginBottom: '20px', color: 'var(--text-primary)' }}>

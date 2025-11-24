@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Boolean, Date, Text, DateTime
+from sqlalchemy import Column, String, Integer, Boolean, Date, Text, DateTime, Time, Numeric
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -23,6 +23,12 @@ class Outing(Base):
     outing_lead_name = Column(String(255), nullable=True)
     outing_lead_email = Column(String(255), nullable=True)
     outing_lead_phone = Column(String(50), nullable=True)
+    drop_off_time = Column(Time, nullable=True)  # Drop-off time
+    drop_off_location = Column(String(255), nullable=True)  # Drop-off location
+    pickup_time = Column(Time, nullable=True)  # Pickup time
+    pickup_location = Column(String(255), nullable=True)  # Pickup location
+    cost = Column(Numeric(10, 2), nullable=True)  # Cost in dollars
+    gear_list = Column(Text, nullable=True)  # Suggested gear list
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     icon = Column(String(50), nullable=True)  # Outing icon (Bootstrap icon name or emoji)

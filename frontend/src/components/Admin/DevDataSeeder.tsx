@@ -71,6 +71,41 @@ const TRIP_DESCRIPTIONS = [
     "Experience the thrill of outdoor adventure while learning valuable scouting skills in a safe, supervised environment.",
 ];
 
+const CAMPING_GEAR_LIST = `Essential Camping Gear:
+• Tent (if not provided)
+• Sleeping bag rated for season
+• Sleeping pad or air mattress
+• Pillow
+• Flashlight or headlamp with extra batteries
+• Water bottle (at least 1 liter)
+• Personal first aid kit
+• Sunscreen and insect repellent
+• Rain gear (jacket and pants)
+• Warm layers (fleece or jacket)
+• Extra socks and underwear
+• Toiletries and towel
+• Mess kit (plate, bowl, cup, utensils)
+• Pocket knife (if trained)
+• Matches or lighter in waterproof container
+• Backpack or duffel bag
+• Hat and sunglasses
+• Personal medications
+• Scout handbook`;
+
+const DROP_OFF_LOCATIONS = [
+    "Troop Meeting Place Parking Lot",
+    "Scout Hall Parking Area",
+    "Community Center Parking Lot",
+    "Church Parking Lot (Main Entrance)",
+];
+
+const PICKUP_LOCATIONS = [
+    "Lincoln Elementary School Parking Lot",
+    "Washington Middle School Parking Lot",
+    "Jefferson High School Parking Lot",
+    "Roosevelt Elementary School Parking Lot",
+];
+
 const randomChoice = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const randomInt = (min: number, max: number): number => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -133,6 +168,19 @@ const DevDataSeeder: React.FC = () => {
 
         const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
+        // Generate drop-off time around 5:30pm (17:30) with some variation
+        const dropOffHour = 17;
+        const dropOffMinute = randomChoice([15, 30, 45]);
+        const dropOffTime = `${String(dropOffHour).padStart(2, '0')}:${String(dropOffMinute).padStart(2, '0')}:00`;
+
+        // Generate pickup time around 11am with some variation
+        const pickupHour = 11;
+        const pickupMinute = randomChoice([0, 15, 30]);
+        const pickupTime = `${String(pickupHour).padStart(2, '0')}:${String(pickupMinute).padStart(2, '0')}:00`;
+
+        // Generate cost between $20-$60
+        const cost = randomInt(20, 60);
+
         const outingData: any = {
             name,
             outing_date: formatDate(outingDate),
@@ -145,12 +193,28 @@ const DevDataSeeder: React.FC = () => {
             outing_lead_name: `${randomChoice(FIRST_NAMES_MALE)} ${randomChoice(LAST_NAMES)}`,
             outing_lead_email: `leader${randomInt(1, 100)}@example.com`,
             outing_lead_phone: `555-${randomInt(100, 999)}-${randomInt(1000, 9999)}`,
+            drop_off_time: dropOffTime,
+            drop_off_location: randomChoice(DROP_OFF_LOCATIONS),
+            pickup_time: pickupTime,
+            pickup_location: randomChoice(PICKUP_LOCATIONS),
+            cost: cost,
+            gear_list: CAMPING_GEAR_LIST,
         };
 
         // Only include end_date if it's an overnight outing
         if (endDate) {
             outingData.end_date = formatDate(endDate);
         }
+
+        console.log('🌱 Seeding outing with logistics:', {
+            name,
+            drop_off_time: dropOffTime,
+            drop_off_location: outingData.drop_off_location,
+            pickup_time: pickupTime,
+            pickup_location: outingData.pickup_location,
+            cost,
+            gear_list_length: CAMPING_GEAR_LIST.length
+        });
 
         await outingAPI.create(outingData);
     };

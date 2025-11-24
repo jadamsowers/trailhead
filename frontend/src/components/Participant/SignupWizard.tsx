@@ -77,6 +77,10 @@ const SignupWizard: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [warnings, setWarnings] = useState<string[]>([]);
+    
+    // Collapsible sections state
+    const [collapsedLogistics, setCollapsedLogistics] = useState<{ [outingId: string]: boolean }>({});
+    const [collapsedGear, setCollapsedGear] = useState<{ [outingId: string]: boolean }>({});
 
     // Load user contact info on mount
     useEffect(() => {
@@ -697,16 +701,142 @@ ${selectedOuting?.id === outing.id
                                         >
                                             <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                                                 <div className="flex-1">
-                                                    <div className="flex items-baseline gap-3 mb-2 flex-wrap">
-                                                        <OutingIconDisplay icon={outing.icon} />
-                                                        <span className="text-lg font-bold text-sa-blue whitespace-nowrap">
-                                                            📅 {formatOutingDate(outing.outing_date)}
-                                                            {outing.end_date && ` - ${formatOutingDate(outing.end_date)} `}
-                                                        </span>
-                                                        <h3 className="text-xl font-bold font-heading text-sa-dark-blue m-0">{outing.name}</h3>
+                                                    {/* Header with icon, title, date, and cost */}
+                                                    <div className="flex justify-between items-start gap-3 mb-2 flex-wrap">
+                                                        <div className="flex items-baseline gap-3 flex-1">
+                                                            <OutingIconDisplay icon={outing.icon} />
+                                                            <h3 className="text-xl font-bold font-heading text-sa-dark-blue m-0">{outing.name}</h3>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-lg font-bold text-sa-blue whitespace-nowrap">
+                                                                📅 {formatOutingDate(outing.outing_date)}
+                                                                {outing.end_date && ` - ${formatOutingDate(outing.end_date)} `}
+                                                            </span>
+                                                            {outing.cost && (
+                                                                <div className="px-3 py-2 rounded-lg shadow-sm border text-right" style={{
+                                                                    backgroundColor: 'var(--bg-secondary)',
+                                                                    borderColor: 'var(--card-border)'
+                                                                }}>
+                                                                    <div className="text-xs mb-1 uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)' }}>
+                                                                        Cost
+                                                                    </div>
+                                                                    <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                                                                        ${typeof outing.cost === 'number' ? outing.cost.toFixed(2) : parseFloat(outing.cost as any).toFixed(2)}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
+                                                    
+                                                    {/* Warnings right below title */}
+                                                    {outing.needs_two_deep_leadership && (
+                                                        <div className="mb-3 p-3 rounded-md text-sm font-bold border flex items-center gap-2"
+                                                            style={{
+                                                                backgroundColor: 'var(--alert-warning-bg)',
+                                                                color: 'var(--alert-warning-text)',
+                                                                borderColor: 'var(--alert-warning-border)'
+                                                            }}>
+                                                            <span>⚠️</span> Needs {2 - outing.adult_count} more adult(s) for two-deep leadership
+                                                        </div>
+                                                    )}
+                                                    {outing.needs_female_leader && (
+                                                        <div className="mb-3 p-3 rounded-md text-sm font-bold border flex items-center gap-2"
+                                                            style={{
+                                                                backgroundColor: 'var(--alert-warning-bg)',
+                                                                color: 'var(--alert-warning-text)',
+                                                                borderColor: 'var(--alert-warning-border)'
+                                                            }}>
+                                                            <span>⚠️</span> Needs female adult leader (female youth present)
+                                                        </div>
+                                                    )}
+                                                    {outing.capacity_type === 'vehicle' && outing.needs_more_drivers && (
+                                                        <div className="mb-3 p-3 rounded-md text-sm font-bold border flex items-center gap-2"
+                                                            style={{
+                                                                backgroundColor: 'var(--alert-warning-bg)',
+                                                                color: 'var(--alert-warning-text)',
+                                                                borderColor: 'var(--alert-warning-border)'
+                                                            }}>
+                                                            <span>⚠️</span> Need more drivers! Current capacity: {outing.total_vehicle_capacity} seats for {outing.signup_count} participants
+                                                        </div>
+                                                    )}
+                                                    
                                                     <p className="my-1 text-gray-700"><strong>Location:</strong> {outing.location}</p>
                                                     {outing.description && <p className="mt-2 text-gray-600">{outing.description}</p>}
+                                                    
+                                                    {/* Collapsible Logistics */}
+                                                    {(outing.drop_off_time || outing.drop_off_location || outing.pickup_time || outing.pickup_location) && (
+                                                        <div className="mt-3">
+                                                            <div
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setCollapsedLogistics(prev => ({
+                                                                        ...prev,
+                                                                        [outing.id]: !prev[outing.id]
+                                                                    }));
+                                                                }}
+                                                                className="p-2 rounded cursor-pointer select-none"
+                                                                style={{
+                                                                    backgroundColor: 'var(--bg-secondary)',
+                                                                    border: '1px solid var(--card-border)'
+                                                                }}
+                                                            >
+                                                                <p className="m-0 font-bold" style={{ color: 'var(--text-primary)' }}>
+                                                                    {collapsedLogistics[outing.id] === false ? '▼' : '▶'} 📍 Logistics
+                                                                </p>
+                                                            </div>
+                                                            {collapsedLogistics[outing.id] === false && (
+                                                                <div className="p-2 rounded-b" style={{
+                                                                    backgroundColor: 'var(--bg-secondary)',
+                                                                    border: '1px solid var(--card-border)',
+                                                                    borderTop: 'none'
+                                                                }}>
+                                                                    {(outing.drop_off_time || outing.drop_off_location) && (
+                                                                        <p className="my-1 ml-3 text-sm">
+                                                                            <strong>Drop-off:</strong> {outing.drop_off_time && `${outing.drop_off_time}`}{outing.drop_off_time && outing.drop_off_location && ' at '}{outing.drop_off_location}
+                                                                        </p>
+                                                                    )}
+                                                                    {(outing.pickup_time || outing.pickup_location) && (
+                                                                        <p className="my-1 ml-3 text-sm">
+                                                                            <strong>Pickup:</strong> {outing.pickup_time && `${outing.pickup_time}`}{outing.pickup_time && outing.pickup_location && ' at '}{outing.pickup_location}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Collapsible Gear List */}
+                                                    {outing.gear_list && (
+                                                        <div className="mt-3">
+                                                            <div
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setCollapsedGear(prev => ({
+                                                                        ...prev,
+                                                                        [outing.id]: !prev[outing.id]
+                                                                    }));
+                                                                }}
+                                                                className="p-2 rounded cursor-pointer select-none"
+                                                                style={{
+                                                                    backgroundColor: 'var(--bg-secondary)',
+                                                                    border: '1px solid var(--card-border)'
+                                                                }}
+                                                            >
+                                                                <p className="m-0 font-bold" style={{ color: 'var(--text-primary)' }}>
+                                                                    {collapsedGear[outing.id] === false ? '▼' : '▶'} 🎒 Suggested Gear
+                                                                </p>
+                                                            </div>
+                                                            {collapsedGear[outing.id] === false && (
+                                                                <div className="p-2 rounded-b" style={{
+                                                                    backgroundColor: 'var(--bg-secondary)',
+                                                                    border: '1px solid var(--card-border)',
+                                                                    borderTop: 'none'
+                                                                }}>
+                                                                    <p className="my-1 text-sm whitespace-pre-wrap">{outing.gear_list}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Capacity Badge */}
@@ -736,46 +866,6 @@ ${selectedOuting?.id === outing.id
                                                     }
                                                 </div>
                                             </div >
-
-                                            {/* Warnings */}
-                                            {
-                                                outing.needs_two_deep_leadership && (
-                                                    <div className="mt-4 p-4 rounded-md text-sm font-bold border flex items-center gap-2"
-                                                        style={{
-                                                            backgroundColor: 'var(--alert-warning-bg)',
-                                                            color: 'var(--alert-warning-text)',
-                                                            borderColor: 'var(--alert-warning-border)'
-                                                        }}>
-                                                        <span>⚠️</span> Needs {2 - outing.adult_count} more adult(s) for two-deep leadership
-                                                    </div>
-                                                )
-                                            }
-
-                                            {
-                                                outing.needs_female_leader && (
-                                                    <div className="mt-4 p-4 rounded-md text-sm font-bold border flex items-center gap-2"
-                                                        style={{
-                                                            backgroundColor: 'var(--alert-warning-bg)',
-                                                            color: 'var(--alert-warning-text)',
-                                                            borderColor: 'var(--alert-warning-border)'
-                                                        }}>
-                                                        <span>⚠️</span> Needs female adult leader (female youth present)
-                                                    </div>
-                                                )
-                                            }
-
-                                            {
-                                                outing.capacity_type === 'vehicle' && outing.needs_more_drivers && (
-                                                    <div className="mt-4 p-4 rounded-md text-sm font-bold border flex items-center gap-2"
-                                                        style={{
-                                                            backgroundColor: 'var(--alert-warning-bg)',
-                                                            color: 'var(--alert-warning-text)',
-                                                            borderColor: 'var(--alert-warning-border)'
-                                                        }}>
-                                                        <span>⚠️</span> Need more drivers! Current capacity: {outing.total_vehicle_capacity} seats for {outing.signup_count} participants
-                                                    </div>
-                                                )
-                                            }
                                         </div >
                                     ))}
                                 </div >

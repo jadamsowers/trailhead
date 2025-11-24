@@ -455,7 +455,7 @@ const App: React.FC = () => {
                                     <span className="italic text-base sm:text-lg" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>Putting the 'outing' back in 'Scouting'</span>
                                     <span className="text-lg sm:text-xl" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>•</span>
                                     <span className="text-sm sm:text-base" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>
-                                        <a href="https://github.com/jadamsowers/trailhead" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>Vibe-coded</a> with ⚜️❤️ by <a href="https://scouthacks.net/" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>Adam Sowers</a>
+                                        <a href="https://github.com/jadamsowers/trailhead" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>Vibe-coded</a> with ⚜️❤️﹠🤖 by <a href="https://scouthacks.net/" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>Adam Sowers</a>
                                     </span>
                                 </div>
                             </div>

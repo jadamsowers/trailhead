@@ -21,6 +21,12 @@ export interface Outing {
     outing_lead_name?: string;
     outing_lead_email?: string;
     outing_lead_phone?: string;
+    drop_off_time?: string;
+    drop_off_location?: string;
+    pickup_time?: string;
+    pickup_location?: string;
+    cost?: number;
+    gear_list?: string;
     created_at: string;
     updated_at: string;
     icon?: string;
@@ -38,6 +44,12 @@ export interface OutingCreate {
     outing_lead_name?: string;
     outing_lead_email?: string;
     outing_lead_phone?: string;
+    drop_off_time?: string;
+    drop_off_location?: string;
+    pickup_time?: string;
+    pickup_location?: string;
+    cost?: number;
+    gear_list?: string;
     icon?: string;
 }
 

@@ -713,6 +713,58 @@ const SignupForm: React.FC = () => {
                                     )}
                                     {outing.description && <p style={{ margin: '10px 0 0 0' }}>{outing.description}</p>}
                                     
+                                    {/* Cost */}
+                                    {outing.cost && (
+                                        <p style={{ margin: '10px 0 0 0', fontSize: '16px' }}>
+                                            <strong>Cost:</strong> ${typeof outing.cost === 'number' ? outing.cost.toFixed(2) : parseFloat(outing.cost as any).toFixed(2)}
+                                        </p>
+                                    )}
+                                    
+                                    {/* Drop-off & Pickup Information */}
+                                    {(outing.drop_off_time || outing.drop_off_location || outing.pickup_time || outing.pickup_location) && (
+                                        <div style={{ margin: '15px 0', padding: '15px', backgroundColor: '#e8f5e9', borderRadius: '4px', border: '1px solid #4caf50' }}>
+                                            <h4 style={{ margin: '0 0 10px 0', color: '#2e7d32' }}>Drop-off & Pickup</h4>
+                                            {(outing.drop_off_time || outing.drop_off_location) && (
+                                                <div style={{ marginBottom: '10px' }}>
+                                                    <p style={{ margin: '5px 0', fontWeight: 'bold', color: '#1b5e20' }}>Drop-off:</p>
+                                                    {outing.drop_off_time && (
+                                                        <p style={{ margin: '5px 0 5px 15px' }}>
+                                                            <strong>Time:</strong> {outing.drop_off_time}
+                                                        </p>
+                                                    )}
+                                                    {outing.drop_off_location && (
+                                                        <p style={{ margin: '5px 0 5px 15px' }}>
+                                                            <strong>Location:</strong> {outing.drop_off_location}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {(outing.pickup_time || outing.pickup_location) && (
+                                                <div>
+                                                    <p style={{ margin: '5px 0', fontWeight: 'bold', color: '#1b5e20' }}>Pickup:</p>
+                                                    {outing.pickup_time && (
+                                                        <p style={{ margin: '5px 0 5px 15px' }}>
+                                                            <strong>Time:</strong> {outing.pickup_time}
+                                                        </p>
+                                                    )}
+                                                    {outing.pickup_location && (
+                                                        <p style={{ margin: '5px 0 5px 15px' }}>
+                                                            <strong>Location:</strong> {outing.pickup_location}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Suggested Gear List */}
+                                    {outing.gear_list && (
+                                        <div style={{ margin: '15px 0', padding: '15px', backgroundColor: '#fff3e0', borderRadius: '4px', border: '1px solid #ff9800' }}>
+                                            <h4 style={{ margin: '0 0 10px 0', color: '#e65100' }}>Suggested Gear</h4>
+                                            <p style={{ margin: '0', whiteSpace: 'pre-wrap' }}>{outing.gear_list}</p>
+                                        </div>
+                                    )}
+                                    
                                     {/* Outing Lead Contact Information - Collapsible */}
                                     {(outing.outing_lead_name || outing.outing_lead_email || outing.outing_lead_phone) && (
                                         <div style={{ marginTop: '15px' }} onClick={(e) => e.stopPropagation()}>
