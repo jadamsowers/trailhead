@@ -678,7 +678,7 @@ RESTART_POLICY=$RESTART_POLICY
 DEBUG=$DEBUG
 HEALTHCHECK_INTERVAL=$HEALTHCHECK_INTERVAL
 
-# Compose profiles (useful for docker compose v2 profiles)
+# Compose profiles 
 # Will be set to 'production' when running in production mode
 COMPOSE_PROFILES=$COMPOSE_PROFILES_VALUE
 
