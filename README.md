@@ -206,7 +206,8 @@ See [HTTPS_SETUP.md](HTTPS_SETUP.md) for detailed HTTPS configuration and [DEPLO
 
 ## 🤝 Contributing
 
-1. Fork the repository
+1. Read [project-context.md](project-context.md) for project guidelines and rules
+2. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
