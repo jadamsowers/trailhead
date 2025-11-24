@@ -8,7 +8,7 @@ import { useTheme, type Theme } from "../../utils/themeManager";
  * Theme preference is saved to localStorage.
  */
 export const ThemeToggle: React.FC = () => {
-  const { theme, effectiveTheme, setTheme, toggleTheme, isDark } = useTheme();
+  const { theme, effectiveTheme, toggleTheme, isDark } = useTheme();
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>

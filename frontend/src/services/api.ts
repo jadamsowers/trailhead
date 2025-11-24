@@ -101,7 +101,6 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
   if (!response.ok) {
     let errorDetail: string;
-    let errorType: string | undefined;
 
     try {
       const errorData: APIErrorResponse & {
@@ -113,7 +112,6 @@ async function handleResponse<T>(response: Response): Promise<T> {
       if (errorData.error_type && errorData.error_message) {
         // Backend 500 error with detailed info
         errorDetail = `${errorData.error_type}: ${errorData.error_message}`;
-        errorType = errorData.error_type;
         console.error("❌ Backend Error:", {
           url: response.url,
           status: response.status,
