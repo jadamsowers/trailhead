@@ -112,28 +112,58 @@ fi
 print_info "Selected mode: $MODE"
 echo ""
 
-# Get host URI
-if [ "$MODE" = "production" ] && [ "$USE_DEFAULTS" = false ]; then
-    print_question "Enter the host URI where this will be deployed (e.g., https://outings.example.com):"
-    read -p "Host URI: " HOST_URI
-    
-    if [ -z "$HOST_URI" ]; then
-        print_error "Host URI is required for production mode"
-        exit 1
+# Get host URI (production only)
+if [ "$MODE" = "production" ]; then
+    # File to persist the production host between runs
+    DOMAIN_FILE="production-host.txt"
+
+    if [ -f "$DOMAIN_FILE" ]; then
+        print_info "Found $DOMAIN_FILE. Reading saved host URI..."
+        HOST_URI=$(cat "$DOMAIN_FILE" | grep -v '^#' | grep -v '^$' | head -n 1 | tr -d '\n\r')
+        if [ -n "$HOST_URI" ]; then
+            print_success "Loaded host URI from $DOMAIN_FILE"
+            print_info "Host URI: $HOST_URI"
+            read -p "Use this host URI? [Y/n]: " USE_SAVED_HOST
+            USE_SAVED_HOST=${USE_SAVED_HOST:-Y}
+            if [[ ! "$USE_SAVED_HOST" =~ ^[Yy]$ ]]; then
+                HOST_URI=""
+            fi
+        else
+            print_error "$DOMAIN_FILE exists but is empty or invalid"
+            HOST_URI=""
+        fi
     fi
-    
+
+    # If not loaded from file, prompt the user
+    if [ -z "$HOST_URI" ]; then
+        print_question "Enter the host URI where this will be deployed (e.g., https://outings.example.com):"
+        read -p "Host URI: " HOST_URI
+        if [ -z "$HOST_URI" ]; then
+            print_error "Host URI is required for production mode"
+            exit 1
+        fi
+
+        # Offer to save the host for next time
+        echo ""
+        read -p "Save this host URI to $DOMAIN_FILE for future runs? [Y/n]: " SAVE_HOST_FILE
+        SAVE_HOST_FILE=${SAVE_HOST_FILE:-Y}
+        if [[ "$SAVE_HOST_FILE" =~ ^[Yy]$ ]]; then
+            cat > "$DOMAIN_FILE" << EOF
+# Production host saved by bootstrap.sh on $(date)
+# First non-comment, non-empty line is used as the host URI
+
+$HOST_URI
+EOF
+            print_success "Saved host URI to $DOMAIN_FILE"
+            # Add to .gitignore if not already present
+            if ! grep -q "^$DOMAIN_FILE\$" .gitignore 2>/dev/null; then
+                echo "$DOMAIN_FILE" >> .gitignore
+                print_success "Added $DOMAIN_FILE to .gitignore"
+            fi
+        fi
+    fi
+
     # Extract domain from URI (remove protocol)
-    DOMAIN=$(echo "$HOST_URI" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
-    print_info "Using domain: $DOMAIN"
-elif [ "$MODE" = "production" ]; then
-    print_question "Enter the host URI where this will be deployed (e.g., https://outings.example.com):"
-    read -p "Host URI: " HOST_URI
-    
-    if [ -z "$HOST_URI" ]; then
-        print_error "Host URI is required for production mode"
-        exit 1
-    fi
-    
     DOMAIN=$(echo "$HOST_URI" | sed -e 's|^[^/]*//||' -e 's|/.*$||')
     print_info "Using domain: $DOMAIN"
 else
@@ -150,17 +180,59 @@ if [ "$MODE" = "production" ]; then
     print_info "If you're using Let's Encrypt, certificates are typically in:"
     print_info "  /etc/letsencrypt/live/YOUR_DOMAIN/"
     echo ""
-    
+
     # Default Let's Encrypt path
     DEFAULT_CERT_DIR="/etc/letsencrypt/live/$DOMAIN"
-    
-    print_question "Enter the directory containing your SSL certificates:"
-    echo "  Expected files: fullchain.pem and privkey.pem"
-    read -p "Certificate directory (default: $DEFAULT_CERT_DIR): " SSL_CERT_DIR
-    SSL_CERT_DIR=${SSL_CERT_DIR:-$DEFAULT_CERT_DIR}
-    
+
+    # File to persist the SSL certificate directory between runs
+    SSL_FILE="production-ssl-cert-dir.txt"
+
+    if [ -f "$SSL_FILE" ]; then
+        print_info "Found $SSL_FILE. Reading saved certificate directory..."
+        SSL_CERT_DIR=$(cat "$SSL_FILE" | grep -v '^#' | grep -v '^$' | head -n 1 | tr -d '\n\r')
+        if [ -n "$SSL_CERT_DIR" ]; then
+            print_success "Loaded certificate directory from $SSL_FILE"
+            print_info "Certificate directory: $SSL_CERT_DIR"
+            read -p "Use this certificate directory? [Y/n]: " USE_SAVED_SSL
+            USE_SAVED_SSL=${USE_SAVED_SSL:-Y}
+            if [[ ! "$USE_SAVED_SSL" =~ ^[Yy]$ ]]; then
+                SSL_CERT_DIR=""
+            fi
+        else
+            print_error "$SSL_FILE exists but is empty or invalid"
+            SSL_CERT_DIR=""
+        fi
+    fi
+
+    # Prompt if not loaded from file
+    if [ -z "$SSL_CERT_DIR" ]; then
+        print_question "Enter the directory containing your SSL certificates:"
+        echo "  Expected files: fullchain.pem and privkey.pem"
+        read -p "Certificate directory (default: $DEFAULT_CERT_DIR): " SSL_CERT_DIR
+        SSL_CERT_DIR=${SSL_CERT_DIR:-$DEFAULT_CERT_DIR}
+
+        # Offer to save the directory for future runs
+        echo ""
+        read -p "Save this certificate directory to $SSL_FILE for future runs? [Y/n]: " SAVE_SSL_FILE
+        SAVE_SSL_FILE=${SAVE_SSL_FILE:-Y}
+        if [[ "$SAVE_SSL_FILE" =~ ^[Yy]$ ]]; then
+            cat > "$SSL_FILE" << EOF
+# Production SSL certificate directory saved by bootstrap.sh on $(date)
+# First non-comment, non-empty line is used as the path
+
+$SSL_CERT_DIR
+EOF
+            print_success "Saved certificate directory to $SSL_FILE"
+            # Add to .gitignore if not already present
+            if ! grep -q "^$SSL_FILE\$" .gitignore 2>/dev/null; then
+                echo "$SSL_FILE" >> .gitignore
+                print_success "Added $SSL_FILE to .gitignore"
+            fi
+        fi
+    fi
+
     # Validate certificate files exist
-    if [ -f "$SSL_CERT_DIR/fullchain.pem" ] && [ -f "$SSL_CERT_DIR/privkey.pem" ]; then
+    if [ -n "$SSL_CERT_DIR" ] && [ -f "$SSL_CERT_DIR/fullchain.pem" ] && [ -f "$SSL_CERT_DIR/privkey.pem" ]; then
         print_success "Found SSL certificates in $SSL_CERT_DIR"
         SSL_CERT_PATH="$SSL_CERT_DIR/fullchain.pem"
         SSL_KEY_PATH="$SSL_CERT_DIR/privkey.pem"
@@ -174,7 +246,7 @@ if [ "$MODE" = "production" ]; then
         echo "  1) Enter a different certificate directory"
         echo "  2) Continue without SSL (HTTP only - not recommended for production)"
         read -p "Enter choice [1-2]: " SSL_CHOICE
-        
+
         if [ "$SSL_CHOICE" = "1" ]; then
             read -p "Certificate directory: " SSL_CERT_DIR
             if [ -f "$SSL_CERT_DIR/fullchain.pem" ] && [ -f "$SSL_CERT_DIR/privkey.pem" ]; then
@@ -526,6 +598,8 @@ echo ""
 
 # Create backend .env file
 print_header "Creating backend .env file..."
+# Precompute FRONTEND_URL to avoid subshells inside heredocs
+FRONTEND_URL_VALUE=$([ "$MODE" = "development" ] && echo "http://localhost:3000" || echo "$HOST_URI")
 cat > backend/.env << EOF
 # Trailhead - Environment Configuration
 # Generated by bootstrap.sh on $(date)
@@ -558,7 +632,7 @@ INITIAL_ADMIN_EMAIL=$INITIAL_ADMIN_EMAIL
 # Clerk Configuration
 CLERK_SECRET_KEY=$CLERK_SECRET_KEY
 CLERK_PUBLISHABLE_KEY=$CLERK_PUBLISHABLE_KEY
-FRONTEND_URL=$([ "$MODE" = "development" ] && echo "http://localhost:3000" || echo "$HOST_URI")
+FRONTEND_URL=$FRONTEND_URL_VALUE
 EOF
 
 print_success "Backend .env file created"
@@ -591,6 +665,9 @@ echo ""
 
 # Create root .env file for docker-compose
 print_header "Creating root .env file for docker-compose..."
+# Precompute values to avoid subshells inside heredocs (prevents unexpected command output)
+COMPOSE_PROFILES_VALUE=$([ "$MODE" = "production" ] && echo "production" || echo "")
+FRONTEND_URL_VALUE=$FRONTEND_URL_VALUE
 cat > .env << EOF
 # Docker Compose Environment Variables
 # Generated by bootstrap.sh on $(date)
@@ -602,7 +679,7 @@ HEALTHCHECK_INTERVAL=$HEALTHCHECK_INTERVAL
 
 # Compose profiles (useful for `docker compose` v2 profiles)
 # Will be set to 'production' when running in production mode
-COMPOSE_PROFILES=$([ "$MODE" = "production" ] && echo "production" || echo "")
+COMPOSE_PROFILES=$COMPOSE_PROFILES_VALUE
 
 # Database Configuration
 POSTGRES_USER=$POSTGRES_USER
@@ -624,7 +701,7 @@ INITIAL_ADMIN_EMAIL=$INITIAL_ADMIN_EMAIL
 # Clerk Configuration
 CLERK_SECRET_KEY=$CLERK_SECRET_KEY
 CLERK_PUBLISHABLE_KEY=$CLERK_PUBLISHABLE_KEY
-FRONTEND_URL=$([ "$MODE" = "development" ] && echo "http://localhost:3000" || echo "$HOST_URI")
+FRONTEND_URL=$FRONTEND_URL_VALUE
 
 # Backend Configuration
 BACKEND_COMMAND=sh -c 'echo "Waiting for database..." && sleep 5 && echo "Applying migrations with Atlas..." && atlas migrate apply --url "postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:$POSTGRES_PORT/$POSTGRES_DB?sslmode=disable" && echo "Initializing database..." && python -m app.db.init_db || echo "Database already initialized" && echo "Starting server..." && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload'
@@ -646,6 +723,49 @@ fi
 
 print_success "Root .env file created"
 echo ""
+
+# Validate .env for malformed keys (keys containing spaces or missing '=')
+print_info "Validating generated .env for malformed keys..."
+OFFENDING_KEYS=$(awk '
+    /^[[:space:]]*#/ {next}
+    /^[[:space:]]*$/ {next}
+    { i = index($0, "=");
+      if (i == 0) { print "MISSING_EQUALS: "$0; next }
+      key = substr($0, 1, i-1);
+      gsub(/^[ \t]+|[ \t]+$/, "", key);
+      if (key ~ / /) print key
+    }' .env || true)
+
+if [ -n "$OFFENDING_KEYS" ]; then
+    print_error "Detected malformed .env keys (contain spaces or invalid lines):"
+    echo "$OFFENDING_KEYS"
+    echo ""
+    read -p "Attempt to auto-sanitize keys by replacing spaces with underscores? [Y/n]: " SANITIZE_CHOICE
+    SANITIZE_CHOICE=${SANITIZE_CHOICE:-Y}
+    if [[ "$SANITIZE_CHOICE" =~ ^[Yy]$ ]]; then
+        cp .env .env.bak
+        awk '
+            /^[[:space:]]*#/ {print; next}
+            /^[[:space:]]*$/ {print; next}
+            { i = index($0, "=");
+              if (i == 0) { print $0; next }
+              key = substr($0, 1, i-1);
+              val = substr($0, i+1);
+              gsub(/^[ \t]+|[ \t]+$/, "", key);
+              gsub(/^[ \t]+|[ \t]+$/, "", val);
+              gsub(/[ \t]+/, "_", key);
+              print key "=" val
+            }' .env.bak > .env
+        print_success "Sanitized .env saved (original backed up to .env.bak)"
+        echo ""
+    else
+        print_error "Please fix .env (remove spaces in keys) and re-run bootstrap. Aborting."
+        exit 1
+    fi
+else
+    print_success ".env validation passed"
+    echo ""
+fi
 
 # Build and start services
 print_header "Building and starting services..."
