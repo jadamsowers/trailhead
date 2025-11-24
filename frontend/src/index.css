@@ -20,6 +20,28 @@
   .font-sans {
     font-family: var(--font-body);
   }
+
+  /* Form base styles using CSS variables */
+  .form-input, .form-textarea {
+    width: 100%;
+    padding: 0.5rem; /* 8px */
+    font-size: 0.875rem; /* 14px */
+    border: 1px solid var(--input-border);
+    border-radius: 0.25rem; /* 4px */
+    background-color: var(--input-bg);
+    color: var(--input-text);
+  }
+  .form-input:focus, .form-textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(var(--bsa-olive-rgb), 0.1);
+    border-color: var(--input-border-focus);
+  }
+  .helper-text {
+    color: var(--text-secondary);
+    font-size: 0.75rem; /* 12px */
+    display: block;
+    margin-top: 0.25rem;
+  }
 }
 
 /* Global Styles - Scouting Outing Manager */

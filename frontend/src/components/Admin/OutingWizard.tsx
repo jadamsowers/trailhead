@@ -260,21 +260,14 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
     switch (activeStep) {
       case 0:
         return (
-          <div style={{ marginTop: "20px" }}>
-            <p style={{ color: "var(--text-secondary)", marginBottom: "20px" }}>
+          <div className="mt-5">
+            <p className="text-secondary mb-5">
               Enter the basic information about your outing. This will help us
               suggest relevant rank requirements and merit badges.
             </p>
-
-            <div style={{ display: "grid", gap: "20px" }}>
+            <div className="grid gap-5">
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "5px",
-                    fontWeight: "bold",
-                  }}
-                >
+                <label className="block mb-1 font-semibold text-primary text-sm">
                   Outing Name *
                 </label>
                 <input
@@ -282,58 +275,24 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g., Winter Camping at Pine Ridge"
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    fontSize: "14px",
-                    border: "1px solid var(--input-border)",
-                    borderRadius: "4px",
-                    backgroundColor: "var(--input-bg)",
-                    color: "var(--input-text)",
-                  }}
+                  className="form-input"
                 />
               </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "15px",
-                }}
-              >
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "5px",
-                      fontWeight: "bold",
-                    }}
-                  >
+                  <label className="block mb-1 font-semibold text-primary text-sm">
                     Start Date *
                   </label>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    style={{
-                      width: "100%",
-                      padding: "8px",
-                      fontSize: "14px",
-                      border: "1px solid var(--input-border)",
-                      borderRadius: "4px",
-                      backgroundColor: "var(--input-bg)",
-                      color: "var(--input-text)",
-                    }}
+                    className="form-input"
                   />
                 </div>
                 <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "5px",
-                      fontWeight: "bold",
-                    }}
-                  >
+                  <label className="block mb-1 font-semibold text-primary text-sm">
                     End Date *
                   </label>
                   <input
@@ -341,27 +300,13 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     min={startDate}
-                    style={{
-                      width: "100%",
-                      padding: "8px",
-                      fontSize: "14px",
-                      border: "1px solid var(--input-border)",
-                      borderRadius: "4px",
-                      backgroundColor: "var(--input-bg)",
-                      color: "var(--input-text)",
-                    }}
+                    className="form-input"
                   />
                 </div>
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "5px",
-                    fontWeight: "bold",
-                  }}
-                >
+                <label className="block mb-1 font-semibold text-primary text-sm">
                   Location *
                 </label>
                 <input
@@ -369,26 +314,12 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g., Camp Whispering Pines"
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    fontSize: "14px",
-                    border: "1px solid var(--input-border)",
-                    borderRadius: "4px",
-                    backgroundColor: "var(--input-bg)",
-                    color: "var(--input-text)",
-                  }}
+                  className="form-input"
                 />
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "5px",
-                    fontWeight: "bold",
-                  }}
-                >
+                <label className="block mb-1 font-semibold text-primary text-sm">
                   Description
                 </label>
                 <textarea
@@ -396,17 +327,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe the activities, goals, and what scouts will experience..."
                   rows={4}
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    fontSize: "14px",
-                    border: "1px solid var(--input-border)",
-                    borderRadius: "4px",
-                    backgroundColor: "var(--input-bg)",
-                    color: "var(--input-text)",
-                  }}
+                  className="form-textarea"
                 />
-                <small style={{ color: "var(--text-secondary)" }}>
+                <small className="helper-text">
                   A detailed description helps us suggest better requirements
                   and merit badges
                 </small>
@@ -421,13 +344,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                 />
               </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "15px",
-                }}
-              >
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <PlacePicker
                     label="Pickup Location"
@@ -451,142 +368,71 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
 
       case 1:
         return (
-          <div style={{ marginTop: "20px" }}>
-            <p style={{ color: "var(--text-secondary)", marginBottom: "20px" }}>
+          <div className="mt-5">
+            <p className="text-secondary mb-5">
               Based on your outing details, we've identified relevant rank
               requirements and merit badges.
             </p>
 
             {loading && (
-              <div style={{ textAlign: "center", padding: "40px" }}>
-                <div style={{ fontSize: "24px" }}>⏳</div>
+              <div className="text-center py-10">
+                <div className="text-2xl">⏳</div>
                 <p>Loading suggestions...</p>
               </div>
             )}
 
             {error && (
-              <div
-                style={{
-                  padding: "15px",
-                  backgroundColor: "rgba(255, 193, 7, 0.1)",
-                  border: "1px solid rgba(255, 193, 7, 0.3)",
-                  borderRadius: "4px",
-                  marginBottom: "20px",
-                }}
-              >
+              <div className="p-4 mb-5 rounded border border-[rgba(255,193,7,0.3)] bg-[rgba(255,193,7,0.1)]">
                 {error}
               </div>
             )}
 
             {suggestions && !loading && (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "20px",
-                }}
-              >
-                <div
-                  style={{
-                    padding: "15px",
-                    backgroundColor: "rgba(var(--bsa-olive-rgb), 0.05)",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(var(--bsa-olive-rgb), 0.2)",
-                  }}
-                >
-                  <h3
-                    style={{
-                      marginTop: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
+              <div className="grid grid-cols-2 gap-5">
+                <div className="p-4 rounded-lg border border-[rgba(var(--bsa-olive-rgb),0.2)] bg-[rgba(var(--bsa-olive-rgb),0.05)]">
+                  <h3 className="mt-0 flex items-center gap-2">
                     🏆 Rank Requirements
                   </h3>
-                  <p
-                    style={{ color: "var(--text-secondary)", fontSize: "14px" }}
-                  >
+                  <p className="text-secondary text-sm">
                     {suggestions.requirements.length} relevant requirements
                     found
                   </p>
                   {suggestions.requirements.slice(0, 3).map((req) => (
-                    <div key={req.requirement.id} style={{ marginTop: "10px" }}>
-                      <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+                    <div key={req.requirement.id} className="mt-2">
+                      <div className="font-bold text-sm">
                         {req.requirement.rank} - {req.requirement.category}
                       </div>
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
+                      <div className="text-xs text-secondary">
                         Match: {(req.match_score * 100).toFixed(0)}%
                       </div>
                     </div>
                   ))}
                   {suggestions.requirements.length > 3 && (
-                    <p
-                      style={{
-                        fontSize: "12px",
-                        color: "var(--text-secondary)",
-                        marginTop: "10px",
-                      }}
-                    >
+                    <p className="text-xs text-secondary mt-2">
                       +{suggestions.requirements.length - 3} more...
                     </p>
                   )}
                 </div>
 
-                <div
-                  style={{
-                    padding: "15px",
-                    backgroundColor: "rgba(0, 150, 0, 0.05)",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(0, 150, 0, 0.2)",
-                  }}
-                >
-                  <h3
-                    style={{
-                      marginTop: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
+                <div className="p-4 rounded-lg border border-[rgba(0,150,0,0.2)] bg-[rgba(0,150,0,0.05)]">
+                  <h3 className="mt-0 flex items-center gap-2">
                     🎖️ Merit Badges
                   </h3>
-                  <p
-                    style={{ color: "var(--text-secondary)", fontSize: "14px" }}
-                  >
+                  <p className="text-secondary text-sm">
                     {suggestions.merit_badges.length} relevant badges found
                   </p>
                   {suggestions.merit_badges.slice(0, 3).map((badge) => (
-                    <div
-                      key={badge.merit_badge.id}
-                      style={{ marginTop: "10px" }}
-                    >
-                      <div style={{ fontWeight: "bold", fontSize: "14px" }}>
+                    <div key={badge.merit_badge.id} className="mt-2">
+                      <div className="font-bold text-sm">
                         {badge.merit_badge.name}
                       </div>
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          color: "var(--text-secondary)",
-                        }}
-                      >
+                      <div className="text-xs text-secondary">
                         Match: {(badge.match_score * 100).toFixed(0)}%
                       </div>
                     </div>
                   ))}
                   {suggestions.merit_badges.length > 3 && (
-                    <p
-                      style={{
-                        fontSize: "12px",
-                        color: "var(--text-secondary)",
-                        marginTop: "10px",
-                      }}
-                    >
+                    <p className="text-xs text-secondary mt-2">
                       +{suggestions.merit_badges.length - 3} more...
                     </p>
                   )}
@@ -597,14 +443,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
             {suggestions &&
               suggestions.requirements.length === 0 &&
               suggestions.merit_badges.length === 0 && (
-                <div
-                  style={{
-                    padding: "15px",
-                    backgroundColor: "rgba(33, 150, 243, 0.1)",
-                    border: "1px solid rgba(33, 150, 243, 0.3)",
-                    borderRadius: "4px",
-                  }}
-                >
+                <div className="p-4 rounded border border-[rgba(33,150,243,0.3)] bg-[rgba(33,150,243,0.1)]">
                   No suggestions found. You can manually add requirements and
                   merit badges after creating the outing.
                 </div>
@@ -614,88 +453,54 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
 
       case 2:
         return (
-          <div style={{ marginTop: "20px" }}>
-            <p style={{ color: "var(--text-secondary)", marginBottom: "20px" }}>
+          <div className="mt-5">
+            <p className="text-secondary mb-5">
               Select the rank requirements and merit badges that scouts can work
               on during this outing.
             </p>
 
             {suggestions && (
-              <div style={{ display: "grid", gap: "30px" }}>
+              <div className="grid gap-8">
                 <div>
                   <h3>🏆 Rank Requirements</h3>
                   {suggestions.requirements.length === 0 ? (
-                    <p style={{ color: "var(--text-secondary)" }}>
-                      No suggestions available
-                    </p>
+                    <p className="text-secondary">No suggestions available</p>
                   ) : (
-                    <div style={{ display: "grid", gap: "15px" }}>
+                    <div className="grid gap-4">
                       {suggestions.requirements.map((req) => (
                         <div
                           key={req.requirement.id}
-                          style={{
-                            padding: "15px",
-                            border: "1px solid var(--card-border)",
-                            borderRadius: "8px",
-                            backgroundColor: selectedRequirements.has(
-                              req.requirement.id
-                            )
-                              ? "rgba(var(--bsa-olive-rgb), 0.05)"
-                              : "var(--bg-tertiary)",
-                          }}
+                          className={
+                            `p-4 rounded-lg border border-card ` +
+                            (selectedRequirements.has(req.requirement.id)
+                              ? "bg-[rgba(var(--bsa-olive-rgb),0.05)]"
+                              : "bg-tertiary")
+                          }
                         >
-                          <label
-                            style={{
-                              display: "flex",
-                              alignItems: "start",
-                              gap: "10px",
-                              cursor: "pointer",
-                            }}
-                          >
+                          <label className="flex items-start gap-2 cursor-pointer">
                             <input
                               type="checkbox"
                               checked={selectedRequirements.has(
                                 req.requirement.id
                               )}
                               onChange={() => handleToggleRequirement(req)}
-                              style={{ marginTop: "4px" }}
+                              className="mt-1"
                             />
-                            <div style={{ flex: 1 }}>
-                              <div
-                                style={{
-                                  fontWeight: "bold",
-                                  marginBottom: "5px",
-                                }}
-                              >
+                            <div className="flex-1">
+                              <div className="font-bold mb-1">
                                 {req.requirement.rank} -{" "}
                                 {req.requirement.category}
-                                <span
-                                  style={{
-                                    marginLeft: "10px",
-                                    fontSize: "12px",
-                                    padding: "2px 8px",
-                                    backgroundColor:
-                                      "rgba(var(--bsa-olive-rgb), 0.2)",
-                                    borderRadius: "12px",
-                                  }}
-                                >
+                                <span className="ml-2 text-xs py-0.5 px-2 rounded-xl bg-[rgba(var(--bsa-olive-rgb),0.2)]">
                                   {(req.match_score * 100).toFixed(0)}% match
                                 </span>
                               </div>
-                              <div
-                                style={{
-                                  fontSize: "14px",
-                                  color: "var(--text-secondary)",
-                                }}
-                              >
+                              <div className="text-sm text-secondary">
                                 {req.requirement.requirement_text}
                               </div>
                             </div>
                           </label>
                           {selectedRequirements.has(req.requirement.id) && (
-                            <div
-                              style={{ marginTop: "10px", marginLeft: "30px" }}
-                            >
+                            <div className="mt-2 ml-7">
                               <input
                                 type="text"
                                 placeholder="Add specific details or instructions (optional)..."
@@ -710,15 +515,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                                     e.target.value
                                   )
                                 }
-                                style={{
-                                  width: "100%",
-                                  padding: "8px",
-                                  fontSize: "14px",
-                                  border: "1px solid var(--input-border)",
-                                  borderRadius: "4px",
-                                  backgroundColor: "var(--input-bg)",
-                                  color: "var(--input-text)",
-                                }}
+                                className="form-input"
                               />
                             </div>
                           )}
@@ -728,85 +525,47 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   )}
                 </div>
 
-                <div
-                  style={{
-                    height: "1px",
-                    backgroundColor: "var(--card-border)",
-                  }}
-                />
+                <div className="h-px bg-[var(--card-border)]" />
 
                 <div>
                   <h3>🎖️ Merit Badges</h3>
                   {suggestions.merit_badges.length === 0 ? (
-                    <p style={{ color: "var(--text-secondary)" }}>
-                      No suggestions available
-                    </p>
+                    <p className="text-secondary">No suggestions available</p>
                   ) : (
-                    <div style={{ display: "grid", gap: "15px" }}>
+                    <div className="grid gap-4">
                       {suggestions.merit_badges.map((badge) => (
                         <div
                           key={badge.merit_badge.id}
-                          style={{
-                            padding: "15px",
-                            border: "1px solid var(--card-border)",
-                            borderRadius: "8px",
-                            backgroundColor: selectedMeritBadges.has(
-                              badge.merit_badge.id
-                            )
-                              ? "rgba(0, 150, 0, 0.05)"
-                              : "var(--bg-tertiary)",
-                          }}
+                          className={
+                            `p-4 rounded-lg border border-card ` +
+                            (selectedMeritBadges.has(badge.merit_badge.id)
+                              ? "bg-[rgba(0,150,0,0.05)]"
+                              : "bg-tertiary")
+                          }
                         >
-                          <label
-                            style={{
-                              display: "flex",
-                              alignItems: "start",
-                              gap: "10px",
-                              cursor: "pointer",
-                            }}
-                          >
+                          <label className="flex items-start gap-2 cursor-pointer">
                             <input
                               type="checkbox"
                               checked={selectedMeritBadges.has(
                                 badge.merit_badge.id
                               )}
                               onChange={() => handleToggleMeritBadge(badge)}
-                              style={{ marginTop: "4px" }}
+                              className="mt-1"
                             />
-                            <div style={{ flex: 1 }}>
-                              <div
-                                style={{
-                                  fontWeight: "bold",
-                                  marginBottom: "5px",
-                                }}
-                              >
+                            <div className="flex-1">
+                              <div className="font-bold mb-1">
                                 {badge.merit_badge.name}
-                                <span
-                                  style={{
-                                    marginLeft: "10px",
-                                    fontSize: "12px",
-                                    padding: "2px 8px",
-                                    backgroundColor: "rgba(0, 150, 0, 0.2)",
-                                    borderRadius: "12px",
-                                  }}
-                                >
+                                <span className="ml-2 text-xs py-0.5 px-2 rounded-xl bg-[rgba(0,150,0,0.2)]">
                                   {(badge.match_score * 100).toFixed(0)}% match
                                 </span>
                               </div>
-                              <div
-                                style={{
-                                  fontSize: "14px",
-                                  color: "var(--text-secondary)",
-                                }}
-                              >
+                              <div className="text-sm text-secondary">
                                 {badge.merit_badge.description}
                               </div>
                             </div>
                           </label>
                           {selectedMeritBadges.has(badge.merit_badge.id) && (
-                            <div
-                              style={{ marginTop: "10px", marginLeft: "30px" }}
-                            >
+                            <div className="mt-2 ml-7">
                               <input
                                 type="text"
                                 placeholder="Add specific details or instructions (optional)..."
@@ -821,15 +580,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                                     e.target.value
                                   )
                                 }
-                                style={{
-                                  width: "100%",
-                                  padding: "8px",
-                                  fontSize: "14px",
-                                  border: "1px solid var(--input-border)",
-                                  borderRadius: "4px",
-                                  backgroundColor: "var(--input-bg)",
-                                  color: "var(--input-text)",
-                                }}
+                                className="form-input"
                               />
                             </div>
                           )}
@@ -845,27 +596,15 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
 
       case 3:
         return (
-          <div style={{ marginTop: "20px" }}>
-            <p style={{ color: "var(--text-secondary)", marginBottom: "20px" }}>
+          <div className="mt-5">
+            <p className="text-secondary mb-5">
               Configure additional details for the outing.
             </p>
 
-            <div style={{ display: "grid", gap: "20px" }}>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "15px",
-                }}
-              >
+            <div className="grid gap-5">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "5px",
-                      fontWeight: "bold",
-                    }}
-                  >
+                  <label className="block mb-1 font-semibold text-primary text-sm">
                     Capacity
                   </label>
                   <input
@@ -875,120 +614,59 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       setCapacity(parseInt(e.target.value) || 30)
                     }
                     min="1"
-                    style={{
-                      width: "100%",
-                      padding: "8px",
-                      fontSize: "14px",
-                      border: "1px solid var(--input-border)",
-                      borderRadius: "4px",
-                      backgroundColor: "var(--input-bg)",
-                      color: "var(--input-text)",
-                    }}
+                    className="form-input"
                   />
                 </div>
                 <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "5px",
-                      fontWeight: "bold",
-                    }}
-                  >
+                  <label className="block mb-1 font-semibold text-primary text-sm">
                     Cost (optional)
                   </label>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <span style={{ marginRight: "8px" }}>$</span>
+                  <div className="flex items-center">
+                    <span className="mr-2">$</span>
                     <input
                       type="number"
                       value={cost}
                       onChange={(e) => setCost(e.target.value)}
                       placeholder="0.00"
                       step="0.01"
-                      style={{
-                        flex: 1,
-                        padding: "8px",
-                        fontSize: "14px",
-                        border: "1px solid var(--input-border)",
-                        borderRadius: "4px",
-                        backgroundColor: "var(--input-bg)",
-                        color: "var(--input-text)",
-                      }}
+                      className="form-input flex-1"
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "5px",
-                    fontWeight: "bold",
-                  }}
-                >
+                <label className="block mb-1 font-semibold text-primary text-sm">
                   Gear List
                 </label>
-                <div
-                  style={{ display: "flex", gap: "10px", marginBottom: "10px" }}
-                >
+                <div className="flex gap-2 mb-2">
                   <input
                     type="text"
                     value={gearInput}
                     onChange={(e) => setGearInput(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleAddGear()}
                     placeholder="Add gear item..."
-                    style={{
-                      flex: 1,
-                      padding: "8px",
-                      fontSize: "14px",
-                      border: "1px solid var(--input-border)",
-                      borderRadius: "4px",
-                      backgroundColor: "var(--input-bg)",
-                      color: "var(--input-text)",
-                    }}
+                    className="form-input flex-1"
                   />
                   <button
                     type="button"
                     onClick={handleAddGear}
-                    style={{
-                      padding: "8px 16px",
-                      backgroundColor: "var(--bsa-olive)",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                    }}
+                    className="px-4 py-2 bg-bsa-olive text-white rounded cursor-pointer hover:opacity-90"
                   >
                     Add
                   </button>
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                <div className="flex flex-wrap gap-2">
                   {gearList.map((item, index) => (
                     <span
                       key={index}
-                      style={{
-                        padding: "4px 12px",
-                        backgroundColor: "var(--bg-tertiary)",
-                        border: "1px solid var(--card-border)",
-                        borderRadius: "16px",
-                        fontSize: "14px",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "8px",
-                      }}
+                      className="inline-flex items-center gap-2 py-1 px-3 bg-tertiary border border-card rounded-2xl text-sm"
                     >
                       {item}
                       <button
                         type="button"
                         onClick={() => handleRemoveGear(index)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          padding: "0",
-                          color: "var(--text-secondary)",
-                          fontSize: "16px",
-                        }}
+                        className="p-0 bg-transparent border-0 cursor-pointer text-secondary text-base hover:text-primary"
                       >
                         ×
                       </button>
@@ -1002,20 +680,14 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
 
       case 4:
         return (
-          <div style={{ marginTop: "20px" }}>
-            <p style={{ color: "var(--text-secondary)", marginBottom: "20px" }}>
+          <div className="mt-5">
+            <p className="text-secondary mb-5">
               Review your outing details before creating.
             </p>
 
-            <div style={{ display: "grid", gap: "20px" }}>
-              <div
-                style={{
-                  padding: "15px",
-                  backgroundColor: "var(--bg-tertiary)",
-                  borderRadius: "8px",
-                }}
-              >
-                <h3 style={{ marginTop: 0 }}>Basic Information</h3>
+            <div className="grid gap-5">
+              <div className="p-4 bg-tertiary rounded-lg">
+                <h3 className="mt-0">Basic Information</h3>
                 <p>
                   <strong>Name:</strong> {name}
                 </p>
@@ -1059,15 +731,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               </div>
 
               {selectedRequirements.size > 0 && (
-                <div
-                  style={{
-                    padding: "15px",
-                    backgroundColor: "rgba(var(--bsa-olive-rgb), 0.05)",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(var(--bsa-olive-rgb), 0.2)",
-                  }}
-                >
-                  <h3 style={{ marginTop: 0 }}>
+                <div className="p-4 rounded-lg border border-[rgba(var(--bsa-olive-rgb),0.2)] bg-[rgba(var(--bsa-olive-rgb),0.05)]">
+                  <h3 className="mt-0">
                     🏆 Rank Requirements ({selectedRequirements.size})
                   </h3>
                   {Array.from(selectedRequirements.entries()).map(
@@ -1076,19 +741,13 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                         (r) => r.requirement.id === reqId
                       );
                       return (
-                        <div key={reqId} style={{ marginBottom: "10px" }}>
-                          <div style={{ fontWeight: "bold" }}>
+                        <div key={reqId} className="mb-2">
+                          <div className="font-bold">
                             ✓ {req?.requirement.rank} -{" "}
                             {req?.requirement.category}
                           </div>
                           {notes && (
-                            <div
-                              style={{
-                                fontSize: "14px",
-                                color: "var(--text-secondary)",
-                                marginLeft: "20px",
-                              }}
-                            >
+                            <div className="text-sm text-secondary ml-5">
                               {notes}
                             </div>
                           )}
@@ -1100,15 +759,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               )}
 
               {selectedMeritBadges.size > 0 && (
-                <div
-                  style={{
-                    padding: "15px",
-                    backgroundColor: "rgba(0, 150, 0, 0.05)",
-                    borderRadius: "8px",
-                    border: "1px solid rgba(0, 150, 0, 0.2)",
-                  }}
-                >
-                  <h3 style={{ marginTop: 0 }}>
+                <div className="p-4 rounded-lg border border-[rgba(0,150,0,0.2)] bg-[rgba(0,150,0,0.05)]">
+                  <h3 className="mt-0">
                     🎖️ Merit Badges ({selectedMeritBadges.size})
                   </h3>
                   {Array.from(selectedMeritBadges.entries()).map(
@@ -1117,18 +769,12 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                         (b) => b.merit_badge.id === badgeId
                       );
                       return (
-                        <div key={badgeId} style={{ marginBottom: "10px" }}>
-                          <div style={{ fontWeight: "bold" }}>
+                        <div key={badgeId} className="mb-2">
+                          <div className="font-bold">
                             ✓ {badge?.merit_badge.name}
                           </div>
                           {notes && (
-                            <div
-                              style={{
-                                fontSize: "14px",
-                                color: "var(--text-secondary)",
-                                marginLeft: "20px",
-                              }}
-                            >
+                            <div className="text-sm text-secondary ml-5">
                               {notes}
                             </div>
                           )}
@@ -1139,14 +785,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                 </div>
               )}
 
-              <div
-                style={{
-                  padding: "15px",
-                  backgroundColor: "var(--bg-tertiary)",
-                  borderRadius: "8px",
-                }}
-              >
-                <h3 style={{ marginTop: 0 }}>Additional Details</h3>
+              <div className="p-4 bg-tertiary rounded-lg">
+                <h3 className="mt-0">Additional Details</h3>
                 <p>
                   <strong>Capacity:</strong> {capacity} participants
                 </p>
@@ -1160,23 +800,11 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     <p>
                       <strong>Gear List:</strong>
                     </p>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: "8px",
-                        marginTop: "8px",
-                      }}
-                    >
+                    <div className="flex flex-wrap gap-2 mt-2">
                       {gearList.map((item, index) => (
                         <span
                           key={index}
-                          style={{
-                            padding: "4px 12px",
-                            backgroundColor: "var(--bg-secondary)",
-                            borderRadius: "16px",
-                            fontSize: "14px",
-                          }}
+                          className="py-1 px-3 bg-secondary rounded-2xl text-sm"
                         >
                           {item}
                         </span>
@@ -1196,100 +824,43 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
 
   return (
     <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-        padding: "20px",
-      }}
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-5 bg-[var(--bg-overlay)]"
       onClick={handleClose}
     >
       <div
-        style={{
-          backgroundColor: "var(--bg-primary)",
-          borderRadius: "8px",
-          maxWidth: "900px",
-          width: "100%",
-          maxHeight: "90vh",
-          overflow: "auto",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
-        }}
+        className="bg-primary rounded-lg max-w-[900px] w-full max-h-[90vh] overflow-auto shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div
-          style={{
-            padding: "20px",
-            borderBottom: "1px solid var(--card-border)",
-          }}
-        >
-          <h2 style={{ margin: 0, color: "var(--text-primary)" }}>
+        <div className="p-5 border-b border-card">
+          <h2 className="m-0 text-primary text-xl font-bold">
             Create New Outing
           </h2>
-          <p
-            style={{
-              margin: "5px 0 0",
-              color: "var(--text-secondary)",
-              fontSize: "14px",
-            }}
-          >
+          <p className="mt-1 text-secondary text-sm">
             Step {activeStep + 1} of {steps.length}
           </p>
         </div>
 
         {/* Stepper */}
-        <div
-          style={{
-            padding: "20px",
-            borderBottom: "1px solid var(--card-border)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div className="p-5 border-b border-card">
+          <div className="flex justify-between">
             {steps.map((step, index) => (
-              <div
-                key={step}
-                style={{
-                  flex: 1,
-                  textAlign: "center",
-                  position: "relative",
-                }}
-              >
+              <div key={step} className="flex-1 text-center relative">
                 <div
-                  style={{
-                    width: "30px",
-                    height: "30px",
-                    borderRadius: "50%",
-                    backgroundColor:
-                      index <= activeStep
-                        ? "var(--bsa-olive)"
-                        : "var(--bg-tertiary)",
-                    color:
-                      index <= activeStep ? "white" : "var(--text-secondary)",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: "bold",
-                    fontSize: "14px",
-                  }}
+                  className={
+                    `w-8 h-8 rounded-full inline-flex items-center justify-center text-sm font-bold ` +
+                    (index <= activeStep
+                      ? "bg-bsa-olive text-white"
+                      : "bg-tertiary text-secondary")
+                  }
                 >
                   {index < activeStep ? "✓" : index + 1}
                 </div>
                 <div
-                  style={{
-                    fontSize: "12px",
-                    marginTop: "5px",
-                    color:
-                      index <= activeStep
-                        ? "var(--text-primary)"
-                        : "var(--text-secondary)",
-                  }}
+                  className={
+                    `mt-1 text-xs ` +
+                    (index <= activeStep ? "text-primary" : "text-secondary")
+                  }
                 >
                   {step}
                 </div>
@@ -1299,98 +870,45 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
         </div>
 
         {/* Content */}
-        <div style={{ padding: "20px", minHeight: "300px" }}>
+        <div className="p-5 min-h-[300px]">
           {error && (
-            <div
-              style={{
-                padding: "15px",
-                backgroundColor: "rgba(244, 67, 54, 0.1)",
-                border: "1px solid rgba(244, 67, 54, 0.3)",
-                borderRadius: "4px",
-                marginBottom: "20px",
-                color: "var(--text-primary)",
-              }}
-            >
+            <div className="relative mb-5 rounded border border-error bg-[var(--alert-error-bg)] p-4 text-primary">
               {error}
               <button
                 onClick={() => setError(null)}
-                style={{
-                  float: "right",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "18px",
-                  color: "var(--text-secondary)",
-                }}
+                className="absolute top-2 right-3 text-secondary hover:text-primary text-lg leading-none"
               >
                 ×
               </button>
             </div>
           )}
-
           {renderStepContent()}
         </div>
 
         {/* Footer */}
-        <div
-          style={{
-            padding: "20px",
-            borderTop: "1px solid var(--card-border)",
-            display: "flex",
-            justifyContent: "space-between",
-          }}
-        >
+        <div className="p-5 border-t border-card flex justify-between">
           <button
             type="button"
             onClick={handleClose}
             disabled={loading}
-            style={{
-              padding: "10px 20px",
-              backgroundColor: "transparent",
-              color: "var(--text-primary)",
-              border: "1px solid var(--card-border)",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontSize: "14px",
-            }}
+            className="px-5 py-2 border border-card rounded text-primary text-sm font-medium hover:bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>
-
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div className="flex gap-2">
             <button
               type="button"
               onClick={handleBack}
               disabled={activeStep === 0 || loading}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "transparent",
-                color: "var(--text-primary)",
-                border: "1px solid var(--card-border)",
-                borderRadius: "4px",
-                cursor: activeStep === 0 || loading ? "not-allowed" : "pointer",
-                fontSize: "14px",
-                opacity: activeStep === 0 || loading ? 0.5 : 1,
-              }}
+              className="px-5 py-2 border border-card rounded text-primary text-sm font-medium hover:bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ← Back
             </button>
-
             <button
               type="button"
               onClick={handleNext}
               disabled={!isStepValid() || loading}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: "var(--bsa-olive)",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: !isStepValid() || loading ? "not-allowed" : "pointer",
-                fontSize: "14px",
-                fontWeight: "bold",
-                opacity: !isStepValid() || loading ? 0.5 : 1,
-              }}
+              className="px-5 py-2 rounded text-light text-sm font-bold bg-bsa-olive disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading
                 ? "⏳"
