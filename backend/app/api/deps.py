@@ -20,9 +20,14 @@ async def get_current_user(
     """
     token = credentials.credentials
     
+    print(f"🔐 get_current_user called")
+    print(f"   Token (first 30 chars): {token[:30]}...")
+    
     try:
         clerk = get_clerk_client()
+        print(f"   Clerk client initialized")
         token_data = await clerk.verify_token(token)
+        print(f"   Token verified successfully")
         clerk_user_id = token_data["user_id"]
         
         # Get user info from Clerk

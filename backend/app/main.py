@@ -68,6 +68,24 @@ app.add_middleware(
 )
 
 
+# Middleware to log incoming requests for debugging
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log incoming requests with headers for debugging"""
+    logger.info(f"📨 Incoming request: {request.method} {request.url.path}")
+    logger.info(f"   Headers: {dict(request.headers)}")
+    
+    # Check for Authorization header
+    auth_header = request.headers.get("authorization")
+    if auth_header:
+        logger.info(f"   🔑 Authorization header present: {auth_header[:20]}...")
+    else:
+        logger.info(f"   ⚠️  No Authorization header found")
+    
+    response = await call_next(request)
+    return response
+
+
 # Global exception handlers to ensure CORS headers are always included
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request: Request, exc: StarletteHTTPException):
