@@ -88,7 +88,7 @@ const CheckInPage: React.FC = () => {
         }
     };
 
-                // Removed setUsingOfflineCache(false); as it is not defined or used
+    // Removed setUsingOfflineCache(false); as it is not defined or used
     const handleUndoCheckIn = async (participantId: string) => {
         if (!outingId) return;
 
@@ -148,7 +148,7 @@ const CheckInPage: React.FC = () => {
             if (a.member_type !== b.member_type) {
                 return a.member_type.localeCompare(b.member_type);
             }
-        // Removed unused offline/cached warning for usingOfflineCache
+            // Removed unused offline/cached warning for usingOfflineCache
 
             // 2. Last Name
             const getNameParts = (name: string) => (name || '').trim().split(/\s+/);
@@ -302,7 +302,7 @@ const CheckInPage: React.FC = () => {
                         color: 'var(--btn-secondary-text)'
                     }}
                 >
-                    📥 Export CSV
+                    <span aria-hidden="true">📥</span> Export CSV
                 </button>
             </div>
 
@@ -311,6 +311,7 @@ const CheckInPage: React.FC = () => {
                 <input
                     type="text"
                     placeholder="Search by name, family, patrol, or troop..."
+                    aria-label="Search participants"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="flex-1 px-4 py-2 rounded-lg"
@@ -324,6 +325,7 @@ const CheckInPage: React.FC = () => {
                 <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value as any)}
+                    aria-label="Filter participants"
                     className="px-4 py-2 rounded-lg"
                     style={{
                         backgroundColor: 'var(--input-bg)',
@@ -361,7 +363,16 @@ const CheckInPage: React.FC = () => {
                                     <div
                                         key={participant.id}
                                         onClick={() => participant.is_checked_in ? handleUndoCheckIn(participant.id) : handleCheckIn([participant.id])}
-                                        className="p-4 flex items-center gap-4 hover:bg-opacity-50 transition-colors cursor-pointer"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                participant.is_checked_in ? handleUndoCheckIn(participant.id) : handleCheckIn([participant.id]);
+                                            }
+                                        }}
+                                        role="checkbox"
+                                        aria-checked={participant.is_checked_in}
+                                        tabIndex={0}
+                                        className="p-4 flex items-center gap-4 hover:bg-opacity-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                         style={{
                                             backgroundColor: participant.is_checked_in
                                                 ? 'var(--alert-success-bg)'
@@ -372,6 +383,8 @@ const CheckInPage: React.FC = () => {
                                             type="checkbox"
                                             checked={participant.is_checked_in}
                                             readOnly
+                                            tabIndex={-1}
+                                            aria-hidden="true"
                                             className="cursor-pointer"
                                             style={{ width: '1.5rem', height: '1.5rem' }}
                                         />

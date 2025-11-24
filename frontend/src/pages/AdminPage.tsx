@@ -31,11 +31,11 @@ const AdminPage: React.FC = () => {
                 </div>
 
                 {/* Large Colorful Button Navigation */}
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8 mb-8">
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4 md:gap-8 mb-8">
                     <button
                         onClick={() => setActiveTab('outings')}
                         className={`
-                            flex flex-col items-center gap-4 p-12 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out group relative overflow-hidden
+                            flex flex-col items-center gap-3 md:gap-4 p-6 md:p-10 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out group relative overflow-hidden
                             ${activeTab === 'outings'
                                 ? 'text-white shadow-xl scale-[1.02]'
                                 : 'glass-card hover:-translate-y-1 hover:shadow-xl'
@@ -50,7 +50,7 @@ const AdminPage: React.FC = () => {
                             backgroundColor: activeTab === 'outings' ? 'white' : 'var(--color-primary)'
                         }}></div>
                         <svg
-                            className="w-16 h-16 transition-transform duration-300 group-hover:scale-110"
+                            className="w-10 h-10 md:w-14 md:h-14 transition-transform duration-300 group-hover:scale-110"
                             style={{ color: activeTab === 'outings' ? 'white' : 'var(--color-primary)' }}
                             fill="none"
                             stroke="currentColor"
@@ -64,12 +64,12 @@ const AdminPage: React.FC = () => {
                             />
                         </svg>
                         <div className="text-center relative z-10">
-                            <h2 className="text-3xl font-bold m-0 font-heading" style={{
+                            <h2 className="text-lg md:text-xl font-bold m-0 font-heading" style={{
                                 color: activeTab === 'outings' ? 'white' : 'var(--text-primary)'
                             }}>
                                 Outing Management
                             </h2>
-                            <p className="text-base mt-2" style={{
+                            <p className="text-sm md:text-base mt-2" style={{
                                 color: activeTab === 'outings' ? 'rgba(255,255,255,0.9)' : 'var(--text-secondary)'
                             }}>
                                 Create, edit, and manage scouting outings
@@ -80,7 +80,7 @@ const AdminPage: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('users')}
                         className={`
-                            flex flex-col items-center gap-4 p-12 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out group relative overflow-hidden
+                            flex flex-col items-center gap-3 md:gap-4 p-6 md:p-10 rounded-2xl cursor-pointer transition-all duration-300 ease-in-out group relative overflow-hidden
                             ${activeTab === 'users'
                                 ? 'text-white shadow-xl scale-[1.02]'
                                 : 'glass-card hover:-translate-y-1 hover:shadow-xl'
@@ -95,7 +95,7 @@ const AdminPage: React.FC = () => {
                             backgroundColor: activeTab === 'users' ? 'white' : 'var(--color-primary)'
                         }}></div>
                         <svg
-                            className="w-16 h-16 transition-transform duration-300 group-hover:scale-110"
+                            className="w-10 h-10 md:w-14 md:h-14 transition-transform duration-300 group-hover:scale-110"
                             style={{ color: activeTab === 'users' ? 'white' : 'var(--color-primary)' }}
                             fill="none"
                             stroke="currentColor"
@@ -109,12 +109,12 @@ const AdminPage: React.FC = () => {
                             />
                         </svg>
                         <div className="text-center relative z-10">
-                            <h2 className="text-3xl font-bold m-0 font-heading" style={{
+                            <h2 className="text-xl md:text-2xl font-bold m-0 font-heading" style={{
                                 color: activeTab === 'users' ? 'white' : 'var(--text-primary)'
                             }}>
                                 User Management
                             </h2>
-                            <p className="text-base mt-2" style={{
+                            <p className="text-sm md:text-base mt-2" style={{
                                 color: activeTab === 'users' ? 'rgba(255,255,255,0.9)' : 'var(--text-secondary)'
                             }}>
                                 Manage user accounts and permissions

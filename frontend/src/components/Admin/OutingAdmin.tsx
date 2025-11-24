@@ -607,6 +607,15 @@ const OutingAdmin: React.FC = () => {
             <div style={{ marginBottom: '40px', border: '1px solid var(--card-border)', borderRadius: '8px', overflow: 'hidden' }}>
                 <div
                     onClick={() => setIsCreateOutingExpanded(!isCreateOutingExpanded)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setIsCreateOutingExpanded(!isCreateOutingExpanded);
+                        }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isCreateOutingExpanded}
                     style={{
                         padding: '20px',
                         cursor: 'pointer',
@@ -622,10 +631,11 @@ const OutingAdmin: React.FC = () => {
                 {isCreateOutingExpanded && (
                     <form onSubmit={handleCreateOuting} style={{ padding: '20px' }}>
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                            <label htmlFor="new-outing-name" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                 Outing Name *
                             </label>
                             <input
+                                id="new-outing-name"
                                 type="text"
                                 name="name"
                                 value={newOuting.name}
@@ -658,10 +668,11 @@ const OutingAdmin: React.FC = () => {
 
                         <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: newOuting.is_overnight ? '2fr 1fr 2fr' : '2fr 1fr 2fr', gap: '15px' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                <label htmlFor="new-outing-date" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                     {newOuting.is_overnight ? 'Start Date *' : 'Outing Date *'}
                                 </label>
                                 <input
+                                    id="new-outing-date"
                                     type="date"
                                     name="outing_date"
                                     value={newOuting.outing_date}
@@ -671,10 +682,11 @@ const OutingAdmin: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                <label htmlFor="new-outing-drop-off-time" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                     Drop-off Time
                                 </label>
                                 <input
+                                    id="new-outing-drop-off-time"
                                     type="time"
                                     name="drop_off_time"
                                     value={newOuting.drop_off_time || ''}
@@ -683,10 +695,11 @@ const OutingAdmin: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                <label htmlFor="new-outing-drop-off-location" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                     Drop-off Location
                                 </label>
                                 <input
+                                    id="new-outing-drop-off-location"
                                     type="text"
                                     name="drop_off_location"
                                     value={newOuting.drop_off_location || ''}
@@ -700,10 +713,11 @@ const OutingAdmin: React.FC = () => {
                         {newOuting.is_overnight && (
                             <div style={{ marginBottom: '15px', display: 'grid', gridTemplateColumns: '2fr 1fr 2fr', gap: '15px' }}>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                    <label htmlFor="new-outing-end-date" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                         End Date *
                                     </label>
                                     <input
+                                        id="new-outing-end-date"
                                         type="date"
                                         name="end_date"
                                         value={newOuting.end_date || ''}
@@ -714,10 +728,11 @@ const OutingAdmin: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                    <label htmlFor="new-outing-pickup-time" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                         Pickup Time
                                     </label>
                                     <input
+                                        id="new-outing-pickup-time"
                                         type="time"
                                         name="pickup_time"
                                         value={newOuting.pickup_time || ''}
@@ -726,10 +741,11 @@ const OutingAdmin: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                    <label htmlFor="new-outing-pickup-location" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                         Pickup Location
                                     </label>
                                     <input
+                                        id="new-outing-pickup-location"
                                         type="text"
                                         name="pickup_location"
                                         value={newOuting.pickup_location || ''}
@@ -742,10 +758,11 @@ const OutingAdmin: React.FC = () => {
                         )}
 
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                            <label htmlFor="new-outing-location" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                 Location *
                             </label>
                             <input
+                                id="new-outing-location"
                                 type="text"
                                 name="location"
                                 value={newOuting.location}
@@ -757,10 +774,11 @@ const OutingAdmin: React.FC = () => {
                         </div>
 
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                            <label htmlFor="new-outing-description" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                 Description
                             </label>
                             <textarea
+                                id="new-outing-description"
                                 name="description"
                                 value={newOuting.description}
                                 onChange={handleInputChange}
@@ -771,10 +789,11 @@ const OutingAdmin: React.FC = () => {
                         </div>
 
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                            <label htmlFor="new-outing-capacity-type" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                 Capacity Type *
                             </label>
                             <select
+                                id="new-outing-capacity-type"
                                 name="capacity_type"
                                 value={newOuting.capacity_type}
                                 onChange={handleInputChange}
@@ -792,10 +811,11 @@ const OutingAdmin: React.FC = () => {
 
                         {newOuting.capacity_type === 'fixed' && (
                             <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                <label htmlFor="new-outing-max-participants" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                     Maximum Capacity *
                                 </label>
                                 <input
+                                    id="new-outing-max-participants"
                                     type="number"
                                     name="max_participants"
                                     value={newOuting.max_participants}
@@ -808,10 +828,11 @@ const OutingAdmin: React.FC = () => {
                         )}
 
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                            <label htmlFor="new-outing-cost" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                 Cost (USD)
                             </label>
                             <input
+                                id="new-outing-cost"
                                 type="number"
                                 name="cost"
                                 value={newOuting.cost ?? ''}
@@ -824,10 +845,11 @@ const OutingAdmin: React.FC = () => {
                         </div>
 
                         <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                            <label htmlFor="new-outing-gear-list" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                 Suggested Gear List
                             </label>
                             <textarea
+                                id="new-outing-gear-list"
                                 name="gear_list"
                                 value={newOuting.gear_list || ''}
                                 onChange={handleInputChange}
@@ -841,10 +863,11 @@ const OutingAdmin: React.FC = () => {
                             <h3 style={{ marginTop: 0, marginBottom: '15px' }}>Outing Lead Contact Information (Optional)</h3>
 
                             <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                <label htmlFor="new-outing-lead-name" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                     Outing Lead Name
                                 </label>
                                 <input
+                                    id="new-outing-lead-name"
                                     type="text"
                                     name="outing_lead_name"
                                     value={newOuting.outing_lead_name || ''}
@@ -855,10 +878,11 @@ const OutingAdmin: React.FC = () => {
                             </div>
 
                             <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                <label htmlFor="new-outing-lead-email" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                     Outing Lead Email
                                 </label>
                                 <input
+                                    id="new-outing-lead-email"
                                     type="email"
                                     name="outing_lead_email"
                                     value={newOuting.outing_lead_email || ''}
@@ -869,10 +893,11 @@ const OutingAdmin: React.FC = () => {
                             </div>
 
                             <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                <label htmlFor="new-outing-lead-phone" style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                     Outing Lead Phone
                                 </label>
                                 <input
+                                    id="new-outing-lead-phone"
                                     type="tel"
                                     name="outing_lead_phone"
                                     value={newOuting.outing_lead_phone || ''}
@@ -1225,10 +1250,20 @@ const OutingAdmin: React.FC = () => {
                                     <>
                                         <div
                                             onClick={() => handleOutingClick(outing.id)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    handleOutingClick(outing.id);
+                                                }
+                                            }}
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-expanded={expandedOutingId === outing.id}
                                             style={{
                                                 padding: '20px',
                                                 backgroundColor: expandedOutingId === outing.id ? 'var(--bg-primary)' : 'var(--bg-tertiary)',
-                                                transition: 'background-color 0.2s'
+                                                transition: 'background-color 0.2s',
+                                                cursor: 'pointer'
                                             }}
                                         >
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
@@ -1251,7 +1286,7 @@ const OutingAdmin: React.FC = () => {
                                                     </div>
                                                     <p style={{ margin: '5px 0' }}><strong>Location:</strong> {outing.location}</p>
                                                     {outing.description && <p style={{ margin: '5px 0' }}><strong>Description:</strong> {outing.description}</p>}
-                                                    
+
                                                     {/* Capacity Type and Status */}
                                                     <p style={{ margin: '10px 0 5px 0' }}>
                                                         <strong>Capacity Type:</strong> {outing.capacity_type === 'fixed' ? 'Fixed' : 'Vehicle-Based'}
@@ -1292,29 +1327,42 @@ const OutingAdmin: React.FC = () => {
                                                             )}
                                                         </>
                                                     )}
-                                                    
+
                                                     {/* Cost */}
                                                     {outing.cost && (
                                                         <p style={{ margin: '10px 0 5px 0' }}>
                                                             <strong>Cost:</strong> ${typeof outing.cost === 'number' ? outing.cost.toFixed(2) : parseFloat(outing.cost as any).toFixed(2)}
                                                         </p>
                                                     )}
-                                                    
+
                                                     {/* Collapsible Logistics Information */}
                                                     {(outing.drop_off_time || outing.drop_off_location || outing.pickup_time || outing.pickup_location) && (
                                                         <div style={{ margin: '10px 0' }}>
-                                                            <div 
+                                                            <div
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     setCollapsedLogistics(prev => ({
                                                                         ...prev,
-                                                                        [outing.id]: !prev[outing.id]
+                                                                        [outing.id]: prev[outing.id] === false ? true : false
                                                                     }));
                                                                 }}
-                                                                style={{ 
-                                                                    padding: '10px', 
-                                                                    backgroundColor: 'var(--bg-secondary)', 
-                                                                    borderRadius: '4px', 
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        setCollapsedLogistics(prev => ({
+                                                                            ...prev,
+                                                                            [outing.id]: prev[outing.id] === false ? true : false
+                                                                        }));
+                                                                    }
+                                                                }}
+                                                                role="button"
+                                                                tabIndex={0}
+                                                                aria-expanded={collapsedLogistics[outing.id] !== false}
+                                                                style={{
+                                                                    padding: '10px',
+                                                                    backgroundColor: 'var(--bg-secondary)',
+                                                                    borderRadius: '4px',
                                                                     border: '1px solid var(--card-border)',
                                                                     cursor: 'pointer',
                                                                     userSelect: 'none'
@@ -1340,22 +1388,35 @@ const OutingAdmin: React.FC = () => {
                                                             )}
                                                         </div>
                                                     )}
-                                                    
+
                                                     {/* Collapsible Suggested Gear */}
                                                     {outing.gear_list && (
                                                         <div style={{ margin: '10px 0' }}>
-                                                            <div 
+                                                            <div
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     setCollapsedGear(prev => ({
                                                                         ...prev,
-                                                                        [outing.id]: !prev[outing.id]
+                                                                        [outing.id]: prev[outing.id] === false ? true : false
                                                                     }));
                                                                 }}
-                                                                style={{ 
-                                                                    padding: '10px', 
-                                                                    backgroundColor: 'var(--bg-secondary)', 
-                                                                    borderRadius: '4px', 
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        setCollapsedGear(prev => ({
+                                                                            ...prev,
+                                                                            [outing.id]: prev[outing.id] === false ? true : false
+                                                                        }));
+                                                                    }
+                                                                }}
+                                                                role="button"
+                                                                tabIndex={0}
+                                                                aria-expanded={collapsedGear[outing.id] !== false}
+                                                                style={{
+                                                                    padding: '10px',
+                                                                    backgroundColor: 'var(--bg-secondary)',
+                                                                    borderRadius: '4px',
                                                                     border: '1px solid var(--card-border)',
                                                                     cursor: 'pointer',
                                                                     userSelect: 'none'

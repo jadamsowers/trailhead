@@ -77,7 +77,7 @@ const SignupWizard: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
     const [warnings, setWarnings] = useState<string[]>([]);
-    
+
     // Collapsible sections state
     const [collapsedLogistics, setCollapsedLogistics] = useState<{ [outingId: string]: boolean }>({});
     const [collapsedGear, setCollapsedGear] = useState<{ [outingId: string]: boolean }>({});
@@ -497,7 +497,16 @@ const SignupWizard: React.FC = () => {
                                     >
                                         <div
                                             onClick={() => setExpandedSignupId(isExpanded ? '' : signup.id)}
-                                            className="p-5 cursor-pointer transition-colors"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    setExpandedSignupId(isExpanded ? '' : signup.id);
+                                                }
+                                            }}
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-expanded={isExpanded}
+                                            className="p-5 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
                                             style={{
                                                 backgroundColor: isExpanded ? 'var(--card-success-bg)' : 'transparent'
                                             }}
@@ -692,8 +701,20 @@ const SignupWizard: React.FC = () => {
                                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                                 }, 300);
                                             }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    setSelectedOuting(outing);
+                                                    setTimeout(() => {
+                                                        setCurrentStep('contact-info');
+                                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                    }, 300);
+                                                }
+                                            }}
+                                            role="button"
+                                            tabIndex={0}
                                             className={`
-glass-card p-8 rounded-lg cursor-pointer transition-all duration-200 relative group
+glass-card p-8 rounded-lg cursor-pointer transition-all duration-200 relative group focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
 ${selectedOuting?.id === outing.id
                                                     ? 'border-2 border-sa-blue bg-blue-50/80 shadow-lg scale-105'
                                                     : 'border border-gray-200 bg-white hover:bg-gray-50 hover:shadow-md hover:-translate-y-0.5'}                                                }
@@ -721,13 +742,13 @@ ${selectedOuting?.id === outing.id
                                                             </div>
                                                         )}
                                                     </div>
-                                                    
+
                                                     {/* Second row: Icon and Title */}
                                                     <div className="flex items-baseline gap-3 mb-2">
                                                         <OutingIconDisplay icon={outing.icon} />
                                                         <h3 className="text-xl font-bold font-heading text-sa-dark-blue m-0">{outing.name}</h3>
                                                     </div>
-                                                    
+
                                                     {/* Warnings right below title */}
                                                     {outing.needs_two_deep_leadership && (
                                                         <div className="mb-3 p-3 rounded-md text-sm font-bold border flex items-center gap-2"
@@ -759,10 +780,10 @@ ${selectedOuting?.id === outing.id
                                                             <span>⚠️</span> Need more drivers! Current capacity: {outing.total_vehicle_capacity} seats for {outing.signup_count} participants
                                                         </div>
                                                     )}
-                                                    
+
                                                     <p className="my-1 text-gray-700"><strong>Location:</strong> {outing.location}</p>
                                                     {outing.description && <p className="mt-2 text-gray-600">{outing.description}</p>}
-                                                    
+
                                                     {/* Collapsible Logistics */}
                                                     {(outing.drop_off_time || outing.drop_off_location || outing.pickup_time || outing.pickup_location) && (
                                                         <div className="mt-3">
@@ -771,10 +792,23 @@ ${selectedOuting?.id === outing.id
                                                                     e.stopPropagation();
                                                                     setCollapsedLogistics(prev => ({
                                                                         ...prev,
-                                                                        [outing.id]: !prev[outing.id]
+                                                                        [outing.id]: prev[outing.id] === false ? true : false
                                                                     }));
                                                                 }}
-                                                                className="p-2 rounded cursor-pointer select-none"
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        setCollapsedLogistics(prev => ({
+                                                                            ...prev,
+                                                                            [outing.id]: prev[outing.id] === false ? true : false
+                                                                        }));
+                                                                    }
+                                                                }}
+                                                                role="button"
+                                                                tabIndex={0}
+                                                                aria-expanded={collapsedLogistics[outing.id] === false}
+                                                                className="p-2 rounded cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                                                 style={{
                                                                     backgroundColor: 'var(--bg-secondary)',
                                                                     border: '1px solid var(--card-border)'
@@ -804,7 +838,7 @@ ${selectedOuting?.id === outing.id
                                                             )}
                                                         </div>
                                                     )}
-                                                    
+
                                                     {/* Collapsible Gear List */}
                                                     {outing.gear_list && (
                                                         <div className="mt-3">
@@ -813,10 +847,23 @@ ${selectedOuting?.id === outing.id
                                                                     e.stopPropagation();
                                                                     setCollapsedGear(prev => ({
                                                                         ...prev,
-                                                                        [outing.id]: !prev[outing.id]
+                                                                        [outing.id]: prev[outing.id] === false ? true : false
                                                                     }));
                                                                 }}
-                                                                className="p-2 rounded cursor-pointer select-none"
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter' || e.key === ' ') {
+                                                                        e.preventDefault();
+                                                                        e.stopPropagation();
+                                                                        setCollapsedGear(prev => ({
+                                                                            ...prev,
+                                                                            [outing.id]: prev[outing.id] === false ? true : false
+                                                                        }));
+                                                                    }
+                                                                }}
+                                                                role="button"
+                                                                tabIndex={0}
+                                                                aria-expanded={collapsedGear[outing.id] === false}
+                                                                className="p-2 rounded cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                                                 style={{
                                                                     backgroundColor: 'var(--bg-secondary)',
                                                                     border: '1px solid var(--card-border)'
@@ -882,8 +929,9 @@ ${selectedOuting?.id === outing.id
                                 </p>
                                 <div className="grid gap-5 p-8 rounded-lg border shadow-sm glass-card">
                                     <div>
-                                        <label className="block mb-1 font-bold text-gray-700">Email *</label>
+                                        <label htmlFor="contact-email" className="block mb-1 font-bold text-gray-700">Email *</label>
                                         <input
+                                            id="contact-email"
                                             type="email"
                                             value={contactInfo.email}
                                             onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
@@ -891,8 +939,9 @@ ${selectedOuting?.id === outing.id
                                         />
                                     </div>
                                     <div>
-                                        <label className="block mb-1 font-bold text-gray-700">Phone *</label>
+                                        <label htmlFor="contact-phone" className="block mb-1 font-bold text-gray-700">Phone *</label>
                                         <input
+                                            id="contact-phone"
                                             type="tel"
                                             value={contactInfo.phone}
                                             onChange={(e) => setContactInfo({ ...contactInfo, phone: formatPhoneNumber(e.target.value) })}
@@ -904,8 +953,9 @@ ${selectedOuting?.id === outing.id
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="block mb-1 font-bold text-gray-700">Emergency Contact Name *</label>
+                                        <label htmlFor="emergency-name" className="block mb-1 font-bold text-gray-700">Emergency Contact Name *</label>
                                         <input
+                                            id="emergency-name"
                                             type="text"
                                             value={contactInfo.emergency_contact_name}
                                             onChange={(e) => setContactInfo({ ...contactInfo, emergency_contact_name: e.target.value })}
@@ -913,8 +963,9 @@ ${selectedOuting?.id === outing.id
                                         />
                                     </div>
                                     <div>
-                                        <label className="block mb-1 font-bold text-gray-700">Emergency Contact Phone *</label>
+                                        <label htmlFor="emergency-phone" className="block mb-1 font-bold text-gray-700">Emergency Contact Phone *</label>
                                         <input
+                                            id="emergency-phone"
                                             type="tel"
                                             value={contactInfo.emergency_contact_phone}
                                             onChange={(e) => setContactInfo({ ...contactInfo, emergency_contact_phone: formatPhoneNumber(e.target.value) })}
@@ -951,7 +1002,19 @@ ${selectedOuting?.id === outing.id
                                                     onClick={() => canSelect && setSelectedAdultIds(prev =>
                                                         prev.includes(member.id) ? prev.filter(id => id !== member.id) : [...prev, member.id]
                                                     )}
-                                                    className="p-5 rounded-lg border cursor-pointer relative transition-all duration-200"
+                                                    onKeyDown={(e) => {
+                                                        if ((e.key === 'Enter' || e.key === ' ') && canSelect) {
+                                                            e.preventDefault();
+                                                            setSelectedAdultIds(prev =>
+                                                                prev.includes(member.id) ? prev.filter(id => id !== member.id) : [...prev, member.id]
+                                                            );
+                                                        }
+                                                    }}
+                                                    role="checkbox"
+                                                    aria-checked={isSelected}
+                                                    aria-disabled={!canSelect}
+                                                    tabIndex={canSelect ? 0 : -1}
+                                                    className="p-5 rounded-lg border cursor-pointer relative transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                                     style={{
                                                         borderWidth: isSelected ? '3px' : isExpired ? '2px' : '1px',
                                                         borderColor: isSelected ? 'var(--border-success)' : isExpired ? 'var(--border-error)' : 'var(--border-light)',
@@ -1044,7 +1107,19 @@ ${selectedOuting?.id === outing.id
                                                     onClick={() => canSelect && setSelectedScoutIds(prev =>
                                                         prev.includes(member.id) ? prev.filter(id => id !== member.id) : [...prev, member.id]
                                                     )}
-                                                    className="p-5 rounded-lg border cursor-pointer relative transition-all duration-200"
+                                                    onKeyDown={(e) => {
+                                                        if ((e.key === 'Enter' || e.key === ' ') && canSelect) {
+                                                            e.preventDefault();
+                                                            setSelectedScoutIds(prev =>
+                                                                prev.includes(member.id) ? prev.filter(id => id !== member.id) : [...prev, member.id]
+                                                            );
+                                                        }
+                                                    }}
+                                                    role="checkbox"
+                                                    aria-checked={isSelected}
+                                                    aria-disabled={!canSelect}
+                                                    tabIndex={canSelect ? 0 : -1}
+                                                    className="p-5 rounded-lg border cursor-pointer relative transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                                     style={{
                                                         borderWidth: isSelected ? '3px' : '1px',
                                                         borderColor: isSelected ? 'var(--border-success)' : 'var(--border-light)',

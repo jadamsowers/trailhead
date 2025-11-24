@@ -222,13 +222,13 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                         {member.member_type === 'scout' ? '🌱 Scout' : '🌲 Adult'}
                     </span>
                 </div>
-                
+
                 {/* Actions Dropdown - All Widths */}
                 <div className="relative" ref={dropdownRef}>
                     <button
                         onClick={() => setShowActions(!showActions)}
                         className="p-2 rounded-md transition-colors border"
-                        style={{ 
+                        style={{
                             color: 'var(--text-primary)',
                             backgroundColor: 'var(--card-bg-alpha)',
                             borderColor: 'var(--border-light)'
@@ -236,12 +236,15 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--card-bg-alpha)'}
                         title="Actions"
+                        aria-label={`Actions for ${member.name}`}
+                        aria-haspopup="true"
+                        aria-expanded={showActions}
                     >
                         ⋮
                     </button>
-                    
+
                     {showActions && (
-                        <div 
+                        <div
                             className="absolute right-0 top-full mt-1 bg-[var(--card-bg)] border border-[var(--border-light)] rounded-md shadow-lg z-10 min-w-[160px]"
                             style={{ backgroundColor: 'var(--card-bg)' }}
                         >
@@ -480,16 +483,24 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
     };
 
     return (
-        <div 
+        <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center p-5 z-[1000]"
             onClick={onClose}
+            onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                    onClose();
+                }
+            }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
         >
-            <div 
+            <div
                 className="bg-[var(--card-bg)] rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="p-5">
-                    <h3 className="text-3xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
+                    <h3 id="modal-title" className="text-3xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
                         {member ? 'Edit Family Member' : 'Add Family Member'}
                     </h3>
 
@@ -501,10 +512,11 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                         <div>
-                            <label className="block mb-2 font-semibold text-primary text-[15px]">
+                            <label htmlFor="member-name" className="block mb-2 font-semibold text-primary text-[15px]">
                                 Name *
                             </label>
                             <input
+                                id="member-name"
                                 type="text"
                                 required
                                 value={formData.name}
@@ -515,10 +527,11 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                         </div>
 
                         <div>
-                            <label className="block mb-2 font-semibold text-primary text-[15px]">
+                            <label htmlFor="member-type" className="block mb-2 font-semibold text-primary text-[15px]">
                                 Member Type *
                             </label>
                             <select
+                                id="member-type"
                                 required
                                 value={formData.member_type}
                                 onChange={(e) => setFormData({ ...formData, member_type: e.target.value as 'scout' | 'adult' })}
@@ -530,10 +543,11 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                         </div>
 
                         <div>
-                            <label className="block mb-2 font-semibold text-primary text-[15px]">
+                            <label htmlFor="member-dob" className="block mb-2 font-semibold text-primary text-[15px]">
                                 Date of Birth {formData.member_type === 'scout' && '*'}
                             </label>
                             <input
+                                id="member-dob"
                                 type="date"
                                 required={formData.member_type === 'scout'}
                                 value={formData.date_of_birth}
@@ -543,10 +557,11 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                         </div>
 
                         <div>
-                            <label className="block mb-2 font-semibold text-primary text-[15px]">
+                            <label htmlFor="member-troop" className="block mb-2 font-semibold text-primary text-[15px]">
                                 Troop Number
                             </label>
                             <input
+                                id="member-troop"
                                 type="text"
                                 value={formData.troop_number}
                                 onChange={(e) => setFormData({ ...formData, troop_number: e.target.value })}
@@ -557,10 +572,11 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
 
                         {formData.member_type === 'scout' && (
                             <div>
-                                <label className="block mb-2 font-semibold text-primary text-[15px]">
+                                <label htmlFor="member-patrol" className="block mb-2 font-semibold text-primary text-[15px]">
                                     Patrol Name
                                 </label>
                                 <input
+                                    id="member-patrol"
                                     type="text"
                                     value={formData.patrol_name}
                                     onChange={(e) => setFormData({ ...formData, patrol_name: e.target.value })}
@@ -572,7 +588,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
 
                         {formData.member_type === 'adult' && (
                             <>
-                                <label className="flex items-center gap-4 cursor-pointer">
+                                <label htmlFor="youth_protection" className="flex items-center gap-4 cursor-pointer">
                                     <input
                                         type="checkbox"
                                         id="youth_protection"
@@ -587,10 +603,11 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
 
                                 {formData.has_youth_protection && (
                                     <div>
-                                        <label className="block mb-2 font-semibold text-primary text-[15px]">
+                                        <label htmlFor="yp-expiration" className="block mb-2 font-semibold text-primary text-[15px]">
                                             Youth Protection Certificate Expiration Date *
                                         </label>
                                         <input
+                                            id="yp-expiration"
                                             type="date"
                                             required={formData.has_youth_protection}
                                             value={formData.youth_protection_expiration}
@@ -604,10 +621,11 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 )}
 
                                 <div>
-                                    <label className="block mb-2 font-semibold text-primary text-[15px]">
+                                    <label htmlFor="vehicle-capacity" className="block mb-2 font-semibold text-primary text-[15px]">
                                         Vehicle Capacity (passengers)
                                     </label>
                                     <input
+                                        id="vehicle-capacity"
                                         type="number"
                                         min="0"
                                         value={formData.vehicle_capacity}
@@ -620,10 +638,11 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                         )}
 
                         <div>
-                            <label className="block mb-2 font-semibold text-primary text-[15px]">
+                            <label htmlFor="medical-notes" className="block mb-2 font-semibold text-primary text-[15px]">
                                 Medical Notes
                             </label>
                             <textarea
+                                id="medical-notes"
                                 value={formData.medical_notes}
                                 onChange={(e) => setFormData({ ...formData, medical_notes: e.target.value })}
                                 rows={3}
@@ -666,6 +685,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                             </label>
                             <div className="flex gap-2 mb-3 flex-wrap">
                                 <input
+                                    aria-label="New allergy type"
                                     type="text"
                                     value={newAllergy.allergy}
                                     onChange={(e) => setNewAllergy({ ...newAllergy, allergy: e.target.value })}
@@ -673,6 +693,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                     className="flex-1 min-w-[200px] p-3 border border-[var(--input-border)] rounded-md text-[15px] bg-[var(--input-bg)] text-[var(--input-text)] box-border"
                                 />
                                 <select
+                                    aria-label="Allergy severity"
                                     value={newAllergy.severity}
                                     onChange={(e) => setNewAllergy({ ...newAllergy, severity: e.target.value })}
                                     className="p-3 border border-[var(--input-border)] rounded-md text-[15px] bg-[var(--input-bg)] text-[var(--input-text)] min-w-[150px]"
@@ -705,6 +726,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                             type="button"
                                             onClick={() => removeAllergy(index)}
                                             className="text-[var(--alert-error-text)] bg-none border-none text-xl cursor-pointer px-2 font-bold"
+                                            aria-label={`Remove allergy: ${allergy.allergy}`}
                                         >
                                             ×
                                         </button>
