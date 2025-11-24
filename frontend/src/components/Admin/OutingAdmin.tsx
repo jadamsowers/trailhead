@@ -2,7 +2,7 @@ import { OutingIconDisplay } from '../OutingIconDisplay';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Outing, OutingCreate, SignupResponse, ParticipantResponse } from '../../types';
-import { OutingIconPicker } from '../OutingIconPicker';
+import { OutingIconPicker, suggestIconFromName } from '../OutingIconPicker';
 import { outingAPI, pdfAPI, signupAPI } from '../../services/api';
 import { formatPhoneNumber } from '../../utils/phoneUtils';
 import OutingQRCode from './OutingQRCode';
@@ -87,6 +87,7 @@ const OutingAdmin: React.FC = () => {
     // Collapsible sections state
     const [collapsedLogistics, setCollapsedLogistics] = useState<{ [outingId: string]: boolean }>({});
     const [collapsedGear, setCollapsedGear] = useState<{ [outingId: string]: boolean }>({});
+    const [collapsedActions, setCollapsedActions] = useState<{ [outingId: string]: boolean }>({});
 
     const [newOuting, setNewOuting] = useState<OutingCreate>({
         name: '',
@@ -124,6 +125,13 @@ const OutingAdmin: React.FC = () => {
                 new Date(a.outing_date).getTime() - new Date(b.outing_date).getTime()
             );
             setOutings(sortedData);
+            
+            // Initialize collapsed state for actions (all collapsed by default)
+            const initialCollapsedState: { [outingId: string]: boolean } = {};
+            sortedData.forEach(outing => {
+                initialCollapsedState[outing.id] = true;
+            });
+            setCollapsedActions(initialCollapsedState);
         } catch (err) {
             console.error('Error loading outings:', err);
             const errorMessage = err instanceof Error ? err.message : 'Failed to load outings';
@@ -191,6 +199,15 @@ const OutingAdmin: React.FC = () => {
             setNewOuting({
                 ...newOuting,
                 [name]: formatPhoneNumber(value)
+            });
+        } else if (name === 'name') {
+            // Smart icon suggestion when name changes
+            const suggestedIcon = suggestIconFromName(value);
+            setNewOuting({
+                ...newOuting,
+                [name]: value,
+                // Only auto-suggest if no icon has been manually selected yet
+                icon: newOuting.icon === '' ? suggestedIcon : newOuting.icon
             });
         } else {
             setNewOuting({
@@ -293,6 +310,15 @@ const OutingAdmin: React.FC = () => {
             setEditOuting({
                 ...editOuting,
                 [name]: formatPhoneNumber(value)
+            });
+        } else if (name === 'name') {
+            // Smart icon suggestion when name changes (only if icon field exists and is empty)
+            const suggestedIcon = suggestIconFromName(value);
+            setEditOuting({
+                ...editOuting,
+                [name]: value,
+                // Only auto-suggest if no icon has been set
+                ...(editOuting.icon === '' && { icon: suggestedIcon })
             });
         } else {
             setEditOuting({
@@ -589,7 +615,7 @@ const OutingAdmin: React.FC = () => {
 
     return (
         <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-            <h1 style={{ color: 'var(--text-primary)' }}>Outing Administrator</h1>
+            <h2 style={{ color: 'var(--text-primary)' }}>Outing Administrator</h2>
 
             {error && (
                 <div style={{
@@ -619,14 +645,14 @@ const OutingAdmin: React.FC = () => {
                     style={{
                         padding: '20px',
                         cursor: 'pointer',
-                        backgroundColor: isCreateOutingExpanded ? 'var(--badge-info-bg)' : 'var(--bg-tertiary)',
+                        backgroundColor: isCreateOutingExpanded ? 'rgba(var(--bsa-olive-rgb), 0.1)' : 'var(--bg-tertiary)',
                         transition: 'background-color 0.2s',
                         borderBottom: isCreateOutingExpanded ? '1px solid var(--card-border)' : 'none'
                     }}
                 >
-                    <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>
+                    <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>
                         {isCreateOutingExpanded ? '▼' : '▶'} Create New Outing
-                    </h2>
+                    </h3>
                 </div>
                 {isCreateOutingExpanded && (
                     <form onSubmit={handleCreateOuting} style={{ padding: '20px' }}>
@@ -642,7 +668,7 @@ const OutingAdmin: React.FC = () => {
                                 onChange={handleInputChange}
                                 placeholder="e.g., Summer Camp 2026"
                                 required
-                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                             />
                         </div>
 
@@ -678,7 +704,7 @@ const OutingAdmin: React.FC = () => {
                                     value={newOuting.outing_date}
                                     onChange={handleInputChange}
                                     required
-                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                 />
                             </div>
                             <div>
@@ -691,7 +717,7 @@ const OutingAdmin: React.FC = () => {
                                     name="drop_off_time"
                                     value={newOuting.drop_off_time || ''}
                                     onChange={handleInputChange}
-                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                 />
                             </div>
                             <div>
@@ -705,7 +731,7 @@ const OutingAdmin: React.FC = () => {
                                     value={newOuting.drop_off_location || ''}
                                     onChange={handleInputChange}
                                     placeholder="e.g., Troop Meeting Location"
-                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                 />
                             </div>
                         </div>
@@ -724,7 +750,7 @@ const OutingAdmin: React.FC = () => {
                                         onChange={handleInputChange}
                                         required
                                         min={newOuting.outing_date}
-                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                        style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                     />
                                 </div>
                                 <div>
@@ -737,7 +763,7 @@ const OutingAdmin: React.FC = () => {
                                         name="pickup_time"
                                         value={newOuting.pickup_time || ''}
                                         onChange={handleInputChange}
-                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                        style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                     />
                                 </div>
                                 <div>
@@ -751,7 +777,7 @@ const OutingAdmin: React.FC = () => {
                                         value={newOuting.pickup_location || ''}
                                         onChange={handleInputChange}
                                         placeholder="e.g., Troop Meeting Location"
-                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                        style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                     />
                                 </div>
                             </div>
@@ -769,7 +795,7 @@ const OutingAdmin: React.FC = () => {
                                 onChange={handleInputChange}
                                 placeholder="e.g., Camp Wilderness"
                                 required
-                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                             />
                         </div>
 
@@ -784,7 +810,7 @@ const OutingAdmin: React.FC = () => {
                                 onChange={handleInputChange}
                                 placeholder="Outing details and activities..."
                                 rows={4}
-                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                             />
                         </div>
 
@@ -797,7 +823,7 @@ const OutingAdmin: React.FC = () => {
                                 name="capacity_type"
                                 value={newOuting.capacity_type}
                                 onChange={handleInputChange}
-                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                style={{ width: '100%', padding: '10px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                             >
                                 <option value="fixed">Fixed Capacity</option>
                                 <option value="vehicle">Vehicle-Based Capacity</option>
@@ -822,7 +848,7 @@ const OutingAdmin: React.FC = () => {
                                     onChange={handleInputChange}
                                     min="1"
                                     required
-                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                 />
                             </div>
                         )}
@@ -840,7 +866,7 @@ const OutingAdmin: React.FC = () => {
                                 min="0"
                                 step="0.01"
                                 placeholder="e.g., 25.00"
-                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                             />
                         </div>
 
@@ -855,7 +881,7 @@ const OutingAdmin: React.FC = () => {
                                 onChange={handleInputChange}
                                 placeholder="e.g., Sleeping bag, tent, flashlight, water bottle..."
                                 rows={4}
-                                style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                             />
                         </div>
 
@@ -873,7 +899,7 @@ const OutingAdmin: React.FC = () => {
                                     value={newOuting.outing_lead_name || ''}
                                     onChange={handleInputChange}
                                     placeholder="e.g., John Smith"
-                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                 />
                             </div>
 
@@ -888,7 +914,7 @@ const OutingAdmin: React.FC = () => {
                                     value={newOuting.outing_lead_email || ''}
                                     onChange={handleInputChange}
                                     placeholder="e.g., john.smith@example.com"
-                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                 />
                             </div>
 
@@ -903,7 +929,7 @@ const OutingAdmin: React.FC = () => {
                                     value={newOuting.outing_lead_phone || ''}
                                     onChange={handleInputChange}
                                     placeholder="(555) 123-4567"
-                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                 />
                                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', marginBottom: '0' }}>
                                     Format: (XXX) XXX-XXXX
@@ -933,7 +959,7 @@ const OutingAdmin: React.FC = () => {
             </div>
 
             <div>
-                <h2 style={{ color: 'var(--text-primary)' }}>Current Outings ({outings.length})</h2>
+                <h3 style={{ color: 'var(--text-primary)' }}>Current Outings ({outings.length})</h3>
                 {loading && outings.length === 0 ? (
                     <p style={{ color: 'var(--text-secondary)' }}>Loading outings...</p>
                 ) : outings.length === 0 ? (
@@ -966,7 +992,7 @@ const OutingAdmin: React.FC = () => {
                                                     value={editOuting.name}
                                                     onChange={handleEditInputChange}
                                                     required
-                                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                 />
                                             </div>
 
@@ -1001,7 +1027,7 @@ const OutingAdmin: React.FC = () => {
                                                         value={editOuting.outing_date}
                                                         onChange={handleEditInputChange}
                                                         required
-                                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                        style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                     />
                                                 </div>
                                                 <div>
@@ -1013,7 +1039,7 @@ const OutingAdmin: React.FC = () => {
                                                         name="drop_off_time"
                                                         value={editOuting.drop_off_time || ''}
                                                         onChange={handleEditInputChange}
-                                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                        style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                     />
                                                 </div>
                                                 <div>
@@ -1026,7 +1052,7 @@ const OutingAdmin: React.FC = () => {
                                                         value={editOuting.drop_off_location || ''}
                                                         onChange={handleEditInputChange}
                                                         placeholder="e.g., Troop Meeting Location"
-                                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                        style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                     />
                                                 </div>
                                             </div>
@@ -1044,7 +1070,7 @@ const OutingAdmin: React.FC = () => {
                                                             onChange={handleEditInputChange}
                                                             required
                                                             min={editOuting.outing_date}
-                                                            style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                            style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                         />
                                                     </div>
                                                     <div>
@@ -1056,7 +1082,7 @@ const OutingAdmin: React.FC = () => {
                                                             name="pickup_time"
                                                             value={editOuting.pickup_time || ''}
                                                             onChange={handleEditInputChange}
-                                                            style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                            style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                         />
                                                     </div>
                                                     <div>
@@ -1069,7 +1095,7 @@ const OutingAdmin: React.FC = () => {
                                                             value={editOuting.pickup_location || ''}
                                                             onChange={handleEditInputChange}
                                                             placeholder="e.g., Troop Meeting Location"
-                                                            style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                            style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                         />
                                                     </div>
                                                 </div>
@@ -1085,7 +1111,7 @@ const OutingAdmin: React.FC = () => {
                                                     value={editOuting.location}
                                                     onChange={handleEditInputChange}
                                                     required
-                                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                 />
                                             </div>
 
@@ -1098,7 +1124,7 @@ const OutingAdmin: React.FC = () => {
                                                     value={editOuting.description}
                                                     onChange={handleEditInputChange}
                                                     rows={4}
-                                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                 />
                                             </div>
 
@@ -1110,7 +1136,7 @@ const OutingAdmin: React.FC = () => {
                                                     name="capacity_type"
                                                     value={editOuting.capacity_type}
                                                     onChange={handleEditInputChange}
-                                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                 >
                                                     <option value="fixed">Fixed Capacity</option>
                                                     <option value="vehicle">Vehicle-Based Capacity</option>
@@ -1129,7 +1155,7 @@ const OutingAdmin: React.FC = () => {
                                                         onChange={handleEditInputChange}
                                                         min="1"
                                                         required
-                                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                        style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                     />
                                                 </div>
                                             )}
@@ -1146,7 +1172,7 @@ const OutingAdmin: React.FC = () => {
                                                     min="0"
                                                     step="0.01"
                                                     placeholder="e.g., 25.00"
-                                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                 />
                                             </div>
 
@@ -1160,7 +1186,7 @@ const OutingAdmin: React.FC = () => {
                                                     onChange={handleEditInputChange}
                                                     placeholder="e.g., Sleeping bag, tent, flashlight, water bottle..."
                                                     rows={4}
-                                                    style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                    style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                 />
                                             </div>
 
@@ -1176,7 +1202,7 @@ const OutingAdmin: React.FC = () => {
                                                         name="outing_lead_name"
                                                         value={editOuting.outing_lead_name || ''}
                                                         onChange={handleEditInputChange}
-                                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                        style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                     />
                                                 </div>
 
@@ -1189,7 +1215,7 @@ const OutingAdmin: React.FC = () => {
                                                         name="outing_lead_email"
                                                         value={editOuting.outing_lead_email || ''}
                                                         onChange={handleEditInputChange}
-                                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                        style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                     />
                                                 </div>
 
@@ -1203,7 +1229,7 @@ const OutingAdmin: React.FC = () => {
                                                         value={editOuting.outing_lead_phone || ''}
                                                         onChange={handleEditInputChange}
                                                         placeholder="(555) 123-4567"
-                                                        style={{ width: '100%', padding: '8px', fontSize: '14px' }}
+                                                        style={{ width: '100%', padding: '8px', fontSize: '14px', border: '1px solid var(--input-border)', borderRadius: '4px', backgroundColor: 'var(--input-bg)', color: 'var(--input-text)' }}
                                                     />
                                                     <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px', marginBottom: '0' }}>
                                                         Format: (XXX) XXX-XXXX
@@ -1268,72 +1294,100 @@ const OutingAdmin: React.FC = () => {
                                         >
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                                                 <div style={{ flex: 1 }}>
-                                                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '10px', flexWrap: 'wrap' }}>
-                                                        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                                                        <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontSize: '18px', flex: '1 1 auto', minWidth: 0 }}>
                                                             {expandedOutingId === outing.id ? '▼' : '▶'}
                                                             <OutingIconDisplay icon={outing.icon} />
-                                                            {outing.name}
+                                                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{outing.name}</span>
                                                         </h3>
-                                                        <span style={{
-                                                            fontSize: '18px',
-                                                            fontWeight: 'bold',
-                                                            color: 'var(--text-primary)',
-                                                            whiteSpace: 'nowrap'
-                                                        }}>
-                                                            📅 {formatOutingDate(outing.outing_date)}
-                                                            {outing.is_overnight && outing.end_date && ` - ${formatOutingDate(outing.end_date)}`}
-                                                        </span>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                                                            <span style={{
+                                                                fontSize: '14px',
+                                                                fontWeight: '600',
+                                                                color: 'var(--text-secondary)',
+                                                                whiteSpace: 'nowrap'
+                                                            }}>
+                                                                📅 {formatOutingDate(outing.outing_date)}
+                                                                {outing.is_overnight && outing.end_date && ` - ${formatOutingDate(outing.end_date)}`}
+                                                            </span>
+                                                            <span style={{
+                                                                padding: '4px 10px',
+                                                                borderRadius: '4px',
+                                                                fontSize: '13px',
+                                                                fontWeight: '600',
+                                                                backgroundColor: outing.is_full ? 'var(--alert-error-bg)' : 'var(--alert-success-bg)',
+                                                                color: outing.is_full ? 'var(--alert-error-text)' : 'var(--alert-success-text)',
+                                                                border: `1px solid ${outing.is_full ? 'var(--alert-error-border)' : 'var(--alert-success-border)'}`,
+                                                                whiteSpace: 'nowrap'
+                                                            }}>
+                                                                {outing.signup_count} / {outing.capacity_type === 'fixed' ? outing.max_participants : outing.total_vehicle_capacity}
+                                                                {outing.is_full && ' 🔴'}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <p style={{ margin: '5px 0' }}><strong>Location:</strong> {outing.location}</p>
-                                                    {outing.description && <p style={{ margin: '5px 0' }}><strong>Description:</strong> {outing.description}</p>}
+                                                    {/* Collapsible Details Section */}
+                                                    <div style={{ margin: '10px 0', border: '1px solid var(--card-border)', borderRadius: '8px', overflow: 'hidden' }}>
+                                                        <div
+                                                            onClick={() => {
+                                                                const newState = { ...collapsedLogistics };
+                                                                newState[`details-${outing.id}`] = !newState[`details-${outing.id}`];
+                                                                setCollapsedLogistics(newState);
+                                                            }}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                                    e.preventDefault();
+                                                                    const newState = { ...collapsedLogistics };
+                                                                    newState[`details-${outing.id}`] = !newState[`details-${outing.id}`];
+                                                                    setCollapsedLogistics(newState);
+                                                                }
+                                                            }}
+                                                            role="button"
+                                                            tabIndex={0}
+                                                            aria-expanded={collapsedLogistics[`details-${outing.id}`] === false}
+                                                            style={{
+                                                                padding: '12px 15px',
+                                                                cursor: 'pointer',
+                                                                backgroundColor: 'var(--bg-tertiary)',
+                                                                transition: 'background-color 0.2s',
+                                                                borderBottom: collapsedLogistics[`details-${outing.id}`] === false ? '1px solid var(--card-border)' : 'none',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                gap: '8px'
+                                                            }}
+                                                        >
+                                                            <span style={{ fontSize: '14px' }}>{collapsedLogistics[`details-${outing.id}`] === false ? '▼' : '▶'}</span>
+                                                            <span style={{ fontSize: '16px' }}>📋</span>
+                                                            <strong style={{ fontSize: '15px' }}>Details</strong>
+                                                        </div>
+                                                        {collapsedLogistics[`details-${outing.id}`] === false && (
+                                                            <div style={{ padding: '12px' }}>
+                                                                <p style={{ margin: '5px 0' }}><strong>Location:</strong> {outing.location}</p>
+                                                                {outing.description && <p style={{ margin: '5px 0' }}><strong>Description:</strong> {outing.description}</p>}
 
-                                                    {/* Capacity Type and Status */}
-                                                    <p style={{ margin: '10px 0 5px 0' }}>
-                                                        <strong>Capacity Type:</strong> {outing.capacity_type === 'fixed' ? 'Fixed' : 'Vehicle-Based'}
-                                                    </p>
-                                                    {outing.capacity_type === 'fixed' ? (
-                                                        <p style={{ margin: '5px 0' }}>
-                                                            <strong>Capacity:</strong> {outing.signup_count} / {outing.max_participants} participants
-                                                            {outing.is_full && (
-                                                                <span style={{ color: 'var(--alert-error-text)', marginLeft: '10px' }}>FULL</span>
-                                                            )}
-                                                        </p>
-                                                    ) : (
-                                                        <>
-                                                            <p style={{ margin: '5px 0' }}>
-                                                                <strong>Participants:</strong> {outing.signup_count}
-                                                            </p>
-                                                            <p style={{ margin: '5px 0' }}>
-                                                                <strong>Vehicle Capacity:</strong> {outing.total_vehicle_capacity} seats
-                                                            </p>
-                                                            <p style={{ margin: '5px 0' }}>
-                                                                <strong>Available Seats:</strong> {outing.available_spots}
-                                                                {outing.is_full && (
-                                                                    <span style={{ color: 'var(--alert-error-text)', marginLeft: '10px' }}>FULL</span>
+                                                                {/* Driver warning for vehicle-based capacity */}
+                                                                {outing.capacity_type === 'vehicle' && outing.needs_more_drivers && (
+                                                                    <p style={{
+                                                                        color: 'var(--alert-warning-text)',
+                                                                        fontWeight: 'bold',
+                                                                        padding: '8px',
+                                                                        backgroundColor: 'var(--alert-warning-bg)',
+                                                                        borderRadius: '4px',
+                                                                        marginTop: '10px',
+                                                                        border: '1px solid var(--alert-warning-border)'
+                                                                    }}>
+                                                                        ⚠️ More drivers needed! Current vehicle capacity ({outing.total_vehicle_capacity}) is less than participants ({outing.signup_count})
+                                                                    </p>
                                                                 )}
-                                                            </p>
-                                                            {outing.needs_more_drivers && (
-                                                                <p style={{
-                                                                    color: 'var(--alert-warning-text)',
-                                                                    fontWeight: 'bold',
-                                                                    padding: '8px',
-                                                                    backgroundColor: 'var(--alert-warning-bg)',
-                                                                    borderRadius: '4px',
-                                                                    marginTop: '10px',
-                                                                    border: '1px solid var(--alert-warning-border)'
-                                                                }}>
-                                                                    ⚠️ More drivers needed! Current vehicle capacity ({outing.total_vehicle_capacity}) is less than participants ({outing.signup_count})
-                                                                </p>
-                                                            )}
-                                                        </>
-                                                    )}
 
-                                                    {/* Cost */}
-                                                    {outing.cost && (
-                                                        <p style={{ margin: '10px 0 5px 0' }}>
-                                                            <strong>Cost:</strong> ${typeof outing.cost === 'number' ? outing.cost.toFixed(2) : parseFloat(outing.cost as any).toFixed(2)}
-                                                        </p>
-                                                    )}
+                                                                {/* Cost */}
+                                                                {outing.cost && (
+                                                                    <p style={{ margin: '10px 0 5px 0' }}>
+                                                                        <strong>Cost:</strong> ${typeof outing.cost === 'number' ? outing.cost.toFixed(2) : parseFloat(outing.cost as any).toFixed(2)}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
 
                                                     {/* Collapsible Logistics Information */}
                                                     {(outing.drop_off_time || outing.drop_off_location || outing.pickup_time || outing.pickup_location) && (
@@ -1439,108 +1493,144 @@ const OutingAdmin: React.FC = () => {
 
                                         {expandedOutingId === outing.id && renderOutingSignups(outing.id)}
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2" style={{ padding: '15px 20px', backgroundColor: 'var(--card-bg)', borderTop: '1px solid var(--card-border)' }}>
+                                        {/* Actions Section - Collapsible */}
+                                        <div style={{ backgroundColor: 'var(--card-bg)', borderTop: '1px solid var(--card-border)' }}>
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    handleShowQRCode(outing.id, outing.name);
+                                                    setCollapsedActions({
+                                                        ...collapsedActions,
+                                                        [outing.id]: !collapsedActions[outing.id]
+                                                    });
                                                 }}
-                                                disabled={loading}
-                                                className="w-full !py-2 !px-4"
                                                 style={{
-                                                    backgroundColor: 'var(--btn-info-bg)',
-                                                    color: 'var(--btn-info-text)',
-                                                    borderRadius: '4px',
-                                                    cursor: loading ? 'not-allowed' : 'pointer'
+                                                    width: '100%',
+                                                    padding: '14px 20px',
+                                                    backgroundColor: 'var(--bg-tertiary)',
+                                                    color: 'var(--text-primary)',
+                                                    border: 'none',
+                                                    borderRadius: '0',
+                                                    cursor: 'pointer',
+                                                    fontSize: '16px',
+                                                    fontWeight: 'bold',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                    transition: 'background-color 0.2s'
                                                 }}
-                                                title="Show QR code for easy sharing"
+                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-secondary)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
                                             >
-                                                📱 QR Code
+                                                <span style={{ fontSize: '18px' }}>⚙️ Actions</span>
+                                                <span style={{ fontSize: '12px' }}>
+                                                    {collapsedActions[outing.id] ? '▶' : '▼'}
+                                                </span>
                                             </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleShowEmailModal(outing);
-                                                }}
-                                                disabled={loading || outing.signup_count === 0}
-                                                className="w-full !py-2 !px-4"
-                                                style={{
-                                                    backgroundColor: outing.signup_count === 0 ? 'var(--btn-disabled-bg)' : 'var(--btn-success-bg)',
-                                                    color: outing.signup_count === 0 ? 'var(--btn-disabled-text)' : 'var(--btn-success-text)',
-                                                    borderRadius: '4px',
-                                                    cursor: loading || outing.signup_count === 0 ? 'not-allowed' : 'pointer'
-                                                }}
-                                                title={outing.signup_count === 0 ? 'No signups yet' : 'Email all participants'}
-                                            >
-                                                📧 Email Participants
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleExportRosterPDF(outing.id, outing.name);
-                                                }}
-                                                disabled={loading || outing.signup_count === 0}
-                                                className="w-full !py-2 !px-4"
-                                                style={{
-                                                    backgroundColor: outing.signup_count === 0 ? 'var(--btn-disabled-bg)' : 'var(--btn-secondary-bg)',
-                                                    color: outing.signup_count === 0 ? 'var(--btn-disabled-text)' : 'var(--btn-secondary-text)',
-                                                    borderRadius: '4px',
-                                                    cursor: loading || outing.signup_count === 0 ? 'not-allowed' : 'pointer'
-                                                }}
-                                                title={outing.signup_count === 0 ? 'No participants to export' : 'Download printable PDF roster with checkboxes for check-in'}
-                                            >
-                                                📄 Export Roster
-                                            </button>
-                                            <Link
-                                                to={`/check-in/${outing.id}`}
-                                                onClick={(e) => e.stopPropagation()}
-                                                className="btn w-full text-center !py-2 !px-4"
-                                                style={{
-                                                    backgroundColor: outing.signup_count === 0 ? 'var(--btn-disabled-bg)' : 'var(--btn-primary-bg)',
-                                                    color: outing.signup_count === 0 ? 'var(--btn-disabled-text)' : 'var(--btn-primary-text)',
-                                                    borderRadius: '4px',
-                                                    cursor: outing.signup_count === 0 ? 'not-allowed' : 'pointer',
-                                                    textDecoration: 'none',
-                                                    pointerEvents: outing.signup_count === 0 ? 'none' : 'auto',
-                                                    opacity: outing.signup_count === 0 ? 0.6 : 1,
-                                                    fontSize: '16px'
-                                                }}
-                                                title={outing.signup_count === 0 ? 'No participants to check in' : 'Open check-in mode for this outing'}
-                                            >
-                                                📋 Check-in
-                                            </Link>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleEditOuting(outing);
-                                                }}
-                                                disabled={loading}
-                                                className="w-full !py-2 !px-4"
-                                                style={{
-                                                    backgroundColor: 'var(--btn-secondary-bg)',
-                                                    color: 'var(--btn-secondary-text)',
-                                                    borderRadius: '4px',
-                                                    cursor: loading ? 'not-allowed' : 'pointer'
-                                                }}
-                                            >
-                                                ✏️ Edit Outing
-                                            </button>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleDeleteOuting(outing.id);
-                                                }}
-                                                disabled={loading}
-                                                className="w-full !py-2 !px-4"
-                                                style={{
-                                                    backgroundColor: 'var(--btn-danger-bg)',
-                                                    color: 'var(--btn-danger-text)',
-                                                    borderRadius: '4px',
-                                                    cursor: loading ? 'not-allowed' : 'pointer'
-                                                }}
-                                            >
-                                                🗑️ Delete
-                                            </button>
+                                            {!collapsedActions[outing.id] && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2" style={{ padding: '15px 20px' }}>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleShowQRCode(outing.id, outing.name);
+                                                        }}
+                                                        disabled={loading}
+                                                        className="w-full !py-2 !px-4"
+                                                        style={{
+                                                            backgroundColor: 'var(--btn-info-bg)',
+                                                            color: 'var(--btn-info-text)',
+                                                            borderRadius: '4px',
+                                                            cursor: loading ? 'not-allowed' : 'pointer'
+                                                        }}
+                                                        title="Show QR code for easy sharing"
+                                                    >
+                                                        📱 QR Code
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleShowEmailModal(outing);
+                                                        }}
+                                                        disabled={loading || outing.signup_count === 0}
+                                                        className="w-full !py-2 !px-4"
+                                                        style={{
+                                                            backgroundColor: outing.signup_count === 0 ? 'var(--btn-disabled-bg)' : 'var(--btn-success-bg)',
+                                                            color: outing.signup_count === 0 ? 'var(--btn-disabled-text)' : 'var(--btn-success-text)',
+                                                            borderRadius: '4px',
+                                                            cursor: loading || outing.signup_count === 0 ? 'not-allowed' : 'pointer'
+                                                        }}
+                                                        title={outing.signup_count === 0 ? 'No signups yet' : 'Email all participants'}
+                                                    >
+                                                        📧 Email Participants
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleExportRosterPDF(outing.id, outing.name);
+                                                        }}
+                                                        disabled={loading || outing.signup_count === 0}
+                                                        className="w-full !py-2 !px-4"
+                                                        style={{
+                                                            backgroundColor: outing.signup_count === 0 ? 'var(--btn-disabled-bg)' : 'var(--btn-secondary-bg)',
+                                                            color: outing.signup_count === 0 ? 'var(--btn-disabled-text)' : 'var(--btn-secondary-text)',
+                                                            borderRadius: '4px',
+                                                            cursor: loading || outing.signup_count === 0 ? 'not-allowed' : 'pointer'
+                                                        }}
+                                                        title={outing.signup_count === 0 ? 'No participants to export' : 'Download printable PDF roster with checkboxes for check-in'}
+                                                    >
+                                                        📄 Export Roster
+                                                    </button>
+                                                    <Link
+                                                        to={`/check-in/${outing.id}`}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="btn w-full text-center !py-2 !px-4"
+                                                        style={{
+                                                            backgroundColor: outing.signup_count === 0 ? 'var(--btn-disabled-bg)' : 'var(--btn-primary-bg)',
+                                                            color: outing.signup_count === 0 ? 'var(--btn-disabled-text)' : 'var(--btn-primary-text)',
+                                                            borderRadius: '4px',
+                                                            cursor: outing.signup_count === 0 ? 'not-allowed' : 'pointer',
+                                                            textDecoration: 'none',
+                                                            pointerEvents: outing.signup_count === 0 ? 'none' : 'auto',
+                                                            opacity: outing.signup_count === 0 ? 0.6 : 1,
+                                                            fontSize: '16px'
+                                                        }}
+                                                        title={outing.signup_count === 0 ? 'No participants to check in' : 'Open check-in mode for this outing'}
+                                                    >
+                                                        📋 Check-in
+                                                    </Link>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleEditOuting(outing);
+                                                        }}
+                                                        disabled={loading}
+                                                        className="w-full !py-2 !px-4"
+                                                        style={{
+                                                            backgroundColor: 'var(--btn-secondary-bg)',
+                                                            color: 'var(--btn-secondary-text)',
+                                                            borderRadius: '4px',
+                                                            cursor: loading ? 'not-allowed' : 'pointer'
+                                                        }}
+                                                    >
+                                                        ✏️ Edit Outing
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteOuting(outing.id);
+                                                        }}
+                                                        disabled={loading}
+                                                        className="w-full !py-2 !px-4"
+                                                        style={{
+                                                            backgroundColor: 'var(--btn-danger-bg)',
+                                                            color: 'var(--btn-danger-text)',
+                                                            borderRadius: '4px',
+                                                            cursor: loading ? 'not-allowed' : 'pointer'
+                                                        }}
+                                                    >
+                                                        🗑️ Delete
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </>
                                 )}
@@ -1551,187 +1641,191 @@ const OutingAdmin: React.FC = () => {
             </div>
 
             {/* Email Modal */}
-            {showEmailModal && selectedOutingForEmail && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'var(--modal-overlay-bg)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
+            {
+                showEmailModal && selectedOutingForEmail && (
                     <div style={{
-                        backgroundColor: 'var(--card-bg)',
-                        borderRadius: '8px',
-                        padding: '30px',
-                        maxWidth: '700px',
-                        width: '90%',
-                        maxHeight: '90vh',
-                        overflow: 'auto',
-                        boxShadow: 'var(--shadow-lg)',
-                        border: '1px solid var(--card-border)'
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'var(--modal-overlay-bg)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000
                     }}>
-                        <h2 style={{ marginTop: 0, marginBottom: '20px', color: 'var(--text-primary)' }}>
-                            📧 Email Participants - {selectedOutingForEmail.name}
-                        </h2>
-
-                        {emailSuccess && (
-                            <div style={{
-                                padding: '12px',
-                                marginBottom: '20px',
-                                backgroundColor: 'var(--alert-success-bg)',
-                                color: 'var(--alert-success-text)',
-                                borderRadius: '4px',
-                                border: '1px solid var(--alert-success-border)'
-                            }}>
-                                {emailSuccess}
-                            </div>
-                        )}
-
-                        <div style={{ marginBottom: '20px' }}>
-                            <h3 style={{ marginBottom: '10px' }}>
-                                Email Addresses ({emailList.length})
-                            </h3>
-                            <div style={{
-                                padding: '12px',
-                                backgroundColor: 'var(--bg-tertiary)',
-                                borderRadius: '4px',
-                                border: '1px solid var(--card-border)',
-                                maxHeight: '150px',
-                                overflow: 'auto',
-                                fontSize: '14px',
-                                wordBreak: 'break-all',
-                                color: 'var(--text-primary)'
-                            }}>
-                                {emailList.length > 0 ? emailList.join(', ') : 'No email addresses found'}
-                            </div>
-                            <button
-                                onClick={handleCopyEmails}
-                                disabled={emailList.length === 0}
-                                style={{
-                                    marginTop: '10px',
-                                    padding: '8px 16px',
-                                    backgroundColor: 'var(--btn-secondary-bg)',
-                                    color: 'var(--btn-secondary-text)',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: emailList.length === 0 ? 'not-allowed' : 'pointer',
-                                    fontSize: '14px',
-                                    fontWeight: 'bold'
-                                }}
-                            >
-                                📋 Copy Email Addresses
-                            </button>
-                        </div>
-
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                Subject *
-                            </label>
-                            <input
-                                type="text"
-                                value={emailSubject}
-                                onChange={(e) => setEmailSubject(e.target.value)}
-                                placeholder="Email subject"
-                                required
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    fontSize: '14px',
-                                    border: '1px solid var(--input-border)',
-                                    borderRadius: '4px',
-                                    backgroundColor: 'var(--input-bg)',
-                                    color: 'var(--text-primary)'
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                Message *
-                            </label>
-                            <textarea
-                                value={emailMessage}
-                                onChange={(e) => setEmailMessage(e.target.value)}
-                                placeholder="Enter your message to participants..."
-                                required
-                                rows={8}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    fontSize: '14px',
-                                    border: '1px solid var(--input-border)',
-                                    borderRadius: '4px',
-                                    fontFamily: 'inherit',
-                                    backgroundColor: 'var(--input-bg)',
-                                    color: 'var(--text-primary)'
-                                }}
-                            />
-                        </div>
-
                         <div style={{
-                            padding: '12px',
-                            backgroundColor: 'var(--alert-warning-bg)',
-                            borderRadius: '4px',
-                            marginBottom: '20px',
-                            fontSize: '13px',
-                            color: 'var(--alert-warning-text)',
-                            border: '1px solid var(--alert-warning-border)'
+                            backgroundColor: 'var(--card-bg)',
+                            borderRadius: '8px',
+                            padding: '30px',
+                            maxWidth: '700px',
+                            width: '90%',
+                            maxHeight: '90vh',
+                            overflow: 'auto',
+                            boxShadow: 'var(--shadow-lg)',
+                            border: '1px solid var(--card-border)'
                         }}>
-                            <strong>Note:</strong> Clicking "Send Email" will open your default email client with the recipients, subject, and message pre-filled. You can review and send from there.
-                        </div>
+                            <h2 style={{ marginTop: 0, marginBottom: '20px', color: 'var(--text-primary)' }}>
+                                📧 Email Participants - {selectedOutingForEmail.name}
+                            </h2>
 
-                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                            <button
-                                onClick={handleCloseEmailModal}
-                                disabled={loading}
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: 'var(--btn-secondary-bg)',
-                                    color: 'var(--btn-secondary-text)',
-                                    border: 'none',
+                            {emailSuccess && (
+                                <div style={{
+                                    padding: '12px',
+                                    marginBottom: '20px',
+                                    backgroundColor: 'var(--alert-success-bg)',
+                                    color: 'var(--alert-success-text)',
                                     borderRadius: '4px',
-                                    cursor: loading ? 'not-allowed' : 'pointer',
-                                    fontSize: '16px'
-                                }}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSendEmail}
-                                disabled={loading || emailList.length === 0 || !emailSubject || !emailMessage}
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: emailList.length === 0 || !emailSubject || !emailMessage ? 'var(--btn-disabled-bg)' : 'var(--btn-success-bg)',
-                                    color: emailList.length === 0 || !emailSubject || !emailMessage ? 'var(--btn-disabled-text)' : 'var(--btn-success-text)',
-                                    border: 'none',
+                                    border: '1px solid var(--alert-success-border)'
+                                }}>
+                                    {emailSuccess}
+                                </div>
+                            )}
+
+                            <div style={{ marginBottom: '20px' }}>
+                                <h3 style={{ marginBottom: '10px' }}>
+                                    Email Addresses ({emailList.length})
+                                </h3>
+                                <div style={{
+                                    padding: '12px',
+                                    backgroundColor: 'var(--bg-tertiary)',
                                     borderRadius: '4px',
-                                    cursor: loading || emailList.length === 0 || !emailSubject || !emailMessage ? 'not-allowed' : 'pointer',
-                                    fontSize: '16px',
-                                    fontWeight: 'bold'
-                                }}
-                            >
-                                {loading ? 'Preparing...' : '📧 Send Email'}
-                            </button>
+                                    border: '1px solid var(--card-border)',
+                                    maxHeight: '150px',
+                                    overflow: 'auto',
+                                    fontSize: '14px',
+                                    wordBreak: 'break-all',
+                                    color: 'var(--text-primary)'
+                                }}>
+                                    {emailList.length > 0 ? emailList.join(', ') : 'No email addresses found'}
+                                </div>
+                                <button
+                                    onClick={handleCopyEmails}
+                                    disabled={emailList.length === 0}
+                                    style={{
+                                        marginTop: '10px',
+                                        padding: '8px 16px',
+                                        backgroundColor: 'var(--btn-secondary-bg)',
+                                        color: 'var(--btn-secondary-text)',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: emailList.length === 0 ? 'not-allowed' : 'pointer',
+                                        fontSize: '14px',
+                                        fontWeight: 'bold'
+                                    }}
+                                >
+                                    📋 Copy Email Addresses
+                                </button>
+                            </div>
+
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                    Subject *
+                                </label>
+                                <input
+                                    type="text"
+                                    value={emailSubject}
+                                    onChange={(e) => setEmailSubject(e.target.value)}
+                                    placeholder="Email subject"
+                                    required
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px',
+                                        fontSize: '14px',
+                                        border: '1px solid var(--input-border)',
+                                        borderRadius: '4px',
+                                        backgroundColor: 'var(--input-bg)',
+                                        color: 'var(--text-primary)'
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
+                                    Message *
+                                </label>
+                                <textarea
+                                    value={emailMessage}
+                                    onChange={(e) => setEmailMessage(e.target.value)}
+                                    placeholder="Enter your message to participants..."
+                                    required
+                                    rows={8}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px',
+                                        fontSize: '14px',
+                                        border: '1px solid var(--input-border)',
+                                        borderRadius: '4px',
+                                        fontFamily: 'inherit',
+                                        backgroundColor: 'var(--input-bg)',
+                                        color: 'var(--text-primary)'
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{
+                                padding: '12px',
+                                backgroundColor: 'var(--alert-warning-bg)',
+                                borderRadius: '4px',
+                                marginBottom: '20px',
+                                fontSize: '13px',
+                                color: 'var(--alert-warning-text)',
+                                border: '1px solid var(--alert-warning-border)'
+                            }}>
+                                <strong>Note:</strong> Clicking "Send Email" will open your default email client with the recipients, subject, and message pre-filled. You can review and send from there.
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                                <button
+                                    onClick={handleCloseEmailModal}
+                                    disabled={loading}
+                                    style={{
+                                        padding: '10px 20px',
+                                        backgroundColor: 'var(--btn-secondary-bg)',
+                                        color: 'var(--btn-secondary-text)',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: loading ? 'not-allowed' : 'pointer',
+                                        fontSize: '16px'
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSendEmail}
+                                    disabled={loading || emailList.length === 0 || !emailSubject || !emailMessage}
+                                    style={{
+                                        padding: '10px 20px',
+                                        backgroundColor: emailList.length === 0 || !emailSubject || !emailMessage ? 'var(--btn-disabled-bg)' : 'var(--btn-success-bg)',
+                                        color: emailList.length === 0 || !emailSubject || !emailMessage ? 'var(--btn-disabled-text)' : 'var(--btn-success-text)',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: loading || emailList.length === 0 || !emailSubject || !emailMessage ? 'not-allowed' : 'pointer',
+                                        fontSize: '16px',
+                                        fontWeight: 'bold'
+                                    }}
+                                >
+                                    {loading ? 'Preparing...' : '📧 Send Email'}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* QR Code Modal */}
-            {qrCodeOuting && (
-                <OutingQRCode
-                    outingId={qrCodeOuting.id}
-                    outingName={qrCodeOuting.name}
-                    isVisible={showQRCode}
-                    onClose={handleCloseQRCode}
-                />
-            )}
-        </div>
+            {
+                qrCodeOuting && (
+                    <OutingQRCode
+                        outingId={qrCodeOuting.id}
+                        outingName={qrCodeOuting.name}
+                        isVisible={showQRCode}
+                        onClose={handleCloseQRCode}
+                    />
+                )
+            }
+        </div >
     );
 };
 
