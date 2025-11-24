@@ -59,7 +59,7 @@ export const ThemeToggle: React.FC = () => {
  */
 export const ThemeToggleCompact: React.FC = () => {
     const { toggleTheme, isDark } = useTheme();
-
+    // Accept customStyle prop for navbar use
     return (
         <button
             onClick={toggleTheme}
@@ -68,10 +68,11 @@ export const ThemeToggleCompact: React.FC = () => {
                 backgroundColor: 'transparent',
                 color: 'var(--text-primary)',
                 border: '1px solid var(--border-light)',
-                borderRadius: 'var(--border-radius-md)',
+                borderRadius: '0.5rem',
                 fontSize: '20px',
                 cursor: 'pointer',
-                transition: 'all var(--transition-base)',
+                transition: 'none',
+                boxShadow: 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -79,12 +80,6 @@ export const ThemeToggleCompact: React.FC = () => {
                 height: '40px'
             }}
             title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-            onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
-            }}
-            onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-            }}
         >
             {isDark ? '☀️' : '🌙'}
         </button>

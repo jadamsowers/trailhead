@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
 import { ClerkProvider, SignedIn, SignedOut, UserButton, useUser, SignUp } from '@clerk/clerk-react';
-import ProtectedRoute from './components/ProtectedRoute';
 import BackendHealthCheck from './components/Shared/BackendHealthCheck';
 import { ThemeToggleCompact } from './components/Shared/ThemeToggle';
 import AdminPage from './pages/AdminPage';
-import ParticipantPage from './pages/ParticipantPage';
 import LoginPage from './pages/LoginPage';
 import AdminSetupPage from './pages/AdminSetupPage';
 import FamilySetupPage from './pages/FamilySetupPage';
 import OutingsPage from './pages/OutingsPage';
+import CheckInPage from './pages/CheckInPage';
 
 // Get Clerk publishable key from environment
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_your_clerk_publishable_key_here';
@@ -24,8 +23,9 @@ const HomePage: React.FC = () => {
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
-            <h1 className="text-5xl mb-5" style={{ color: 'var(--color-primary)' }}>
-                ⚜️ Trailhead 🏕️
+            <h1 className="text-5xl mb-5 flex items-center justify-center gap-3" style={{ color: 'var(--color-primary)' }}>
+                <img src="/icon/icon-large-bordered.png" alt="Trailhead Logo" style={{ height: '2.5em', width: '2.5em', display: 'inline-block', verticalAlign: 'middle' }} />
+                Trailhead 🏕️
             </h1>
             <p className="text-xl mb-10" style={{ color: 'var(--text-secondary)' }}>
                 Manage scout troop outings, signups, and participant information
@@ -74,20 +74,32 @@ const Navigation: React.FC = () => {
     const { user } = useUser();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+
+    // Use theme variable for maximum contrast in both modes
+    const navTextStyle = {
+        color: 'var(--text-on-primary)',
+        textShadow: '0 1px 2px rgba(0,0,0,0.15)'
+    };
+    const navButtonStyle = {
+        backgroundColor: 'transparent',
+        color: 'var(--text-on-primary)',
+        borderRadius: '0.5rem',
+        boxShadow: 'none',
+        transition: 'none',
+        fontWeight: 700
+    };
     return (
-        <nav className="text-white shadow-lg sticky top-0 z-[1000] backdrop-blur-md bg-opacity-95 border-b border-white/10" style={{ backgroundColor: 'var(--color-primary)' }}>
+        <nav className="shadow-lg sticky top-0 z-[1000] backdrop-blur-md bg-opacity-95 border-b border-white/10" style={{ backgroundColor: 'var(--color-primary)', color: 'var(--text-on-primary)' }}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16 items-center">
                     {/* Logo / Brand */}
                     <div className="flex-shrink-0 flex items-center">
                         <Link
                             to="/"
-                            className="text-white no-underline text-xl font-bold font-heading tracking-tight flex items-center gap-4 transition-colors"
-                            style={{ '--hover-color': 'var(--bsa-tan-300)' } as React.CSSProperties}
-                            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--bsa-tan-300)'}
-                            onMouseLeave={(e) => e.currentTarget.style.color = 'white'}
+                            className="no-underline text-xl font-bold font-heading tracking-tight flex items-center gap-4"
+                            style={navTextStyle}
                         >
-                            <span className="text-2xl">⚜️</span>
+                            <img src="/icon/icon-small-bordered.png" alt="Trailhead Logo" style={{ height: '2em', width: '2em', display: 'inline-block', verticalAlign: 'middle' }} />
                             <span className="hidden sm:block">Trailhead</span>
                             <span className="sm:hidden">TH</span>
                         </Link>
@@ -99,25 +111,28 @@ const Navigation: React.FC = () => {
                             <div className="flex items-center gap-8 lg:gap-12">
                                 <Link
                                     to="/outings"
-                                    className="text-gray-100 hover:bg-white/10 hover:text-white px-6 py-4 rounded-lg text-base font-bold transition-all hover:shadow-md"
+                                    className="px-6 py-4 text-base font-bold"
+                                    style={navTextStyle}
                                 >
                                     Outings
                                 </Link>
                                 <Link
                                     to="/family-setup"
-                                    className="text-gray-100 hover:bg-white/10 hover:text-white px-6 py-4 rounded-lg text-base font-bold transition-all hover:shadow-md"
+                                    className="px-6 py-4 text-base font-bold"
+                                    style={navTextStyle}
                                 >
                                     My Family
                                 </Link>
                                 <Link
                                     to="/admin"
-                                    className="text-gray-100 hover:bg-white/10 hover:text-white px-6 py-4 rounded-lg text-base font-bold transition-all hover:shadow-md"
+                                    className="px-6 py-4 text-base font-bold"
+                                    style={navTextStyle}
                                 >
                                     Admin
                                 </Link>
                                 <div className="flex items-center gap-5 pl-8 border-l-2 border-white/20 h-10">
                                     <ThemeToggleCompact />
-                                    <UserButton afterSignOutUrl="/" />
+                                    <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: { borderRadius: '0.5rem' } } }} />
                                 </div>
                             </div>
                         </SignedIn>
@@ -126,11 +141,8 @@ const Navigation: React.FC = () => {
                                 <ThemeToggleCompact />
                                 <Link
                                     to="/login"
-                                    className="px-8 py-3 border border-transparent text-base font-bold rounded-lg shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5"
-                                    style={{
-                                        backgroundColor: 'var(--bg-primary)',
-                                        color: 'var(--color-primary)'
-                                    }}
+                                    className="px-8 py-3 text-base font-bold"
+                                    style={navButtonStyle}
                                 >
                                     Sign In
                                 </Link>
@@ -142,7 +154,8 @@ const Navigation: React.FC = () => {
                     <div className="flex items-center md:hidden">
                         <button
                             type="button"
-                            className="inline-flex items-center justify-center p-2 rounded-md text-gray-200 hover:text-white hover:bg-white/10 focus:outline-none transition-colors"
+                            className="inline-flex items-center justify-center p-2"
+                            style={{ ...navButtonStyle, borderRadius: '0.5rem' }}
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             aria-expanded="false"
                         >
@@ -162,48 +175,60 @@ const Navigation: React.FC = () => {
             </div>
 
             {/* Mobile Menu */}
-            <div className={`${mobileMenuOpen ? 'block' : 'hidden'} md:hidden border-t border-white/10`} style={{ backgroundColor: 'var(--color-primary)' }}>
+            <div className={`${mobileMenuOpen ? 'block' : 'hidden'} md:hidden border-t border-white/10`} style={{ backgroundColor: 'var(--color-primary)' }} role="menu">
                 <div className="px-4 pt-4 pb-6 space-y-2 sm:px-6">
                     <SignedIn>
                         <Link
                             to="/outings"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="text-gray-100 hover:bg-white/10 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+                            className="block px-3 py-2 rounded-md text-base font-medium"
+                            style={navTextStyle}
+                            role="menuitem"
+                            tabIndex={0}
                         >
                             Outings
                         </Link>
                         <Link
                             to="/family-setup"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="text-gray-100 hover:bg-white/10 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
+                            className="block px-3 py-2 rounded-md text-base font-medium"
+                            style={navTextStyle}
+                            role="menuitem"
+                            tabIndex={0}
                         >
                             My Family
                         </Link>
                         <Link
                             to="/admin"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="text-gray-100 hover:bg-white/10 hover:text-white block px-4 py-3 rounded-md text-base font-medium"
+                            className="block px-4 py-3 rounded-md text-base font-medium"
+                            style={navTextStyle}
+                            role="menuitem"
+                            tabIndex={0}
                         >
                             Admin
                         </Link>
                         <div className="px-3 py-2 flex items-center justify-between border-t border-white/10 mt-2 pt-3">
-                            <span className="text-gray-300 text-sm">Theme</span>
+                            <span style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>Theme</span>
                             <ThemeToggleCompact />
                         </div>
                         <div className="px-3 py-2 flex items-center gap-3">
-                            <UserButton afterSignOutUrl="/" />
-                            <span className="text-gray-300 text-sm">{user?.primaryEmailAddress?.emailAddress}</span>
+                            <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: { borderRadius: '0.5rem' } } }} />
+                            <span style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>{user?.primaryEmailAddress?.emailAddress}</span>
                         </div>
                     </SignedIn>
                     <SignedOut>
                         <div className="px-3 py-2 flex items-center justify-between border-b border-white/10 mb-2">
-                            <span className="text-gray-300 text-sm">Theme</span>
+                            <span style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>Theme</span>
                             <ThemeToggleCompact />
                         </div>
                         <Link
                             to="/login"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="text-gray-100 hover:bg-white/10 hover:text-white block px-4 py-3 rounded-md text-base font-medium"
+                            className="block px-4 py-3 rounded-md text-base font-medium"
+                            style={navTextStyle}
+                            role="menuitem"
+                            tabIndex={0}
                         >
                             Sign In
                         </Link>
@@ -256,22 +281,28 @@ const App: React.FC = () => {
                                     </SignedIn>
                                 } />
                                 <Route path="/outings" element={<OutingsPage />} />
-                                {/* Legacy routes - redirect to new flow */}
-                                <Route path="/outings" element={<Navigate to="/outings" replace />} />
-                                <Route path="/participant" element={<Navigate to="/outings" replace />} />
+                                <Route path="/check-in/:outingId" element={
+                                    <SignedIn>
+                                        <CheckInPage />
+                                    </SignedIn>
+                                } />
+
                             </Routes>
                         </main>
 
                         {/* Footer */}
-                        <footer className="text-white py-8 mt-auto border-t border-white/10" style={{ backgroundColor: 'var(--color-primary)' }}>
+                        <footer className="py-8 mt-auto border-t border-white/10" style={{ backgroundColor: 'var(--color-primary)', color: 'var(--text-on-primary)' }}>
                             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                                <p className="font-heading font-bold text-lg mb-2">Trailhead</p>
-                                <p className="text-gray-400 italic mb-4">Putting the 'outing' back in 'Scouting'</p>
-                                <p className="text-sm text-gray-400">
-                                    <a href="https://github.com/jadamsowers/trailhead" className="hover:text-white transition-colors">Vibe-coded</a> with ⚜️❤️ by <a href="https://scouthacks.net/" className="hover:text-white transition-colors">Adam Sowers</a>
+                                <div className="flex flex-col items-center justify-center mb-2">
+                                    <img src="/icon/icon-small-bordered.png" alt="Trailhead Logo" style={{ height: '2em', width: '2em', display: 'inline-block', verticalAlign: 'middle', marginBottom: '0.5em' }} />
+                                    <p className="font-heading font-bold text-lg" style={{ color: 'var(--text-on-primary)' }}>Trailhead</p>
+                                </div>
+                                <p className="italic mb-4" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>Putting the 'outing' back in 'Scouting'</p>
+                                <p className="text-sm" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>
+                                    <a href="https://github.com/jadamsowers/trailhead" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>Vibe-coded</a> with ⚜️❤️ by <a href="https://scouthacks.net/" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>Adam Sowers</a>
                                 </p>
-                                <p className="text-xs text-gray-500 mt-4">
-                                    API Documentation: <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" className="text-sa-pale-blue hover:underline">http://localhost:8000/docs</a>
+                                <p className="text-xs mt-4" style={{ color: 'var(--text-on-primary)', opacity: 0.7 }}>
+                                    API Documentation: <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>http://localhost:8000/docs</a>
                                 </p>
                             </div>
                         </footer>

@@ -4,6 +4,7 @@ from app.models.signup import Signup
 from app.models.participant import Participant
 from app.models.refresh_token import RefreshToken
 from app.models.family import FamilyMember, FamilyMemberDietaryPreference, FamilyMemberAllergy
+from app.models.checkin import CheckIn
 
 __all__ = [
     "User",
@@ -14,4 +15,5 @@ __all__ = [
     "FamilyMember",
     "FamilyMemberDietaryPreference",
     "FamilyMemberAllergy",
+    "CheckIn",
 ]

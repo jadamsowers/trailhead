@@ -3,10 +3,10 @@
 ## Check-in Mode
 Outing leaders can check in participants before departure
 
-- [ ] Create mobile-friendly check-in interface
-- [ ] Implement offline mode with cached check-in list
-- [ ] Capture who checked in for camping night tracking
-- [ ] Add export functionality for check-in data
+- [x] Create mobile-friendly check-in interface (Frontend complete!)
+- [ ] Implement offline mode with cached check-in list (Future enhancement)
+- [x] Capture who checked in for camping night tracking (Backend complete)
+- [x] Add export functionality for check-in data (Backend CSV export complete)
 
 ## Outing Configuration
 Enhancements to outing setup and management
@@ -28,11 +28,12 @@ Enhancements to outing setup and management
   - [ ] Date-based automatic closure option
   - [ ] Manual close signups button
 
-## Family Configuration
+## Signup Configuration
 Enhancements to family profile and requests
 
 - [ ] Add grubmaster request functionality
 - [ ] Add gear request functionality
+
 
 ## Accessibility Improvements
 Make the app more accessible for all users
@@ -43,3 +44,8 @@ Make the app more accessible for all users
 - [ ] Add screen reader support
 - [ ] Improve color contrast ratios
 - [ ] Add ARIA labels and landmarks
+
+## Troop Management
+- [ ] Add troop management interface
+- [ ] Add troop configuration interface
+- [ ] Add option to restrict signup by troop for outings

@@ -41,7 +41,7 @@ export const healthAPI = {
             url: healthUrl,
             timestamp: new Date().toISOString(),
         });
-        
+
         try {
             const response = await fetch(healthUrl, {
                 method: 'GET',
@@ -49,18 +49,18 @@ export const healthAPI = {
                     'Content-Type': 'application/json',
                 },
             });
-            
+
             console.log('✅ Health Check Response:', {
                 status: response.status,
                 statusText: response.statusText,
                 ok: response.ok,
                 url: response.url,
             });
-            
+
             if (!response.ok) {
                 throw new Error(`Health check failed: ${response.status} ${response.statusText}`);
             }
-            
+
             const data = await response.json();
             console.log('📦 Health Check Data:', data);
             return data;
@@ -93,14 +93,14 @@ async function handleResponse<T>(response: Response): Promise<T> {
             'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
         }
     });
-    
+
     if (!response.ok) {
         let errorDetail: string;
         let errorType: string | undefined;
-        
+
         try {
             const errorData: APIErrorResponse & { error_type?: string; error_message?: string } = await response.json();
-            
+
             // Handle different error response formats
             if (errorData.error_type && errorData.error_message) {
                 // Backend 500 error with detailed info
@@ -131,7 +131,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
             errorDetail = `HTTP ${response.status}: ${response.statusText}`;
             console.error('❌ Failed to parse error response:', parseError);
         }
-        
+
         throw new APIError(response.status, errorDetail);
     }
     return response.json();
@@ -142,7 +142,7 @@ async function getAuthHeaders(): Promise<HeadersInit> {
     const headers: HeadersInit = {
         'Content-Type': 'application/json',
     };
-    
+
     try {
         // Wait for Clerk to be loaded with retry logic
         let retries = 0;
@@ -151,29 +151,29 @@ async function getAuthHeaders(): Promise<HeadersInit> {
             await new Promise(resolve => setTimeout(resolve, 100));
             retries++;
         }
-        
+
         if (!window.Clerk) {
             console.error('❌ Clerk is not loaded after retries');
             throw new Error('Authentication system not initialized. Please refresh the page.');
         }
-        
+
         // Check if user is signed in
         if (!window.Clerk.session) {
             console.error('❌ No Clerk session found');
             throw new Error('You must be signed in to access this feature. Please sign in and try again.');
         }
-        
+
         // Get the session token from Clerk
         const token = await window.Clerk.session.getToken();
         if (!token) {
             console.error('❌ Failed to get Clerk session token');
             throw new Error('Failed to get authentication token. Please sign out and sign in again.');
         }
-        
+
         console.log('✅ Using Clerk session token');
         headers['Authorization'] = `Bearer ${token}`;
         return headers;
-        
+
     } catch (error) {
         console.error('❌ Authentication error:', error);
         throw error;
@@ -247,9 +247,7 @@ export const signupAPI = {
     async create(signup: SignupCreate): Promise<SignupResponse> {
         const response = await fetch(`${API_BASE_URL}/signups`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: await getAuthHeaders(),
             body: JSON.stringify(signup),
         });
         return handleResponse<SignupResponse>(response);
@@ -538,14 +536,14 @@ export const familyAPI = {
     async getAll(): Promise<FamilyMemberListResponse> {
         const url = `${API_BASE_URL}/family/`;
         console.log('🚀 API Request: GET', url);
-        
+
         const headers = await getAuthHeaders();
         const authHeader = (headers as Record<string, string>)['Authorization'];
         console.log('🔑 Auth headers:', {
             hasAuth: !!authHeader,
             authType: authHeader?.split(' ')[0]
         });
-        
+
         const response = await fetch(url, { headers });
         return handleResponse<FamilyMemberListResponse>(response);
     },
@@ -639,5 +637,82 @@ export const userAPI = {
             body: JSON.stringify(contactInfo),
         });
         return handleResponse<User>(response);
+    },
+};
+
+// Check-in API
+export const checkInAPI = {
+    /**
+     * Get check-in status for an outing
+     */
+    async getCheckInStatus(outingId: string): Promise<import('../types').CheckInSummary> {
+        const response = await fetch(`${API_BASE_URL}/outings/${outingId}/checkin`, {
+            headers: await getAuthHeaders(),
+        });
+        return handleResponse<import('../types').CheckInSummary>(response);
+    },
+
+    /**
+     * Check in participants
+     */
+    async checkInParticipants(
+        outingId: string,
+        data: import('../types').CheckInCreate
+    ): Promise<import('../types').CheckInResponse> {
+        const response = await fetch(`${API_BASE_URL}/outings/${outingId}/checkin`, {
+            method: 'POST',
+            headers: await getAuthHeaders(),
+            body: JSON.stringify(data),
+        });
+        return handleResponse<import('../types').CheckInResponse>(response);
+    },
+
+    /**
+     * Undo a check-in for a participant
+     */
+    async undoCheckIn(outingId: string, participantId: string): Promise<{ message: string }> {
+        const response = await fetch(`${API_BASE_URL}/outings/${outingId}/checkin/${participantId}`, {
+            method: 'DELETE',
+            headers: await getAuthHeaders(),
+        });
+        return handleResponse<{ message: string }>(response);
+    },
+
+    /**
+     * Reset all check-ins for an outing
+     */
+    async resetAllCheckIns(outingId: string): Promise<{ message: string; count: number }> {
+        const response = await fetch(`${API_BASE_URL}/outings/${outingId}/checkin`, {
+            method: 'DELETE',
+            headers: await getAuthHeaders(),
+        });
+        return handleResponse<{ message: string; count: number }>(response);
+    },
+
+    /**
+     * Export check-in data as CSV
+     */
+    async exportCheckInCSV(outingId: string): Promise<Blob> {
+        const response = await fetch(`${API_BASE_URL}/outings/${outingId}/checkin/export`, {
+            headers: await getAuthHeaders(),
+        });
+        if (!response.ok) {
+            throw new APIError(response.status, 'Failed to export check-in data');
+        }
+        return response.blob();
+    },
+
+    /**
+     * Download CSV file
+     */
+    downloadCSV(blob: Blob, filename: string) {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
     },
 };

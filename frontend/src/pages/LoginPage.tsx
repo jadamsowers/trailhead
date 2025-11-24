@@ -30,25 +30,30 @@ const LoginPage: React.FC = () => {
                 colorText: getCSSVar('--text-primary'),
                 colorTextSecondary: getCSSVar('--text-secondary'),
                 colorDanger: getCSSVar('--color-error'),
-                borderRadius: '0.75rem',
+                borderRadius: '0.5rem', // Less rounded
             },
             elements: {
                 card: {
                     border: `1px solid ${getCSSVar('--border-light')}`,
-                    boxShadow: getCSSVar('--shadow-md'),
+                    boxShadow: 'none', // Remove shadow for static look
                 },
                 formButtonPrimary: {
                     backgroundColor: getCSSVar('--btn-primary-bg'),
                     color: getCSSVar('--btn-primary-text'),
+                    borderRadius: '0.5rem',
+                    boxShadow: 'none',
+                    transition: 'none',
                     '&:hover': {
                         backgroundColor: getCSSVar('--btn-primary-hover'),
                     },
                 },
-                // Style OAuth buttons (Google, etc.) for better contrast
                 socialButtonsBlockButton: {
                     backgroundColor: effectiveTheme === 'dark' ? '#303731' : '#F7F5F2',
                     color: effectiveTheme === 'dark' ? '#EFE9E3' : '#0C160E',
                     border: `1px solid ${getCSSVar('--border-medium')}`,
+                    borderRadius: '0.5rem',
+                    boxShadow: 'none',
+                    transition: 'none',
                     '&:hover': {
                         backgroundColor: effectiveTheme === 'dark' ? '#3A4139' : '#EFE9E3',
                     },

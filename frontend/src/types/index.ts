@@ -267,3 +267,49 @@ export interface RegistrationResponse {
     user_id: string;
     email: string;
 }
+
+// Check-in Types
+export interface CheckInParticipant {
+    id: string;
+    signup_id: string;
+    name: string;
+    member_type: 'scout' | 'adult';
+    family_name: string;
+    patrol_name?: string;
+    troop_number?: string;
+    is_checked_in: boolean;
+    checked_in_at?: string;
+    checked_in_by?: string;
+}
+
+export interface CheckInSummary {
+    outing_id: string;
+    outing_name: string;
+    outing_date: string;
+    total_participants: number;
+    checked_in_count: number;
+    participants: CheckInParticipant[];
+}
+
+export interface CheckInCreate {
+    participant_ids: string[];
+    checked_in_by: string;
+}
+
+export interface CheckInResponse {
+    message: string;
+    checked_in_count: number;
+    participant_ids: string[];
+    checked_in_at: string;
+}
+
+export interface CheckInExportRow {
+    participant_name: string;
+    member_type: string;
+    family_name: string;
+    patrol_name?: string;
+    troop_number?: string;
+    checked_in: boolean;
+    checked_in_at?: string;
+    checked_in_by?: string;
+}

@@ -8,6 +8,7 @@ import logging
 
 from app.core.config import settings
 from app.api.endpoints import outings, signups, registration, family, clerk_auth
+from app.api import checkin
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -154,6 +155,12 @@ app.include_router(
     family.router,
     prefix=f"{settings.API_V1_STR}/family",
     tags=["family-management"]
+)
+
+app.include_router(
+    checkin.router,
+    prefix=f"{settings.API_V1_STR}/outings",
+    tags=["check-in"]
 )
 
 

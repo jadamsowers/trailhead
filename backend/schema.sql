@@ -115,3 +115,21 @@ CREATE TABLE family_member_allergies (
 );
 CREATE INDEX ix_family_member_allergies_id ON family_member_allergies (id);
 CREATE INDEX ix_family_member_allergies_family_member_id ON family_member_allergies (family_member_id);
+CREATE TABLE checkins (
+	id UUID NOT NULL, 
+	outing_id UUID NOT NULL, 
+	signup_id UUID NOT NULL, 
+	participant_id UUID NOT NULL, 
+	checked_in_by VARCHAR(255) NOT NULL, 
+	checked_in_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	PRIMARY KEY (id), 
+	CONSTRAINT uq_checkin_outing_participant UNIQUE (outing_id, participant_id), 
+	FOREIGN KEY(outing_id) REFERENCES outings (id) ON DELETE CASCADE, 
+	FOREIGN KEY(signup_id) REFERENCES signups (id) ON DELETE CASCADE, 
+	FOREIGN KEY(participant_id) REFERENCES participants (id) ON DELETE CASCADE
+);
+CREATE INDEX ix_checkins_id ON checkins (id);
+CREATE INDEX ix_checkins_outing_id ON checkins (outing_id);
+CREATE INDEX ix_checkins_signup_id ON checkins (signup_id);
+CREATE INDEX ix_checkins_participant_id ON checkins (participant_id);
