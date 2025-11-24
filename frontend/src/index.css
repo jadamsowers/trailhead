@@ -3,6 +3,25 @@
 /* Import Scouting America Theme */
 @import "./theme.css";
 
+/* Tailwind CSS Custom Font Configuration */
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+  
+  .font-body {
+    font-family: var(--font-body);
+  }
+  
+  .font-serif {
+    font-family: var(--font-heading);
+  }
+  
+  .font-sans {
+    font-family: var(--font-body);
+  }
+}
+
 /* Global Styles - Scouting Outing Manager */
 
 /* Custom theme configuration for Tailwind */
@@ -41,35 +60,48 @@ h5,
 h6 {
   font-family: var(--font-heading);
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.25;
   margin-bottom: 0.75em;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
 }
 
 h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 h2 {
-  font-size: 2rem;
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
 }
 
 h3 {
-  font-size: 1.5rem;
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 h4 {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
 }
 
 h5 {
-  font-size: 1.125rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 h6 {
-  font-size: 1rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 /* Body text */
@@ -224,4 +256,39 @@ code {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Font Family Utilities */
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-body {
+  font-family: var(--font-body);
+}
+
+/* Enhanced heading styles for Merriweather */
+.heading-serif {
+  font-family: var(--font-heading);
+  font-feature-settings: "liga", "kern";
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.01em;
+}
+
+.heading-display {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  line-height: 1.0;
+  letter-spacing: -0.025em;
+  font-feature-settings: "liga", "kern";
+  text-rendering: optimizeLegibility;
+}
+
+.heading-elegant {
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: 0.005em;
+  font-feature-settings: "liga", "kern";
+  text-rendering: optimizeLegibility;
 }
