@@ -8,15 +8,15 @@
   .font-heading {
     font-family: var(--font-heading);
   }
-  
+
   .font-body {
     font-family: var(--font-body);
   }
-  
+
   .font-serif {
     font-family: var(--font-heading);
   }
-  
+
   .font-sans {
     font-family: var(--font-body);
   }
@@ -41,14 +41,35 @@ body {
   line-height: 1.8;
   color: var(--text-primary);
   background-color: var(--bg-secondary);
-  background-image:
-    radial-gradient(at 0% 0%, rgba(var(--bsa-tan-rgb), 0.1) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(var(--bsa-olive-rgb), 0.08) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(var(--bsa-red-rgb), 0.05) 0px, transparent 50%),
-    radial-gradient(at 0% 100%, rgba(var(--bsa-tan-rgb), 0.12) 0px, transparent 50%);
+  background-image: radial-gradient(
+      at 0% 0%,
+      rgba(var(--bsa-tan-rgb), 0.1) 0px,
+      transparent 50%
+    ),
+    radial-gradient(
+      at 100% 0%,
+      rgba(var(--bsa-olive-rgb), 0.08) 0px,
+      transparent 50%
+    ),
+    radial-gradient(
+      at 100% 100%,
+      rgba(var(--bsa-red-rgb), 0.05) 0px,
+      transparent 50%
+    ),
+    radial-gradient(
+      at 0% 100%,
+      rgba(var(--bsa-tan-rgb), 0.12) 0px,
+      transparent 50%
+    );
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Disable gradient background in high-contrast mode */
+[data-theme="high-contrast"] body {
+  background-image: none;
+  background-color: var(--bg-primary);
 }
 
 /* Typography */
@@ -172,7 +193,8 @@ nav a[class*="px-"][class*="py-"] {
   border-radius: 0.75rem;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   gap: 0.75rem;
 }
 
@@ -239,7 +261,8 @@ button:disabled {
 
 /* Code */
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
 }
 
 /* Utility Classes */
@@ -278,7 +301,7 @@ code {
 .heading-display {
   font-family: var(--font-heading);
   font-weight: 900;
-  line-height: 1.0;
+  line-height: 1;
   letter-spacing: -0.025em;
   font-feature-settings: "liga", "kern";
   text-rendering: optimizeLegibility;

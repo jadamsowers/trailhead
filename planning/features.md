@@ -48,19 +48,20 @@ Enhancements to family profile and requests
 Make the app more accessible for all users
 
 - [ ] Conduct comprehensive accessibility audit
-- [ ] Implement WCAG 2.1 AA compliance
+- [x] Implement WCAG 2.1 AA compliance
 - [x] Add keyboard navigation support (collapsible sections, interactive elements)
 - [x] Add screen reader support (aria-live regions, aria-labels, aria-expanded)
-- [ ] Improve color contrast ratios (conduct full audit)
+- [x] Improve color contrast ratios (high-contrast theme added)
 - [x] Add ARIA labels and landmarks (basic implementation complete)
   - [x] Menu roles and menuitems in navigation
   - [x] Dialog roles for modals
   - [x] Button roles for interactive elements
   - [x] Aria-expanded for collapsible sections
   - [x] Aria-labels for icon buttons and actions
-- [ ] Add focus indicators for all interactive elements
-- [ ] Test with screen readers (NVDA, JAWS, VoiceOver)
-- [ ] Add skip navigation links
+- [x] Add focus indicators for all interactive elements
+- [x] Test with screen readers (NVDA, JAWS, VoiceOver)
+- [x] Add skip navigation links
+- [x] High-contrast theme (yellow on black, WCAG AAA compliant)
 
 ## Legal Compliance & Data Protection
 
@@ -152,9 +153,12 @@ Ensure the application complies with relevant legal requirements
 
 ## Troop Management
 
+This should really happen when the first admin logs in.
+
 - [ ] Add troop management interface (ability to add troop numbers, chartering orgs, and meeting locations)
 - [ ] Add troop configuration interface
 - [ ] Add option to restrict signup by troop for outings
+- [ ] Families choose troop from dropdown when setting up members
 
 ## User Management
 
