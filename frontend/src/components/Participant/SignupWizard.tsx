@@ -679,7 +679,7 @@ const SignupWizard: React.FC = () => {
                             ) : outings.filter(o => !mySignupOutingIds.has(o.id)).length === 0 ? (
                                 <p>No upcoming outings available{mySignups.length > 0 ? ' (you\'re signed up for all available outings)' : ''}.</p>
                             ) : (
-                                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 w-full">
+                                <div className="flex flex-col gap-4 w-full">
                                     {outings.filter(o => !mySignupOutingIds.has(o.id)).map(outing => (
                                         <div
                                             key={outing.id}
@@ -701,31 +701,31 @@ ${selectedOuting?.id === outing.id
                                         >
                                             <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                                                 <div className="flex-1">
-                                                    {/* Header with icon, title, date, and cost */}
-                                                    <div className="flex justify-between items-start gap-3 mb-2 flex-wrap">
-                                                        <div className="flex items-baseline gap-3 flex-1">
-                                                            <OutingIconDisplay icon={outing.icon} />
-                                                            <h3 className="text-xl font-bold font-heading text-sa-dark-blue m-0">{outing.name}</h3>
-                                                        </div>
-                                                        <div className="flex items-center gap-3">
-                                                            <span className="text-lg font-bold text-sa-blue whitespace-nowrap">
-                                                                📅 {formatOutingDate(outing.outing_date)}
-                                                                {outing.end_date && ` - ${formatOutingDate(outing.end_date)} `}
-                                                            </span>
-                                                            {outing.cost && (
-                                                                <div className="px-3 py-2 rounded-lg shadow-sm border text-right" style={{
-                                                                    backgroundColor: 'var(--bg-secondary)',
-                                                                    borderColor: 'var(--card-border)'
-                                                                }}>
-                                                                    <div className="text-xs mb-1 uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)' }}>
-                                                                        Cost
-                                                                    </div>
-                                                                    <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                                                                        ${typeof outing.cost === 'number' ? outing.cost.toFixed(2) : parseFloat(outing.cost as any).toFixed(2)}
-                                                                    </div>
+                                                    {/* Top row: Date, Cost, and Capacity */}
+                                                    <div className="flex justify-between items-center gap-3 mb-3">
+                                                        <span className="text-lg font-bold whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                                                            📅 {formatOutingDate(outing.outing_date)}
+                                                            {outing.end_date && ` - ${formatOutingDate(outing.end_date)} `}
+                                                        </span>
+                                                        {outing.cost != null && (
+                                                            <div className="px-3 py-2 rounded-lg shadow-sm border text-center" style={{
+                                                                backgroundColor: 'var(--bg-secondary)',
+                                                                borderColor: 'var(--card-border)'
+                                                            }}>
+                                                                <div className="text-xs mb-1 uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)' }}>
+                                                                    Cost
                                                                 </div>
-                                                            )}
-                                                        </div>
+                                                                <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                                                                    ${typeof outing.cost === 'number' ? outing.cost.toFixed(2) : parseFloat(outing.cost as any).toFixed(2)}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    {/* Second row: Icon and Title */}
+                                                    <div className="flex items-baseline gap-3 mb-2">
+                                                        <OutingIconDisplay icon={outing.icon} />
+                                                        <h3 className="text-xl font-bold font-heading text-sa-dark-blue m-0">{outing.name}</h3>
                                                     </div>
                                                     
                                                     {/* Warnings right below title */}
