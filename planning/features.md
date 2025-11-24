@@ -29,9 +29,9 @@ Enhancements to family profile and requests
 
 - [ ] Add grubmaster request functionality
 - [ ] Add gear request functionality
-- [ ] Store emergency contact information and phone number with account
-  - [ ] If the user updates during signup, update the account
-
+- [x] Store emergency contact information and phone number with account
+  - [x] If the user updates during signup, update the account
+  - [x] Created Profile page for users to view and edit contact information
 
 ## Accessibility Improvements
 Make the app more accessible for all users
@@ -47,3 +47,7 @@ Make the app more accessible for all users
 - [ ] Add troop management interface (ability to add troop numbers, chartering orgs, and meeting locations)
 - [ ] Add troop configuration interface
 - [ ] Add option to restrict signup by troop for outings
+
+## User Management
+- [ ] Ability to see registered users
+- [ ] Ability to promote to admin role
