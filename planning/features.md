@@ -33,6 +33,8 @@ Enhancements to family profile and requests
 
 - [ ] Add grubmaster request functionality
 - [ ] Add gear request functionality
+- [ ] Store emergency contact information and phone number with account
+  - [ ] If the user updates during signup, update the account
 
 
 ## Accessibility Improvements
