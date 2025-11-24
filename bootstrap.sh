@@ -570,7 +570,8 @@ $DOCKER_COMPOSE down 2>/dev/null || true
 # Check for Docker volumes related to postgres
 VOLUMES_EXIST=false
 # More flexible pattern: matches any volume with 'postgres' in the name
-VOLUME_NAMES=$(docker volume ls -q | grep -i 'postgres' || true)
+# Silence docker errors to avoid accidental output injection
+VOLUME_NAMES=$(docker volume ls -q 2>/dev/null | grep -i 'postgres' || true)
 
 print_info "Debug: Detected Docker volumes matching 'postgres':"
 echo "$VOLUME_NAMES"
@@ -677,7 +678,7 @@ RESTART_POLICY=$RESTART_POLICY
 DEBUG=$DEBUG
 HEALTHCHECK_INTERVAL=$HEALTHCHECK_INTERVAL
 
-# Compose profiles (useful for `docker compose` v2 profiles)
+# Compose profiles (useful for docker compose v2 profiles)
 # Will be set to 'production' when running in production mode
 COMPOSE_PROFILES=$COMPOSE_PROFILES_VALUE
 
