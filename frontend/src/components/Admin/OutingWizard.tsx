@@ -238,7 +238,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
       }
 
       onSuccess();
-      handleClose();
+      handleClose(true); // Force close after successful creation
     } catch (err) {
       console.error("Error creating outing:", err);
       setError("Failed to create outing. Please try again.");
@@ -247,7 +247,29 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
     }
   };
 
-  const handleClose = () => {
+  const handleClose = (force: boolean = false) => {
+    // Check if user has entered any data
+    const hasData =
+      name ||
+      startDate ||
+      endDate ||
+      location ||
+      description ||
+      outingAddress.address ||
+      pickupAddress.address ||
+      dropoffAddress.address ||
+      selectedRequirements.size > 0 ||
+      selectedMeritBadges.size > 0 ||
+      gearList.length > 0 ||
+      cost;
+
+    if (!force && hasData) {
+      const confirmed = window.confirm(
+        "Are you sure you want to close? All unsaved changes will be lost."
+      );
+      if (!confirmed) return;
+    }
+
     setActiveStep(0);
     setName("");
     setStartDate("");
@@ -266,6 +288,10 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
     setSuggestions(null);
     setError(null);
     onClose();
+  };
+
+  const handleBackdropClick = () => {
+    handleClose(false);
   };
 
   const isStepValid = () => {
@@ -489,8 +515,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               on during this outing.
             </p>
             {suggestions ||
-            allRequirements.length > 0 ||
-            allMeritBadges.length > 0 ? (
+              allRequirements.length > 0 ||
+              allMeritBadges.length > 0 ? (
               <div className="grid gap-8">
                 <div>
                   <h3>🏆 Rank Requirements</h3>
@@ -505,10 +531,10 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       {(suggestions
                         ? suggestions.requirements
                         : allRequirements.map((r) => ({
-                            requirement: r,
-                            match_score: 0,
-                            matched_keywords: [] as string[],
-                          }))
+                          requirement: r,
+                          match_score: 0,
+                          matched_keywords: [] as string[],
+                        }))
                       ).map((req) => {
                         const reqObj = req.requirement;
                         const id = reqObj.id;
@@ -582,10 +608,10 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       {(suggestions
                         ? suggestions.merit_badges
                         : allMeritBadges.map((b) => ({
-                            merit_badge: b,
-                            match_score: 0,
-                            matched_keywords: [] as string[],
-                          }))
+                          merit_badge: b,
+                          match_score: 0,
+                          matched_keywords: [] as string[],
+                        }))
                       ).map((badge) => {
                         const badgeObj = badge.merit_badge;
                         const id = badgeObj.id;
@@ -881,7 +907,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   return (
     <div
       className="fixed inset-0 z-[1000] flex items-center justify-center p-5 bg-[var(--bg-overlay)]"
-      onClick={handleClose}
+      onClick={handleBackdropClick}
     >
       <div
         className="bg-primary rounded-lg max-w-[900px] w-full max-h-[90vh] overflow-auto shadow-xl"
@@ -945,7 +971,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
         <div className="p-5 border-t border-card flex justify-between">
           <button
             type="button"
-            onClick={handleClose}
+            onClick={() => handleClose(false)}
             disabled={loading}
             className="px-5 py-2 border border-card rounded text-primary text-sm font-medium hover:bg-tertiary disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -969,8 +995,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               {loading
                 ? "⏳"
                 : activeStep === steps.length - 1
-                ? "✓ Create Outing"
-                : "Next →"}
+                  ? "✓ Create Outing"
+                  : "Next →"}
             </button>
           </div>
         </div>

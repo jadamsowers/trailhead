@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, any_
 from typing import List, Optional
 from uuid import UUID
 
@@ -87,7 +87,10 @@ async def search_rank_requirements_by_keywords(
     keywords: List[str]
 ) -> List[RankRequirement]:
     """Search rank requirements by keywords (async)"""
-    stmt = select(RankRequirement).where(RankRequirement.keywords.overlap(keywords))
+    # Use any_ to check if any keyword in the search list is in the database array
+    from sqlalchemy import or_
+    conditions = [RankRequirement.keywords.any(keyword) for keyword in keywords]
+    stmt = select(RankRequirement).where(or_(*conditions))
     result = await db.execute(stmt)
     return result.scalars().all()
 
@@ -161,7 +164,10 @@ async def search_merit_badges_by_keywords(
     keywords: List[str]
 ) -> List[MeritBadge]:
     """Search merit badges by keywords (async)"""
-    stmt = select(MeritBadge).where(MeritBadge.keywords.overlap(keywords))
+    # Use any_ to check if any keyword in the search list is in the database array
+    from sqlalchemy import or_
+    conditions = [MeritBadge.keywords.any(keyword) for keyword in keywords]
+    stmt = select(MeritBadge).where(or_(*conditions))
     result = await db.execute(stmt)
     return result.scalars().all()
 

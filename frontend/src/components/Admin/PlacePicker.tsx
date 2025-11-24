@@ -33,6 +33,7 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
   const [customAddress, setCustomAddress] = useState(value.address || "");
   const [showCustomInput, setShowCustomInput] = useState(false); // Hidden until no results
   const [showDropdown, setShowDropdown] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false); // Track if search has been performed
 
   // Load initial place if placeId is provided
   useEffect(() => {
@@ -53,6 +54,7 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
     if (!searchValue || showCustomInput || searchValue.length < 2) {
       setOptions([]);
       setShowDropdown(false);
+      setHasSearched(false);
       return;
     }
 
@@ -68,10 +70,12 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
         const results = await placesAPI.searchPlaces(searchValue, 10);
         setOptions(results);
         setShowDropdown(true);
+        setHasSearched(true);
       } catch (error) {
         console.error("Error searching places:", error);
         setOptions([]);
         setShowDropdown(false);
+        setHasSearched(true); // Still mark as searched even on error
       } finally {
         setLoading(false);
       }
@@ -152,8 +156,8 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
     value.place?.google_maps_url ||
     (value.address
       ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-          value.address
-        )}`
+        value.address
+      )}`
       : undefined);
 
   return (
@@ -164,12 +168,15 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
           {required && <span className="text-red-600"> *</span>}
         </label>
         {!showCustomInput &&
-          searchValue &&
+          hasSearched &&
           options.length === 0 &&
           !loading && (
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("Add New Place clicked", { hasSearched, options: options.length, loading, showCustomInput });
                 setShowCustomInput(true);
                 setShowDropdown(false);
               }}
@@ -181,7 +188,9 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
         {showCustomInput && (
           <button
             type="button"
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               setShowCustomInput(false);
               setCustomAddress("");
             }}

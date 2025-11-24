@@ -420,28 +420,28 @@ async def get_preview_suggestions(
     requirement_suggestions: list[RequirementSuggestion] = []
     for req in requirements:
         req_keywords = req.keywords or []
-        match_score = calculate_match_score(keywords, req_keywords)
+        match_score, matched_keywords = calculate_match_score(keywords, req_keywords)
         if match_score < min_score:
             continue
         requirement_suggestions.append(
             RequirementSuggestion(
                 requirement=RankRequirementResponse.model_validate(req),
                 match_score=match_score,
-                matched_keywords=[k for k in keywords if k in req_keywords],
+                matched_keywords=matched_keywords,
             )
         )
 
     merit_badge_suggestions: list[MeritBadgeSuggestion] = []
     for badge in merit_badges:
         badge_keywords = badge.keywords or []
-        match_score = calculate_match_score(keywords, badge_keywords)
+        match_score, matched_keywords = calculate_match_score(keywords, badge_keywords)
         if match_score < min_score:
             continue
         merit_badge_suggestions.append(
             MeritBadgeSuggestion(
                 merit_badge=MeritBadgeResponse.model_validate(badge),
                 match_score=match_score,
-                matched_keywords=[k for k in keywords if k in badge_keywords],
+                matched_keywords=matched_keywords,
             )
         )
 
