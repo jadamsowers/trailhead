@@ -109,7 +109,7 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({ onMemberAdde
                     </div>
                 )}
 
-                {members.length === 0 ? (
+                {!loading && members && members.length === 0 ? (
                     <div className="text-center py-12 px-6 bg-[var(--bg-tertiary)] rounded-lg">
                         <p className="text-secondary mb-6 text-base">No family members added yet</p>
                         <button

@@ -100,8 +100,7 @@ const Navigation: React.FC = () => {
                             style={navTextStyle}
                         >
                             <img src="/icon/icon-small-bordered.png" alt="Trailhead Logo" style={{ height: '2em', width: '2em', display: 'inline-block', verticalAlign: 'middle' }} />
-                            <span className="hidden sm:block">Trailhead</span>
-                            <span className="sm:hidden">TH</span>
+                            <span>Trailhead</span>
                         </Link>
                     </div>
 
@@ -176,12 +175,12 @@ const Navigation: React.FC = () => {
 
             {/* Mobile Menu */}
             <div className={`${mobileMenuOpen ? 'block' : 'hidden'} md:hidden border-t border-white/10`} style={{ backgroundColor: 'var(--color-primary)' }} role="menu">
-                <div className="px-4 pt-4 pb-6 space-y-2 sm:px-6">
+                <div className="flex flex-col">
                     <SignedIn>
                         <Link
                             to="/outings"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="block px-3 py-2 rounded-md text-base font-medium"
+                            className="block px-6 py-4 text-lg font-medium border-b border-white/10 hover:bg-white/5 transition-colors"
                             style={navTextStyle}
                             role="menuitem"
                             tabIndex={0}
@@ -191,7 +190,7 @@ const Navigation: React.FC = () => {
                         <Link
                             to="/family-setup"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="block px-3 py-2 rounded-md text-base font-medium"
+                            className="block px-6 py-4 text-lg font-medium border-b border-white/10 hover:bg-white/5 transition-colors"
                             style={navTextStyle}
                             role="menuitem"
                             tabIndex={0}
@@ -201,31 +200,31 @@ const Navigation: React.FC = () => {
                         <Link
                             to="/admin"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="block px-4 py-3 rounded-md text-base font-medium"
+                            className="block px-6 py-4 text-lg font-medium border-b border-white/10 hover:bg-white/5 transition-colors"
                             style={navTextStyle}
                             role="menuitem"
                             tabIndex={0}
                         >
                             Admin
                         </Link>
-                        <div className="px-3 py-2 flex items-center justify-between border-t border-white/10 mt-2 pt-3">
-                            <span style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>Theme</span>
+                        <div className="px-6 py-4 flex items-center justify-between border-b border-white/10 hover:bg-white/5 transition-colors">
+                            <span style={{ color: 'var(--text-on-primary)', fontSize: '1rem', fontWeight: 500 }}>Theme</span>
                             <ThemeToggleCompact />
                         </div>
-                        <div className="px-3 py-2 flex items-center gap-3">
+                        <div className="px-6 py-4 flex items-center gap-3 hover:bg-white/5 transition-colors">
                             <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: { borderRadius: '0.5rem' } } }} />
-                            <span style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>{user?.primaryEmailAddress?.emailAddress}</span>
+                            <span style={{ color: 'var(--text-on-primary)', fontSize: '0.875rem' }}>{user?.primaryEmailAddress?.emailAddress}</span>
                         </div>
                     </SignedIn>
                     <SignedOut>
-                        <div className="px-3 py-2 flex items-center justify-between border-b border-white/10 mb-2">
-                            <span style={{ color: 'var(--text-primary)', fontSize: '0.875rem' }}>Theme</span>
+                        <div className="px-6 py-4 flex items-center justify-between border-b border-white/10 hover:bg-white/5 transition-colors">
+                            <span style={{ color: 'var(--text-on-primary)', fontSize: '1rem', fontWeight: 500 }}>Theme</span>
                             <ThemeToggleCompact />
                         </div>
                         <Link
                             to="/login"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="block px-4 py-3 rounded-md text-base font-medium"
+                            className="block px-6 py-4 text-lg font-medium hover:bg-white/5 transition-colors"
                             style={navTextStyle}
                             role="menuitem"
                             tabIndex={0}
@@ -291,17 +290,17 @@ const App: React.FC = () => {
                         </main>
 
                         {/* Footer */}
-                        <footer className="py-8 mt-auto border-t border-white/10" style={{ backgroundColor: 'var(--color-primary)', color: 'var(--text-on-primary)' }}>
+                        <footer className="py-4 sm:py-8 mt-auto border-t border-white/10" style={{ backgroundColor: 'var(--color-primary)', color: 'var(--text-on-primary)' }}>
                             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                                <div className="flex flex-col items-center justify-center mb-2">
-                                    <img src="/icon/icon-small-bordered.png" alt="Trailhead Logo" style={{ height: '2em', width: '2em', display: 'inline-block', verticalAlign: 'middle', marginBottom: '0.5em' }} />
-                                    <p className="font-heading font-bold text-lg" style={{ color: 'var(--text-on-primary)' }}>Trailhead</p>
+                                <div className="flex flex-col items-center justify-center mb-1 sm:mb-2">
+                                    <img src="/icon/icon-small-bordered.png" alt="Trailhead Logo" style={{ height: '1.5em', width: '1.5em', display: 'inline-block', verticalAlign: 'middle', marginBottom: '0.25em' }} className="sm:!h-8 sm:!w-8 sm:!mb-2" />
+                                    <p className="font-heading font-bold text-base sm:text-lg" style={{ color: 'var(--text-on-primary)' }}>Trailhead</p>
                                 </div>
-                                <p className="italic mb-4" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>Putting the 'outing' back in 'Scouting'</p>
-                                <p className="text-sm" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>
+                                <p className="italic mb-2 sm:mb-4 text-sm sm:text-base" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>Putting the 'outing' back in 'Scouting'</p>
+                                <p className="text-xs sm:text-sm" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>
                                     <a href="https://github.com/jadamsowers/trailhead" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>Vibe-coded</a> with ⚜️❤️ by <a href="https://scouthacks.net/" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>Adam Sowers</a>
                                 </p>
-                                <p className="text-xs mt-4" style={{ color: 'var(--text-on-primary)', opacity: 0.7 }}>
+                                <p className="text-xs mt-2 sm:mt-4 hidden sm:block" style={{ color: 'var(--text-on-primary)', opacity: 0.7 }}>
                                     API Documentation: <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>http://localhost:8000/docs</a>
                                 </p>
                             </div>

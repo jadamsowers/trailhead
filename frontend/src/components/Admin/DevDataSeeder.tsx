@@ -287,8 +287,8 @@ const DevDataSeeder: React.FC = () => {
             borderRadius: '0.5rem',
             boxShadow: 'var(--card-shadow)'
         }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
-                <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
                     <h3 style={{
                         fontSize: '1.25rem',
                         fontWeight: 'bold',
@@ -347,7 +347,6 @@ const DevDataSeeder: React.FC = () => {
                     onClick={handleSeedData}
                     disabled={isSeeding}
                     style={{
-                        marginLeft: '1rem',
                         padding: '0.75rem 1.5rem',
                         borderRadius: '0.5rem',
                         fontWeight: 'bold',
@@ -356,7 +355,8 @@ const DevDataSeeder: React.FC = () => {
                         border: 'none',
                         cursor: isSeeding ? 'not-allowed' : 'pointer',
                         transition: 'background-color 0.2s',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
+                        alignSelf: 'center'
                     }}
                     onMouseOver={(e) => {
                         if (!isSeeding) e.currentTarget.style.backgroundColor = 'var(--btn-primary-hover)';

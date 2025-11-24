@@ -196,6 +196,10 @@ async def get_outing_signups(
     for signup in signups:
         participant_responses = []
         for participant in signup.participants:
+            # Get dietary preferences and allergies from family member relationships
+            dietary_prefs = [dp.preference for dp in participant.family_member.dietary_preferences] if participant.family_member else []
+            allergies = [a.allergy for a in participant.family_member.allergies] if participant.family_member else []
+            
             participant_responses.append(ParticipantResponse(
                 id=participant.id,
                 name=participant.name,
@@ -207,8 +211,8 @@ async def get_outing_signups(
                 patrol_name=participant.patrol_name,
                 has_youth_protection=participant.has_youth_protection,
                 vehicle_capacity=participant.vehicle_capacity,
-                dietary_restrictions=[dr.restriction_type for dr in participant.dietary_restrictions],
-                allergies=[a.allergy_type for a in participant.allergies],
+                dietary_restrictions=dietary_prefs,
+                allergies=allergies,
                 medical_notes=participant.medical_notes,
                 created_at=participant.created_at
             ))

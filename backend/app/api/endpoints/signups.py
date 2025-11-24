@@ -781,6 +781,10 @@ async def export_outing_roster_pdf(
     for signup in signups:
         participants_data = []
         for participant in signup.participants:
+            # Get dietary preferences and allergies from family member
+            dietary_prefs = [dp.preference for dp in participant.family_member.dietary_preferences] if participant.family_member else []
+            allergies = [a.allergy for a in participant.family_member.allergies] if participant.family_member else []
+            
             participants_data.append({
                 'name': participant.name,
                 'age': participant.age,
@@ -790,8 +794,8 @@ async def export_outing_roster_pdf(
                 'patrol_name': participant.patrol_name,
                 'has_youth_protection': participant.has_youth_protection,
                 'vehicle_capacity': participant.vehicle_capacity,
-                'dietary_restrictions': [dr.restriction_type for dr in participant.dietary_restrictions],
-                'allergies': [a.allergy_type for a in participant.allergies]
+                'dietary_preferences': dietary_prefs,
+                'allergies': allergies
             })
         
         signups_data.append({

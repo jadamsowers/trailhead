@@ -114,7 +114,7 @@ def generate_outing_roster_pdf(outing_data: dict, signups: List[dict]) -> BytesI
                 'gender': participant['gender'],
                 'troop': participant.get('troop_number', ''),
                 'patrol': participant.get('patrol_name', ''),
-                'dietary': ', '.join(participant.get('dietary_restrictions', [])),
+                'dietary': ', '.join(participant.get('dietary_preferences', [])),
                 'allergies': ', '.join(participant.get('allergies', [])),
                 'vehicle': participant.get('vehicle_capacity', 0),
                 'yp_training': participant.get('has_youth_protection', False),

@@ -30,9 +30,6 @@ const AdminPage: React.FC = () => {
                     </p>
                 </div>
 
-                {/* Seed Data Section */}
-                <DevDataSeeder />
-
                 {/* Large Colorful Button Navigation */}
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-8 mb-8">
                     <button
@@ -130,6 +127,11 @@ const AdminPage: React.FC = () => {
                 <div>
                     {activeTab === 'outings' && <OutingAdmin />}
                     {activeTab === 'users' && <UserManagement />}
+                </div>
+
+                {/* Seed Data Section */}
+                <div className="mt-12">
+                    <DevDataSeeder />
                 </div>
             </div>
         </div>

@@ -78,13 +78,12 @@ const OutingAdmin: React.FC = () => {
     const [emailList, setEmailList] = useState<string[]>([]);
     const [emailSubject, setEmailSubject] = useState('');
     const [emailMessage, setEmailMessage] = useState('');
-    const [emailFrom, setEmailFrom] = useState('');
     const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
-    
+
     // QR Code modal state
     const [showQRCode, setShowQRCode] = useState(false);
     const [qrCodeOuting, setQrCodeOuting] = useState<{ id: string; name: string } | null>(null);
-    
+
     const [newOuting, setNewOuting] = useState<OutingCreate>({
         name: '',
         outing_date: defaultDates.friday,
@@ -342,7 +341,7 @@ const OutingAdmin: React.FC = () => {
 
             // Load signups for this outing to get email addresses
             const signups = await signupAPI.getByOuting(outing.id);
-            
+
             // Extract unique email addresses from family contacts
             const emails = new Set<string>();
             signups.forEach(signup => {
@@ -355,7 +354,6 @@ const OutingAdmin: React.FC = () => {
             setSelectedOutingForEmail(outing);
             setEmailSubject(`${outing.name} - Important Information`);
             setEmailMessage('');
-            setEmailFrom('');
             setShowEmailModal(true);
         } catch (err) {
             console.error('Error loading email data:', err);
@@ -372,7 +370,6 @@ const OutingAdmin: React.FC = () => {
         setEmailList([]);
         setEmailSubject('');
         setEmailMessage('');
-        setEmailFrom('');
         setEmailSuccess(null);
     };
 
@@ -388,7 +385,8 @@ const OutingAdmin: React.FC = () => {
     };
 
     const handleSendEmail = () => {
-        const mailtoLink = `mailto:${emailFrom}?bcc=${emailList.join(',')}&subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailMessage)}`;
+        // Create mailto link with proper structure - recipients go directly after mailto:
+        const mailtoLink = `mailto:${emailList.join(',')}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailMessage)}`;
         window.location.href = mailtoLink;
         setEmailSuccess('Opening your email client...');
         setTimeout(() => {
@@ -788,10 +786,10 @@ const OutingAdmin: React.FC = () => {
                         >
                             {loading ? 'Creating...' : 'Create Outing'}
                         </button>
-                        
+
                     </form>
                 )}
-                
+
             </div>
 
             <div>
@@ -1110,64 +1108,19 @@ const OutingAdmin: React.FC = () => {
 
                                         {expandedOutingId === outing.id && renderOutingSignups(outing.id)}
 
-                                        <div style={{ padding: '15px 20px', backgroundColor: 'var(--card-bg)', borderTop: '1px solid var(--card-border)' }}>
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleExportRosterPDF(outing.id, outing.name);
-                                                }}
-                                                disabled={loading}
-                                                style={{
-                                                    padding: '8px 16px',
-                                                    marginRight: '10px',
-                                                    backgroundColor: 'var(--btn-secondary-bg)',
-                                                    color: 'var(--btn-secondary-text)',
-                                                    border: 'none',
-                                                    borderRadius: '4px',
-                                                    cursor: loading ? 'not-allowed' : 'pointer',
-                                                    fontWeight: 'bold'
-                                                }}
-                                                title="Download printable PDF roster with checkboxes for check-in"
-                                            >
-                                                📄 Export Roster (PDF)
-                                            </button>
-                                            <Link
-                                                to={`/check-in/${outing.id}`}
-                                                onClick={(e) => e.stopPropagation()}
-                                                style={{
-                                                    display: 'inline-block',
-                                                    padding: '8px 16px',
-                                                    marginRight: '10px',
-                                                    backgroundColor: outing.signup_count === 0 ? 'var(--btn-disabled-bg)' : 'var(--btn-primary-bg)',
-                                                    color: outing.signup_count === 0 ? 'var(--btn-disabled-text)' : 'var(--btn-primary-text)',
-                                                    border: '1px solid transparent',
-                                                    borderRadius: '4px',
-                                                    cursor: outing.signup_count === 0 ? 'not-allowed' : 'pointer',
-                                                    fontWeight: 'bold',
-                                                    textDecoration: 'none',
-                                                    pointerEvents: outing.signup_count === 0 ? 'none' : 'auto',
-                                                    opacity: outing.signup_count === 0 ? 0.6 : 1,
-                                                    fontSize: '14px'
-                                                }}
-                                                title={outing.signup_count === 0 ? 'No participants to check in' : 'Open check-in mode for this outing'}
-                                            >
-                                                📋 Check-in Mode
-                                            </Link>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2" style={{ padding: '15px 20px', backgroundColor: 'var(--card-bg)', borderTop: '1px solid var(--card-border)' }}>
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleShowQRCode(outing.id, outing.name);
                                                 }}
                                                 disabled={loading}
+                                                className="w-full !py-2 !px-4"
                                                 style={{
-                                                    padding: '8px 16px',
-                                                    marginRight: '10px',
                                                     backgroundColor: 'var(--btn-info-bg)',
                                                     color: 'var(--btn-info-text)',
-                                                    border: 'none',
                                                     borderRadius: '4px',
-                                                    cursor: loading ? 'not-allowed' : 'pointer',
-                                                    fontWeight: 'bold'
+                                                    cursor: loading ? 'not-allowed' : 'pointer'
                                                 }}
                                                 title="Show QR code for easy sharing"
                                             >
@@ -1179,15 +1132,12 @@ const OutingAdmin: React.FC = () => {
                                                     handleShowEmailModal(outing);
                                                 }}
                                                 disabled={loading || outing.signup_count === 0}
+                                                className="w-full !py-2 !px-4"
                                                 style={{
-                                                    padding: '8px 16px',
-                                                    marginRight: '10px',
                                                     backgroundColor: outing.signup_count === 0 ? 'var(--btn-disabled-bg)' : 'var(--btn-success-bg)',
                                                     color: outing.signup_count === 0 ? 'var(--btn-disabled-text)' : 'var(--btn-success-text)',
-                                                    border: 'none',
                                                     borderRadius: '4px',
-                                                    cursor: loading || outing.signup_count === 0 ? 'not-allowed' : 'pointer',
-                                                    fontWeight: 'bold'
+                                                    cursor: loading || outing.signup_count === 0 ? 'not-allowed' : 'pointer'
                                                 }}
                                                 title={outing.signup_count === 0 ? 'No signups yet' : 'Email all participants'}
                                             >
@@ -1196,15 +1146,48 @@ const OutingAdmin: React.FC = () => {
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
+                                                    handleExportRosterPDF(outing.id, outing.name);
+                                                }}
+                                                disabled={loading || outing.signup_count === 0}
+                                                className="w-full !py-2 !px-4"
+                                                style={{
+                                                    backgroundColor: outing.signup_count === 0 ? 'var(--btn-disabled-bg)' : 'var(--btn-secondary-bg)',
+                                                    color: outing.signup_count === 0 ? 'var(--btn-disabled-text)' : 'var(--btn-secondary-text)',
+                                                    borderRadius: '4px',
+                                                    cursor: loading || outing.signup_count === 0 ? 'not-allowed' : 'pointer'
+                                                }}
+                                                title={outing.signup_count === 0 ? 'No participants to export' : 'Download printable PDF roster with checkboxes for check-in'}
+                                            >
+                                                📄 Export Roster
+                                            </button>
+                                            <Link
+                                                to={`/check-in/${outing.id}`}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="btn w-full text-center !py-2 !px-4"
+                                                style={{
+                                                    backgroundColor: outing.signup_count === 0 ? 'var(--btn-disabled-bg)' : 'var(--btn-primary-bg)',
+                                                    color: outing.signup_count === 0 ? 'var(--btn-disabled-text)' : 'var(--btn-primary-text)',
+                                                    borderRadius: '4px',
+                                                    cursor: outing.signup_count === 0 ? 'not-allowed' : 'pointer',
+                                                    textDecoration: 'none',
+                                                    pointerEvents: outing.signup_count === 0 ? 'none' : 'auto',
+                                                    opacity: outing.signup_count === 0 ? 0.6 : 1,
+                                                    fontSize: '16px'
+                                                }}
+                                                title={outing.signup_count === 0 ? 'No participants to check in' : 'Open check-in mode for this outing'}
+                                            >
+                                                📋 Check-in
+                                            </Link>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
                                                     handleEditOuting(outing);
                                                 }}
                                                 disabled={loading}
+                                                className="w-full !py-2 !px-4"
                                                 style={{
-                                                    padding: '8px 16px',
-                                                    marginRight: '10px',
                                                     backgroundColor: 'var(--btn-secondary-bg)',
                                                     color: 'var(--btn-secondary-text)',
-                                                    border: 'none',
                                                     borderRadius: '4px',
                                                     cursor: loading ? 'not-allowed' : 'pointer'
                                                 }}
@@ -1217,17 +1200,15 @@ const OutingAdmin: React.FC = () => {
                                                     handleDeleteOuting(outing.id);
                                                 }}
                                                 disabled={loading}
+                                                className="w-full !py-2 !px-4"
                                                 style={{
-                                                    padding: '8px 16px',
                                                     backgroundColor: 'var(--btn-danger-bg)',
                                                     color: 'var(--btn-danger-text)',
-                                                    border: 'none',
                                                     borderRadius: '4px',
-                                                    cursor: loading ? 'not-allowed' : 'pointer',
-                                                    fontWeight: 'bold'
+                                                    cursor: loading ? 'not-allowed' : 'pointer'
                                                 }}
                                             >
-                                                Delete Outing
+                                                🗑️ Delete
                                             </button>
                                         </div>
                                     </>
@@ -1318,28 +1299,6 @@ const OutingAdmin: React.FC = () => {
 
                         <div style={{ marginBottom: '15px' }}>
                             <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                From Email *
-                            </label>
-                            <input
-                                type="email"
-                                value={emailFrom}
-                                onChange={(e) => setEmailFrom(e.target.value)}
-                                placeholder="your.email@example.com"
-                                required
-                                style={{
-                                    width: '100%',
-                                    padding: '10px',
-                                    fontSize: '14px',
-                                    border: '1px solid var(--input-border)',
-                                    borderRadius: '4px',
-                                    backgroundColor: 'var(--input-bg)',
-                                    color: 'var(--text-primary)'
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
                                 Subject *
                             </label>
                             <input
@@ -1413,14 +1372,14 @@ const OutingAdmin: React.FC = () => {
                             </button>
                             <button
                                 onClick={handleSendEmail}
-                                disabled={loading || emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage}
+                                disabled={loading || emailList.length === 0 || !emailSubject || !emailMessage}
                                 style={{
                                     padding: '10px 20px',
-                                    backgroundColor: emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage ? 'var(--btn-disabled-bg)' : 'var(--btn-success-bg)',
-                                    color: emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage ? 'var(--btn-disabled-text)' : 'var(--btn-success-text)',
+                                    backgroundColor: emailList.length === 0 || !emailSubject || !emailMessage ? 'var(--btn-disabled-bg)' : 'var(--btn-success-bg)',
+                                    color: emailList.length === 0 || !emailSubject || !emailMessage ? 'var(--btn-disabled-text)' : 'var(--btn-success-text)',
                                     border: 'none',
                                     borderRadius: '4px',
-                                    cursor: loading || emailList.length === 0 || !emailFrom || !emailSubject || !emailMessage ? 'not-allowed' : 'pointer',
+                                    cursor: loading || emailList.length === 0 || !emailSubject || !emailMessage ? 'not-allowed' : 'pointer',
                                     fontSize: '16px',
                                     fontWeight: 'bold'
                                 }}
