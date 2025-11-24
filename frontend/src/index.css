@@ -6,43 +6,6 @@
 /* Global Styles - Scouting Outing Manager */
 
 /* Custom theme configuration for Tailwind */
-@theme {
-  /* Font families */
-  --font-heading: "Outfit", sans-serif;
-  --font-body: "Inter", sans-serif;
-  --font-slab: "Roboto Slab", serif;
-
-  /* Map Scouting America colors to Tailwind primary scale */
-  --color-primary-50: #e3f2fd;
-  --color-primary-100: #bbdefb;
-  --color-primary-200: #90caf9;
-  --color-primary-300: #9AB3D5;
-  /* SA Pale Blue */
-  --color-primary-400: #6B8DB8;
-  --color-primary-500: #003366;
-  /* SA Dark Blue */
-  --color-primary-600: #002952;
-  --color-primary-700: #001f3d;
-  --color-primary-800: #001529;
-  --color-primary-900: #000a14;
-
-  /* Custom gradients using Scouting America colors */
-  --color-gradient-scout: linear-gradient(135deg, #9AB3D5 0%, #003366 50%, #243E2C 100%);
-  --color-gradient-scout-light: linear-gradient(135deg, #9AB3D5 0%, #6B8DB8 50%, #9AB3D5 100%);
-  --color-gradient-user: linear-gradient(135deg, #AD9D7B 0%, #D6CEBD 50%, #E9E9E4 100%);
-  --color-gradient-user-light: linear-gradient(135deg, #D6CEBD 0%, #E9E9E4 50%, #FFFFFF 100%);
-
-  /* Custom shadows */
-  --shadow-elevated: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-  --shadow-glow: 0 0 15px rgba(0, 51, 102, 0.3);
-}
-
-/* Base styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
 
 html,
 body,
@@ -116,26 +79,17 @@ p {
 }
 
 /* Form Elements */
-input,
+input:not([type="checkbox"]),
 textarea,
 select {
   font-family: var(--font-body);
-  font-size: 0.95rem;
-  background-color: var(--input-bg);
-  color: var(--input-text);
-  border: 1px solid var(--input-border);
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
   transition: all 0.2s ease;
-  width: 100%;
 }
 
-input:focus,
+input:not([type="checkbox"]):focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: var(--input-border-focus);
-  background-color: var(--input-bg);
   box-shadow: 0 0 0 4px rgba(var(--bsa-olive-rgb), 0.1);
 }
 
@@ -145,7 +99,7 @@ select::placeholder {
   color: var(--input-placeholder);
 }
 
-label {
+label:not(.flex) {
   display: block;
   font-weight: 600;
   color: var(--text-primary);
@@ -257,6 +211,10 @@ code {
 }
 
 /* Utility Classes */
+.theme-toggle-compact {
+  padding: 0 !important;
+}
+
 .text-shadow {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { familyAPI } from '../../services/api';
 import {
     FamilyMember,
@@ -184,9 +184,26 @@ interface FamilyMemberCardProps {
 }
 
 const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onDelete }) => {
+    const [showActions, setShowActions] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
     const age = member.date_of_birth
         ? Math.floor((new Date().getTime() - new Date(member.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
         : null;
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowActions(false);
+            }
+        };
+
+        if (showActions) {
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [showActions]);
 
     return (
         <div className="glass-card p-8 flex flex-col h-full cursor-default group relative overflow-hidden">
@@ -205,28 +222,56 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({ member, onEdit, onD
                         {member.member_type === 'scout' ? '🌱 Scout' : '🌲 Adult'}
                     </span>
                 </div>
-                <div className="flex gap-2 ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute top-4 right-4 rounded-lg p-1 shadow-sm backdrop-blur"
-                    style={{ backgroundColor: 'var(--card-bg-alpha)' }}>
+                
+                {/* Actions Dropdown - All Widths */}
+                <div className="relative" ref={dropdownRef}>
                     <button
-                        onClick={onEdit}
-                        className="p-2 rounded-md transition-colors"
-                        style={{ color: 'var(--color-info)' }}
+                        onClick={() => setShowActions(!showActions)}
+                        className="p-2 rounded-md transition-colors border"
+                        style={{ 
+                            color: 'var(--text-primary)',
+                            backgroundColor: 'var(--card-bg-alpha)',
+                            borderColor: 'var(--border-light)'
+                        }}
                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                        title="Edit"
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--card-bg-alpha)'}
+                        title="Actions"
                     >
-                        ✏️
+                        ⋮
                     </button>
-                    <button
-                        onClick={onDelete}
-                        className="p-2 rounded-md transition-colors"
-                        style={{ color: 'var(--color-error)' }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--card-error-bg)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                        title="Delete"
-                    >
-                        🗑️
-                    </button>
+                    
+                    {showActions && (
+                        <div 
+                            className="absolute right-0 top-full mt-1 bg-[var(--card-bg)] border border-[var(--border-light)] rounded-md shadow-lg z-10 min-w-[160px]"
+                            style={{ backgroundColor: 'var(--card-bg)' }}
+                        >
+                            <button
+                                onClick={() => {
+                                    onEdit();
+                                    setShowActions(false);
+                                }}
+                                className="w-full px-4 py-3 text-left flex items-center gap-2 text-sm font-medium transition-colors"
+                                style={{ color: 'var(--color-info)' }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                            >
+                                ✏️ Edit
+                            </button>
+                            <div className="h-px bg-[var(--border-light)]"></div>
+                            <button
+                                onClick={() => {
+                                    onDelete();
+                                    setShowActions(false);
+                                }}
+                                className="w-full px-4 py-3 text-left flex items-center gap-2 text-sm font-medium transition-colors"
+                                style={{ color: 'var(--color-error)' }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--card-error-bg)'}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                            >
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -435,9 +480,15 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-5 z-[1000]">
-            <div className="bg-[var(--card-bg)] rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
-                <div className="p-8">
+        <div 
+            className="fixed inset-0 bg-black/50 flex items-center justify-center p-5 z-[1000]"
+            onClick={onClose}
+        >
+            <div 
+                className="bg-[var(--card-bg)] rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="p-5">
                     <h3 className="text-3xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
                         {member ? 'Edit Family Member' : 'Add Family Member'}
                     </h3>
@@ -458,7 +509,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 required
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="w-full p-3 border border-[var(--input-border)] rounded-md text-[15px] bg-[var(--input-bg)] text-[var(--input-text)] box-border"
+                                className="w-full py-3 px-4 border border-[var(--input-border)] rounded-md text-[15px] bg-[var(--input-bg)] text-[var(--input-text)] box-border"
                                 placeholder="Enter full name"
                             />
                         </div>
@@ -471,7 +522,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                 required
                                 value={formData.member_type}
                                 onChange={(e) => setFormData({ ...formData, member_type: e.target.value as 'scout' | 'adult' })}
-                                className="w-full p-3 border border-[var(--input-border)] rounded-md text-[15px] bg-[var(--input-bg)] text-[var(--input-text)] box-border"
+                                className="w-full py-3 px-4 border border-[var(--input-border)] rounded-md text-[15px] bg-[var(--input-bg)] text-[var(--input-text)] box-border"
                             >
                                 <option value="scout">Scout</option>
                                 <option value="adult">Adult</option>
@@ -521,18 +572,18 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
 
                         {formData.member_type === 'adult' && (
                             <>
-                                <div className="flex items-center gap-2.5">
+                                <label className="flex items-center gap-4 cursor-pointer">
                                     <input
                                         type="checkbox"
                                         id="youth_protection"
                                         checked={formData.has_youth_protection}
                                         onChange={(e) => setFormData({ ...formData, has_youth_protection: e.target.checked })}
-                                        className="w-[18px] h-[18px] cursor-pointer"
+                                        className="w-[18px] h-[18px] cursor-pointer flex-shrink-0"
                                     />
-                                    <label htmlFor="youth_protection" className="text-[15px] text-primary cursor-pointer">
+                                    <span className="text-[15px] text-primary">
                                         Youth Protection Trained (SAFE Youth Training)
-                                    </label>
-                                </div>
+                                    </span>
+                                </label>
 
                                 {formData.has_youth_protection && (
                                     <div>
@@ -546,7 +597,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                             onChange={(e) => setFormData({ ...formData, youth_protection_expiration: e.target.value })}
                                             className="w-full p-3 border border-[var(--input-border)] rounded-md text-[15px] bg-[var(--input-bg)] text-[var(--input-text)] box-border"
                                         />
-                                        <p className="text-[13px] text-secondary mt-1.5">
+                                        <p className="text-[13px] text-secondary mt-1.5 leading-relaxed">
                                             SAFE Youth Training certificates are typically valid for 2 years
                                         </p>
                                     </div>
@@ -590,7 +641,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({ member, onClose, on
                                     <label
                                         key={preference}
                                         className={`
-                                            flex items-center gap-2 cursor-pointer p-2 rounded transition-all duration-200 border
+                                            flex items-center gap-4 cursor-pointer p-2 rounded transition-all duration-200 border
                                             ${formData.dietary_preferences?.includes(preference)
                                                 ? 'bg-[var(--badge-scout-bg)] border-sa-dark-blue'
                                                 : 'bg-[var(--input-bg)] border-[var(--input-border)]'

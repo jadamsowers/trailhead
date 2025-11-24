@@ -131,7 +131,12 @@ const Navigation: React.FC = () => {
                                 </Link>
                                 <div className="flex items-center gap-5 pl-8 border-l-2 border-white/20 h-10">
                                     <ThemeToggleCompact />
-                                    <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: { borderRadius: '0.5rem' } } }} />
+                                    <UserButton afterSignOutUrl="/" appearance={{ 
+                                        elements: { 
+                                            avatarBox: { borderRadius: '0.25rem', width: '40px', height: '40px' },
+                                            userButtonTrigger: { borderRadius: '0.25rem', width: '40px', height: '40px' }
+                                        } 
+                                    }} />
                                 </div>
                             </div>
                         </SignedIn>
@@ -212,7 +217,12 @@ const Navigation: React.FC = () => {
                             <ThemeToggleCompact />
                         </div>
                         <div className="px-6 py-4 flex items-center gap-3 hover:bg-white/5 transition-colors">
-                            <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: { borderRadius: '0.5rem' } } }} />
+                            <UserButton afterSignOutUrl="/" appearance={{ 
+                                elements: { 
+                                    avatarBox: { borderRadius: '0.25rem', width: '40px', height: '40px' },
+                                    userButtonTrigger: { borderRadius: '0.25rem', width: '40px', height: '40px' }
+                                } 
+                            }} />
                             <span style={{ color: 'var(--text-on-primary)', fontSize: '0.875rem' }}>{user?.primaryEmailAddress?.emailAddress}</span>
                         </div>
                     </SignedIn>
@@ -292,17 +302,16 @@ const App: React.FC = () => {
                         {/* Footer */}
                         <footer className="py-4 sm:py-8 mt-auto border-t border-white/10" style={{ backgroundColor: 'var(--color-primary)', color: 'var(--text-on-primary)' }}>
                             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                                <div className="flex flex-col items-center justify-center mb-1 sm:mb-2">
-                                    <img src="/icon/icon-small-bordered.png" alt="Trailhead Logo" style={{ height: '1.5em', width: '1.5em', display: 'inline-block', verticalAlign: 'middle', marginBottom: '0.25em' }} className="sm:!h-8 sm:!w-8 sm:!mb-2" />
-                                    <p className="font-heading font-bold text-base sm:text-lg" style={{ color: 'var(--text-on-primary)' }}>Trailhead</p>
+                                <div className="flex items-center justify-center gap-3 flex-wrap">
+                                    <img src="/icon/icon-small-bordered.png" alt="Trailhead Logo" style={{ height: '2em', width: '2em' }} className="sm:!h-10 sm:!w-10" />
+                                    <span className="font-heading font-bold text-xl sm:text-2xl" style={{ color: 'var(--text-on-primary)' }}>Trailhead</span>
+                                    <span className="text-lg sm:text-xl" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>•</span>
+                                    <span className="italic text-base sm:text-lg" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>Putting the 'outing' back in 'Scouting'</span>
+                                    <span className="text-lg sm:text-xl" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>•</span>
+                                    <span className="text-sm sm:text-base" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>
+                                        <a href="https://github.com/jadamsowers/trailhead" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>Vibe-coded</a> with ⚜️❤️ by <a href="https://scouthacks.net/" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>Adam Sowers</a>
+                                    </span>
                                 </div>
-                                <p className="italic mb-2 sm:mb-4 text-sm sm:text-base" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>Putting the 'outing' back in 'Scouting'</p>
-                                <p className="text-xs sm:text-sm" style={{ color: 'var(--text-on-primary)', opacity: 0.85 }}>
-                                    <a href="https://github.com/jadamsowers/trailhead" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>Vibe-coded</a> with ⚜️❤️ by <a href="https://scouthacks.net/" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>Adam Sowers</a>
-                                </p>
-                                <p className="text-xs mt-2 sm:mt-4 hidden sm:block" style={{ color: 'var(--text-on-primary)', opacity: 0.7 }}>
-                                    API Documentation: <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: 'var(--text-on-primary)' }}>http://localhost:8000/docs</a>
-                                </p>
                             </div>
                         </footer>
                     </div>

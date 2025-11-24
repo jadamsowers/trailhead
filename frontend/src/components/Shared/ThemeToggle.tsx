@@ -63,12 +63,12 @@ export const ThemeToggleCompact: React.FC = () => {
     return (
         <button
             onClick={toggleTheme}
+            className="theme-toggle-compact"
             style={{
-                padding: '8px',
                 backgroundColor: 'transparent',
                 color: 'var(--text-primary)',
                 border: '1px solid var(--border-light)',
-                borderRadius: '0.5rem',
+                borderRadius: '0.25rem',
                 fontSize: '20px',
                 cursor: 'pointer',
                 transition: 'none',
