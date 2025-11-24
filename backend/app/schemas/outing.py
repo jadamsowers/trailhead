@@ -4,6 +4,8 @@ from uuid import UUID
 from typing import Optional
 from decimal import Decimal
 
+from app.schemas.place import PlaceResponse  # Safe import (place does not import outing)
+
 
 class OutingBase(BaseModel):
     """Base outing schema with common fields"""
@@ -25,6 +27,14 @@ class OutingBase(BaseModel):
     cost: Optional[Decimal] = Field(None, ge=0, description="Cost of the outing in dollars")
     gear_list: Optional[str] = Field(None, description="Suggested gear list for participants")
     icon: Optional[str] = Field(None, max_length=50, description="Outing icon (Bootstrap icon name or emoji)")
+    
+    # Address fields with Place relationships
+    outing_address: Optional[str] = Field(None, description="Full address of outing location")
+    outing_place_id: Optional[UUID] = Field(None, description="Reference to saved place for outing location")
+    pickup_address: Optional[str] = Field(None, description="Full address for pickup location")
+    pickup_place_id: Optional[UUID] = Field(None, description="Reference to saved place for pickup")
+    dropoff_address: Optional[str] = Field(None, description="Full address for drop-off location")
+    dropoff_place_id: Optional[UUID] = Field(None, description="Reference to saved place for drop-off")
 
     @field_validator('capacity_type')
     @classmethod
@@ -82,6 +92,11 @@ class OutingResponse(OutingBase):
     needs_female_leader: bool = Field(False, description="Whether outing needs a female adult leader (required when female youth present)")
     created_at: datetime
     updated_at: datetime
+    
+    # Place details (populated from relationships)
+    outing_place: Optional['PlaceResponse'] = None
+    pickup_place: Optional['PlaceResponse'] = None
+    dropoff_place: Optional['PlaceResponse'] = None
 
     class Config:
         from_attributes = True
@@ -91,3 +106,7 @@ class OutingListResponse(BaseModel):
     """Schema for list of outings"""
     outings: list[OutingResponse]
     total: int
+
+# Rebuild models to resolve forward references to PlaceResponse
+OutingResponse.model_rebuild()
+OutingListResponse.model_rebuild()

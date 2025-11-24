@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Boolean, Date, Text, DateTime, Time, Numeric
+from sqlalchemy import Column, String, Integer, Boolean, Date, Text, DateTime, Time, Numeric, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -15,7 +15,7 @@ class Outing(Base):
     name = Column(String(255), nullable=False)
     outing_date = Column(Date, nullable=False, index=True)  # Start date for overnight outings, single date for day outings
     end_date = Column(Date, nullable=True, index=True)  # End date for overnight outings only
-    location = Column(String(255), nullable=False)
+    location = Column(String(255), nullable=False)  # Legacy: name/description of location
     description = Column(Text)
     max_participants = Column(Integer, nullable=False)
     capacity_type = Column(String(20), default='fixed', nullable=False)  # 'fixed' or 'vehicle'
@@ -24,17 +24,32 @@ class Outing(Base):
     outing_lead_email = Column(String(255), nullable=True)
     outing_lead_phone = Column(String(50), nullable=True)
     drop_off_time = Column(Time, nullable=True)  # Drop-off time
-    drop_off_location = Column(String(255), nullable=True)  # Drop-off location
+    drop_off_location = Column(String(255), nullable=True)  # Legacy: drop-off location name
     pickup_time = Column(Time, nullable=True)  # Pickup time
-    pickup_location = Column(String(255), nullable=True)  # Pickup location
+    pickup_location = Column(String(255), nullable=True)  # Legacy: pickup location name
     cost = Column(Numeric(10, 2), nullable=True)  # Cost in dollars
     gear_list = Column(Text, nullable=True)  # Suggested gear list
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     icon = Column(String(50), nullable=True)  # Outing icon (Bootstrap icon name or emoji)
+    
+    # Address fields with Place relationships
+    outing_address = Column(Text, nullable=True)  # Full address of outing location
+    outing_place_id = Column(UUID(as_uuid=True), ForeignKey("places.id"), nullable=True, index=True)
+    pickup_address = Column(Text, nullable=True)  # Full address for pickup
+    pickup_place_id = Column(UUID(as_uuid=True), ForeignKey("places.id"), nullable=True, index=True)
+    dropoff_address = Column(Text, nullable=True)  # Full address for drop-off
+    dropoff_place_id = Column(UUID(as_uuid=True), ForeignKey("places.id"), nullable=True, index=True)
 
     # Relationships
     signups = relationship("Signup", back_populates="outing", cascade="all, delete-orphan")
+    outing_requirements = relationship("OutingRequirement", back_populates="outing", cascade="all, delete-orphan")
+    outing_merit_badges = relationship("OutingMeritBadge", back_populates="outing", cascade="all, delete-orphan")
+    
+    # Place relationships
+    outing_place = relationship("Place", foreign_keys=[outing_place_id], back_populates="outings_at_location")
+    pickup_place = relationship("Place", foreign_keys=[pickup_place_id], back_populates="outings_pickup")
+    dropoff_place = relationship("Place", foreign_keys=[dropoff_place_id], back_populates="outings_dropoff")
 
     def __repr__(self):
         return f"<Outing(id={self.id}, name={self.name}, date={self.outing_date})>"

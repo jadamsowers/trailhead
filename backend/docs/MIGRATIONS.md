@@ -1,21 +1,23 @@
 # Database Migrations Guide
 
-This guide explains how to manage database schema changes using Alembic for the Trailhead application.
+This guide explains how to manage database schema changes using Atlas for the Trailhead application.
 
 ## Overview
 
-We use Alembic for database migrations, which provides:
+We use Atlas for database migrations, which provides:
 
-- Version control for database schema
-- Automatic migration generation from SQLAlchemy models
-- Safe upgrade and downgrade paths
-- Migration history tracking
+- Version control for database schema via SQL migration files
+- Declarative schema definitions from `schema.sql`
+- Hash-based migration integrity verification
+- Simple apply/status commands for deployment
+- Sequential versioning (v001, v002, v003...) to avoid date conflicts
 
 ## Prerequisites
 
-1. PostgreSQL database running and accessible
+1. PostgreSQL database running and accessible (via Docker Compose)
 2. Environment variables configured (see `.env.example`)
-3. Python dependencies installed: `pip install -r requirements.txt`
+3. Atlas CLI installed: [https://atlasgo.io/getting-started](https://atlasgo.io/getting-started)
+4. Python dependencies installed: `pip install -r requirements.txt`
 
 ## Initial Setup
 
@@ -43,25 +45,30 @@ Optional environment variables for initial admin user:
 - `INITIAL_ADMIN_EMAIL` - Email for initial admin user (default: `soadmin@scouthacks.net`)
 - `INITIAL_ADMIN_PASSWORD` - Password for initial admin user (if not set, a random password will be generated)
 
-### 2. Create Initial Migration
+### 2. Start Database
 
-Generate the initial migration from your models:
+Ensure PostgreSQL is running via Docker Compose:
 
 ```bash
-cd backend
-alembic revision --autogenerate -m "Initial migration"
+cd /path/to/trailhead
+docker compose up -d postgres
 ```
-
-This will create a new migration file in `alembic/versions/` with all table definitions.
 
 ### 3. Apply Migrations
 
-Run the migration to create all tables:
+Run all pending migrations:
 
 ```bash
 cd backend
-alembic upgrade head
+atlas migrate apply --env sqlalchemy
 ```
+
+This will:
+
+1. Read migration files from `backend/migrations/`
+2. Verify checksums from `migrations/atlas.sum`
+3. Apply unapplied migrations in order
+4. Track applied migrations in the `atlas_schema_revisions` table
 
 ### 4. Seed Initial Data
 
@@ -80,11 +87,13 @@ The initial admin user can be configured via environment variables in your `.env
 - `INITIAL_ADMIN_PASSWORD` - Password for the admin user (optional)
 
 **Behavior:**
+
 - If `INITIAL_ADMIN_PASSWORD` is set in `.env`, that password will be used
 - If `INITIAL_ADMIN_PASSWORD` is not set, a random password will be generated and displayed in the terminal
 - The email defaults to `soadmin@scouthacks.net` but can be changed via `INITIAL_ADMIN_EMAIL`
 
 **Example `.env` configuration:**
+
 ```env
 # Use a specific password
 INITIAL_ADMIN_EMAIL=admin@yourdomain.com
@@ -95,7 +104,8 @@ INITIAL_ADMIN_EMAIL=admin@yourdomain.com
 # INITIAL_ADMIN_PASSWORD will be randomly generated
 ```
 
-**⚠️ IMPORTANT:** 
+**⚠️ IMPORTANT:**
+
 - Save the password shown in the terminal output if you let it generate randomly
 - Change the admin password immediately after first login!
 
@@ -103,184 +113,228 @@ INITIAL_ADMIN_EMAIL=admin@yourdomain.com
 
 ### Creating a New Migration
 
-When you modify SQLAlchemy models, create a new migration:
+When you modify SQLAlchemy models, create a migration file manually:
 
-```bash
-cd backend
-alembic revision --autogenerate -m "Add new field to outings table"
-```
+1. **Determine next version number** by checking existing migrations:
 
-Alembic will:
+   ```bash
+   cd backend/migrations
+   ls -1 v*.sql | tail -1
+   # If last is v008_add_outing_logistics_fields.sql, your new one is v009
+   ```
 
-1. Compare your models to the current database schema
-2. Generate a migration file with the differences
-3. Save it in `alembic/versions/`
+2. **Create new migration file** with sequential version:
 
-**Always review the generated migration** before applying it!
+   ```bash
+   cd backend/migrations
+   # Example: v009_add_user_preferences.sql
+   touch v009_add_user_preferences.sql
+   ```
+
+3. **Write the migration SQL**:
+
+   ```sql
+   -- Add user preferences table
+   CREATE TABLE user_preferences (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+       theme VARCHAR(20) DEFAULT 'light',
+       created_at TIMESTAMP NOT NULL DEFAULT NOW()
+   );
+
+   CREATE INDEX idx_user_preferences_user_id ON user_preferences(user_id);
+
+   COMMENT ON TABLE user_preferences IS 'User application preferences';
+   ```
+
+4. **Hash the migration** to update `migrations/atlas.sum`:
+
+   ```bash
+   cd backend
+   atlas migrate hash --env sqlalchemy
+   ```
+
+**Always review the migration SQL** before applying it!
 
 ### Applying Migrations
 
-Upgrade to the latest version:
+Apply all pending migrations:
 
 ```bash
 cd backend
-alembic upgrade head
+atlas migrate apply --env sqlalchemy
 ```
 
-Upgrade to a specific revision:
+Apply migrations up to a specific version:
 
 ```bash
 cd backend
-alembic upgrade <revision_id>
+atlas migrate apply --env sqlalchemy --to-version v009_add_user_preferences
+```
+
+Dry run (preview without executing):
+
+```bash
+cd backend
+atlas migrate apply --env sqlalchemy --dry-run
 ```
 
 ### Rolling Back Migrations
 
-Downgrade one migration:
+**Atlas does not have automatic rollback**. To revert a migration:
 
-```bash
-cd backend
-alembic downgrade -1
-```
+1. **Write a down migration** (e.g., `v010_revert_user_preferences.sql`):
 
-Downgrade to a specific revision:
+   ```sql
+   -- Revert: remove user preferences table
+   DROP TABLE IF EXISTS user_preferences CASCADE;
+   ```
 
-```bash
-cd backend
-alembic downgrade <revision_id>
-```
+2. **Hash and apply**:
 
-Downgrade all migrations:
+   ```bash
+   cd backend
+   atlas migrate hash --env sqlalchemy
+   atlas migrate apply --env sqlalchemy
+   ```
 
-```bash
-cd backend
-alembic downgrade base
-```
+**Best Practice**: For critical migrations, plan rollback SQL in advance and test both directions in development.
 
 ### Viewing Migration Status
 
-Check current database version:
+Check which migrations are applied vs pending:
 
 ```bash
 cd backend
-alembic current
+atlas migrate status --env sqlalchemy
 ```
 
-View migration history:
+Example output:
 
-```bash
-cd backend
-alembic history
+```
+Migration Status: PENDING
+  -- Current Version: v008_add_outing_logistics_fields
+  -- Next Version:    v009_add_user_preferences
+  -- Pending:         1 migration
 ```
 
-View migration history with details:
+### Inspecting the Database Schema
+
+View the current database schema:
 
 ```bash
 cd backend
-alembic history --verbose
+atlas schema inspect --env sqlalchemy --url "postgres://postgres:password@localhost:5432/trailhead?sslmode=disable"
 ```
 
 ## Migration Best Practices
 
-### 1. Always Review Generated Migrations
+### 1. Always Review Migration SQL
 
-Auto-generated migrations may not be perfect. Review and edit them before applying:
+Atlas does not auto-generate migrations—you write raw SQL. Verify:
 
-```python
-# Check the generated file in alembic/versions/
-# Verify:
-# - Column types are correct
-# - Indexes are properly defined
-# - Foreign keys are correct
-# - Default values are appropriate
-```
+- Column types and constraints are correct
+- Indexes are defined where needed
+- Foreign keys have appropriate `ON DELETE` behavior
+- Default values are set if columns are non-nullable
+- Comments document the purpose of tables/columns
 
 ### 2. Test Migrations
 
 Before applying to production:
 
 1. Test on a development database
-2. Verify upgrade works: `alembic upgrade head`
-3. Verify downgrade works: `alembic downgrade -1`
-4. Test with actual data if possible
+2. Run `atlas migrate apply --env sqlalchemy --dry-run` to preview
+3. Apply with `atlas migrate apply --env sqlalchemy`
+4. Verify with `atlas migrate status --env sqlalchemy`
+5. Test application endpoints to confirm schema compatibility
 
 ### 3. Handle Data Migrations
 
-For complex schema changes that require data transformation:
+For schema changes requiring data transformation, include it in the same migration file:
 
-```python
-def upgrade() -> None:
-    # 1. Add new column (nullable)
-    op.add_column('outings', sa.Column('new_field', sa.String(), nullable=True))
-    
-    # 2. Migrate data
-    connection = op.get_bind()
-    connection.execute(
-        text("UPDATE outings SET new_field = old_field WHERE old_field IS NOT NULL")
-    )
-    
-    # 3. Make column non-nullable if needed
-    op.alter_column('outings', 'new_field', nullable=False)
-    
-    # 4. Drop old column
-    op.drop_column('outings', 'old_field')
-```
+````sql
+-- Add new column (nullable first)
+ALTER TABLE outings ADD COLUMN new_field VARCHAR(255);
 
-### 4. Use Transactions
+-- Migrate data
+UPDATE outings SET new_field = old_field WHERE old_field IS NOT NULL;
 
-Alembic runs migrations in transactions by default. For operations that can't run in transactions:
+-- Make column non-nullable
+ALTER TABLE outings ALTER COLUMN new_field SET NOT NULL;
 
-```python
-def upgrade() -> None:
-    # Disable transaction for this operation
-    op.execute("CREATE INDEX CONCURRENTLY idx_name ON table(column)")
-```
+-- Drop old column
+ALTER TABLE outings DROP COLUMN old_field;
+```### 4. Use Transactions
+
+Atlas migrations run in transactions by default. For operations that can't run in transactions (e.g., `CREATE INDEX CONCURRENTLY`), note this in comments:
+
+```sql
+-- Note: This migration must be run outside a transaction
+-- Run manually if needed:
+-- CREATE INDEX CONCURRENTLY idx_users_email ON users(email);
+````
 
 ### 5. Document Complex Migrations
 
 Add comments to explain non-obvious changes:
 
-```python
-def upgrade() -> None:
-    """
-    Add support for multi-troop events.
-    
-    - Adds troop_number field to participants table
-    - Adds patrol_name field for youth organization
-    - Creates indexes for efficient troop-based queries
-    """
-    # Migration code here
+```sql
+-- Migration: Add support for multi-troop events
+-- - Adds troop_number field to participants table
+-- - Adds patrol_name field for youth organization
+-- - Creates indexes for efficient troop-based queries
+
+ALTER TABLE participants ADD COLUMN troop_number VARCHAR(50);
+ALTER TABLE participants ADD COLUMN patrol_name VARCHAR(100);
+
+CREATE INDEX idx_participants_troop ON participants(troop_number);
+CREATE INDEX idx_participants_patrol ON participants(patrol_name);
 ```
+
+### 6. Keep Migrations Idempotent When Possible
+
+Use `IF NOT EXISTS` or `IF EXISTS` clauses where supported:
+
+```sql
+CREATE TABLE IF NOT EXISTS new_table (
+    id UUID PRIMARY KEY,
+    name VARCHAR(255) NOT NULL
+);
+
+ALTER TABLE outings ADD COLUMN IF NOT EXISTS icon VARCHAR(50);
+```
+
+### 7. Hash After Every Change
+
+Always run `atlas migrate hash` after creating or editing a migration file:
+
+```bash
+cd backend
+atlas migrate hash --env sqlalchemy
+```
+
+This updates `migrations/atlas.sum` with integrity checksums.
 
 ## Troubleshooting
 
 ### Migration Fails to Apply
 
-1. Check database connection:
+1. **Check database connection**:
 
    ```bash
-   psql -h $POSTGRES_SERVER -U $POSTGRES_USER -d $POSTGRES_DB
+   docker compose ps postgres
+   docker compose exec postgres psql -U postgres -d trailhead -c "SELECT 1;"
    ```
 
-2. Check current migration state:
+2. **Check migration status**:
 
    ```bash
-   alembic current
+   cd backend
+   atlas migrate status --env sqlalchemy
    ```
 
-3. Check for conflicting changes:
-
-   ```bash
-   alembic history
-   ```
-
-### Alembic Can't Detect Changes
-
-If auto-generate doesn't detect your model changes:
-
-1. Ensure models are imported in `alembic/env.py`
-2. Check that `Base.metadata` includes your models
-3. Verify model changes are saved
+3. **Inspect error logs**: Atlas will print the SQL statement that failed. Review and fix the migration file, then re-hash and re-apply.
 
 ### Database Out of Sync
 
@@ -289,25 +343,34 @@ If your database schema doesn't match migrations:
 1. **Development**: Drop and recreate:
 
    ```bash
-   # Drop all tables
-   alembic downgrade base
-   # Recreate from scratch
-   alembic upgrade head
+   docker compose down -v postgres
+   docker compose up -d postgres
+   cd backend
+   atlas migrate apply --env sqlalchemy
    ```
 
-2. **Production**: Create a manual migration to sync state
+2. **Production**:
+   - Backup first: `pg_dump -h $POSTGRES_SERVER -U $POSTGRES_USER $POSTGRES_DB > backup.sql`
+   - Manually inspect differences: `atlas schema inspect`
+   - Write corrective migration to align state
+   - Test on staging before production apply
 
-### Merge Conflicts in Migrations
+### Hash Mismatch
 
-If multiple developers create migrations:
+If `atlas migrate apply` reports a hash mismatch:
 
-1. Use `alembic merge` to create a merge migration:
+- Someone edited a migration file after it was applied
+- Re-run `atlas migrate hash --env sqlalchemy` to update checksums
+- **Do not edit already-applied migrations in production**—write a new migration instead
 
-   ```bash
-   alembic merge -m "Merge migrations" <rev1> <rev2>
-   ```
+### Version Conflicts
 
-2. Or manually edit migration files to resolve conflicts
+If multiple developers create migrations with overlapping version numbers:
+
+1. Check the last version: `ls -1 backend/migrations/v*.sql | tail -1`
+2. Rename conflicting migration to next sequential number (e.g., `v010`)
+3. Re-run `atlas migrate hash --env sqlalchemy`
+4. Coordinate via version control to avoid overlaps
 
 ## Production Deployment
 
@@ -315,30 +378,30 @@ If multiple developers create migrations:
 
 - [ ] All migrations tested in staging environment
 - [ ] Database backup created
-- [ ] Downgrade path tested
-- [ ] Migration time estimated
-- [ ] Maintenance window scheduled (if needed)
+- [ ] Migration SQL reviewed for performance impact (e.g., table locks)
+- [ ] Estimated downtime calculated (if any)
+- [ ] Rollback migration prepared (if critical)
 
 ### Deployment Steps
 
 1. **Backup database**:
 
    ```bash
-   pg_dump -h $POSTGRES_SERVER -U $POSTGRES_USER $POSTGRES_DB > backup.sql
+   pg_dump -h $POSTGRES_SERVER -U $POSTGRES_USER $POSTGRES_DB > backup_$(date +%Y%m%d_%H%M%S).sql
    ```
 
 2. **Apply migrations**:
 
    ```bash
    cd backend
-   alembic upgrade head
+   atlas migrate apply --env sqlalchemy
    ```
 
 3. **Verify success**:
 
    ```bash
-   alembic current
-   # Should show the latest revision
+   atlas migrate status --env sqlalchemy
+   # Should show "Migration Status: OK"
    ```
 
 4. **Test application**:
@@ -350,41 +413,51 @@ If multiple developers create migrations:
 
 If migration fails:
 
-1. **Rollback migration**:
+1. **Restore from backup**:
 
    ```bash
-   alembic downgrade -1
+   psql -h $POSTGRES_SERVER -U $POSTGRES_USER $POSTGRES_DB < backup_YYYYMMDD_HHMMSS.sql
    ```
 
-2. **Restore from backup** (if needed):
-
-   ```bash
-   psql -h $POSTGRES_SERVER -U $POSTGRES_USER $POSTGRES_DB < backup.sql
-   ```
+2. **Apply corrective migration** (if backup not needed):
+   - Write a new migration to undo the change
+   - Hash and apply as normal
 
 ## Kubernetes Deployment
 
-For Kubernetes deployments, migrations should run as an init container or Job:
+For Kubernetes deployments, migrations should run as an init container or Job before the backend starts:
 
 ```yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: -migrations
+  name: trailhead-migrations
+  namespace: trailhead
 spec:
   template:
     spec:
       containers:
-      - name: migrations
-        image: -backend:latest
-        command: ["alembic", "upgrade", "head"]
-        env:
-        - name: POSTGRES_SERVER
-          valueFrom:
-            configMapKeyRef:
-              name: -config
-              key: postgres-server
-        # ... other env vars
+        - name: migrations
+          image: trailhead-backend:latest
+          command: ["atlas", "migrate", "apply", "--env", "sqlalchemy"]
+          env:
+            - name: POSTGRES_SERVER
+              valueFrom:
+                configMapKeyRef:
+                  name: trailhead-config
+                  key: postgres-server
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: trailhead-secrets
+                  key: postgres-user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: trailhead-secrets
+                  key: postgres-password
+            - name: POSTGRES_DB
+              value: "trailhead"
       restartPolicy: OnFailure
 ```
 
@@ -392,21 +465,89 @@ Run before deploying the application:
 
 ```bash
 kubectl apply -f k8s/migrations-job.yaml
-kubectl wait --for=condition=complete job/-migrations
+kubectl wait --for=condition=complete job/trailhead-migrations --timeout=300s
 kubectl apply -f k8s/backend-deployment.yaml
+```
+
+Alternatively, use an **init container** in the backend deployment:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trailhead-backend
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: run-migrations
+          image: trailhead-backend:latest
+          command: ["atlas", "migrate", "apply", "--env", "sqlalchemy"]
+          env:
+            # ... same env vars as above
+      containers:
+        - name: backend
+          image: trailhead-backend:latest
+          # ... backend container spec
+```
+
+## Atlas Configuration
+
+The project uses `backend/atlas.hcl` for Atlas configuration:
+
+```hcl
+env "sqlalchemy" {
+  src = "file://schema.sql"
+  dev = "docker://postgres/15/dev"
+  migration {
+    dir = "file://migrations"
+  }
+  format {
+    migrate {
+      diff = "{{ sql . \"  \" }}"
+    }
+  }
+}
+```
+
+- `src`: Source schema file (declarative SQL)
+- `dev`: Development database URL (used for diffing and validation)
+- `migration.dir`: Directory containing migration files
+- `format.migrate.diff`: SQL formatting template
+
+## Migration Versioning
+
+We use **sequential versioning** (v001, v002, v003...) instead of timestamps to avoid conflicts when multiple migrations are created on the same day.
+
+**Naming Convention**: `vXXX_descriptive_name.sql`
+
+Examples:
+
+- `v001_initial.sql`
+- `v002_add_checkins_table.sql`
+- `v009_add_user_preferences.sql`
+
+**Finding Next Version**:
+
+```bash
+cd backend/migrations
+ls -1 v*.sql | tail -1
+# If last is v008_add_outing_logistics_fields.sql, next is v009
 ```
 
 ## Additional Resources
 
-- [Alembic Documentation](https://alembic.sqlalchemy.org/)
-- [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
+- [Atlas Documentation](https://atlasgo.io/docs)
+- [Atlas CLI Reference](https://atlasgo.io/cli-reference)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
+- [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
 
 ## Support
 
 For issues or questions:
 
-1. Check the migration history: `alembic history`
-2. Review the generated migration files
-3. Check application logs for errors
-4. Consult the Alembic documentation
+1. Check migration status: `atlas migrate status --env sqlalchemy`
+2. Review migration files in `backend/migrations/`
+3. Inspect database schema: `atlas schema inspect --env sqlalchemy`
+4. Check application logs for SQL errors
+5. Consult the Atlas documentation: https://atlasgo.io/docs

@@ -630,3 +630,11 @@
 .border-error {
   border-color: var(--border-error);
 }
+
+/* Card Utilities */
+.bg-card {
+  background-color: var(--card-bg);
+}
+.border-card {
+  border-color: var(--card-border);
+}

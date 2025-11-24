@@ -5,6 +5,8 @@ from app.models.participant import Participant
 from app.models.refresh_token import RefreshToken
 from app.models.family import FamilyMember, FamilyMemberDietaryPreference, FamilyMemberAllergy
 from app.models.checkin import CheckIn
+from app.models.requirement import RankRequirement, MeritBadge, OutingRequirement, OutingMeritBadge
+from app.models.place import Place
 
 __all__ = [
     "User",
@@ -16,4 +18,9 @@ __all__ = [
     "FamilyMemberDietaryPreference",
     "FamilyMemberAllergy",
     "CheckIn",
+    "RankRequirement",
+    "MeritBadge",
+    "OutingRequirement",
+    "OutingMeritBadge",
+    "Place",
 ]

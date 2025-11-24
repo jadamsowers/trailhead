@@ -28,9 +28,9 @@ Enhancements to outing setup and management
 
 ## Scouting requirements
 
-- [ ] create list of common requirements (Scout/Tenderfoot/Second Class/First Class) that can be completed on trips
-  - [ ] suggest requirements based on outing type and keywords
-- [ ] suggest common merit badges based on outing type and keywords (e.g. First Aid, Cooking, Camping, Hiking, etc.)
+- [x] create list of common requirements (Scout/Tenderfoot/Second Class/First Class) that can be completed on trips
+  - [x] suggest requirements based on outing type and keywords
+- [x] suggest common merit badges based on outing type and keywords (e.g. First Aid, Cooking, Camping, Hiking, etc.)
 
 ## Signup Configuration
 
