@@ -63,12 +63,18 @@ async def list_family_members_summary(
     the outing's end date (or outing date if no end date). Otherwise, it's
     checked against today's date.
     """
+    print(f"📋 Getting family member summary for user: {current_user.email} (ID: {current_user.id})")
+    
     result = await db.execute(
         select(FamilyMember)
         .where(FamilyMember.user_id == current_user.id)
         .order_by(FamilyMember.member_type, FamilyMember.name)
     )
     members = result.scalars().all()
+    
+    print(f"   Found {len(members)} family members")
+    for member in members:
+        print(f"   - {member.name} ({member.member_type})")
     
     # Get outing end date if outing_id is provided
     comparison_date = date.today()

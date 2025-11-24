@@ -19,6 +19,7 @@ const SignupForm: React.FC = () => {
     const [expandedOutingId, setExpandedOutingId] = useState<string>('');
     const [expandedSignupId, setExpandedSignupId] = useState<string>('');
     const [loading, setLoading] = useState(false);
+    const [loadingFamilyMembers, setLoadingFamilyMembers] = useState(false);
     const [cancelingSignupId, setCancelingSignupId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
@@ -99,10 +100,25 @@ const SignupForm: React.FC = () => {
 
     const loadFamilyMembers = async () => {
         try {
+            setLoadingFamilyMembers(true);
+            console.log('🔄 Loading family members...');
             const data = await familyAPI.getSummary();
+            console.log('✅ Family members loaded:', data.length);
             setFamilyMembers(data);
+            
+            // If no family members found, show a helpful message
+            if (data.length === 0) {
+                console.warn('⚠️ No family members found for user');
+            }
         } catch (err) {
-            console.error('Failed to load family members:', err);
+            console.error('❌ Failed to load family members:', err);
+            // Set error to inform user
+            setError(
+                'Unable to load your family members. Please refresh the page or contact support if the problem persists. ' +
+                (err instanceof Error ? err.message : '')
+            );
+        } finally {
+            setLoadingFamilyMembers(false);
         }
     };
 
@@ -757,12 +773,50 @@ const SignupForm: React.FC = () => {
                                 {expandedOutingId === outing.id && selectedOuting && (
                                     <form onSubmit={handleSubmit} style={{ padding: '20px', backgroundColor: '#f5f5f5', borderTop: '2px solid #1976d2' }}>
                         {/* Family Member Selection (for authenticated parents) */}
-                        {isAuthenticated && isParent && familyMembers.length > 0 && showFamilySelection && (
+                        {isAuthenticated && isParent && showFamilySelection && (
                             <div style={{ marginBottom: '30px', padding: '20px', border: '2px solid #4caf50', borderRadius: '8px', backgroundColor: '#f1f8f4' }}>
                                 <h2>Select Participants from Your Family</h2>
-                                <p style={{ marginBottom: '15px', color: '#555' }}>
-                                    Select one or more family members to sign up for this outing
-                                </p>
+                                
+                                {loadingFamilyMembers ? (
+                                    <div style={{ padding: '40px', textAlign: 'center' }}>
+                                        <p style={{ fontSize: '16px', color: '#666', marginBottom: '10px' }}>
+                                            🔄 Loading your family members...
+                                        </p>
+                                        <p style={{ fontSize: '14px', color: '#999' }}>
+                                            Please wait while we fetch your family information
+                                        </p>
+                                    </div>
+                                ) : familyMembers.length === 0 ? (
+                                    <div style={{ padding: '20px', backgroundColor: '#fff3e0', borderRadius: '8px', border: '2px solid #ff9800' }}>
+                                        <p style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#e65100', fontWeight: 'bold' }}>
+                                            ⚠️ No family members found
+                                        </p>
+                                        <p style={{ margin: '0 0 15px 0', color: '#555' }}>
+                                            You need to add family members before you can sign up for outings.
+                                            Click the button below to go to the Family Setup page and add your family members.
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={handleAddParticipant}
+                                            style={{
+                                                padding: '12px 24px',
+                                                backgroundColor: '#ff9800',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '4px',
+                                                cursor: 'pointer',
+                                                fontSize: '16px',
+                                                fontWeight: 'bold'
+                                            }}
+                                        >
+                                            Go to Family Setup
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <p style={{ marginBottom: '15px', color: '#555' }}>
+                                            Select one or more family members to sign up for this outing
+                                        </p>
                                 
                                 {/* Group parents and scouts separately */}
                                 {(() => {
@@ -947,11 +1001,13 @@ const SignupForm: React.FC = () => {
                                         + Add New Participant
                                     </button>
                                 </div>
-                            </div>
+                            </>
                         )}
+                    </div>
+                )}
 
                         {/* Back to Family Selection Button */}
-                        {isAuthenticated && isParent && familyMembers.length > 0 && !showFamilySelection && (
+                        {isAuthenticated && isParent && !showFamilySelection && !loadingFamilyMembers && (
                             <div style={{ marginBottom: '20px' }}>
                                 <button
                                     type="button"
