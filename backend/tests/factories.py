@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.models.outing import Outing
 from app.models.signup import Signup
-from app.models.participant import Participant, DietaryRestriction, Allergy
 from app.models.requirement import RankRequirement, MeritBadge, OutingRequirement, OutingMeritBadge
 from app.core.security import get_password_hash
 
@@ -116,7 +115,7 @@ async def create_merit_badge(
     return badge
 
 # ---------------------------------------------------------------------------
-# Signup + Participants
+# Signup (participant helpers removed; model changed)
 # ---------------------------------------------------------------------------
 async def create_signup(
     db: AsyncSession,
@@ -138,64 +137,6 @@ async def create_signup(
     await db.refresh(signup)
     return signup
 
-async def add_participant(
-    db: AsyncSession,
-    *,
-    signup: Signup,
-    name: str | None = None,
-    age: int = 14,
-    participant_type: str = "scout",
-    is_adult: bool | None = None,
-    gender: str = "male",
-    troop_number: str | None = "123",
-    patrol_name: str | None = "Eagle",
-    has_youth_protection: bool = False,
-    vehicle_capacity: int = 0,
-    dietary_restrictions: Sequence[str] | None = None,
-    allergies: Sequence[str] | None = None,
-    medical_notes: str | None = None,
-) -> Participant:
-    if is_adult is None:
-        is_adult = participant_type == "adult"
-    participant = Participant(
-        id=uuid.uuid4(),
-        signup_id=signup.id,
-        name=name or f"Participant {uuid.uuid4().hex[:5]}",
-        age=age,
-        participant_type=participant_type,
-        is_adult=is_adult,
-        gender=gender,
-        troop_number=troop_number if not is_adult else None,
-        patrol_name=patrol_name if not is_adult else None,
-        has_youth_protection=has_youth_protection,
-        vehicle_capacity=vehicle_capacity,
-        medical_notes=medical_notes,
-    )
-    db.add(participant)
-    await db.flush()
-
-    # Add restrictions / allergies if provided
-    if dietary_restrictions:
-        for r in dietary_restrictions:
-            db.add(
-                DietaryRestriction(
-                    id=uuid.uuid4(),
-                    participant_id=participant.id,
-                    restriction_type=r,
-                )
-            )
-    if allergies:
-        for a in allergies:
-            db.add(
-                Allergy(
-                    id=uuid.uuid4(),
-                    participant_id=participant.id,
-                    allergy_type=a,
-                )
-            )
-    await db.commit()
-    await db.refresh(participant)
-    return participant
 
 # ---------------------------------------------------------------------------
 # Outing Requirement / Merit Badge association

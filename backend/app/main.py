@@ -7,7 +7,7 @@ import traceback
 import logging
 
 from app.core.config import settings
-from app.api.endpoints import outings, signups, registration, family, clerk_auth, requirements, places
+from app.api.endpoints import outings, signups, registration, family, clerk_auth, requirements, places, packing_lists
 from app.api import checkin
 
 # Configure logging
@@ -192,6 +192,13 @@ app.include_router(
     prefix=f"{settings.API_V1_STR}",
     tags=["places"]
 )
+
+app.include_router(
+    packing_lists.router,
+    prefix=f"{settings.API_V1_STR}/packing-lists",
+    tags=["packing-lists"]
+)
+
 
 
 @app.get("/")

@@ -1,4 +1,4 @@
-h1:VD46+PzCAD3nEtpC7Ov5rsMuG1LK8lvih75wnDzpkQs=
+h1:hVQMECLGZXAvRrwARe4gfrZlzyGyr9LQida6NAAZGsA=
 20251124000001_initial.sql h1:yNcdKslq6H+4pFl6p5HFvNpaOqccXPZVzbjf9ykutL8=
 20251124000002_add_checkins_table.sql h1:oW9pKwu7SNaerWm5B1NtMWy3a8UUNk6GB9h0Efl53DU=
 20251124000003_add_outing_icon.sql h1:OFIamhOlr0wIDdVnw1QNi6djxtzpW9OUDzSmfGNLtUQ=
@@ -7,3 +7,4 @@ h1:VD46+PzCAD3nEtpC7Ov5rsMuG1LK8lvih75wnDzpkQs=
 20251124000006_seed_merit_badges.sql h1:It+W8sce0h7oFivQKLCUzlWwv1Jp+BoVdeMj3ss21To=
 20251124000007_seed_rank_requirements.sql h1:NM4DciNnesyV4V+75vkbwLVBvjyWpwMTyvvVT6qBV5U=
 20251124000008_add_outing_logistics_fields.sql h1:N83GCEHWFLeWdne5rIWLOZYD/z/bKp3BI45nOip6Jy0=
+20251124000009_add_packing_lists.sql h1:LuzarZHRUtUAeVI7iogPWHSKQoYuXHcGfbGtzDI+LVo=

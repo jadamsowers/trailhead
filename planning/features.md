@@ -48,6 +48,29 @@ Enhancements to family profile and requests
   - [x] If the user updates during signup, update the account
   - [x] Created Profile page for users to view and edit contact information
 
+## Troop Management
+
+This should really happen when the first admin logs in.
+
+- [ ] Add troop management interface (ability to add troop numbers, chartering orgs, and meeting locations)
+- [ ] Add troop configuration interface
+- [ ] Add option to restrict signup by troop for outings
+- [ ] Families choose troop from dropdown when setting up members
+
+## User Management
+
+- [ ] Ability to see registered users
+- [ ] Ability to promote to admin role
+
+## Family Management
+
+- [ ] ability for two or more family members to share common pool of scouts and sign each other up for outings
+- [ ] should be able to see each others' signups (if other user allows it)
+- [ ] should have ability to link family accounts (need some mutual acceptance)
+
+
+
+
 ## Accessibility Improvements
 
 Make the app more accessible for all users
@@ -156,22 +179,3 @@ Ensure the application complies with relevant legal requirements
 - [ ] Photo/video release consent checkboxes
 - [ ] Medical information accuracy acknowledgment
 
-## Troop Management
-
-This should really happen when the first admin logs in.
-
-- [ ] Add troop management interface (ability to add troop numbers, chartering orgs, and meeting locations)
-- [ ] Add troop configuration interface
-- [ ] Add option to restrict signup by troop for outings
-- [ ] Families choose troop from dropdown when setting up members
-
-## User Management
-
-- [ ] Ability to see registered users
-- [ ] Ability to promote to admin role
-
-## Family Management
-
-- [ ] ability for two or more family members to share common pool of scouts and sign each other up for outings
-- [ ] should be able to see each others' signups (if other user allows it)
-- [ ] should have ability to link family accounts (need some mutual acceptance)

@@ -45,6 +45,7 @@ class Outing(Base):
     signups = relationship("Signup", back_populates="outing", cascade="all, delete-orphan")
     outing_requirements = relationship("OutingRequirement", back_populates="outing", cascade="all, delete-orphan")
     outing_merit_badges = relationship("OutingMeritBadge", back_populates="outing", cascade="all, delete-orphan")
+    packing_lists = relationship("OutingPackingList", back_populates="outing", cascade="all, delete-orphan")
     
     # Place relationships
     outing_place = relationship("Place", foreign_keys=[outing_place_id], back_populates="outings_at_location")

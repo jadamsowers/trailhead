@@ -425,3 +425,67 @@ export interface OutingMeritBadge {
   created_at: string;
   merit_badge: MeritBadge;
 }
+
+// Packing List Types
+export interface PackingListTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PackingListTemplateItem {
+  id: string;
+  template_id: string;
+  name: string;
+  quantity: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PackingListTemplateWithItems extends PackingListTemplate {
+  items: PackingListTemplateItem[];
+}
+
+export interface PackingListTemplateListResponse {
+  items: PackingListTemplate[];
+  total: number;
+}
+
+export interface OutingPackingList {
+  id: string;
+  outing_id: string;
+  template_id?: string;
+  template?: PackingListTemplate;
+  items: OutingPackingListItem[];
+  created_at: string;
+}
+
+export interface OutingPackingListItem {
+  id: string;
+  outing_packing_list_id: string;
+  name: string;
+  quantity: number;
+  checked: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OutingPackingListCreate {
+  template_id?: string;
+}
+
+export interface OutingPackingListItemCreate {
+  name: string;
+  quantity: number;
+  checked?: boolean;
+}
+
+export interface OutingPackingListItemUpdate {
+  name?: string;
+  quantity?: number;
+  checked?: boolean;
+}
+

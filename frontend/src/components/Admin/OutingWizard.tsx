@@ -9,8 +9,10 @@ import type {
   Place,
   RankRequirement,
   MeritBadge,
+  PackingListTemplate,
+  PackingListTemplateWithItems,
 } from "../../types";
-import { outingAPI, requirementsAPI } from "../../services/api";
+import { outingAPI, requirementsAPI, packingListAPI } from "../../services/api";
 import { PlacePicker } from "./PlacePicker";
 
 interface OutingWizardProps {
@@ -23,6 +25,7 @@ const steps = [
   "Basic Information",
   "View Suggestions",
   "Select Requirements",
+  "Packing List",
   "Configure Details",
   "Review & Create",
 ];
@@ -74,7 +77,15 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
     Map<string, string>
   >(new Map());
 
-  // Step 4: Additional Details
+  // Step 4: Packing Lists
+  const [packingListTemplates, setPackingListTemplates] = useState<PackingListTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<PackingListTemplateWithItems | null>(null);
+  const [customPackingItems, setCustomPackingItems] = useState<Array<{ name: string; quantity: number }>>([]);
+  const [packingItemInput, setPackingItemInput] = useState("");
+  const [packingItemQuantity, setPackingItemQuantity] = useState("1");
+
+  // Step 5: Additional Details
   const [capacity, setCapacity] = useState<number>(30);
   const [gearList, setGearList] = useState<string[]>([]);
   const [gearInput, setGearInput] = useState("");
@@ -98,6 +109,20 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
           setAllMeritBadges(badges);
         } catch (e) {
           console.error("Failed loading catalogs", e);
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }
+    if (activeStep === 3) {
+      // Load packing list templates
+      (async () => {
+        try {
+          setLoading(true);
+          const response = await packingListAPI.getTemplates();
+          setPackingListTemplates(response.items);
+        } catch (e) {
+          console.error("Failed loading packing list templates", e);
         } finally {
           setLoading(false);
         }
@@ -235,6 +260,27 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
           notes: notes || undefined,
         };
         await requirementsAPI.addMeritBadgeToOuting(newOuting.id, badgeData);
+      }
+
+      // Create packing list if template selected
+      if (selectedTemplateId) {
+        try {
+          const packingList = await packingListAPI.addToOuting(newOuting.id, {
+            template_id: selectedTemplateId,
+          });
+
+          // Add custom items to the packing list
+          for (const customItem of customPackingItems) {
+            await packingListAPI.addCustomItem(newOuting.id, packingList.id, {
+              name: customItem.name,
+              quantity: customItem.quantity,
+              checked: false,
+            });
+          }
+        } catch (err) {
+          console.error("Error creating packing list:", err);
+          // Don't fail the whole outing creation if packing list fails
+        }
       }
 
       onSuccess();
@@ -672,11 +718,174 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               </div>
             ) : (
               <div className="text-secondary">Loading catalogs...</div>
+            )}\n          </div>
+        );
+
+      case 3:
+        return (
+          <div className="mt-5">
+            <p className="text-secondary mb-5">
+              Select a packing list template to help participants prepare for the outing.
+            </p>
+
+            {loading && (
+              <div className="text-center py-10">
+                <div className="text-2xl">⏳</div>
+                <p>Loading templates...</p>
+              </div>
+            )}
+
+            {!loading && packingListTemplates.length > 0 && (
+              <div className="grid gap-5">
+                <div>
+                  <h3>📦 Packing List Templates</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+                    {packingListTemplates.map((template) => (
+                      <div
+                        key={template.id}
+                        className={`p-4 rounded-lg border cursor-pointer transition-all ${selectedTemplateId === template.id
+                          ? "border-bsa-olive bg-[rgba(var(--bsa-olive-rgb),0.1)]"
+                          : "border-card bg-tertiary hover:border-bsa-olive"
+                          }`}
+                        onClick={async () => {
+                          setSelectedTemplateId(template.id);
+                          try {
+                            const fullTemplate = await packingListAPI.getTemplate(template.id);
+                            setSelectedTemplate(fullTemplate);
+                          } catch (e) {
+                            console.error("Failed to load template details", e);
+                          }
+                        }}
+                      >
+                        <div className="font-bold mb-1">{template.name}</div>
+                        <div className="text-sm text-secondary">{template.description}</div>
+                        {selectedTemplateId === template.id && selectedTemplate && (
+                          <div className="mt-2 text-xs text-secondary">
+                            {selectedTemplate.items.length} items
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {selectedTemplate && (
+                  <div className="p-4 bg-tertiary rounded-lg">
+                    <h4 className="mt-0">Selected Template: {selectedTemplate.name}</h4>
+                    <p className="text-sm text-secondary mb-3">
+                      {selectedTemplate.items.length} items will be added to this outing's packing list
+                    </p>
+                    <div className="max-h-60 overflow-y-auto">
+                      <div className="grid grid-cols-2 gap-2">
+                        {selectedTemplate.items.slice(0, 20).map((item) => (
+                          <div key={item.id} className="text-sm">
+                            • {item.name} ({item.quantity})
+                          </div>
+                        ))}
+                      </div>
+                      {selectedTemplate.items.length > 20 && (
+                        <p className="text-xs text-secondary mt-2">
+                          +{selectedTemplate.items.length - 20} more items...
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="h-px bg-[var(--card-border)]" />
+
+                <div>
+                  <h4>Add Custom Items (Optional)</h4>
+                  <p className="text-sm text-secondary mb-3">
+                    Add any additional items not in the template
+                  </p>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={packingItemInput}
+                      onChange={(e) => setPackingItemInput(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          if (packingItemInput.trim()) {
+                            setCustomPackingItems([
+                              ...customPackingItems,
+                              {
+                                name: packingItemInput.trim(),
+                                quantity: parseInt(packingItemQuantity) || 1,
+                              },
+                            ]);
+                            setPackingItemInput("");
+                            setPackingItemQuantity("1");
+                          }
+                        }
+                      }}
+                      placeholder="Item name..."
+                      className="form-input flex-1"
+                    />
+                    <input
+                      type="number"
+                      value={packingItemQuantity}
+                      onChange={(e) => setPackingItemQuantity(e.target.value)}
+                      min="1"
+                      className="form-input w-20"
+                      placeholder="Qty"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (packingItemInput.trim()) {
+                          setCustomPackingItems([
+                            ...customPackingItems,
+                            {
+                              name: packingItemInput.trim(),
+                              quantity: parseInt(packingItemQuantity) || 1,
+                            },
+                          ]);
+                          setPackingItemInput("");
+                          setPackingItemQuantity("1");
+                        }
+                      }}
+                      className="px-4 py-2 bg-bsa-olive text-white rounded cursor-pointer hover:opacity-90"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {customPackingItems.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {customPackingItems.map((item, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center gap-2 py-1 px-3 bg-tertiary border border-card rounded-2xl text-sm"
+                        >
+                          {item.name} ({item.quantity})
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCustomPackingItems(
+                                customPackingItems.filter((_, i) => i !== index)
+                              );
+                            }}
+                            className="p-0 bg-transparent border-0 cursor-pointer text-secondary text-base hover:text-primary"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {!loading && packingListTemplates.length === 0 && (
+              <div className="p-4 rounded border border-[rgba(33,150,243,0.3)] bg-[rgba(33,150,243,0.1)]">
+                No packing list templates available. You can skip this step.
+              </div>
             )}
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="mt-5">
             <p className="text-secondary mb-5">
@@ -760,7 +969,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="mt-5">
             <p className="text-secondary mb-5">

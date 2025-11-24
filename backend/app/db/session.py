@@ -1,18 +1,31 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from typing import AsyncGenerator
+import os
 
 from app.core.config import settings
 
-# Create async engine
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.DEBUG,
-    future=True,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-)
+# Choose database URL; for tests we avoid requiring asyncpg if TESTING env is set.
+if os.getenv("TESTING"):
+    _database_url = "sqlite+aiosqlite:///:memory:"
+else:
+    _database_url = settings.DATABASE_URL
+
+if _database_url.startswith("sqlite+aiosqlite"):
+    engine = create_async_engine(
+        _database_url,
+        echo=settings.DEBUG,
+        future=True,
+    )
+else:
+    engine = create_async_engine(
+        _database_url,
+        echo=settings.DEBUG,
+        future=True,
+        pool_pre_ping=True,
+        pool_size=10,
+        max_overflow=20,
+    )
 
 # Create async session factory
 AsyncSessionLocal = sessionmaker(

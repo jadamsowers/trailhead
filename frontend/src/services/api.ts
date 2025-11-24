@@ -256,6 +256,18 @@ export const outingAPI = {
       throw new APIError(response.status, "Failed to delete outing");
     }
   },
+
+  async getOutingHandout(id: string): Promise<Blob> {
+    const url = `${API_BASE_URL}/outings/${id}/handout`;
+    console.log("🚀 API Request: GET", url);
+    const response = await fetch(url, {
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new APIError(response.status, "Failed to download handout");
+    }
+    return response.blob();
+  },
 };
 
 // Signup API
@@ -1192,8 +1204,7 @@ export const requirementsAPI = {
     if (category) params.append("category", category);
 
     const response = await fetch(
-      `${API_BASE_URL}/rank-requirements${
-        params.toString() ? "?" + params : ""
+      `${API_BASE_URL}/rank-requirements${params.toString() ? "?" + params : ""
       }`,
       {
         headers: await getAuthHeaders(),
@@ -1302,5 +1313,125 @@ export const requirementsAPI = {
       }
     );
     return handleResponse<void>(response);
+  },
+};
+
+// Packing List API
+export const packingListAPI = {
+  /**
+   * Get all packing list templates
+   */
+  async getTemplates(): Promise<import("../types").PackingListTemplateListResponse> {
+    const response = await fetch(`${API_BASE_URL}/packing-lists/templates`);
+    return handleResponse<import("../types").PackingListTemplateListResponse>(response);
+  },
+
+  /**
+   * Get a specific template with its items
+   */
+  async getTemplate(templateId: string): Promise<import("../types").PackingListTemplateWithItems> {
+    const response = await fetch(`${API_BASE_URL}/packing-lists/templates/${templateId}`);
+    return handleResponse<import("../types").PackingListTemplateWithItems>(response);
+  },
+
+  /**
+   * Add a packing list to an outing (from template or blank)
+   */
+  async addToOuting(
+    outingId: string,
+    data: import("../types").OutingPackingListCreate
+  ): Promise<import("../types").OutingPackingList> {
+    const response = await fetch(
+      `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists`,
+      {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      }
+    );
+    return handleResponse<import("../types").OutingPackingList>(response);
+  },
+
+  /**
+   * Get all packing lists for an outing
+   */
+  async getOutingPackingLists(outingId: string): Promise<import("../types").OutingPackingList[]> {
+    const response = await fetch(
+      `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists`,
+      {
+        headers: await getAuthHeaders(),
+      }
+    );
+    return handleResponse<import("../types").OutingPackingList[]>(response);
+  },
+
+  /**
+   * Delete a packing list from an outing
+   */
+  async deleteOutingPackingList(outingId: string, packingListId: string): Promise<void> {
+    const response = await fetch(
+      `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists/${packingListId}`,
+      {
+        method: "DELETE",
+        headers: await getAuthHeaders(),
+      }
+    );
+    if (!response.ok) {
+      throw new APIError(response.status, "Failed to delete packing list");
+    }
+  },
+
+  /**
+   * Add a custom item to a packing list
+   */
+  async addCustomItem(
+    outingId: string,
+    packingListId: string,
+    item: import("../types").OutingPackingListItemCreate
+  ): Promise<import("../types").OutingPackingListItem> {
+    const response = await fetch(
+      `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists/${packingListId}/items`,
+      {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(item),
+      }
+    );
+    return handleResponse<import("../types").OutingPackingListItem>(response);
+  },
+
+  /**
+   * Update a packing list item (quantity, checked status, etc.)
+   */
+  async updateItem(
+    outingId: string,
+    itemId: string,
+    updates: import("../types").OutingPackingListItemUpdate
+  ): Promise<import("../types").OutingPackingListItem> {
+    const response = await fetch(
+      `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists/items/${itemId}`,
+      {
+        method: "PATCH",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(updates),
+      }
+    );
+    return handleResponse<import("../types").OutingPackingListItem>(response);
+  },
+
+  /**
+   * Delete a packing list item
+   */
+  async deleteItem(outingId: string, itemId: string): Promise<void> {
+    const response = await fetch(
+      `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists/items/${itemId}`,
+      {
+        method: "DELETE",
+        headers: await getAuthHeaders(),
+      }
+    );
+    if (!response.ok) {
+      throw new APIError(response.status, "Failed to delete item");
+    }
   },
 };

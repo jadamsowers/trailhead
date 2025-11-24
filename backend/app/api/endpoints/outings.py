@@ -270,3 +270,34 @@ async def get_outing_signups(
     
     from app.schemas.signup import SignupListResponse
     return SignupListResponse(signups=signup_responses, total=len(signup_responses))
+
+
+@router.get("/{outing_id}/handout")
+async def get_outing_handout(
+    outing_id: UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Generate a PDF handout for the outing (public endpoint).
+    """
+    from fastapi import Response
+    from app.services.pdf_generator import pdf_generator
+    
+    # Get outing with all details
+    db_outing = await crud_outing.get_outing_with_details(db, outing_id)
+    if not db_outing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Outing not found"
+        )
+    
+    # Generate PDF
+    pdf_bytes = pdf_generator.generate_outing_handout(db_outing, db_outing.packing_lists)
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename=outing_handout_{db_outing.id}.pdf"
+        }
+    )

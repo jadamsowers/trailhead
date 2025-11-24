@@ -23,6 +23,29 @@ async def get_outing(db: AsyncSession, outing_id: UUID) -> Optional[Outing]:
     return result.scalar_one_or_none()
 
 
+async def get_outing_with_details(db: AsyncSession, outing_id: UUID) -> Optional[Outing]:
+    """Get an outing by ID with all details for PDF generation"""
+    from app.models.outing_requirement import OutingRequirement
+    from app.models.outing_merit_badge import OutingMeritBadge
+    from app.models.packing_list import OutingPackingList
+    from app.models.requirement import RankRequirement
+    from app.models.merit_badge import MeritBadge
+
+    result = await db.execute(
+        select(Outing)
+        .options(
+            selectinload(Outing.outing_requirements).selectinload(OutingRequirement.requirement),
+            selectinload(Outing.outing_merit_badges).selectinload(OutingMeritBadge.merit_badge),
+            selectinload(Outing.packing_lists).selectinload(OutingPackingList.items),
+            selectinload(Outing.outing_place),
+            selectinload(Outing.pickup_place),
+            selectinload(Outing.dropoff_place)
+        )
+        .where(Outing.id == outing_id)
+    )
+    return result.scalar_one_or_none()
+
+
 async def get_outings(db: AsyncSession, skip: int = 0, limit: int = 100) -> list[Outing]:
     """Get all outings with pagination"""
     result = await db.execute(
