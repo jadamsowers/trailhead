@@ -529,6 +529,9 @@ export const authAPI = {
 };
 
 // Family Management API
+const FAMILY_STORAGE_KEY = 'family_members_cache';
+const FAMILY_SUMMARY_STORAGE_KEY = 'family_summary_cache';
+
 export const familyAPI = {
     /**
      * Get all family members for the current user
@@ -537,15 +540,37 @@ export const familyAPI = {
         const url = `${API_BASE_URL}/family/`;
         console.log('🚀 API Request: GET', url);
 
-        const headers = await getAuthHeaders();
-        const authHeader = (headers as Record<string, string>)['Authorization'];
-        console.log('🔑 Auth headers:', {
-            hasAuth: !!authHeader,
-            authType: authHeader?.split(' ')[0]
-        });
+        try {
+            const headers = await getAuthHeaders();
+            const authHeader = (headers as Record<string, string>)['Authorization'];
+            console.log('🔑 Auth headers:', {
+                hasAuth: !!authHeader,
+                authType: authHeader?.split(' ')[0]
+            });
 
-        const response = await fetch(url, { headers });
-        return handleResponse<FamilyMemberListResponse>(response);
+            const response = await fetch(url, { headers });
+            const data = await handleResponse<FamilyMemberListResponse>(response);
+            
+            // Cache the data when online
+            try {
+                localStorage.setItem(FAMILY_STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.warn('Failed to cache family data:', e);
+            }
+            
+            return data;
+        } catch (error) {
+            // If offline or auth error, try cache
+            if (error instanceof TypeError || (error instanceof Error && error.message.includes('Failed to fetch')) ||
+                (error instanceof Error && error.message.includes('Authentication'))) {
+                const cached = localStorage.getItem(FAMILY_STORAGE_KEY);
+                if (cached) {
+                    console.log('📱 Serving cached family data (offline mode)');
+                    return JSON.parse(cached);
+                }
+            }
+            throw error;
+        }
     },
 
     /**
@@ -558,10 +583,33 @@ export const familyAPI = {
             url += `?outing_id=${encodeURIComponent(outingId)}`;
         }
         console.log('🚀 API Request: GET', url);
-        const response = await fetch(url, {
-            headers: await getAuthHeaders(),
-        });
-        return handleResponse<FamilyMemberSummary[]>(response);
+        
+        try {
+            const response = await fetch(url, {
+                headers: await getAuthHeaders(),
+            });
+            const data = await handleResponse<FamilyMemberSummary[]>(response);
+            
+            // Cache the data when online
+            try {
+                localStorage.setItem(FAMILY_SUMMARY_STORAGE_KEY, JSON.stringify(data));
+            } catch (e) {
+                console.warn('Failed to cache family summary:', e);
+            }
+            
+            return data;
+        } catch (error) {
+            // If offline or auth error, try cache
+            if (error instanceof TypeError || (error instanceof Error && error.message.includes('Failed to fetch')) ||
+                (error instanceof Error && error.message.includes('Authentication'))) {
+                const cached = localStorage.getItem(FAMILY_SUMMARY_STORAGE_KEY);
+                if (cached) {
+                    console.log('📱 Serving cached family summary (offline mode)');
+                    return JSON.parse(cached);
+                }
+            }
+            throw error;
+        }
     },
 
     /**
