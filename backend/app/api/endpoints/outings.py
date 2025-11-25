@@ -5,7 +5,8 @@ from uuid import UUID
 from app.api.deps import get_current_admin_user
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.outing import OutingCreate, OutingUpdate, OutingResponse, OutingListResponse
+from app.schemas.outing import OutingCreate, OutingUpdate, OutingResponse, OutingListResponse, OutingUpdateResponse, OutingUpdateEmailDraft
+from app.utils.outing_email import diff_outing, generate_outing_update_email
 from app.crud import outing as crud_outing
 from app.crud import signup as crud_signup
 
@@ -58,37 +59,7 @@ async def create_outing(
     """
     db_outing = await crud_outing.create_outing(db, outing)
     
-    return OutingResponse(
-        id=db_outing.id,
-        name=db_outing.name,
-        outing_date=db_outing.outing_date,
-        end_date=db_outing.end_date,
-        location=db_outing.location,
-        description=db_outing.description,
-        max_participants=db_outing.max_participants,
-        capacity_type=db_outing.capacity_type,
-        is_overnight=db_outing.is_overnight,
-        outing_lead_name=db_outing.outing_lead_name,
-        outing_lead_email=db_outing.outing_lead_email,
-        outing_lead_phone=db_outing.outing_lead_phone,
-        drop_off_time=db_outing.drop_off_time,
-        drop_off_location=db_outing.drop_off_location,
-        pickup_time=db_outing.pickup_time,
-        pickup_location=db_outing.pickup_location,
-        cost=db_outing.cost,
-        gear_list=db_outing.gear_list,
-        signup_count=db_outing.signup_count,
-        available_spots=db_outing.available_spots,
-        is_full=db_outing.is_full,
-        total_vehicle_capacity=db_outing.total_vehicle_capacity,
-        needs_more_drivers=db_outing.needs_more_drivers,
-        adult_count=db_outing.adult_count,
-        needs_two_deep_leadership=db_outing.needs_two_deep_leadership,
-        needs_female_leader=db_outing.needs_female_leader,
-        created_at=db_outing.created_at,
-        updated_at=db_outing.updated_at,
-        icon=db_outing.icon
-    )
+    return OutingResponse.model_validate(db_outing)
 
 
 @router.get("/{outing_id}", response_model=OutingResponse)
@@ -106,40 +77,10 @@ async def get_outing(
             detail="Outing not found"
         )
     
-    return OutingResponse(
-        id=db_outing.id,
-        name=db_outing.name,
-        outing_date=db_outing.outing_date,
-        end_date=db_outing.end_date,
-        location=db_outing.location,
-        description=db_outing.description,
-        max_participants=db_outing.max_participants,
-        capacity_type=db_outing.capacity_type,
-        is_overnight=db_outing.is_overnight,
-        outing_lead_name=db_outing.outing_lead_name,
-        outing_lead_email=db_outing.outing_lead_email,
-        outing_lead_phone=db_outing.outing_lead_phone,
-        drop_off_time=db_outing.drop_off_time,
-        drop_off_location=db_outing.drop_off_location,
-        pickup_time=db_outing.pickup_time,
-        pickup_location=db_outing.pickup_location,
-        cost=db_outing.cost,
-        gear_list=db_outing.gear_list,
-        signup_count=db_outing.signup_count,
-        available_spots=db_outing.available_spots,
-        is_full=db_outing.is_full,
-        total_vehicle_capacity=db_outing.total_vehicle_capacity,
-        needs_more_drivers=db_outing.needs_more_drivers,
-        adult_count=db_outing.adult_count,
-        needs_two_deep_leadership=db_outing.needs_two_deep_leadership,
-        needs_female_leader=db_outing.needs_female_leader,
-        created_at=db_outing.created_at,
-        updated_at=db_outing.updated_at,
-        icon=db_outing.icon
-    )
+    return OutingResponse.model_validate(db_outing)
 
 
-@router.put("/{outing_id}", response_model=OutingResponse)
+@router.put("/{outing_id}", response_model=OutingUpdateResponse)
 async def update_outing(
     outing_id: UUID,
     outing: OutingUpdate,
@@ -149,43 +90,25 @@ async def update_outing(
     """
     Update an outing (admin only).
     """
-    db_outing = await crud_outing.update_outing(db, outing_id, outing)
-    if not db_outing:
+    # Get existing outing for diff
+    existing = await crud_outing.get_outing(db, outing_id)
+    if not existing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Outing not found"
         )
-    
-    return OutingResponse(
-        id=db_outing.id,
-        name=db_outing.name,
-        outing_date=db_outing.outing_date,
-        end_date=db_outing.end_date,
-        location=db_outing.location,
-        description=db_outing.description,
-        max_participants=db_outing.max_participants,
-        capacity_type=db_outing.capacity_type,
-        is_overnight=db_outing.is_overnight,
-        outing_lead_name=db_outing.outing_lead_name,
-        outing_lead_email=db_outing.outing_lead_email,
-        outing_lead_phone=db_outing.outing_lead_phone,
-        drop_off_time=db_outing.drop_off_time,
-        drop_off_location=db_outing.drop_off_location,
-        pickup_time=db_outing.pickup_time,
-        pickup_location=db_outing.pickup_location,
-        cost=db_outing.cost,
-        gear_list=db_outing.gear_list,
-        signup_count=db_outing.signup_count,
-        available_spots=db_outing.available_spots,
-        is_full=db_outing.is_full,
-        total_vehicle_capacity=db_outing.total_vehicle_capacity,
-        needs_more_drivers=db_outing.needs_more_drivers,
-        adult_count=db_outing.adult_count,
-        needs_two_deep_leadership=db_outing.needs_two_deep_leadership,
-        needs_female_leader=db_outing.needs_female_leader,
-        created_at=db_outing.created_at,
-        updated_at=db_outing.updated_at,
-        icon=db_outing.icon
+    db_outing = await crud_outing.update_outing(db, outing_id, outing)
+
+    # Compute diff
+    changed_fields = diff_outing(existing, db_outing)
+    email_draft = None
+    if changed_fields:
+        subject, body = generate_outing_update_email(existing, db_outing, changed_fields)
+        email_draft = OutingUpdateEmailDraft(subject=subject, body=body, changed_fields=changed_fields)
+
+    return OutingUpdateResponse(
+        outing=OutingResponse.model_validate(db_outing),
+        email_draft=email_draft
     )
 
 
@@ -206,6 +129,55 @@ async def delete_outing(
             detail="Cannot delete outing with existing signups or outing not found"
         )
     return None
+
+
+@router.post("/{outing_id}/close-signups", response_model=OutingResponse)
+async def close_signups(
+    outing_id: UUID,
+    current_user: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Manually close signups for an outing (admin only).
+    """
+    db_outing = await crud_outing.get_outing(db, outing_id)
+    if not db_outing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Outing not found"
+        )
+    
+    # Update signups_closed flag
+    update_data = OutingUpdate(**db_outing.__dict__)
+    update_data.signups_closed = True
+    
+    db_outing = await crud_outing.update_outing(db, outing_id, update_data)
+    return OutingResponse.model_validate(db_outing)
+
+
+@router.post("/{outing_id}/open-signups", response_model=OutingResponse)
+async def open_signups(
+    outing_id: UUID,
+    current_user: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Manually open signups for an outing (admin only).
+    This will override the automatic closure date if set.
+    """
+    db_outing = await crud_outing.get_outing(db, outing_id)
+    if not db_outing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Outing not found"
+        )
+    
+    # Update signups_closed flag
+    update_data = OutingUpdate(**db_outing.__dict__)
+    update_data.signups_closed = False
+    
+    db_outing = await crud_outing.update_outing(db, outing_id, update_data)
+    return OutingResponse.model_validate(db_outing)
 
 
 @router.get("/{outing_id}/signups")

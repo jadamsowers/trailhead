@@ -6,14 +6,13 @@ import {
     OutingCreate,
     SignupResponse,
     ParticipantResponse,
-    Place,
+    OutingUpdateResponse,
 } from "../../types";
-import { OutingIconPicker, suggestIconFromName } from "../OutingIconPicker";
 import { outingAPI, pdfAPI, signupAPI } from "../../services/api";
 import { formatPhoneNumber } from "../../utils/phoneUtils";
 import OutingQRCode from "./OutingQRCode";
 import OutingWizard from "./OutingWizard.tsx";
-import { PlacePicker } from "./PlacePicker";
+
 
 const OutingAdmin: React.FC = () => {
     // Helper function to format date, omitting year if it's the current year
@@ -36,39 +35,7 @@ const OutingAdmin: React.FC = () => {
         }
     };
 
-    // Helper function to get next Friday-Sunday dates
-    const getNextWeekendDates = () => {
-        const today = new Date();
-        const dayOfWeek = today.getDay(); // 0 = Sunday, 5 = Friday
 
-        // Calculate days until next Friday
-        let daysUntilFriday = (5 - dayOfWeek + 7) % 7;
-        if (daysUntilFriday === 0 && today.getDay() === 5) {
-            // If today is Friday, get next Friday
-            daysUntilFriday = 7;
-        }
-
-        const nextFriday = new Date(today);
-        nextFriday.setDate(today.getDate() + daysUntilFriday);
-
-        const nextSunday = new Date(nextFriday);
-        nextSunday.setDate(nextFriday.getDate() + 2);
-
-        // Format as YYYY-MM-DD for date input
-        const formatDate = (date: Date) => {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const day = String(date.getDate()).padStart(2, "0");
-            return `${year}-${month}-${day}`;
-        };
-
-        return {
-            friday: formatDate(nextFriday),
-            sunday: formatDate(nextSunday),
-        };
-    };
-
-    const defaultDates = getNextWeekendDates();
 
     const [outings, setOutings] = useState<Outing[]>([]);
     const [loading, setLoading] = useState(false);
@@ -80,26 +47,11 @@ const OutingAdmin: React.FC = () => {
     const [loadingSignups, setLoadingSignups] = useState<{
         [outingId: string]: boolean;
     }>({});
-    const [isCreateOutingExpanded, setIsCreateOutingExpanded] = useState(false);
+
     const [editingOutingId, setEditingOutingId] = useState<string | null>(null);
     const [editOuting, setEditOuting] = useState<OutingCreate | null>(null);
     const [isWizardOpen, setIsWizardOpen] = useState(false);
-    // Address state for quick create form (wizard has its own)
-    const [outingAddress, setOutingAddress] = useState<{
-        address?: string;
-        placeId?: string;
-        place?: Place;
-    }>({});
-    const [pickupAddress, setPickupAddress] = useState<{
-        address?: string;
-        placeId?: string;
-        place?: Place;
-    }>({});
-    const [dropoffAddress, setDropoffAddress] = useState<{
-        address?: string;
-        placeId?: string;
-        place?: Place;
-    }>({});
+
 
     // Email functionality state
     const [showEmailModal, setShowEmailModal] = useState(false);
@@ -128,26 +80,7 @@ const OutingAdmin: React.FC = () => {
         [outingId: string]: boolean;
     }>({});
 
-    const [newOuting, setNewOuting] = useState<OutingCreate>({
-        name: "",
-        outing_date: defaultDates.friday,
-        end_date: defaultDates.sunday,
-        location: "",
-        description: "",
-        max_participants: 30,
-        capacity_type: "vehicle",
-        is_overnight: true,
-        outing_lead_name: "",
-        outing_lead_email: "",
-        outing_lead_phone: "",
-        drop_off_time: "",
-        drop_off_location: "",
-        pickup_time: "",
-        pickup_location: "",
-        cost: undefined,
-        gear_list: "",
-        icon: "",
-    });
+
 
     // Load outings on component mount
     useEffect(() => {
@@ -213,105 +146,7 @@ const OutingAdmin: React.FC = () => {
         }
     };
 
-    const handleIconChange = (icon: string) => {
-        setNewOuting({ ...newOuting, icon });
-    };
 
-    const handleInputChange = (
-        e: React.ChangeEvent<
-            HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-        >
-    ) => {
-        const { name, value, type } = e.target;
-
-        if (type === "checkbox") {
-            const checked = (e.target as HTMLInputElement).checked;
-            setNewOuting({
-                ...newOuting,
-                [name]: checked,
-            });
-        } else if (name === "max_participants") {
-            setNewOuting({
-                ...newOuting,
-                [name]: parseInt(value) || 0,
-            });
-        } else if (name === "cost") {
-            setNewOuting({
-                ...newOuting,
-                [name]: value === "" ? undefined : parseFloat(value),
-            });
-        } else if (name === "outing_lead_phone") {
-            // Apply phone formatting
-            setNewOuting({
-                ...newOuting,
-                [name]: formatPhoneNumber(value),
-            });
-        } else if (name === "name") {
-            // Smart icon suggestion when name changes
-            const suggestedIcon = suggestIconFromName(value);
-            setNewOuting({
-                ...newOuting,
-                [name]: value,
-                // Only auto-suggest if no icon has been manually selected yet
-                icon: newOuting.icon === "" ? suggestedIcon : newOuting.icon,
-            });
-        } else {
-            setNewOuting({
-                ...newOuting,
-                [name]: value,
-            });
-        }
-    };
-
-    const handleCreateOuting = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            setLoading(true);
-            setError(null);
-            await outingAPI.create({
-                ...newOuting,
-                outing_address: outingAddress.address,
-                outing_place_id: outingAddress.placeId,
-                pickup_address: pickupAddress.address,
-                pickup_place_id: pickupAddress.placeId,
-                dropoff_address: dropoffAddress.address,
-                dropoff_place_id: dropoffAddress.placeId,
-            });
-            // Reset form with new default dates
-            const newDefaultDates = getNextWeekendDates();
-            setNewOuting({
-                name: "",
-                outing_date: newDefaultDates.friday,
-                end_date: newDefaultDates.sunday,
-                location: "",
-                description: "",
-                max_participants: 30,
-                capacity_type: "vehicle",
-                is_overnight: true,
-                outing_lead_name: "",
-                outing_lead_email: "",
-                outing_lead_phone: "",
-                drop_off_time: "",
-                drop_off_location: "",
-                pickup_time: "",
-                pickup_location: "",
-                cost: undefined,
-                gear_list: "",
-            });
-            setOutingAddress({});
-            setPickupAddress({});
-            setDropoffAddress({});
-            // Reload outings
-            await loadOutings();
-        } catch (err) {
-            console.error("Error creating outing:", err);
-            const errorMessage =
-                err instanceof Error ? err.message : "Failed to create outing";
-            setError(errorMessage);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleEditOuting = (outing: Outing) => {
         setEditingOutingId(outing.id);
@@ -373,15 +208,6 @@ const OutingAdmin: React.FC = () => {
                 ...editOuting,
                 [name]: formatPhoneNumber(value),
             });
-        } else if (name === "name") {
-            // Smart icon suggestion when name changes (only if icon field exists and is empty)
-            const suggestedIcon = suggestIconFromName(value);
-            setEditOuting({
-                ...editOuting,
-                [name]: value,
-                // Only auto-suggest if no icon has been set
-                ...(editOuting.icon === "" && { icon: suggestedIcon }),
-            });
         } else {
             setEditOuting({
                 ...editOuting,
@@ -397,10 +223,27 @@ const OutingAdmin: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            await outingAPI.update(editingOutingId, editOuting);
+            const updateResult: OutingUpdateResponse = await outingAPI.update(editingOutingId, editOuting);
             setEditingOutingId(null);
             setEditOuting(null);
             await loadOutings();
+
+            // If backend provided an email draft, auto-open mail client to notify participants
+            if (updateResult.email_draft) {
+                try {
+                    const signups = await signupAPI.getByOuting(editingOutingId);
+                    const emailsSet = new Set<string>();
+                    signups.forEach(s => { if (s.family_contact_email) emailsSet.add(s.family_contact_email); });
+                    const emails = Array.from(emailsSet);
+                    if (emails.length > 0) {
+                        const mailtoLink = `mailto:${emails.join(',')}?subject=${encodeURIComponent(updateResult.email_draft.subject)}&body=${encodeURIComponent(updateResult.email_draft.body)}`;
+                        // Open in default mail client
+                        window.location.href = mailtoLink;
+                    }
+                } catch (emailErr) {
+                    console.error('Failed to prepare outing update email:', emailErr);
+                }
+            }
         } catch (err) {
             console.error("Error updating outing:", err);
             const errorMessage =
@@ -842,708 +685,52 @@ const OutingAdmin: React.FC = () => {
             <div
                 style={{
                     marginBottom: "40px",
-                    border: "1px solid var(--card-border)",
-                    borderRadius: "8px",
-                    overflow: "hidden",
+                    display: "flex",
+                    justifyContent: "flex-end",
                 }}
             >
-                <div
+                <button
+                    type="button"
+                    onClick={() => setIsWizardOpen(true)}
                     style={{
-                        padding: "20px",
-                        backgroundColor: "var(--bg-tertiary)",
+                        padding: "12px 24px",
+                        backgroundColor: "var(--bsa-olive)",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        transition: "all 0.2s",
+                        outline: "none",
                         display: "flex",
-                        justifyContent: "space-between",
                         alignItems: "center",
-                        borderBottom: isCreateOutingExpanded
-                            ? "1px solid var(--card-border)"
-                            : "none",
+                        gap: "8px",
+                        boxShadow: "var(--shadow-md)",
+                    }}
+                    onMouseDown={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                            "var(--bsa-olive-dark, #4a5320)";
+                        e.currentTarget.style.transform = "scale(0.98)";
+                    }}
+                    onMouseUp={(e) => {
+                        e.currentTarget.style.backgroundColor = "var(--bsa-olive)";
+                        e.currentTarget.style.transform = "scale(1)";
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.opacity = "0.9";
+                        e.currentTarget.style.transform = "translateY(-2px)";
+                        e.currentTarget.style.boxShadow = "var(--shadow-lg)";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.opacity = "1";
+                        e.currentTarget.style.backgroundColor = "var(--bsa-olive)";
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "var(--shadow-md)";
                     }}
                 >
-                    <div
-                        onClick={() => setIsCreateOutingExpanded(!isCreateOutingExpanded)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                setIsCreateOutingExpanded(!isCreateOutingExpanded);
-                            }
-                        }}
-                        role="button"
-                        tabIndex={0}
-                        aria-expanded={isCreateOutingExpanded}
-                        style={{
-                            cursor: "pointer",
-                            flex: 1,
-                            outline: "none",
-                            WebkitTapHighlightColor: "transparent",
-                        }}
-                    >
-                        <h3
-                            style={{
-                                margin: 0,
-                                color: "var(--text-primary)",
-                                userSelect: "none",
-                            }}
-                        >
-                            {isCreateOutingExpanded ? "▼" : "▶"} Create New Outing
-                        </h3>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setIsWizardOpen(true)}
-                        style={{
-                            padding: "10px 20px",
-                            backgroundColor: "var(--bsa-olive)",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "4px",
-                            cursor: "pointer",
-                            fontSize: "14px",
-                            fontWeight: "bold",
-                            transition: "all 0.2s",
-                            outline: "none",
-                        }}
-                        onMouseDown={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                                "var(--bsa-olive-dark, #4a5320)";
-                            e.currentTarget.style.transform = "scale(0.98)";
-                        }}
-                        onMouseUp={(e) => {
-                            e.currentTarget.style.backgroundColor = "var(--bsa-olive)";
-                            e.currentTarget.style.transform = "scale(1)";
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.opacity = "1";
-                            e.currentTarget.style.backgroundColor = "var(--bsa-olive)";
-                            e.currentTarget.style.transform = "scale(1)";
-                        }}
-                    >
-                        ✨ Use Wizard (with AI Suggestions)
-                    </button>
-                </div>
-                {isCreateOutingExpanded && (
-                    <form onSubmit={handleCreateOuting} style={{ padding: "20px" }}>
-                        <div style={{ marginBottom: "15px" }}>
-                            <label
-                                htmlFor="new-outing-name"
-                                style={{
-                                    display: "block",
-                                    marginBottom: "5px",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                Outing Name *
-                            </label>
-                            <input
-                                id="new-outing-name"
-                                type="text"
-                                name="name"
-                                value={newOuting.name}
-                                onChange={handleInputChange}
-                                placeholder="e.g., Summer Camp 2026"
-                                required
-                                style={{
-                                    width: "100%",
-                                    padding: "8px",
-                                    fontSize: "14px",
-                                    border: "1px solid var(--input-border)",
-                                    borderRadius: "4px",
-                                    backgroundColor: "var(--input-bg)",
-                                    color: "var(--input-text)",
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: "15px" }}>
-                            <label
-                                style={{
-                                    display: "block",
-                                    marginBottom: "5px",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                Outing Icon
-                            </label>
-                            <OutingIconPicker
-                                value={newOuting.icon || ""}
-                                onChange={handleIconChange}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: "15px" }}>
-                            <label
-                                style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    cursor: "pointer",
-                                    marginBottom: "10px",
-                                }}
-                            >
-                                <input
-                                    type="checkbox"
-                                    name="is_overnight"
-                                    checked={newOuting.is_overnight}
-                                    onChange={handleInputChange}
-                                    style={{ marginRight: "8px" }}
-                                />
-                                <span style={{ fontWeight: "bold" }}>Overnight Outing</span>
-                            </label>
-                        </div>
-
-                        <div
-                            style={{
-                                marginBottom: "15px",
-                                display: "grid",
-                                gridTemplateColumns: newOuting.is_overnight
-                                    ? "2fr 1fr 2fr"
-                                    : "2fr 1fr 2fr",
-                                gap: "15px",
-                            }}
-                        >
-                            <div>
-                                <label
-                                    htmlFor="new-outing-date"
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "5px",
-                                        fontWeight: "bold",
-                                    }}
-                                >
-                                    {newOuting.is_overnight ? "Start Date *" : "Outing Date *"}
-                                </label>
-                                <input
-                                    id="new-outing-date"
-                                    type="date"
-                                    name="outing_date"
-                                    value={newOuting.outing_date}
-                                    onChange={handleInputChange}
-                                    required
-                                    style={{
-                                        width: "100%",
-                                        padding: "8px",
-                                        fontSize: "14px",
-                                        border: "1px solid var(--input-border)",
-                                        borderRadius: "4px",
-                                        backgroundColor: "var(--input-bg)",
-                                        color: "var(--input-text)",
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <label
-                                    htmlFor="new-outing-drop-off-time"
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "5px",
-                                        fontWeight: "bold",
-                                    }}
-                                >
-                                    Drop-off Time
-                                </label>
-                                <input
-                                    id="new-outing-drop-off-time"
-                                    type="time"
-                                    name="drop_off_time"
-                                    value={newOuting.drop_off_time || ""}
-                                    onChange={handleInputChange}
-                                    style={{
-                                        width: "100%",
-                                        padding: "8px",
-                                        fontSize: "14px",
-                                        border: "1px solid var(--input-border)",
-                                        borderRadius: "4px",
-                                        backgroundColor: "var(--input-bg)",
-                                        color: "var(--input-text)",
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <label
-                                    htmlFor="new-outing-drop-off-location"
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "5px",
-                                        fontWeight: "bold",
-                                    }}
-                                >
-                                    Drop-off Location
-                                </label>
-                                <input
-                                    id="new-outing-drop-off-location"
-                                    type="text"
-                                    name="drop_off_location"
-                                    value={newOuting.drop_off_location || ""}
-                                    onChange={handleInputChange}
-                                    placeholder="e.g., Troop Meeting Location"
-                                    style={{
-                                        width: "100%",
-                                        padding: "8px",
-                                        fontSize: "14px",
-                                        border: "1px solid var(--input-border)",
-                                        borderRadius: "4px",
-                                        backgroundColor: "var(--input-bg)",
-                                        color: "var(--input-text)",
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        {newOuting.is_overnight && (
-                            <div
-                                style={{
-                                    marginBottom: "15px",
-                                    display: "grid",
-                                    gridTemplateColumns: "2fr 1fr 2fr",
-                                    gap: "15px",
-                                }}
-                            >
-                                <div>
-                                    <label
-                                        htmlFor="new-outing-end-date"
-                                        style={{
-                                            display: "block",
-                                            marginBottom: "5px",
-                                            fontWeight: "bold",
-                                        }}
-                                    >
-                                        End Date *
-                                    </label>
-                                    <input
-                                        id="new-outing-end-date"
-                                        type="date"
-                                        name="end_date"
-                                        value={newOuting.end_date || ""}
-                                        onChange={handleInputChange}
-                                        required
-                                        min={newOuting.outing_date}
-                                        style={{
-                                            width: "100%",
-                                            padding: "8px",
-                                            fontSize: "14px",
-                                            border: "1px solid var(--input-border)",
-                                            borderRadius: "4px",
-                                            backgroundColor: "var(--input-bg)",
-                                            color: "var(--input-text)",
-                                        }}
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        htmlFor="new-outing-pickup-time"
-                                        style={{
-                                            display: "block",
-                                            marginBottom: "5px",
-                                            fontWeight: "bold",
-                                        }}
-                                    >
-                                        Pickup Time
-                                    </label>
-                                    <input
-                                        id="new-outing-pickup-time"
-                                        type="time"
-                                        name="pickup_time"
-                                        value={newOuting.pickup_time || ""}
-                                        onChange={handleInputChange}
-                                        style={{
-                                            width: "100%",
-                                            padding: "8px",
-                                            fontSize: "14px",
-                                            border: "1px solid var(--input-border)",
-                                            borderRadius: "4px",
-                                            backgroundColor: "var(--input-bg)",
-                                            color: "var(--input-text)",
-                                        }}
-                                    />
-                                </div>
-                                <div>
-                                    <label
-                                        htmlFor="new-outing-pickup-location"
-                                        style={{
-                                            display: "block",
-                                            marginBottom: "5px",
-                                            fontWeight: "bold",
-                                        }}
-                                    >
-                                        Pickup Location
-                                    </label>
-                                    <input
-                                        id="new-outing-pickup-location"
-                                        type="text"
-                                        name="pickup_location"
-                                        value={newOuting.pickup_location || ""}
-                                        onChange={handleInputChange}
-                                        placeholder="e.g., Troop Meeting Location"
-                                        style={{
-                                            width: "100%",
-                                            padding: "8px",
-                                            fontSize: "14px",
-                                            border: "1px solid var(--input-border)",
-                                            borderRadius: "4px",
-                                            backgroundColor: "var(--input-bg)",
-                                            color: "var(--input-text)",
-                                        }}
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        <div style={{ marginBottom: "15px" }}>
-                            <label
-                                htmlFor="new-outing-location"
-                                style={{
-                                    display: "block",
-                                    marginBottom: "5px",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                Location * (Short Name)
-                            </label>
-                            <input
-                                id="new-outing-location"
-                                type="text"
-                                name="location"
-                                value={newOuting.location}
-                                onChange={handleInputChange}
-                                placeholder="e.g., Camp Wilderness"
-                                required
-                                style={{
-                                    width: "100%",
-                                    padding: "8px",
-                                    fontSize: "14px",
-                                    border: "1px solid var(--input-border)",
-                                    borderRadius: "4px",
-                                    backgroundColor: "var(--input-bg)",
-                                    color: "var(--input-text)",
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ display: "grid", gap: "15px", marginBottom: "20px" }}>
-                            <PlacePicker
-                                label="Outing Address"
-                                value={outingAddress}
-                                onChange={setOutingAddress}
-                                helperText="Full address or saved place for outing destination"
-                            />
-                            <div
-                                style={{
-                                    display: "grid",
-                                    gridTemplateColumns: "1fr 1fr",
-                                    gap: "15px",
-                                }}
-                            >
-                                <PlacePicker
-                                    label="Pickup Location"
-                                    value={pickupAddress}
-                                    onChange={setPickupAddress}
-                                    helperText="Where participants meet before departure"
-                                />
-                                <PlacePicker
-                                    label="Drop-off Location"
-                                    value={dropoffAddress}
-                                    onChange={setDropoffAddress}
-                                    helperText="Where participants return after outing"
-                                />
-                            </div>
-                        </div>
-
-                        <div style={{ marginBottom: "15px" }}>
-                            <label
-                                htmlFor="new-outing-description"
-                                style={{
-                                    display: "block",
-                                    marginBottom: "5px",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                Description
-                            </label>
-                            <textarea
-                                id="new-outing-description"
-                                name="description"
-                                value={newOuting.description}
-                                onChange={handleInputChange}
-                                placeholder="Outing details and activities..."
-                                rows={4}
-                                style={{
-                                    width: "100%",
-                                    padding: "8px",
-                                    fontSize: "14px",
-                                    border: "1px solid var(--input-border)",
-                                    borderRadius: "4px",
-                                    backgroundColor: "var(--input-bg)",
-                                    color: "var(--input-text)",
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: "15px" }}>
-                            <label
-                                htmlFor="new-outing-capacity-type"
-                                style={{
-                                    display: "block",
-                                    marginBottom: "5px",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                Capacity Type *
-                            </label>
-                            <select
-                                id="new-outing-capacity-type"
-                                name="capacity_type"
-                                value={newOuting.capacity_type}
-                                onChange={handleInputChange}
-                                style={{
-                                    width: "100%",
-                                    padding: "10px",
-                                    fontSize: "14px",
-                                    border: "1px solid var(--input-border)",
-                                    borderRadius: "4px",
-                                    backgroundColor: "var(--input-bg)",
-                                    color: "var(--input-text)",
-                                }}
-                            >
-                                <option value="fixed">Fixed Capacity</option>
-                                <option value="vehicle">Vehicle-Based Capacity</option>
-                            </select>
-                            <p
-                                style={{
-                                    fontSize: "12px",
-                                    color: "var(--text-secondary)",
-                                    marginTop: "5px",
-                                }}
-                            >
-                                {newOuting.capacity_type === "fixed"
-                                    ? "Set a fixed maximum number of participants"
-                                    : "Capacity based on available vehicle seats from adults"}
-                            </p>
-                        </div>
-
-                        {newOuting.capacity_type === "fixed" && (
-                            <div style={{ marginBottom: "15px" }}>
-                                <label
-                                    htmlFor="new-outing-max-participants"
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "5px",
-                                        fontWeight: "bold",
-                                    }}
-                                >
-                                    Maximum Capacity *
-                                </label>
-                                <input
-                                    id="new-outing-max-participants"
-                                    type="number"
-                                    name="max_participants"
-                                    value={newOuting.max_participants}
-                                    onChange={handleInputChange}
-                                    min="1"
-                                    required
-                                    style={{
-                                        width: "100%",
-                                        padding: "8px",
-                                        fontSize: "14px",
-                                        border: "1px solid var(--input-border)",
-                                        borderRadius: "4px",
-                                        backgroundColor: "var(--input-bg)",
-                                        color: "var(--input-text)",
-                                    }}
-                                />
-                            </div>
-                        )}
-
-                        <div style={{ marginBottom: "15px" }}>
-                            <label
-                                htmlFor="new-outing-cost"
-                                style={{
-                                    display: "block",
-                                    marginBottom: "5px",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                Cost (USD)
-                            </label>
-                            <input
-                                id="new-outing-cost"
-                                type="number"
-                                name="cost"
-                                value={newOuting.cost ?? ""}
-                                onChange={handleInputChange}
-                                min="0"
-                                step="0.01"
-                                placeholder="e.g., 25.00"
-                                style={{
-                                    width: "100%",
-                                    padding: "8px",
-                                    fontSize: "14px",
-                                    border: "1px solid var(--input-border)",
-                                    borderRadius: "4px",
-                                    backgroundColor: "var(--input-bg)",
-                                    color: "var(--input-text)",
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: "15px" }}>
-                            <label
-                                htmlFor="new-outing-gear-list"
-                                style={{
-                                    display: "block",
-                                    marginBottom: "5px",
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                Suggested Gear List
-                            </label>
-                            <textarea
-                                id="new-outing-gear-list"
-                                name="gear_list"
-                                value={newOuting.gear_list || ""}
-                                onChange={handleInputChange}
-                                placeholder="e.g., Sleeping bag, tent, flashlight, water bottle..."
-                                rows={4}
-                                style={{
-                                    width: "100%",
-                                    padding: "8px",
-                                    fontSize: "14px",
-                                    border: "1px solid var(--input-border)",
-                                    borderRadius: "4px",
-                                    backgroundColor: "var(--input-bg)",
-                                    color: "var(--input-text)",
-                                }}
-                            />
-                        </div>
-
-                        <div
-                            style={{
-                                marginBottom: "20px",
-                                padding: "15px",
-                                backgroundColor: "var(--bg-tertiary)",
-                                borderRadius: "4px",
-                            }}
-                        >
-                            <h3 style={{ marginTop: 0, marginBottom: "15px" }}>
-                                Outing Lead Contact Information (Optional)
-                            </h3>
-
-                            <div style={{ marginBottom: "15px" }}>
-                                <label
-                                    htmlFor="new-outing-lead-name"
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "5px",
-                                        fontWeight: "bold",
-                                    }}
-                                >
-                                    Outing Lead Name
-                                </label>
-                                <input
-                                    id="new-outing-lead-name"
-                                    type="text"
-                                    name="outing_lead_name"
-                                    value={newOuting.outing_lead_name || ""}
-                                    onChange={handleInputChange}
-                                    placeholder="e.g., John Smith"
-                                    style={{
-                                        width: "100%",
-                                        padding: "8px",
-                                        fontSize: "14px",
-                                        border: "1px solid var(--input-border)",
-                                        borderRadius: "4px",
-                                        backgroundColor: "var(--input-bg)",
-                                        color: "var(--input-text)",
-                                    }}
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: "15px" }}>
-                                <label
-                                    htmlFor="new-outing-lead-email"
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "5px",
-                                        fontWeight: "bold",
-                                    }}
-                                >
-                                    Outing Lead Email
-                                </label>
-                                <input
-                                    id="new-outing-lead-email"
-                                    type="email"
-                                    name="outing_lead_email"
-                                    value={newOuting.outing_lead_email || ""}
-                                    onChange={handleInputChange}
-                                    placeholder="e.g., john.smith@example.com"
-                                    style={{
-                                        width: "100%",
-                                        padding: "8px",
-                                        fontSize: "14px",
-                                        border: "1px solid var(--input-border)",
-                                        borderRadius: "4px",
-                                        backgroundColor: "var(--input-bg)",
-                                        color: "var(--input-text)",
-                                    }}
-                                />
-                            </div>
-
-                            <div style={{ marginBottom: "15px" }}>
-                                <label
-                                    htmlFor="new-outing-lead-phone"
-                                    style={{
-                                        display: "block",
-                                        marginBottom: "5px",
-                                        fontWeight: "bold",
-                                    }}
-                                >
-                                    Outing Lead Phone
-                                </label>
-                                <input
-                                    id="new-outing-lead-phone"
-                                    type="tel"
-                                    name="outing_lead_phone"
-                                    value={newOuting.outing_lead_phone || ""}
-                                    onChange={handleInputChange}
-                                    placeholder="(555) 123-4567"
-                                    style={{
-                                        width: "100%",
-                                        padding: "8px",
-                                        fontSize: "14px",
-                                        border: "1px solid var(--input-border)",
-                                        borderRadius: "4px",
-                                        backgroundColor: "var(--input-bg)",
-                                        color: "var(--input-text)",
-                                    }}
-                                />
-                                <p
-                                    style={{
-                                        fontSize: "12px",
-                                        color: "var(--text-secondary)",
-                                        marginTop: "4px",
-                                        marginBottom: "0",
-                                    }}
-                                >
-                                    Format: (XXX) XXX-XXXX
-                                </p>
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            style={{
-                                padding: "10px 20px",
-                                backgroundColor: "var(--btn-primary-bg)",
-                                color: "var(--btn-primary-text)",
-                                border: "none",
-                                borderRadius: "4px",
-                                cursor: loading ? "not-allowed" : "pointer",
-                                fontSize: "16px",
-                            }}
-                        >
-                            {loading ? "Creating..." : "Create Outing"}
-                        </button>
-                    </form>
-                )}
+                    <span style={{ fontSize: "20px" }}>✨</span> Create New Outing
+                </button>
             </div>
 
             <div>
@@ -1612,23 +799,7 @@ const OutingAdmin: React.FC = () => {
                                                 />
                                             </div>
 
-                                            <div style={{ marginBottom: "15px" }}>
-                                                <label
-                                                    style={{
-                                                        display: "block",
-                                                        marginBottom: "5px",
-                                                        fontWeight: "bold",
-                                                    }}
-                                                >
-                                                    Outing Icon
-                                                </label>
-                                                <OutingIconPicker
-                                                    value={editOuting.icon || ""}
-                                                    onChange={(icon) =>
-                                                        setEditOuting({ ...editOuting, icon })
-                                                    }
-                                                />
-                                            </div>
+
 
                                             <div style={{ marginBottom: "15px" }}>
                                                 <label

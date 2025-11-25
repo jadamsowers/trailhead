@@ -17,14 +17,20 @@ Enhancements to outing setup and management
 - [x] Add pickup time and location fields
 - [x] Add cost field for outing
 - [x] Add suggested gear list functionality
-  - [ ] ability to select from pre-defined gear lists (backpacking, truck camping, cold weather) and also add in trip-specific needs
+  - [x] ability to select from pre-defined gear lists (backpacking, truck camping, cold weather) and also add in trip-specific needs
+  - [x] Backend API supports creating packing lists from templates
+  - [x] Can add custom items to outing-specific packing lists
 - [x] Add icon selection (emoji or Bootstrap icon)
 - [x] Generate QR code for outing
   - [x] QR code links to specific outing URL
-- [ ] Add ability to close signups
-  - [ ] Date-based automatic closure option
-  - [ ] Manual close signups button
-- [ ] Ability to draft an email whenever a change is made to the trip
+- [x] Add ability to close signups
+  - [x] Date-based automatic closure option (signups_close_at field)
+  - [x] Manual close signups button (close-signups and open-signups endpoints)
+  - [x] Signup enforcement in create_signup endpoint
+- [x] Ability to draft an email whenever a change is made to the trip
+  - [x] API returns email draft with changed fields on outing update
+  - [x] Subject auto-generated "Update: <Outing Name> details changed"
+  - [x] Body lists old → new values with friendly labels
 
 ## Outing Wizard
 
@@ -67,9 +73,6 @@ This should really happen when the first admin logs in.
 - [ ] ability for two or more family members to share common pool of scouts and sign each other up for outings
 - [ ] should be able to see each others' signups (if other user allows it)
 - [ ] should have ability to link family accounts (need some mutual acceptance)
-
-
-
 
 ## Accessibility Improvements
 
@@ -178,4 +181,3 @@ Ensure the application complies with relevant legal requirements
 - [ ] Parental consent workflow for minors
 - [ ] Photo/video release consent checkboxes
 - [ ] Medical information accuracy acknowledgment
-

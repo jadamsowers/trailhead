@@ -489,3 +489,15 @@ export interface OutingPackingListItemUpdate {
   checked?: boolean;
 }
 
+// Outing Update Email Draft Types
+export interface OutingUpdateEmailDraft {
+  subject: string;
+  body: string;
+  changed_fields: string[];
+}
+
+export interface OutingUpdateResponse {
+  outing: Outing;
+  email_draft?: OutingUpdateEmailDraft | null;
+}
+

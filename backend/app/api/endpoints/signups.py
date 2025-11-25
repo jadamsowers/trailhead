@@ -56,6 +56,13 @@ async def create_signup(
             detail="Outing not found"
         )
     
+    # Check if signups are closed
+    if db_outing.are_signups_closed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Signups are closed for this outing"
+        )
+    
     # Load family members to validate and check capacity
     family_members = []
     for family_member_id in signup.family_member_ids:

@@ -29,6 +29,8 @@ class Outing(Base):
     pickup_location = Column(String(255), nullable=True)  # Legacy: pickup location name
     cost = Column(Numeric(10, 2), nullable=True)  # Cost in dollars
     gear_list = Column(Text, nullable=True)  # Suggested gear list
+    signups_close_at = Column(DateTime, nullable=True)  # Automatic signup closure date/time
+    signups_closed = Column(Boolean, default=False, nullable=False)  # Manual signup closure flag
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     icon = Column(String(50), nullable=True)  # Outing icon (Bootstrap icon name or emoji)
@@ -134,3 +136,12 @@ class Outing(Base):
     def needs_female_leader(self):
         """Check if outing needs a female adult leader (required when female youth present)"""
         return self.female_youth_count > 0 and self.female_adult_count < 1
+
+    @property
+    def are_signups_closed(self):
+        """Check if signups are closed (manually or automatically based on close date)"""
+        if self.signups_closed:
+            return True
+        if self.signups_close_at and datetime.utcnow() >= self.signups_close_at:
+            return True
+        return False

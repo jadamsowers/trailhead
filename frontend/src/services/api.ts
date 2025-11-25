@@ -1,6 +1,7 @@
 import {
   Outing,
   OutingCreate,
+  OutingUpdateResponse,
   SignupCreate,
   SignupResponse,
   SignupWithDetails,
@@ -234,7 +235,7 @@ export const outingAPI = {
     return handleResponse<Outing>(response);
   },
 
-  async update(id: string, outing: Partial<OutingCreate>): Promise<Outing> {
+  async update(id: string, outing: Partial<OutingCreate>): Promise<OutingUpdateResponse> {
     const url = `${API_BASE_URL}/outings/${id}`;
     console.log("🚀 API Request: PUT", url, outing);
     const response = await fetch(url, {
@@ -242,7 +243,7 @@ export const outingAPI = {
       headers: await getAuthHeaders(),
       body: JSON.stringify(outing),
     });
-    return handleResponse<Outing>(response);
+    return handleResponse<OutingUpdateResponse>(response);
   },
 
   async delete(id: string): Promise<void> {

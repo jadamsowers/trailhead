@@ -26,6 +26,8 @@ class OutingBase(BaseModel):
     pickup_location: Optional[str] = Field(None, max_length=255, description="Pickup location")
     cost: Optional[Decimal] = Field(None, ge=0, description="Cost of the outing in dollars")
     gear_list: Optional[str] = Field(None, description="Suggested gear list for participants")
+    signups_close_at: Optional[datetime] = Field(None, description="Automatic signup closure date/time")
+    signups_closed: bool = Field(False, description="Manual signup closure flag")
     icon: Optional[str] = Field(None, max_length=50, description="Outing icon (Bootstrap icon name or emoji)")
     
     # Address fields with Place relationships
@@ -90,6 +92,7 @@ class OutingResponse(OutingBase):
     adult_count: int = Field(0, description="Total number of adults signed up")
     needs_two_deep_leadership: bool = Field(False, description="Whether outing needs more adults (Scouting America requires minimum 2)")
     needs_female_leader: bool = Field(False, description="Whether outing needs a female adult leader (required when female youth present)")
+    are_signups_closed: bool = Field(False, description="Whether signups are closed (manually or automatically)")
     created_at: datetime
     updated_at: datetime
     
@@ -110,3 +113,18 @@ class OutingListResponse(BaseModel):
 # Rebuild models to resolve forward references to PlaceResponse
 OutingResponse.model_rebuild()
 OutingListResponse.model_rebuild()
+
+
+class OutingUpdateEmailDraft(BaseModel):
+    """Email draft generated when an outing is updated"""
+    subject: str
+    body: str
+    changed_fields: list[str] = Field(default_factory=list, description="List of field names that changed")
+
+
+class OutingUpdateResponse(BaseModel):
+    """Response for outing update including email draft"""
+    outing: OutingResponse
+    email_draft: OutingUpdateEmailDraft | None = Field(None, description="Email draft if changes occurred")
+
+OutingUpdateResponse.model_rebuild()
