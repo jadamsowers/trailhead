@@ -19,8 +19,8 @@ BEGIN
 
     INSERT INTO packing_list_template_items (id, template_id, name, quantity, sort_order, created_at, updated_at)
     SELECT gen_random_uuid(), tpl_id, elem->> 'name', (elem->> 'quantity')::int, ord - 1, now(), now()
-    FROM jsonb_array_elements($$
-[
+    FROM jsonb_array_elements($json$
+  [
     {"name": "Backpack with raincover", "quantity": 1},
     {"name": "Backpacking tent (with stakes, guylines)", "quantity": 1},
     {"name": "Sleeping bag (with stuff sack)", "quantity": 1},
@@ -77,7 +77,7 @@ BEGIN
     {"name": "Repair kit (include mattress/stove supplies)", "quantity": 1},
     {"name": "Duct tape strips", "quantity": 1}
 ]
-$$::jsonb) WITH ORDINALITY arr(elem, ord);
+$json$::jsonb) WITH ORDINALITY arr(elem, ord);
   END IF;
 
   -- Camping
@@ -88,8 +88,8 @@ $$::jsonb) WITH ORDINALITY arr(elem, ord);
 
     INSERT INTO packing_list_template_items (id, template_id, name, quantity, sort_order, created_at, updated_at)
     SELECT gen_random_uuid(), tpl_id, elem->> 'name', (elem->> 'quantity')::int, ord - 1, now(), now()
-    FROM jsonb_array_elements($$
-[
+    FROM jsonb_array_elements($json$
+  [
     {"name": "Tent (and footprint, stakes)", "quantity": 1},
     {"name": "Sleeping bag", "quantity": 1},
     {"name": "Sleeping pad", "quantity": 1},
@@ -145,7 +145,7 @@ $$::jsonb) WITH ORDINALITY arr(elem, ord);
     {"name": "Lip balm", "quantity": 1},
     {"name": "Insect repellent", "quantity": 1}
 ]
-$$::jsonb) WITH ORDINALITY arr(elem, ord);
+$json$::jsonb) WITH ORDINALITY arr(elem, ord);
   END IF;
 
   -- Cold-Weather Camping
@@ -156,8 +156,8 @@ $$::jsonb) WITH ORDINALITY arr(elem, ord);
 
     INSERT INTO packing_list_template_items (id, template_id, name, quantity, sort_order, created_at, updated_at)
     SELECT gen_random_uuid(), tpl_id, elem->> 'name', (elem->> 'quantity')::int, ord - 1, now(), now()
-    FROM jsonb_array_elements($$
-[
+    FROM jsonb_array_elements($json$
+  [
     {"name": "Tent (and footprint, stakes)", "quantity": 1},
     {"name": "Sleeping bag", "quantity": 1},
     {"name": "Sleeping pad", "quantity": 1},
@@ -213,7 +213,7 @@ $$::jsonb) WITH ORDINALITY arr(elem, ord);
     {"name": "Lip balm", "quantity": 1},
     {"name": "Insect repellent", "quantity": 1}
 ]
-$$::jsonb) WITH ORDINALITY arr(elem, ord);
+$json$::jsonb) WITH ORDINALITY arr(elem, ord);
   END IF;
 
 END$$;
