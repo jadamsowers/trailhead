@@ -252,6 +252,7 @@ temp/
 
 # CSV uploads
 *.csv
+!data/*.csv
 !backend/roster_template.csv
 
 # Log files
