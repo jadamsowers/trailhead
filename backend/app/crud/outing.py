@@ -16,7 +16,11 @@ async def get_outing(db: AsyncSession, outing_id: UUID) -> Optional[Outing]:
     result = await db.execute(
         select(Outing)
         .options(
-            selectinload(Outing.signups).selectinload(Signup.participants).selectinload(Participant.family_member)
+            selectinload(Outing.signups).selectinload(Signup.participants).selectinload(Participant.family_member),
+            # Eager-load place relationships to avoid async lazy-load during serialization
+            selectinload(Outing.outing_place),
+            selectinload(Outing.pickup_place),
+            selectinload(Outing.dropoff_place)
         )
         .where(Outing.id == outing_id)
     )
@@ -48,7 +52,11 @@ async def get_outings(db: AsyncSession, skip: int = 0, limit: int = 100) -> list
     result = await db.execute(
         select(Outing)
         .options(
-            selectinload(Outing.signups).selectinload(Signup.participants).selectinload(Participant.family_member)
+            selectinload(Outing.signups).selectinload(Signup.participants).selectinload(Participant.family_member),
+            # Eager-load place relationships so responses can access them without additional IO
+            selectinload(Outing.outing_place),
+            selectinload(Outing.pickup_place),
+            selectinload(Outing.dropoff_place)
         )
         .offset(skip)
         .limit(limit)
@@ -62,7 +70,10 @@ async def get_available_outings(db: AsyncSession) -> list[Outing]:
     result = await db.execute(
         select(Outing)
         .options(
-            selectinload(Outing.signups).selectinload(Signup.participants).selectinload(Participant.family_member)
+            selectinload(Outing.signups).selectinload(Signup.participants).selectinload(Participant.family_member),
+            selectinload(Outing.outing_place),
+            selectinload(Outing.pickup_place),
+            selectinload(Outing.dropoff_place)
         )
         .order_by(Outing.outing_date.asc())
     )
@@ -84,7 +95,8 @@ async def create_outing(db: AsyncSession, outing: OutingCreate) -> Outing:
     db_outing = Outing(**outing_data)
     db.add(db_outing)
     await db.flush()
-    await db.refresh(db_outing, ['signups'])
+    # Refresh signups and place relationships so downstream serialization does not trigger lazy IO
+    await db.refresh(db_outing, ['signups', 'outing_place', 'pickup_place', 'dropoff_place'])
     return db_outing
 
 
@@ -98,7 +110,8 @@ async def update_outing(db: AsyncSession, outing_id: UUID, outing: OutingUpdate)
         setattr(db_outing, key, value)
     
     await db.flush()
-    await db.refresh(db_outing)
+    # Ensure related relationships are loaded for serialization
+    await db.refresh(db_outing, ['signups', 'outing_place', 'pickup_place', 'dropoff_place'])
     return db_outing
 
 
