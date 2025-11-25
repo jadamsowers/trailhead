@@ -468,7 +468,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                         }`}
                       />
                       {startError && (
-                        <p className="text-xs text-red-600 mt-1">{startMessage}</p>
+                        <p className="text-xs text-red-600 mt-1">
+                          {startMessage}
+                        </p>
                       )}
                     </div>
 
@@ -487,7 +489,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                           }`}
                         />
                         {endError && (
-                          <p className="text-xs text-red-600 mt-1">{endMessage}</p>
+                          <p className="text-xs text-red-600 mt-1">
+                            {endMessage}
+                          </p>
                         )}
                       </div>
                     )}
@@ -1340,10 +1344,16 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                             rank: req.rank,
                             requirement_number: req.requirement_number,
                             category: "",
+                            requirement_text: req.description,
                           }
                         : allRequirements.find((r) => r.id === reqId);
 
                       if (!requirement) return null;
+
+                      const descriptionText =
+                        (req && req.description) ||
+                        requirement.requirement_text ||
+                        "";
 
                       return (
                         <div key={reqId} className="mb-2">
@@ -1352,9 +1362,14 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                             {requirement.category &&
                               ` - ${requirement.category}`}
                           </div>
-                          {notes && (
+                          {descriptionText && (
                             <div className="text-sm text-secondary ml-5">
-                              {notes}
+                              {descriptionText}
+                            </div>
+                          )}
+                          {notes && (
+                            <div className="text-sm text-secondary ml-5 mt-1">
+                              <em>{notes}</em>
                             </div>
                           )}
                         </div>
