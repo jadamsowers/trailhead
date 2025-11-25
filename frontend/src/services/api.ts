@@ -235,7 +235,10 @@ export const outingAPI = {
     return handleResponse<Outing>(response);
   },
 
-  async update(id: string, outing: Partial<OutingCreate>): Promise<OutingUpdateResponse> {
+  async update(
+    id: string,
+    outing: Partial<OutingCreate>
+  ): Promise<OutingUpdateResponse> {
     const url = `${API_BASE_URL}/outings/${id}`;
     console.log("🚀 API Request: PUT", url, outing);
     const response = await fetch(url, {
@@ -1205,7 +1208,8 @@ export const requirementsAPI = {
     if (category) params.append("category", category);
 
     const response = await fetch(
-      `${API_BASE_URL}/rank-requirements${params.toString() ? "?" + params : ""
+      `${API_BASE_URL}/rank-requirements${
+        params.toString() ? "?" + params : ""
       }`,
       {
         headers: await getAuthHeaders(),
@@ -1322,17 +1326,27 @@ export const packingListAPI = {
   /**
    * Get all packing list templates
    */
-  async getTemplates(): Promise<import("../types").PackingListTemplateListResponse> {
+  async getTemplates(): Promise<
+    import("../types").PackingListTemplateListResponse
+  > {
     const response = await fetch(`${API_BASE_URL}/packing-lists/templates`);
-    return handleResponse<import("../types").PackingListTemplateListResponse>(response);
+    return handleResponse<import("../types").PackingListTemplateListResponse>(
+      response
+    );
   },
 
   /**
    * Get a specific template with its items
    */
-  async getTemplate(templateId: string): Promise<import("../types").PackingListTemplateWithItems> {
-    const response = await fetch(`${API_BASE_URL}/packing-lists/templates/${templateId}`);
-    return handleResponse<import("../types").PackingListTemplateWithItems>(response);
+  async getTemplate(
+    templateId: string
+  ): Promise<import("../types").PackingListTemplateWithItems> {
+    const response = await fetch(
+      `${API_BASE_URL}/packing-lists/templates/${templateId}`
+    );
+    return handleResponse<import("../types").PackingListTemplateWithItems>(
+      response
+    );
   },
 
   /**
@@ -1356,7 +1370,9 @@ export const packingListAPI = {
   /**
    * Get all packing lists for an outing
    */
-  async getOutingPackingLists(outingId: string): Promise<import("../types").OutingPackingList[]> {
+  async getOutingPackingLists(
+    outingId: string
+  ): Promise<import("../types").OutingPackingList[]> {
     const response = await fetch(
       `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists`,
       {
@@ -1369,7 +1385,10 @@ export const packingListAPI = {
   /**
    * Delete a packing list from an outing
    */
-  async deleteOutingPackingList(outingId: string, packingListId: string): Promise<void> {
+  async deleteOutingPackingList(
+    outingId: string,
+    packingListId: string
+  ): Promise<void> {
     const response = await fetch(
       `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists/${packingListId}`,
       {

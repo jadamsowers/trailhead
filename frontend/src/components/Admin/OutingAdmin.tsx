@@ -13,7 +13,6 @@ import { formatPhoneNumber } from "../../utils/phoneUtils";
 import OutingQRCode from "./OutingQRCode";
 import OutingWizard from "./OutingWizard.tsx";
 
-
 const OutingAdmin: React.FC = () => {
     // Helper function to format date, omitting year if it's the current year
     const formatOutingDate = (dateString: string): string => {
@@ -35,8 +34,6 @@ const OutingAdmin: React.FC = () => {
         }
     };
 
-
-
     const [outings, setOutings] = useState<Outing[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -51,7 +48,6 @@ const OutingAdmin: React.FC = () => {
     const [editingOutingId, setEditingOutingId] = useState<string | null>(null);
     const [editOuting, setEditOuting] = useState<OutingCreate | null>(null);
     const [isWizardOpen, setIsWizardOpen] = useState(false);
-
 
     // Email functionality state
     const [showEmailModal, setShowEmailModal] = useState(false);
@@ -79,8 +75,6 @@ const OutingAdmin: React.FC = () => {
     const [collapsedActions, setCollapsedActions] = useState<{
         [outingId: string]: boolean;
     }>({});
-
-
 
     // Load outings on component mount
     useEffect(() => {
@@ -145,8 +139,6 @@ const OutingAdmin: React.FC = () => {
             await loadOutingSignups(outingId);
         }
     };
-
-
 
     const handleEditOuting = (outing: Outing) => {
         setEditingOutingId(outing.id);
@@ -223,7 +215,10 @@ const OutingAdmin: React.FC = () => {
         try {
             setLoading(true);
             setError(null);
-            const updateResult: OutingUpdateResponse = await outingAPI.update(editingOutingId, editOuting);
+            const updateResult: OutingUpdateResponse = await outingAPI.update(
+                editingOutingId,
+                editOuting
+            );
             setEditingOutingId(null);
             setEditOuting(null);
             await loadOutings();
@@ -233,15 +228,21 @@ const OutingAdmin: React.FC = () => {
                 try {
                     const signups = await signupAPI.getByOuting(editingOutingId);
                     const emailsSet = new Set<string>();
-                    signups.forEach(s => { if (s.family_contact_email) emailsSet.add(s.family_contact_email); });
+                    signups.forEach((s) => {
+                        if (s.family_contact_email) emailsSet.add(s.family_contact_email);
+                    });
                     const emails = Array.from(emailsSet);
                     if (emails.length > 0) {
-                        const mailtoLink = `mailto:${emails.join(',')}?subject=${encodeURIComponent(updateResult.email_draft.subject)}&body=${encodeURIComponent(updateResult.email_draft.body)}`;
+                        const mailtoLink = `mailto:${emails.join(
+                            ","
+                        )}?subject=${encodeURIComponent(
+                            updateResult.email_draft.subject
+                        )}&body=${encodeURIComponent(updateResult.email_draft.body)}`;
                         // Open in default mail client
                         window.location.href = mailtoLink;
                     }
                 } catch (emailErr) {
-                    console.error('Failed to prepare outing update email:', emailErr);
+                    console.error("Failed to prepare outing update email:", emailErr);
                 }
             }
         } catch (err) {
@@ -686,7 +687,7 @@ const OutingAdmin: React.FC = () => {
                 style={{
                     marginBottom: "40px",
                     display: "flex",
-                    justifyContent: "flex-end",
+                    justifyContent: "center",
                 }}
             >
                 <button
@@ -798,8 +799,6 @@ const OutingAdmin: React.FC = () => {
                                                     }}
                                                 />
                                             </div>
-
-
 
                                             <div style={{ marginBottom: "15px" }}>
                                                 <label
@@ -1421,8 +1420,8 @@ const OutingAdmin: React.FC = () => {
                                                                         ? "var(--alert-error-text)"
                                                                         : "var(--alert-success-text)",
                                                                     border: `1px solid ${outing.is_full
-                                                                        ? "var(--alert-error-border)"
-                                                                        : "var(--alert-success-border)"
+                                                                            ? "var(--alert-error-border)"
+                                                                            : "var(--alert-success-border)"
                                                                         }`,
                                                                     whiteSpace: "nowrap",
                                                                 }}

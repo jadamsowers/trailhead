@@ -133,3 +133,64 @@ CREATE INDEX ix_checkins_id ON checkins (id);
 CREATE INDEX ix_checkins_outing_id ON checkins (outing_id);
 CREATE INDEX ix_checkins_signup_id ON checkins (signup_id);
 CREATE INDEX ix_checkins_participant_id ON checkins (participant_id);
+
+-- Scout rank requirements
+CREATE TABLE rank_requirements (
+	id UUID NOT NULL,
+	rank VARCHAR(50) NOT NULL,
+	requirement_number VARCHAR(20) NOT NULL,
+	requirement_text TEXT NOT NULL,
+	keywords TEXT[],
+	category VARCHAR(100),
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	PRIMARY KEY (id)
+);
+CREATE INDEX ix_rank_requirements_rank ON rank_requirements (rank);
+CREATE INDEX ix_rank_requirements_category ON rank_requirements (category);
+CREATE INDEX ix_rank_requirements_id ON rank_requirements (id);
+
+-- Merit badges
+CREATE TABLE merit_badges (
+	id UUID NOT NULL,
+	name VARCHAR(100) NOT NULL,
+	description TEXT,
+	keywords TEXT[],
+	eagle_required BOOLEAN NOT NULL DEFAULT FALSE,
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX uq_merit_badges_name ON merit_badges (name);
+CREATE INDEX ix_merit_badges_name ON merit_badges (name);
+CREATE INDEX ix_merit_badges_id ON merit_badges (id);
+
+-- Junction table: outings to rank requirements
+CREATE TABLE outing_requirements (
+	id UUID NOT NULL,
+	outing_id UUID NOT NULL,
+	rank_requirement_id UUID NOT NULL,
+	notes TEXT,
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY(outing_id) REFERENCES outings (id) ON DELETE CASCADE,
+	FOREIGN KEY(rank_requirement_id) REFERENCES rank_requirements (id) ON DELETE CASCADE
+);
+CREATE INDEX ix_outing_requirements_outing_id ON outing_requirements (outing_id);
+CREATE INDEX ix_outing_requirements_rank_requirement_id ON outing_requirements (rank_requirement_id);
+CREATE INDEX ix_outing_requirements_id ON outing_requirements (id);
+
+-- Junction table: outings to merit badges
+CREATE TABLE outing_merit_badges (
+	id UUID NOT NULL,
+	outing_id UUID NOT NULL,
+	merit_badge_id UUID NOT NULL,
+	notes TEXT,
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+	PRIMARY KEY (id),
+	FOREIGN KEY(outing_id) REFERENCES outings (id) ON DELETE CASCADE,
+	FOREIGN KEY(merit_badge_id) REFERENCES merit_badges (id) ON DELETE CASCADE
+);
+CREATE INDEX ix_outing_merit_badges_outing_id ON outing_merit_badges (outing_id);
+CREATE INDEX ix_outing_merit_badges_merit_badge_id ON outing_merit_badges (merit_badge_id);
+CREATE INDEX ix_outing_merit_badges_id ON outing_merit_badges (id);

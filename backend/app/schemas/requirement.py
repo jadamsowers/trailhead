@@ -50,6 +50,7 @@ class MeritBadgeBase(BaseModel):
     name: str = Field(..., description="Merit badge name")
     description: Optional[str] = Field(None, description="Brief description of the merit badge")
     keywords: Optional[List[str]] = Field(None, description="Keywords for matching with outings")
+    eagle_required: Optional[bool] = Field(False, description="Whether the merit badge is Eagle-required")
 
 
 class MeritBadgeCreate(MeritBadgeBase):
@@ -62,6 +63,7 @@ class MeritBadgeUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     keywords: Optional[List[str]] = None
+    eagle_required: Optional[bool] = None
 
 
 class MeritBadgeResponse(MeritBadgeBase):
@@ -145,15 +147,25 @@ class OutingMeritBadgeResponse(BaseModel):
 # ============================================================================
 
 class RequirementSuggestion(BaseModel):
-    """Schema for suggested requirements based on outing"""
-    requirement: RankRequirementResponse
+    """Flattened schema for suggested rank requirements.
+
+    Returns only the fields requested by the client plus match metadata.
+    """
+    rank: str = Field(..., description="Scout rank")
+    requirement_number: str = Field(..., description="Requirement number (e.g. '1a')")
+    description: str = Field(..., description="Full requirement description")
     match_score: float = Field(..., description="Relevance score (0-1)")
     matched_keywords: List[str] = Field(..., description="Keywords that matched")
 
 
 class MeritBadgeSuggestion(BaseModel):
-    """Schema for suggested merit badges based on outing"""
-    merit_badge: MeritBadgeResponse
+    """Flattened schema for suggested merit badges.
+
+    Returns badge name and description plus match metadata.
+    """
+    name: str = Field(..., description="Merit badge name")
+    description: Optional[str] = Field(None, description="Merit badge description")
+    eagle_required: bool = Field(False, description="Eagle-required badge indicator")
     match_score: float = Field(..., description="Relevance score (0-1)")
     matched_keywords: List[str] = Field(..., description="Keywords that matched")
 

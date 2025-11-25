@@ -122,10 +122,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Alembic
-# Keep alembic/ directory but ignore generated migration files if needed
-# backend/alembic/versions/*.py
-
 # ===========================
 # React Frontend
 # ===========================

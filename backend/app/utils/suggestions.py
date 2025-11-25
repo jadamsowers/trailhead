@@ -7,56 +7,79 @@ from app.models.requirement import RankRequirement, MeritBadge
 from app.crud import requirement as crud_requirement
 from app.schemas.requirement import RequirementSuggestion, MeritBadgeSuggestion, OutingSuggestions
 
+DOMAIN_STOPWORDS = {
+    # Generic words that appeared frequently and reduced precision
+    'badge', 'merit', 'learn', 'learning', 'including', 'activities', 'activity'
+    # NOTE: retain 'outdoor', 'outdoors', 'skill', 'skills' for matching; previously removed
+}
+
 
 def extract_keywords_from_text(text: str) -> List[str]:
-    """Extract potential keywords from outing name and description"""
+    """Extract potential keywords from outing name and description with normalization.
+    Enhancements:
+    - Preserve outdoor-related tokens for matching (removed from DOMAIN_STOPWORDS).
+    - Normalize curly apostrophes and unicode dashes.
+    - Include alphanumeric tokens (e.g. 5-mile -> 5, mile) and simple stemming for 'ing' suffix.
+    - Split hyphenated words into components.
+    """
     if not text:
         return []
-    
-    # Convert to lowercase and split into words
-    words = re.findall(r'\b[a-z]+\b', text.lower())
-    
-    # Filter out common stop words
+
+    normalized = (
+        text
+        .lower()
+        .replace("\u2019", "'")  # curly apostrophe
+        .replace("\u2018", "'")
+        .replace("\u2014", "-")  # em dash
+        .replace("\u2013", "-")  # en dash
+    )
+
+    # Replace non word separators with spaces for cleaner splitting
+    # Keep hyphens for later splitting
+    # Regex: capture words with letters/numbers/apostrophes
+    raw_tokens = re.findall(r"\b[a-z0-9']+\b", normalized)
+
     stop_words = {
-        'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
-        'of', 'with', 'by', 'from', 'up', 'about', 'into', 'through', 'during',
-        'before', 'after', 'above', 'below', 'between', 'under', 'again', 'further',
-        'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all',
-        'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor',
-        'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 'can', 'will',
-        'just', 'should', 'now', 'our', 'we', 'us', 'be', 'is', 'are', 'was', 'were',
-        'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing',
-        'this', 'that', 'these', 'those'
+        'the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','up','about','into','through','during',
+        'before','after','above','below','between','under','again','further','then','once','here','there','when','where','why','how','all',
+        'both','each','few','more','most','other','some','such','no','nor','not','only','own','same','so','than','too','very','can','will',
+        'just','should','now','our','we','us','be','is','are','was','were','been','being','have','has','had','having','do','does','did','doing',
+        'this','that','these','those'
     }
-    
-    # Return unique keywords, excluding stop words
-    return list(set(word for word in words if word not in stop_words and len(word) > 2))
+
+    refined: List[str] = []
+    for token in raw_tokens:
+        if token in stop_words or token in DOMAIN_STOPWORDS or len(token) <= 2:
+            continue
+        # Simple stemming for common 'ing' forms (e.g., hiking -> hike) if base length >2
+        if token.endswith('ing') and len(token) > 5:
+            base = token[:-3]
+            if base not in stop_words and base not in DOMAIN_STOPWORDS and len(base) > 2:
+                refined.append(base)
+        # Add original token
+        refined.append(token)
+
+    return list(set(refined))
 
 
 def calculate_match_score(
     requirement_keywords: List[str],
     outing_keywords: List[str]
 ) -> Tuple[float, List[str]]:
-    """
-    Calculate match score between requirement keywords and outing keywords
-    Returns (score, matched_keywords)
+    """Calculate match score between requirement and outing keywords.
+    New scoring strategy: score = matched / max(len(requirement_keywords), 1)
+    (focus on how much of the requirement is covered by outing description).
+    Returns (score, matched_keywords).
     """
     if not requirement_keywords or not outing_keywords:
         return 0.0, []
-    
-    # Convert to sets for efficient intersection
+
     req_set = set(requirement_keywords)
     out_set = set(outing_keywords)
-    
-    # Find matching keywords
     matched = req_set.intersection(out_set)
-    
     if not matched:
         return 0.0, []
-    
-    # Calculate score based on percentage of requirement keywords matched
-    score = len(matched) / len(req_set)
-    
+    score = len(matched) / max(len(req_set), 1)
     return score, list(matched)
 
 
@@ -103,9 +126,11 @@ def get_requirement_suggestions(
         if score >= min_score:
             suggestions.append(
                 RequirementSuggestion(
-                    requirement=requirement,
+                    rank=requirement.rank,
+                    requirement_number=requirement.requirement_number,
+                    description=requirement.requirement_text,
                     match_score=score,
-                    matched_keywords=matched
+                    matched_keywords=matched,
                 )
             )
     
@@ -157,9 +182,11 @@ def get_merit_badge_suggestions(
         if score >= min_score:
             suggestions.append(
                 MeritBadgeSuggestion(
-                    merit_badge=badge,
+                    name=badge.name,
+                    description=badge.description,
+                    eagle_required=bool(getattr(badge, "eagle_required", False)),
                     match_score=score,
-                    matched_keywords=matched
+                    matched_keywords=matched,
                 )
             )
     

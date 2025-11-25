@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey, ARRAY
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, ARRAY, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -35,6 +35,7 @@ class MeritBadge(Base):
     name = Column(String(100), nullable=False, unique=True, index=True)  # Merit badge name
     description = Column(Text, nullable=True)  # Brief description
     keywords = Column(ARRAY(Text), nullable=True)  # Array of keywords for matching
+    eagle_required = Column(Boolean, nullable=False, default=False)  # True if Eagle-required
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

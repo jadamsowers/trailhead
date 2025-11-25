@@ -551,3 +551,19 @@ For issues or questions:
 3. Inspect database schema: `atlas schema inspect --env sqlalchemy`
 4. Check application logs for SQL errors
 5. Consult the Atlas documentation: https://atlasgo.io/docs
+
+## Suggestion Engine Schema Update (API-Level)
+
+The suggestion engine was updated to return flattened suggestion objects:
+
+- `RequirementSuggestion`: `rank`, `requirement_number`, `description`, `match_score`, `matched_keywords`
+- `MeritBadgeSuggestion`: `name`, `description`, `match_score`, `matched_keywords`
+
+This change only affects Pydantic response schemas and does not introduce a new database table; therefore no SQL migration is required. Keywords for existing `rank_requirements` and `merit_badges` can be recalculated using:
+
+```bash
+cd backend
+python scripts/recalculate_suggestions.py
+```
+
+Run this after updating CSV source data to refresh keyword arrays used by the suggestion engine.

@@ -125,6 +125,6 @@ class OutingUpdateEmailDraft(BaseModel):
 class OutingUpdateResponse(BaseModel):
     """Response for outing update including email draft"""
     outing: OutingResponse
-    email_draft: OutingUpdateEmailDraft | None = Field(None, description="Email draft if changes occurred")
+    email_draft: Optional[OutingUpdateEmailDraft] = Field(None, description="Email draft if changes occurred")
 
 OutingUpdateResponse.model_rebuild()

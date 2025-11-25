@@ -33,7 +33,9 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
   const [customAddress, setCustomAddress] = useState(value.address || "");
   const [showCustomInput, setShowCustomInput] = useState(false); // Hidden until no results
   const [showDropdown, setShowDropdown] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false); // Track if search has been performed
+
+  // Use ref to track place selection without causing re-renders
+  const placeSelectedRef = useRef(false);
 
   // Load initial place if placeId is provided
   useEffect(() => {
@@ -51,10 +53,15 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
+    // Don't search if a place was just selected
+    if (placeSelectedRef.current) {
+      placeSelectedRef.current = false;
+      return;
+    }
+
     if (!searchValue || showCustomInput || searchValue.length < 2) {
       setOptions([]);
       setShowDropdown(false);
-      setHasSearched(false);
       return;
     }
 
@@ -70,12 +77,10 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
         const results = await placesAPI.searchPlaces(searchValue, 10);
         setOptions(results);
         setShowDropdown(true);
-        setHasSearched(true);
       } catch (error) {
         console.error("Error searching places:", error);
         setOptions([]);
         setShowDropdown(false);
-        setHasSearched(true); // Still mark as searched even on error
       } finally {
         setLoading(false);
       }
@@ -89,17 +94,20 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
     };
   }, [searchValue, showCustomInput]);
 
-  // Seed search with autoName once
+  // Seed search with autoName once (only on mount if autoName is provided)
+  const autoNameUsedRef = useRef(false);
   useEffect(() => {
-    if (autoName && !searchValue) {
+    if (autoName && !searchValue && !autoNameUsedRef.current) {
       setSearchValue(autoName);
+      autoNameUsedRef.current = true;
     }
-  }, [autoName]);
+  }, [autoName, searchValue]);
 
   const handlePlaceSelect = (place: Place | null) => {
     if (place) {
       setSearchValue(place.name);
       setShowDropdown(false);
+      placeSelectedRef.current = true; // Mark that a place was selected
       onChange({
         address: place.address,
         placeId: place.id,
@@ -167,24 +175,6 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
           {label}
           {required && <span className="text-red-600"> *</span>}
         </label>
-        {!showCustomInput &&
-          hasSearched &&
-          options.length === 0 &&
-          !loading && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log("Add New Place clicked", { hasSearched, options: options.length, loading, showCustomInput });
-                setShowCustomInput(true);
-                setShowDropdown(false);
-              }}
-              className="px-2 py-1 text-xs rounded border border-[var(--bsa-olive)] text-[var(--bsa-olive)] bg-transparent hover:bg-[var(--bsa-olive)] hover:text-white transition-colors"
-            >
-              + New Place
-            </button>
-          )}
         {showCustomInput && (
           <button
             type="button"
@@ -244,9 +234,18 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
             </div>
           )}
           {showDropdown && searchValue && options.length === 0 && !loading && (
-            <div className="absolute top-full left-0 right-0 mt-0.5 px-3 py-2 text-sm bg-[var(--bg-tertiary)] border border-[var(--card-border)] rounded text-[var(--text-secondary)]">
-              No saved places found. Create a new one?
-            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowCustomInput(true);
+                setShowDropdown(false);
+              }}
+              className="absolute top-full left-0 right-0 mt-0.5 px-3 py-2 text-sm bg-[var(--bg-tertiary)] border border-[var(--card-border)] rounded text-[var(--text-secondary)] hover:bg-[rgba(var(--bsa-olive-rgb),0.1)] hover:text-[var(--text-primary)] transition-colors cursor-pointer text-left w-full"
+            >
+              No saved places found. <span className="text-[var(--bsa-olive)] font-semibold">Click to create a new one →</span>
+            </button>
           )}
         </div>
       ) : (

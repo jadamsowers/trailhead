@@ -404,8 +404,6 @@ async def get_preview_suggestions(
     from app.schemas.requirement import (
         RequirementSuggestion,
         MeritBadgeSuggestion,
-        RankRequirementResponse,
-        MeritBadgeResponse,
     )
 
     # Extract keywords from provided text
@@ -425,7 +423,9 @@ async def get_preview_suggestions(
             continue
         requirement_suggestions.append(
             RequirementSuggestion(
-                requirement=RankRequirementResponse.model_validate(req),
+                rank=req.rank,
+                requirement_number=req.requirement_number,
+                description=req.requirement_text,
                 match_score=match_score,
                 matched_keywords=matched_keywords,
             )
@@ -439,7 +439,9 @@ async def get_preview_suggestions(
             continue
         merit_badge_suggestions.append(
             MeritBadgeSuggestion(
-                merit_badge=MeritBadgeResponse.model_validate(badge),
+                name=badge.name,
+                description=badge.description,
+                eagle_required=bool(getattr(badge, "eagle_required", False)),
                 match_score=match_score,
                 matched_keywords=matched_keywords,
             )

@@ -25,8 +25,15 @@ from app.models.user import User
 from app.core.security import get_password_hash, create_access_token
 
 
-# Test database URL - using in-memory SQLite for tests
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+# Test database URL selection:
+# Prefer an explicitly provided Postgres URL (DATABASE_URL or TEST_DATABASE_URL env var)
+# so that Postgres-specific types (e.g. ARRAY) are supported. Fall back to in-memory
+# SQLite for fast lightweight tests when no URL is supplied.
+TEST_DATABASE_URL = (
+    os.getenv("TEST_DATABASE_URL")
+    or os.getenv("DATABASE_URL")
+    or "sqlite+aiosqlite:///:memory:"
+)
 
 
 @pytest.fixture(scope="session")

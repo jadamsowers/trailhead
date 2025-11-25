@@ -51,6 +51,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   const [endDate, setEndDate] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [dropoffTime, setDropoffTime] = useState("");
+  const [pickupTime, setPickupTime] = useState("");
 
   // Address fields
   const [outingAddress, setOutingAddress] = useState<{
@@ -86,10 +88,10 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   const [packingItemQuantity, setPackingItemQuantity] = useState("1");
 
   // Step 5: Additional Details
+  const [capacityType, setCapacityType] = useState<"fixed" | "vehicle">("fixed");
   const [capacity, setCapacity] = useState<number>(30);
-  const [gearList, setGearList] = useState<string[]>([]);
-  const [gearInput, setGearInput] = useState("");
   const [cost, setCost] = useState<string>("");
+  const [signupCloseDate, setSignupCloseDate] = useState<string>("");
 
   // Load suggestions when moving to step 2
   useEffect(() => {
@@ -129,6 +131,16 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
       })();
     }
   }, [activeStep]);
+
+  // Auto-calculate signup close date (2 weeks before start date)
+  useEffect(() => {
+    if (startDate) {
+      const start = new Date(startDate);
+      const closeDate = new Date(start);
+      closeDate.setDate(closeDate.getDate() - 14); // 2 weeks before
+      setSignupCloseDate(closeDate.toISOString().split('T')[0]);
+    }
+  }, [startDate]);
 
   const loadSuggestions = async () => {
     setLoading(true);
@@ -202,16 +214,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
     });
   };
 
-  const handleAddGear = () => {
-    if (gearInput.trim()) {
-      setGearList([...gearList, gearInput.trim()]);
-      setGearInput("");
-    }
-  };
 
-  const handleRemoveGear = (index: number) => {
-    setGearList(gearList.filter((_, i) => i !== index));
-  };
 
   const handleSubmit = async () => {
     if (!name || !startDate || !endDate || !location) {
@@ -230,9 +233,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
         location,
         description: description || "",
         max_participants: capacity,
-        capacity_type: "fixed",
+        capacity_type: capacityType,
         is_overnight: true,
-        gear_list: gearList.length > 0 ? gearList.join(", ") : undefined,
         cost: cost ? parseFloat(cost) : undefined,
         outing_address: outingAddress.address,
         outing_place_id: outingAddress.placeId,
@@ -240,6 +242,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
         pickup_place_id: pickupAddress.placeId,
         dropoff_address: dropoffAddress.address,
         dropoff_place_id: dropoffAddress.placeId,
+        drop_off_time: dropoffTime || undefined,
+        pickup_time: pickupTime || undefined,
+        signups_close_at: signupCloseDate ? `${signupCloseDate}T23:59:59Z` : undefined,
       };
 
       const newOuting = await outingAPI.create(outingData);
@@ -306,7 +311,6 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
       dropoffAddress.address ||
       selectedRequirements.size > 0 ||
       selectedMeritBadges.size > 0 ||
-      gearList.length > 0 ||
       cost;
 
     if (!force && hasData) {
@@ -322,15 +326,17 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
     setEndDate("");
     setLocation("");
     setDescription("");
+    setDropoffTime("");
+    setPickupTime("");
     setOutingAddress({});
     setPickupAddress({});
     setDropoffAddress({});
     setSelectedRequirements(new Map());
     setSelectedMeritBadges(new Map());
+    setCapacityType("fixed");
     setCapacity(30);
-    setGearList([]);
-    setGearInput("");
     setCost("");
+    setSignupCloseDate("");
     setSuggestions(null);
     setError(null);
     onClose();
@@ -458,6 +464,37 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   />
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 font-semibold text-primary text-sm">
+                    Drop-off Time
+                  </label>
+                  <input
+                    type="time"
+                    value={dropoffTime}
+                    onChange={(e) => setDropoffTime(e.target.value)}
+                    className="form-input"
+                  />
+                  <small className="helper-text">
+                    When should scouts arrive for departure?
+                  </small>
+                </div>
+                <div>
+                  <label className="block mb-1 font-semibold text-primary text-sm">
+                    Pickup Time
+                  </label>
+                  <input
+                    type="time"
+                    value={pickupTime}
+                    onChange={(e) => setPickupTime(e.target.value)}
+                    className="form-input"
+                  />
+                  <small className="helper-text">
+                    When should families pick up scouts?
+                  </small>
+                </div>
+              </div>
             </div>
           </div>
         );
@@ -493,16 +530,19 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     {suggestions.requirements.length} relevant requirements
                     found
                   </p>
-                  {suggestions.requirements.slice(0, 3).map((req) => (
-                    <div key={req.requirement.id} className="mt-2">
-                      <div className="font-bold text-sm">
-                        {req.requirement.rank} - {req.requirement.category}
+                  {suggestions.requirements
+                    .filter(req => req?.requirement)
+                    .slice(0, 3)
+                    .map((req) => (
+                      <div key={req.requirement.id} className="mt-2">
+                        <div className="font-bold text-sm">
+                          {req.requirement.rank} - {req.requirement.category}
+                        </div>
+                        <div className="text-xs text-secondary">
+                          Match: {(req.match_score * 100).toFixed(0)}%
+                        </div>
                       </div>
-                      <div className="text-xs text-secondary">
-                        Match: {(req.match_score * 100).toFixed(0)}%
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                   {suggestions.requirements.length > 3 && (
                     <p className="text-xs text-secondary mt-2">
                       +{suggestions.requirements.length - 3} more...
@@ -820,15 +860,17 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                         }
                       }}
                       placeholder="Item name..."
-                      className="form-input flex-1"
+                      style={{ width: '60%' }}
+                      className="form-input"
                     />
                     <input
                       type="number"
                       value={packingItemQuantity}
                       onChange={(e) => setPackingItemQuantity(e.target.value)}
                       min="1"
-                      className="form-input w-20"
                       placeholder="Qty"
+                      style={{ width: '15%' }}
+                      className="form-input"
                     />
                     <button
                       type="button"
@@ -845,6 +887,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                           setPackingItemQuantity("1");
                         }
                       }}
+                      style={{ width: '25%' }}
                       className="px-4 py-2 bg-bsa-olive text-white rounded cursor-pointer hover:opacity-90"
                     >
                       Add
@@ -893,77 +936,87 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
             </p>
 
             <div className="grid gap-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block mb-1 font-semibold text-primary text-sm">
-                    Capacity
+              <div>
+                <label className="block mb-1 font-semibold text-primary text-sm">
+                  Capacity Type
+                </label>
+                <div className="flex gap-4 mb-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="capacityType"
+                      value="fixed"
+                      checked={capacityType === "fixed"}
+                      onChange={(e) => setCapacityType(e.target.value as "fixed" | "vehicle")}
+                      className="cursor-pointer"
+                    />
+                    <span>Fixed Number</span>
                   </label>
-                  <input
-                    type="number"
-                    value={capacity}
-                    onChange={(e) =>
-                      setCapacity(parseInt(e.target.value) || 30)
-                    }
-                    min="1"
-                    className="form-input"
-                  />
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="capacityType"
+                      value="vehicle"
+                      checked={capacityType === "vehicle"}
+                      onChange={(e) => setCapacityType(e.target.value as "fixed" | "vehicle")}
+                      className="cursor-pointer"
+                    />
+                    <span>Based on Vehicle Seats</span>
+                  </label>
                 </div>
-                <div>
-                  <label className="block mb-1 font-semibold text-primary text-sm">
-                    Cost (optional)
-                  </label>
-                  <div className="flex items-center">
-                    <span className="mr-2">$</span>
+                {capacityType === "fixed" && (
+                  <div>
+                    <label className="block mb-1 font-semibold text-primary text-sm">
+                      Maximum Participants
+                    </label>
                     <input
                       type="number"
-                      value={cost}
-                      onChange={(e) => setCost(e.target.value)}
-                      placeholder="0.00"
-                      step="0.01"
-                      className="form-input flex-1"
+                      value={capacity}
+                      onChange={(e) =>
+                        setCapacity(parseInt(e.target.value) || 30)
+                      }
+                      min="1"
+                      className="form-input"
                     />
                   </div>
+                )}
+                {capacityType === "vehicle" && (
+                  <p className="text-sm text-secondary">
+                    Capacity will be automatically calculated based on available vehicle seats from adult participants.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block mb-1 font-semibold text-primary text-sm">
+                  Cost (optional)
+                </label>
+                <div className="flex items-center">
+                  <span className="mr-2">$</span>
+                  <input
+                    type="number"
+                    value={cost}
+                    onChange={(e) => setCost(e.target.value)}
+                    placeholder="0.00"
+                    step="0.01"
+                    className="form-input flex-1"
+                  />
                 </div>
               </div>
 
               <div>
                 <label className="block mb-1 font-semibold text-primary text-sm">
-                  Gear List
+                  Signup Close Date
                 </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={gearInput}
-                    onChange={(e) => setGearInput(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleAddGear()}
-                    placeholder="Add gear item..."
-                    className="form-input flex-1"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleAddGear}
-                    className="px-4 py-2 bg-bsa-olive text-white rounded cursor-pointer hover:opacity-90"
-                  >
-                    Add
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {gearList.map((item, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center gap-2 py-1 px-3 bg-tertiary border border-card rounded-2xl text-sm"
-                    >
-                      {item}
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveGear(index)}
-                        className="p-0 bg-transparent border-0 cursor-pointer text-secondary text-base hover:text-primary"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
+                <input
+                  type="date"
+                  value={signupCloseDate}
+                  onChange={(e) => setSignupCloseDate(e.target.value)}
+                  className="form-input"
+                />
+                <small className="helper-text">
+                  Signups will automatically close at 11:59 PM on this date (defaults to 2 weeks before start)
+                </small>
               </div>
             </div>
           </div>
@@ -1019,6 +1072,16 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       : dropoffAddress.address}
                   </p>
                 )}
+                {dropoffTime && (
+                  <p>
+                    <strong>Drop-off Time:</strong> {dropoffTime}
+                  </p>
+                )}
+                {pickupTime && (
+                  <p>
+                    <strong>Pickup Time:</strong> {pickupTime}
+                  </p>
+                )}
               </div>
 
               {selectedRequirements.size > 0 && (
@@ -1031,11 +1094,15 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       const req = suggestions?.requirements.find(
                         (r) => r.requirement.id === reqId
                       );
+                      // If not in suggestions, look in allRequirements
+                      const requirement = req?.requirement || allRequirements.find(r => r.id === reqId);
+
+                      if (!requirement) return null;
+
                       return (
                         <div key={reqId} className="mb-2">
                           <div className="font-bold">
-                            ✓ {req?.requirement.rank} -{" "}
-                            {req?.requirement.category}
+                            ✓ {requirement.rank} - {requirement.category}
                           </div>
                           {notes && (
                             <div className="text-sm text-secondary ml-5">
@@ -1059,10 +1126,15 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       const badge = suggestions?.merit_badges.find(
                         (b) => b.merit_badge.id === badgeId
                       );
+                      // If not in suggestions, look in allMeritBadges
+                      const meritBadge = badge?.merit_badge || allMeritBadges.find(mb => mb.id === badgeId);
+
+                      if (!meritBadge) return null;
+
                       return (
                         <div key={badgeId} className="mb-2">
                           <div className="font-bold">
-                            ✓ {badge?.merit_badge.name}
+                            ✓ {meritBadge.name}
                           </div>
                           {notes && (
                             <div className="text-sm text-secondary ml-5">
@@ -1079,29 +1151,21 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               <div className="p-4 bg-tertiary rounded-lg">
                 <h3 className="mt-0">Additional Details</h3>
                 <p>
-                  <strong>Capacity:</strong> {capacity} participants
+                  <strong>Capacity:</strong>{" "}
+                  {capacityType === "fixed"
+                    ? `${capacity} participants (fixed)`
+                    : "Based on vehicle seats"}
                 </p>
                 {cost && (
                   <p>
                     <strong>Cost:</strong> ${cost}
                   </p>
                 )}
-                {gearList.length > 0 && (
-                  <div>
-                    <p>
-                      <strong>Gear List:</strong>
-                    </p>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {gearList.map((item, index) => (
-                        <span
-                          key={index}
-                          className="py-1 px-3 bg-secondary rounded-2xl text-sm"
-                        >
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
+                {signupCloseDate && (
+                  <p>
+                    <strong>Signup Close Date:</strong>{" "}
+                    {new Date(signupCloseDate).toLocaleDateString()}
+                  </p>
                 )}
               </div>
             </div>
