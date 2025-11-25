@@ -28,34 +28,53 @@ FROM nginx:alpine
 # Copy built assets from builder stage
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Copy custom nginx config for SPA
-RUN echo 'server { \
-    listen 80; \
-    server_name _; \
-    root /usr/share/nginx/html; \
-    index index.html; \
-    \
-    # Cache static assets with versioning \
-    location /assets/ { \
-        expires 1y; \
-        add_header Cache-Control "public, immutable"; \
-        try_files $uri =404; \
-    } \
-    \
-    # Cache icons for a reasonable time \
-    location /icon/ { \
-        expires 30d; \
-        add_header Cache-Control "public"; \
-        try_files $uri =404; \
-    } \
-    \
-    # No cache for index.html to ensure fresh app loads \
-    location / { \
-        expires -1; \
-        add_header Cache-Control "no-cache, no-store, must-revalidate"; \
-        try_files $uri $uri/ /index.html; \
-    } \
-    }' > /etc/nginx/conf.d/default.conf
+# Configure nginx to serve the SPA and prefer pre-compressed assets when available.
+# Note: `gzip_static` and `brotli_static` require nginx to be built with those
+# modules. If not present, nginx will ignore the directives; using `try_files`
+# with `.br` and `.gz` companions lets nginx serve the compressed files directly
+# if Accept-Encoding negotiation is handled upstream or the module is available.
+RUN cat > /etc/nginx/conf.d/default.conf <<'NGINX_CONF'
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Prefer pre-compressed static files when available and supported.
+    gzip_static on;
+    # brotli_static may not be available in this image; harmless if ignored.
+    brotli_static on;
+
+    # Ensure proxies/CDNs will vary on Accept-Encoding
+    add_header Vary Accept-Encoding;
+
+    # Hash-versioned assets: long cache lifetime and immutable
+    location /assets/ {
+        try_files $uri $uri.br $uri.gz =404;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    # Icons and webmanifest: cache for a reasonable time
+    location /icon/ {
+        try_files $uri $uri.br $uri.gz =404;
+        add_header Cache-Control "public, max-age=2592000"; # 30 days
+    }
+
+    # index.html (SPA shell): do not cache aggressively so clients pick up new
+    # asset filenames when the app is updated. We still fall back to index.html
+    # to support client-side routing.
+    location = /index.html {
+        add_header Cache-Control "no-cache, must-revalidate, max-age=0";
+        try_files $uri =404;
+    }
+
+    # All other requests: try exact file (including compressed), then fall back to index.html
+    location / {
+        try_files $uri $uri.br $uri.gz $uri/ /index.html;
+        add_header Cache-Control "no-cache, must-revalidate, max-age=0";
+    }
+}
+NGINX_CONF
 
 # Expose port 80
 EXPOSE 80
