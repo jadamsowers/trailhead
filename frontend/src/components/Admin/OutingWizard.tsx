@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import type {
   OutingCreate,
   OutingSuggestions,
-  RequirementSuggestion,
-  MeritBadgeSuggestion,
   OutingRequirementCreate,
   OutingMeritBadgeCreate,
   Place,
@@ -80,15 +78,24 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   >(new Map());
 
   // Step 4: Packing Lists
-  const [packingListTemplates, setPackingListTemplates] = useState<PackingListTemplate[]>([]);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<PackingListTemplateWithItems | null>(null);
-  const [customPackingItems, setCustomPackingItems] = useState<Array<{ name: string; quantity: number }>>([]);
+  const [packingListTemplates, setPackingListTemplates] = useState<
+    PackingListTemplate[]
+  >([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
+    null
+  );
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<PackingListTemplateWithItems | null>(null);
+  const [customPackingItems, setCustomPackingItems] = useState<
+    Array<{ name: string; quantity: number }>
+  >([]);
   const [packingItemInput, setPackingItemInput] = useState("");
   const [packingItemQuantity, setPackingItemQuantity] = useState("1");
 
   // Step 5: Additional Details
-  const [capacityType, setCapacityType] = useState<"fixed" | "vehicle">("fixed");
+  const [capacityType, setCapacityType] = useState<"fixed" | "vehicle">(
+    "fixed"
+  );
   const [capacity, setCapacity] = useState<number>(30);
   const [cost, setCost] = useState<string>("");
   const [signupCloseDate, setSignupCloseDate] = useState<string>("");
@@ -138,7 +145,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
       const start = new Date(startDate);
       const closeDate = new Date(start);
       closeDate.setDate(closeDate.getDate() - 14); // 2 weeks before
-      setSignupCloseDate(closeDate.toISOString().split('T')[0]);
+      setSignupCloseDate(closeDate.toISOString().split("T")[0]);
     }
   }, [startDate]);
 
@@ -171,32 +178,6 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
     setActiveStep((prev) => prev - 1);
   };
 
-  const handleToggleRequirement = (req: RequirementSuggestion | { requirement: RankRequirement; match_score: number; matched_keywords: string[] }) => {
-    setSelectedRequirements((prev) => {
-      const newMap = new Map(prev);
-      const reqId = 'requirement' in req ? req.requirement.id : req.id;
-      if (newMap.has(reqId)) {
-        newMap.delete(reqId);
-      } else {
-        newMap.set(reqId, "");
-      }
-      return newMap;
-    });
-  };
-
-  const handleToggleMeritBadge = (badge: MeritBadgeSuggestion | { merit_badge: MeritBadge; match_score: number; matched_keywords: string[] }) => {
-    setSelectedMeritBadges((prev) => {
-      const newMap = new Map(prev);
-      const badgeId = 'merit_badge' in badge ? badge.merit_badge.id : badge.id;
-      if (newMap.has(badgeId)) {
-        newMap.delete(badgeId);
-      } else {
-        newMap.set(badgeId, "");
-      }
-      return newMap;
-    });
-  };
-
   const handleRequirementNotesChange = (
     requirementId: string,
     notes: string
@@ -215,8 +196,6 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
       return newMap;
     });
   };
-
-
 
   const handleSubmit = async () => {
     if (!name || !startDate || !endDate || !location) {
@@ -246,7 +225,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
         dropoff_place_id: dropoffAddress.placeId,
         drop_off_time: dropoffTime || undefined,
         pickup_time: pickupTime || undefined,
-        signups_close_at: signupCloseDate ? `${signupCloseDate}T23:59:59Z` : undefined,
+        signups_close_at: signupCloseDate
+          ? `${signupCloseDate}T23:59:59Z`
+          : undefined,
       };
 
       const newOuting = await outingAPI.create(outingData);
@@ -532,19 +513,16 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     {suggestions.requirements.length} relevant requirements
                     found
                   </p>
-                  {suggestions.requirements
-                    .filter(req => req?.requirement)
-                    .slice(0, 3)
-                    .map((req) => (
-                      <div key={req.requirement.id} className="mt-2">
-                        <div className="font-bold text-sm">
-                          {req.requirement.rank} - {req.requirement.category}
-                        </div>
-                        <div className="text-xs text-secondary">
-                          Match: {(req.match_score * 100).toFixed(0)}%
-                        </div>
+                  {suggestions.requirements.slice(0, 3).map((req) => (
+                    <div key={req.id} className="mt-2">
+                      <div className="font-bold text-sm">
+                        {req.rank} {req.requirement_number}
                       </div>
-                    ))}
+                      <div className="text-xs text-secondary">
+                        Match: {(req.match_score * 100).toFixed(0)}%
+                      </div>
+                    </div>
+                  ))}
                   {suggestions.requirements.length > 3 && (
                     <p className="text-xs text-secondary mt-2">
                       +{suggestions.requirements.length - 3} more...
@@ -606,8 +584,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               on during this outing.
             </p>
             {suggestions ||
-              allRequirements.length > 0 ||
-              allMeritBadges.length > 0 ? (
+            allRequirements.length > 0 ||
+            allMeritBadges.length > 0 ? (
               <div className="grid gap-8">
                 <div>
                   <h3>🏆 Rank Requirements</h3>
@@ -621,25 +599,25 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     <div className="grid gap-4">
                       {(suggestions
                         ? suggestions.requirements.map((r) => ({
-                          id: r.id,
-                          rank: r.rank,
-                          requirement_number: r.requirement_number,
-                          requirement_text: r.description,
-                          category: '',
-                          match_score: r.match_score,
-                          matched_keywords: r.matched_keywords,
-                          isFlattened: true,
-                        }))
+                            id: r.id,
+                            rank: r.rank,
+                            requirement_number: r.requirement_number,
+                            requirement_text: r.description,
+                            category: "",
+                            match_score: r.match_score,
+                            matched_keywords: r.matched_keywords,
+                            isFlattened: true,
+                          }))
                         : allRequirements.map((r) => ({
-                          id: r.id,
-                          rank: r.rank,
-                          requirement_number: r.requirement_number,
-                          requirement_text: r.requirement_text,
-                          category: r.category || '',
-                          match_score: 0,
-                          matched_keywords: [] as string[],
-                          isFlattened: false,
-                        }))
+                            id: r.id,
+                            rank: r.rank,
+                            requirement_number: r.requirement_number,
+                            requirement_text: r.requirement_text,
+                            category: r.category || "",
+                            match_score: 0,
+                            matched_keywords: [] as string[],
+                            isFlattened: false,
+                          }))
                       ).map((reqObj) => {
                         const id = reqObj.id;
                         return (
@@ -722,23 +700,23 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     <div className="grid gap-4">
                       {(suggestions
                         ? suggestions.merit_badges.map((b) => ({
-                          id: b.name,
-                          name: b.name,
-                          description: b.description,
-                          eagle_required: b.eagle_required,
-                          match_score: b.match_score,
-                          matched_keywords: b.matched_keywords,
-                          isFlattened: true,
-                        }))
+                            id: b.name,
+                            name: b.name,
+                            description: b.description,
+                            eagle_required: b.eagle_required,
+                            match_score: b.match_score,
+                            matched_keywords: b.matched_keywords,
+                            isFlattened: true,
+                          }))
                         : allMeritBadges.map((b) => ({
-                          id: b.id,
-                          name: b.name,
-                          description: b.description,
-                          eagle_required: b.eagle_required || false,
-                          match_score: 0,
-                          matched_keywords: [] as string[],
-                          isFlattened: false,
-                        }))
+                            id: b.id,
+                            name: b.name,
+                            description: b.description,
+                            eagle_required: b.eagle_required || false,
+                            match_score: 0,
+                            matched_keywords: [] as string[],
+                            isFlattened: false,
+                          }))
                       ).map((badgeObj) => {
                         const id = badgeObj.id;
                         return (
@@ -811,14 +789,16 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               </div>
             ) : (
               <div className="text-secondary">Loading catalogs...</div>
-            )}\n          </div>
+            )}
+          </div>
         );
 
       case 3:
         return (
           <div className="mt-5">
             <p className="text-secondary mb-5">
-              Select a packing list template to help participants prepare for the outing.
+              Select a packing list template to help participants prepare for
+              the outing.
             </p>
 
             {loading && (
@@ -836,14 +816,16 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     {packingListTemplates.map((template) => (
                       <div
                         key={template.id}
-                        className={`p-4 rounded-lg border cursor-pointer transition-all ${selectedTemplateId === template.id
-                          ? "border-bsa-olive bg-[rgba(var(--bsa-olive-rgb),0.1)]"
-                          : "border-card bg-tertiary hover:border-bsa-olive"
-                          }`}
+                        className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                          selectedTemplateId === template.id
+                            ? "border-bsa-olive bg-[rgba(var(--bsa-olive-rgb),0.1)]"
+                            : "border-card bg-tertiary hover:border-bsa-olive"
+                        }`}
                         onClick={async () => {
                           setSelectedTemplateId(template.id);
                           try {
-                            const fullTemplate = await packingListAPI.getTemplate(template.id);
+                            const fullTemplate =
+                              await packingListAPI.getTemplate(template.id);
                             setSelectedTemplate(fullTemplate);
                           } catch (e) {
                             console.error("Failed to load template details", e);
@@ -851,12 +833,15 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                         }}
                       >
                         <div className="font-bold mb-1">{template.name}</div>
-                        <div className="text-sm text-secondary">{template.description}</div>
-                        {selectedTemplateId === template.id && selectedTemplate && (
-                          <div className="mt-2 text-xs text-secondary">
-                            {selectedTemplate.items.length} items
-                          </div>
-                        )}
+                        <div className="text-sm text-secondary">
+                          {template.description}
+                        </div>
+                        {selectedTemplateId === template.id &&
+                          selectedTemplate && (
+                            <div className="mt-2 text-xs text-secondary">
+                              {selectedTemplate.items.length} items
+                            </div>
+                          )}
                       </div>
                     ))}
                   </div>
@@ -864,9 +849,12 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
 
                 {selectedTemplate && (
                   <div className="p-4 bg-tertiary rounded-lg">
-                    <h4 className="mt-0">Selected Template: {selectedTemplate.name}</h4>
+                    <h4 className="mt-0">
+                      Selected Template: {selectedTemplate.name}
+                    </h4>
                     <p className="text-sm text-secondary mb-3">
-                      {selectedTemplate.items.length} items will be added to this outing's packing list
+                      {selectedTemplate.items.length} items will be added to
+                      this outing's packing list
                     </p>
                     <div className="max-h-60 overflow-y-auto">
                       <div className="grid grid-cols-2 gap-2">
@@ -913,7 +901,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                         }
                       }}
                       placeholder="Item name..."
-                      style={{ width: '60%' }}
+                      style={{ width: "60%" }}
                       className="form-input"
                     />
                     <input
@@ -922,7 +910,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       onChange={(e) => setPackingItemQuantity(e.target.value)}
                       min="1"
                       placeholder="Qty"
-                      style={{ width: '15%' }}
+                      style={{ width: "15%" }}
                       className="form-input"
                     />
                     <button
@@ -940,7 +928,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                           setPackingItemQuantity("1");
                         }
                       }}
-                      style={{ width: '25%' }}
+                      style={{ width: "25%" }}
                       className="px-4 py-2 bg-bsa-olive text-white rounded cursor-pointer hover:opacity-90"
                     >
                       Add
@@ -1000,7 +988,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       name="capacityType"
                       value="fixed"
                       checked={capacityType === "fixed"}
-                      onChange={(e) => setCapacityType(e.target.value as "fixed" | "vehicle")}
+                      onChange={(e) =>
+                        setCapacityType(e.target.value as "fixed" | "vehicle")
+                      }
                       className="cursor-pointer"
                     />
                     <span>Fixed Number</span>
@@ -1011,7 +1001,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       name="capacityType"
                       value="vehicle"
                       checked={capacityType === "vehicle"}
-                      onChange={(e) => setCapacityType(e.target.value as "fixed" | "vehicle")}
+                      onChange={(e) =>
+                        setCapacityType(e.target.value as "fixed" | "vehicle")
+                      }
                       className="cursor-pointer"
                     />
                     <span>Based on Vehicle Seats</span>
@@ -1035,7 +1027,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                 )}
                 {capacityType === "vehicle" && (
                   <p className="text-sm text-secondary">
-                    Capacity will be automatically calculated based on available vehicle seats from adult participants.
+                    Capacity will be automatically calculated based on available
+                    vehicle seats from adult participants.
                   </p>
                 )}
               </div>
@@ -1068,7 +1061,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   className="form-input"
                 />
                 <small className="helper-text">
-                  Signups will automatically close at 11:59 PM on this date (defaults to 2 weeks before start)
+                  Signups will automatically close at 11:59 PM on this date
+                  (defaults to 2 weeks before start)
                 </small>
               </div>
             </div>
@@ -1145,17 +1139,25 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   {Array.from(selectedRequirements.entries()).map(
                     ([reqId, notes]) => {
                       const req = suggestions?.requirements.find(
-                        (r) => r.requirement.id === reqId
+                        (r) => r.id === reqId
                       );
                       // If not in suggestions, look in allRequirements
-                      const requirement = req?.requirement || allRequirements.find(r => r.id === reqId);
+                      const requirement = req
+                        ? {
+                            rank: req.rank,
+                            requirement_number: req.requirement_number,
+                            category: "",
+                          }
+                        : allRequirements.find((r) => r.id === reqId);
 
                       if (!requirement) return null;
 
                       return (
                         <div key={reqId} className="mb-2">
                           <div className="font-bold">
-                            ✓ {requirement.rank} - {requirement.category}
+                            ✓ {requirement.rank} {req?.requirement_number || ""}
+                            {requirement.category &&
+                              ` - ${requirement.category}`}
                           </div>
                           {notes && (
                             <div className="text-sm text-secondary ml-5">
@@ -1177,18 +1179,21 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   {Array.from(selectedMeritBadges.entries()).map(
                     ([badgeId, notes]) => {
                       const badge = suggestions?.merit_badges.find(
-                        (b) => b.merit_badge.id === badgeId
+                        (b) => b.id === badgeId
                       );
                       // If not in suggestions, look in allMeritBadges
-                      const meritBadge = badge?.merit_badge || allMeritBadges.find(mb => mb.id === badgeId);
+                      const meritBadge = badge
+                        ? {
+                            name: badge.name,
+                            eagle_required: badge.eagle_required,
+                          }
+                        : allMeritBadges.find((mb) => mb.id === badgeId);
 
                       if (!meritBadge) return null;
 
                       return (
                         <div key={badgeId} className="mb-2">
-                          <div className="font-bold">
-                            ✓ {meritBadge.name}
-                          </div>
+                          <div className="font-bold">✓ {meritBadge.name}</div>
                           {notes && (
                             <div className="text-sm text-secondary ml-5">
                               {notes}
@@ -1321,8 +1326,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               {loading
                 ? "⏳"
                 : activeStep === steps.length - 1
-                  ? "✓ Create Outing"
-                  : "Next →"}
+                ? "✓ Create Outing"
+                : "Next →"}
             </button>
           </div>
         </div>
