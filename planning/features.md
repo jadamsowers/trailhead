@@ -36,12 +36,12 @@ Enhancements to outing setup and management
 
 - [x] create list of common requirements (Scout/Tenderfoot/Second Class/First Class) that can be completed on trips
   - [x] suggest requirements based on outing type and keywords
-  - [ ] the interface should list the specific requirement numbers
-  - [ ] the interface should have a broad selection of merit badge availability and enumerate several keywords on each
-  - [ ] the interface should indicate if a merit badge is eagle required
-  - [ ] the wizard should have a 'select all' option
+  - [x] the interface should list the specific requirement numbers
+  - [x] the interface should have a broad selection of merit badge availability and enumerate several keywords on each
+  - [x] the interface should indicate if a merit badge is eagle required
+  - [x] the wizard should have a 'select all' option when requirements and merit badges are found
 - [x] suggest common merit badges based on outing type and keywords (e.g. First Aid, Cooking, Camping, Hiking, etc.)
-- [ ] need to have the option for capacity: based on seats or based on a number of people
+- [x] need to have the option for capacity: based on seats or based on a number of people
 
 ## Signup Configuration
 

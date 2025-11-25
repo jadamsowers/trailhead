@@ -12,6 +12,7 @@ import type {
 } from "../../types";
 import { outingAPI, requirementsAPI, packingListAPI } from "../../services/api";
 import { PlacePicker } from "./PlacePicker";
+import { OutingIconPicker, suggestIconFromName, OUTING_ICONS } from "../OutingIconPicker";
 
 interface OutingWizardProps {
   open: boolean;
@@ -100,6 +101,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   const [capacity, setCapacity] = useState<number>(30);
   const [cost, setCost] = useState<string>("");
   const [signupCloseDate, setSignupCloseDate] = useState<string>("");
+  const [icon, setIcon] = useState<string>("");
 
   // Load suggestions when moving to step 2
   useEffect(() => {
@@ -149,6 +151,16 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
       setSignupCloseDate(closeDate.toISOString().split("T")[0]);
     }
   }, [startDate]);
+
+  // Auto-suggest icon based on outing name
+  useEffect(() => {
+    if (name && !icon) {
+      const suggested = suggestIconFromName(name);
+      if (suggested) {
+        setIcon(suggested);
+      }
+    }
+  }, [name]);
 
   const loadSuggestions = async () => {
     setLoading(true);
@@ -218,6 +230,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
         capacity_type: capacityType,
         is_overnight: true,
         cost: cost ? parseFloat(cost) : undefined,
+        icon: icon || undefined,
         outing_address: outingAddress.address,
         outing_place_id: outingAddress.placeId,
         pickup_address: pickupAddress.address,
@@ -289,6 +302,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
       startDate ||
       endDate ||
       location ||
+      icon ||
       description ||
       outingAddress.address ||
       pickupAddress.address ||
@@ -321,6 +335,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
     setCapacity(30);
     setCost("");
     setSignupCloseDate("");
+    setIcon("");
     setSuggestions(null);
     setError(null);
     onClose();
@@ -376,6 +391,15 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   placeholder="e.g., Winter Camping at Pine Ridge"
                   className="form-input"
                 />
+              </div>
+              <div>
+                <label className="block mb-1 font-semibold text-primary text-sm">
+                  Icon
+                </label>
+                <OutingIconPicker value={icon} onChange={setIcon} />
+                <small className="helper-text">
+                  An icon is automatically suggested based on your outing name
+                </small>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -615,7 +639,42 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
             allMeritBadges.length > 0 ? (
               <div className="grid gap-8">
                 <div>
-                  <h3>🏆 Rank Requirements</h3>
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="m-0">🏆 Rank Requirements</h3>
+                    {(suggestions
+                      ? suggestions.requirements.length > 0
+                      : allRequirements.length > 0) && (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const allReqs = suggestions
+                              ? suggestions.requirements.map((r) => r.id)
+                              : allRequirements.map((r) => r.id);
+                            setSelectedRequirements((prev) => {
+                              const newMap = new Map(prev);
+                              allReqs.forEach((id) => {
+                                if (!newMap.has(id)) {
+                                  newMap.set(id, "");
+                                }
+                              });
+                              return newMap;
+                            });
+                          }}
+                          className="text-xs px-3 py-1 rounded border border-bsa-olive text-bsa-olive hover:bg-[rgba(var(--bsa-olive-rgb),0.1)]"
+                        >
+                          Select All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRequirements(new Map())}
+                          className="text-xs px-3 py-1 rounded border border-card text-secondary hover:bg-tertiary"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   {(
                     suggestions
                       ? suggestions.requirements.length === 0
@@ -716,7 +775,42 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                 <div className="h-px bg-[var(--card-border)]" />
 
                 <div>
-                  <h3>🎖️ Merit Badges</h3>
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="m-0">🎖️ Merit Badges</h3>
+                    {(suggestions
+                      ? suggestions.merit_badges.length > 0
+                      : allMeritBadges.length > 0) && (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const allBadges = suggestions
+                              ? suggestions.merit_badges.map((b) => b.name)
+                              : allMeritBadges.map((b) => b.id);
+                            setSelectedMeritBadges((prev) => {
+                              const newMap = new Map(prev);
+                              allBadges.forEach((id) => {
+                                if (!newMap.has(id)) {
+                                  newMap.set(id, "");
+                                }
+                              });
+                              return newMap;
+                            });
+                          }}
+                          className="text-xs px-3 py-1 rounded border border-bsa-olive text-bsa-olive hover:bg-[rgba(var(--bsa-olive-rgb),0.1)]"
+                        >
+                          Select All
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMeritBadges(new Map())}
+                          className="text-xs px-3 py-1 rounded border border-card text-secondary hover:bg-tertiary"
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   {(
                     suggestions
                       ? suggestions.merit_badges.length === 0
@@ -1109,6 +1203,15 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                 <p>
                   <strong>Name:</strong> {name}
                 </p>
+                {icon && (
+                  <p>
+                    <strong>Icon:</strong>{" "}
+                    {
+                      OUTING_ICONS.find((i) => i.name === icon)?.icon
+                    }{" "}
+                    {icon}
+                  </p>
+                )}
                 <p>
                   <strong>Dates:</strong>{" "}
                   {new Date(startDate).toLocaleDateString()} -{" "}
