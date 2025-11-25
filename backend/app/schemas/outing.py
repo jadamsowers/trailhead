@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from datetime import date, datetime, time
 from uuid import UUID
 from typing import Optional
@@ -69,16 +69,36 @@ class OutingCreate(OutingBase):
         return v
 
 
-class OutingUpdate(OutingBase):
-    """Schema for updating an existing outing"""
+class OutingUpdate(BaseModel):
+    """Schema for updating an existing outing - all fields optional for partial updates"""
+    name: Optional[str] = Field(None, min_length=1, max_length=255, description="Outing name")
+    outing_date: Optional[date] = Field(None, description="Start date of the outing")
+    end_date: Optional[date] = Field(None, description="End date for overnight outings")
+    location: Optional[str] = Field(None, min_length=1, max_length=255, description="Outing location")
+    description: Optional[str] = Field(None, description="Detailed outing description")
+    max_participants: Optional[int] = Field(None, gt=0, description="Maximum number of participants")
+    capacity_type: Optional[str] = Field(None, description="Capacity type: 'fixed' or 'vehicle'")
+    is_overnight: Optional[bool] = Field(None, description="Whether outing requires overnight stay")
+    outing_lead_name: Optional[str] = Field(None, max_length=255, description="Outing lead name")
+    outing_lead_email: Optional[str] = Field(None, max_length=255, description="Outing lead email")
+    outing_lead_phone: Optional[str] = Field(None, max_length=50, description="Outing lead phone")
+    drop_off_time: Optional[time] = Field(None, description="Drop-off time")
+    drop_off_location: Optional[str] = Field(None, max_length=255, description="Drop-off location")
+    pickup_time: Optional[time] = Field(None, description="Pickup time")
+    pickup_location: Optional[str] = Field(None, max_length=255, description="Pickup location")
+    cost: Optional[Decimal] = Field(None, ge=0, description="Cost of the outing in dollars")
+    gear_list: Optional[str] = Field(None, description="Suggested gear list for participants")
+    signups_close_at: Optional[datetime] = Field(None, description="Automatic signup closure date/time")
+    signups_closed: Optional[bool] = Field(None, description="Manual signup closure flag")
+    icon: Optional[str] = Field(None, max_length=50, description="Outing icon (Bootstrap icon name or emoji)")
     
-    @field_validator('end_date')
-    @classmethod
-    def validate_overnight_end_date(cls, v, info):
-        """Require end_date for overnight outings"""
-        if 'is_overnight' in info.data and info.data['is_overnight'] and v is None:
-            raise ValueError('end_date is required for overnight outings')
-        return v
+    # Address fields with Place relationships
+    outing_address: Optional[str] = Field(None, description="Full address of outing location")
+    outing_place_id: Optional[UUID] = Field(None, description="Reference to saved place for outing location")
+    pickup_address: Optional[str] = Field(None, description="Full address for pickup location")
+    pickup_place_id: Optional[UUID] = Field(None, description="Reference to saved place for pickup")
+    dropoff_address: Optional[str] = Field(None, description="Full address for drop-off location")
+    dropoff_place_id: Optional[UUID] = Field(None, description="Reference to saved place for drop-off")
 
 
 class OutingResponse(OutingBase):
@@ -101,8 +121,7 @@ class OutingResponse(OutingBase):
     pickup_place: Optional['PlaceResponse'] = None
     dropoff_place: Optional['PlaceResponse'] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OutingListResponse(BaseModel):

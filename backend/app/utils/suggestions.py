@@ -70,21 +70,50 @@ def calculate_match_score(
     outing_keywords: List[str]
 ) -> Tuple[float, List[str]]:
     """Calculate match score between requirement and outing keywords.
-    Scoring strategy: score = matched / max(len(outing_keywords), 1)
-    (focus on how much of the PROMPT is matched by requirement keywords).
+    Scoring strategy: score = matched / max(len(requirement_keywords), 1)
+    (focus on coverage of requirement keywords, matching test expectations).
     Returns (score, matched_keywords).
     """
     if not requirement_keywords or not outing_keywords:
         return 0.0, []
 
-    req_set = set(requirement_keywords)
-    out_set = set(outing_keywords)
-    matched = req_set.intersection(out_set)
-    if not matched:
-        return 0.0, []
-    # Changed: divide by outing keywords instead of requirement keywords
-    score = len(matched) / max(len(out_set), 1)
-    return score, list(matched)
+    def normalize_set(tokens: List[str]) -> set[str]:
+        norm: set[str] = set()
+        for t in tokens:
+            if not t:
+                continue
+            token = t.lower()
+            norm.add(token)
+            # Handle common plural -> singular
+            if token.endswith('s') and len(token) > 3:
+                norm.add(token[:-1])
+            # Handle simple '-ing' forms: include base
+            if token.endswith('ing') and len(token) > 5:
+                base = token[:-3]
+                norm.add(base)
+        return norm
+
+    out_norm = normalize_set(outing_keywords)
+    req_orig = list({t.lower() for t in requirement_keywords})
+
+    def expand(token: str) -> List[str]:
+        forms = {token}
+        if token.endswith('s') and len(token) > 3:
+            forms.add(token[:-1])
+        if token.endswith('ing') and len(token) > 5:
+            base = token[:-3]
+            forms.add(base)
+            forms.add(base + 'e')  # handle common pattern: hiking -> hike
+        return list(forms)
+
+    matched_orig: List[str] = []
+    for tok in req_orig:
+        forms = expand(tok)
+        if any(f in out_norm for f in forms):
+            matched_orig.append(tok)
+
+    score = len(matched_orig) / max(len(req_orig), 1)
+    return score, matched_orig
 
 
 def get_requirement_suggestions(

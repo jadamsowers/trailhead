@@ -18,11 +18,12 @@ class TestGetAvailableOutings:
         assert "total" in data
         assert isinstance(data["outings"], list)
     
-    async def test_get_available_outings_excludes_full(self, client: AsyncClient, db_session):
+    async def test_get_available_outings_excludes_full(self, client: AsyncClient, db_session, test_user):
         """Test that full outings are excluded"""
         from app.models.outing import Outing
         from app.models.signup import Signup
         from app.models.participant import Participant
+        from app.models.family import FamilyMember
         
         # Create a outing with 2 max participants
         outing = Outing(
@@ -46,13 +47,20 @@ class TestGetAvailableOutings:
         await db_session.flush()
         
         for i in range(2):
+            # Create a family member first
+            family_member = FamilyMember(
+                user_id=test_user.id,
+                name=f"Person {i}",
+                date_of_birth=date(2010, 1, 1),
+                member_type="scout",
+                troop_number="100"
+            )
+            db_session.add(family_member)
+            await db_session.flush()
+            
             participant = Participant(
                 signup_id=signup.id,
-                name=f"Person {i}",
-                age=14,
-                participant_type="scout",
-                is_adult=False,
-                gender="male",
+                family_member_id=family_member.id
             )
             db_session.add(participant)
         
@@ -79,11 +87,13 @@ class TestGetAllOutings:
         assert "total" in data
         assert len(data["outings"]) > 0
     
-    async def test_get_all_outings_no_auth(self, client: AsyncClient):
-        """Test getting all outings without authentication fails"""
+    async def test_get_all_outings_no_auth(self, client: AsyncClient, test_outing):
+        """Test getting all outings without authentication succeeds (public endpoint)"""
         response = await client.get("/api/outings")
         
-        assert response.status_code == 403
+        assert response.status_code == 200
+        data = response.json()
+        assert "outings" in data
     
     async def test_get_all_outings_pagination(self, client: AsyncClient, auth_headers):
         """Test pagination parameters"""
@@ -192,10 +202,12 @@ class TestGetOuting:
         assert response.status_code == 404
     
     async def test_get_outing_no_auth(self, client: AsyncClient, test_outing):
-        """Test getting outing without authentication fails"""
+        """Test getting outing without authentication succeeds (public endpoint)"""
         response = await client.get(f"/api/outings/{test_outing.id}")
         
-        assert response.status_code == 403
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == str(test_outing.id)
 
 
 @pytest.mark.asyncio
@@ -218,9 +230,12 @@ class TestUpdateOuting:
         
         assert response.status_code == 200
         data = response.json()
-        assert data["name"] == "Updated Outing Name"
-        assert data["location"] == "Updated Location"
-        assert data["max_participants"] == 30
+        # Response is OutingUpdateResponse with nested outing field
+        assert "outing" in data
+        outing = data["outing"]
+        assert outing["name"] == "Updated Outing Name"
+        assert outing["location"] == "Updated Location"
+        assert outing["max_participants"] == 30
     
     async def test_update_outing_not_found(self, client: AsyncClient, auth_headers):
         """Test updating non-existent outing"""

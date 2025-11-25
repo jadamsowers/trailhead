@@ -55,6 +55,14 @@ async def create_signup(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Outing not found"
         )
+
+    # Enforce troop restriction if outing is locked to a troop
+    if db_outing.restricted_troop_id:
+        from app.models.troop import Troop
+        troop_result = await db.execute(select(Troop).where(Troop.id == db_outing.restricted_troop_id))
+        restricted_troop = troop_result.scalar_one_or_none()
+        if not restricted_troop:
+            raise HTTPException(status_code=400, detail="Restricted troop not found for outing")
     
     # Check if signups are closed
     if db_outing.are_signups_closed:
@@ -83,6 +91,18 @@ async def create_signup(
                 detail=f"You do not have permission to sign up family member {family_member.name}"
             )
             
+        # Troop restriction validation (accept either relational or legacy textual match)
+        if db_outing.restricted_troop_id:
+            # Prefer relational troop_id match, fallback to troop_number match
+            if not (
+                (family_member.troop_id and family_member.troop_id == db_outing.restricted_troop_id) or
+                (family_member.troop_number and family_member.troop_number == restricted_troop.number)
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Family member '{family_member.name}' is not part of restricted troop {restricted_troop.number}."
+                )
+
         family_members.append(family_member)
     
     # Check if outing has enough spots

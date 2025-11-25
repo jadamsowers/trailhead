@@ -16,9 +16,10 @@ class TestSettings:
             POSTGRES_PASSWORD="test",
             POSTGRES_DB="test",
             SECRET_KEY="test_secret_key_min_32_chars_long_12345",
+            DEBUG=False,
         )
         
-        assert settings.PROJECT_NAME == "Scouting Outing Manager"
+        assert settings.PROJECT_NAME == "Trailhead"
         assert settings.VERSION == "1.0.0"
         assert settings.API_V1_STR == "/api"
         assert settings.DEBUG is False

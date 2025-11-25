@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 import csv
 import io
 
@@ -86,7 +86,7 @@ async def check_in_participants(
         message=f"Successfully checked in {len(checkins)} participant(s)",
         checked_in_count=len(checkins),
         participant_ids=[c.participant_id for c in checkins],
-        checked_in_at=checkins[0].checked_in_at if checkins else datetime.utcnow()
+        checked_in_at=checkins[0].checked_in_at if checkins else datetime.now(timezone.utc).replace(tzinfo=None)
     )
 
 

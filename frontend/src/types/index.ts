@@ -224,6 +224,7 @@ export interface User {
   phone?: string;
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
+  youth_protection_expiration?: string;
 }
 
 // Family Management Types

@@ -8,9 +8,9 @@ IMPORTANT: These tests are database-independent and test response structure only
 They do not require database fixtures or actual data.
 """
 import pytest
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from app.schemas.outing import OutingResponse, OutingCreate
-from app.schemas.signup import SignupResponse, SignupCreate, ParticipantCreate, FamilyContactCreate
+from app.schemas.signup import SignupResponse, SignupCreate
 from pydantic import ValidationError
 
 
@@ -32,18 +32,20 @@ class TestOutingContracts:
             "description": "Test Description",
             "max_participants": 20,
             "is_overnight": True,
-            "current_signups": 5,
+            "signup_count": 5,
             "available_spots": 15,
             "outing_lead_name": "John Doe",
             "outing_lead_email": "john@example.com",
             "outing_lead_phone": "555-1234",
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat(),
         }
         
         # Should not raise validation error
         outing = OutingResponse(**outing_data)
         
         # Verify all required fields are present
-        assert outing.id == outing_data["id"]
+        assert str(outing.id) == outing_data["id"]
         assert outing.name == outing_data["name"]
         assert outing.outing_date == date.today()
         assert outing.end_date == date.today() + timedelta(days=2)
@@ -51,7 +53,7 @@ class TestOutingContracts:
         assert outing.description == outing_data["description"]
         assert outing.max_participants == outing_data["max_participants"]
         assert outing.is_overnight == outing_data["is_overnight"]
-        assert outing.current_signups == outing_data["current_signups"]
+        assert outing.signup_count == outing_data["signup_count"]
         assert outing.available_spots == outing_data["available_spots"]
         assert outing.outing_lead_name == outing_data["outing_lead_name"]
         assert outing.outing_lead_email == outing_data["outing_lead_email"]
@@ -107,8 +109,13 @@ class TestSignupContracts:
                     "dietary_restrictions": [],
                     "allergies": [],
                     "medical_notes": None,
+                    "created_at": datetime.utcnow().isoformat(),
                 }
             ],
+            "participant_count": 1,
+            "scout_count": 1,
+            "adult_count": 0,
+            "created_at": datetime.utcnow().isoformat(),
             "warnings": [],
         }
         
@@ -116,8 +123,8 @@ class TestSignupContracts:
         signup = SignupResponse(**signup_data)
         
         # Verify all required fields including warnings
-        assert signup.id == signup_data["id"]
-        assert signup.outing_id == signup_data["outing_id"]
+        assert str(signup.id) == signup_data["id"]
+        assert str(signup.outing_id) == signup_data["outing_id"]
         assert signup.family_contact_name == signup_data["family_contact_name"]
         assert signup.family_contact_email == signup_data["family_contact_email"]
         assert signup.family_contact_phone == signup_data["family_contact_phone"]
@@ -148,8 +155,13 @@ class TestSignupContracts:
                     "dietary_restrictions": [],
                     "allergies": [],
                     "medical_notes": None,
+                    "created_at": datetime.utcnow().isoformat(),
                 }
             ],
+            "participant_count": 1,
+            "scout_count": 1,
+            "adult_count": 0,
+            "created_at": datetime.utcnow().isoformat(),
             "warnings": ["No adult with youth protection training"],
         }
         
@@ -165,34 +177,20 @@ class TestSignupContracts:
         signup_data = {
             "outing_id": "123e4567-e89b-12d3-a456-426614174000",
             "family_contact": {
-                "name": "Jane Smith",
                 "email": "jane@example.com",
                 "phone": "555-5678",
+                "emergency_contact_name": "Emergency Contact",
+                "emergency_contact_phone": "555-1111",
             },
-            "participants": [
-                {
-                    "name": "Scout Smith",
-                    "age": 12,
-                    "participant_type": "scout",
-                    "is_adult": False,
-                    "gender": "female",
-                    "troop_number": "789",
-                    "patrol_name": "Bear Patrol",
-                    "has_youth_protection": False,
-                    "vehicle_capacity": 0,
-                    "dietary_restrictions": ["vegetarian"],
-                    "allergies": [],
-                    "medical_notes": None,
-                }
-            ],
+            "family_member_ids": ["123e4567-e89b-12d3-a456-426614174003"],
         }
         
         # Should not raise validation error
         signup = SignupCreate(**signup_data)
         
-        assert signup.outing_id == signup_data["outing_id"]
-        assert signup.family_contact.name == signup_data["family_contact"]["name"]
-        assert len(signup.participants) == 1
+        assert str(signup.outing_id) == signup_data["outing_id"]
+        assert signup.family_contact.email == signup_data["family_contact"]["email"]
+        assert len(signup.family_member_ids) == 1
 
 
 class TestParticipantContracts:
@@ -215,6 +213,7 @@ class TestParticipantContracts:
             "dietary_restrictions": ["vegetarian", "gluten-free"],
             "allergies": ["peanuts"],
             "medical_notes": "Requires EpiPen",
+            "created_at": datetime.utcnow().isoformat(),
         }
         
         # Should not raise validation error when used in SignupResponse
@@ -225,6 +224,10 @@ class TestParticipantContracts:
             "family_contact_email": "john@example.com",
             "family_contact_phone": "555-1234",
             "participants": [participant_data],
+                        "participant_count": 1,
+                        "scout_count": 1,
+                        "adult_count": 0,
+                        "created_at": datetime.utcnow().isoformat(),
             "warnings": [],
         }
         
@@ -232,7 +235,7 @@ class TestParticipantContracts:
         participant = signup.participants[0]
         
         # Verify all participant fields
-        assert participant.id == participant_data["id"]
+        assert str(participant.id) == participant_data["id"]
         assert participant.name == participant_data["name"]
         assert participant.age == participant_data["age"]
         assert participant.participant_type == participant_data["participant_type"]
@@ -298,11 +301,13 @@ class TestTypeCompatibility:
             "description": None,  # Optional
             "max_participants": 20,
             "is_overnight": False,
-            "current_signups": 0,
+                "signup_count": 0,
             "available_spots": 20,
             "outing_lead_name": None,  # Optional
             "outing_lead_email": None,  # Optional
             "outing_lead_phone": None,  # Optional
+                "created_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.utcnow().isoformat(),
         }
         
         # Should not raise validation error
@@ -320,9 +325,14 @@ class TestTypeCompatibility:
             "participant_type": "scout",
             "is_adult": False,
             "gender": "male",
-            "has_youth_protection": False,
-            "vehicle_capacity": 0,
-            # dietary_restrictions and allergies should default to empty lists
+                "has_youth_protection": False,
+                "vehicle_capacity": 0,
+                "troop_number": None,
+                "patrol_name": None,
+                "dietary_restrictions": [],
+                "allergies": [],
+                "medical_notes": None,
+                "created_at": datetime.utcnow().isoformat(),
         }
         
         signup_data = {
@@ -332,6 +342,10 @@ class TestTypeCompatibility:
             "family_contact_email": "john@example.com",
             "family_contact_phone": "555-1234",
             "participants": [participant_data],
+            "participant_count": 1,
+            "scout_count": 1,
+            "adult_count": 0,
+            "created_at": datetime.utcnow().isoformat(),
             "warnings": [],
         }
         

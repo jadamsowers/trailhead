@@ -35,6 +35,7 @@ This document serves as a guide for the AI assistant when working on the Trailhe
 - **Local Development**:
   - Backend and Postgres run in Docker containers.
   - Frontend typically runs locally (e.g., `npm run dev`).
+  - **Testing DB rule**: Always run integration and end-to-end tests against the project's PostgreSQL instance running in Docker. Do not rely on SQLite in-memory for integration tests that involve migrations, UUID columns, or Postgres-specific behavior. Use the containerized Postgres and ensure migrations are applied before running tests.
 - **Production**:
   - Backend, Postgres, Frontend, and Nginx reverse proxy all run in Docker containers.
 
@@ -246,6 +247,16 @@ All CRUD operations follow async patterns with consistent transaction management
 - **Multiple Relations**: Chain `selectinload()` calls or pass multiple to `options()`
 
 #### 5. Helper Functions
+
+## Project Conventions: CRUD & Transactions
+
+- **Transaction ownership (project standard)**: CRUD functions are the authoritative owners of write transactions. Create/update/delete CRUD functions MUST manage persistence by calling `await db.flush()` (when an ID or relationship state is needed), then `await db.commit()`, and `await db.refresh(obj)` before returning the ORM object or a success boolean. Read-only CRUD functions MUST NOT call `commit()`.
+- **Error handling in CRUD**: CRUD write functions should ensure `await db.rollback()` is called on unexpected exceptions before re-raising (or raising a controlled error). This keeps the session consistent for subsequent operations.
+- **Endpoint responsibilities**: Endpoints should call CRUD functions and treat returned ORM objects as persisted. Endpoints should not call `commit()` for normal successful writes. Only orchestration layers that intentionally group multiple CRUD calls into a single transaction may manage commits explicitly, and that behavior must be documented.
+- **Refresh relationships**: After commits, CRUD functions must `await db.refresh(obj)` and, when responses require nested relationships, `await db.refresh(obj, ["rel1","rel2"])` to avoid async lazy-loads during Pydantic serialization.
+- **CRUD module convention**: Create a dedicated `app/crud/<resource>.py` for every model that is manipulated (e.g., `family.py`, `participant.py`, `user.py`, `place.py`, `outing.py`, `signup.py`, `requirement.py`, `packing_list.py`, `checkin.py`). Each module should offer a consistent API: `get_<resource>`, `get_<resources>`, `create_<resource>`, `update_<resource>`, `delete_<resource>`, plus helpers like `get_or_create_<resource>`.
+- **Naming & return contract**: Create/update: return persisted, refreshed ORM instance. Delete: return `bool`. Read: return ORM instance(s) or `Optional`.
+- **Tests & guarantees**: Tests should assert persistence after `create_*` returns and that failure paths lead to rollback (no partial data persisted).
 
 - **Get or Create Pattern**: Implement idempotent operations:
   ```python

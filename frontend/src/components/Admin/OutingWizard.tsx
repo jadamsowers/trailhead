@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { OutingsService } from "../../client";
+import type { OutingCreate } from "../../client";
 import type {
-  OutingCreate,
   OutingSuggestions,
   OutingRequirementCreate,
   OutingMeritBadgeCreate,
@@ -10,7 +11,7 @@ import type {
   PackingListTemplate,
   PackingListTemplateWithItems,
 } from "../../types";
-import { outingAPI, requirementsAPI, packingListAPI } from "../../services/api";
+import { requirementsAPI, packingListAPI } from "../../services/api";
 import { PlacePicker } from "./PlacePicker";
 import {
   OutingIconPicker,
@@ -255,7 +256,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
           : undefined,
       };
 
-      const newOuting = await outingAPI.create(outingData);
+      const newOuting = await OutingsService.createOutingApiOutingsPost(outingData);
 
       // Add selected requirements
       for (const [requirementId, notes] of selectedRequirements.entries()) {
@@ -463,9 +464,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className={`form-input ${
-                          startError ? "ring-2 ring-red-500" : ""
-                        }`}
+                        className={`form-input ${startError ? "ring-2 ring-red-500" : ""
+                          }`}
                       />
                       {startError && (
                         <p className="text-xs text-red-600 mt-1">
@@ -484,9 +484,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
                           min={startDate}
-                          className={`form-input ${
-                            endError ? "ring-2 ring-red-500" : ""
-                          }`}
+                          className={`form-input ${endError ? "ring-2 ring-red-500" : ""
+                            }`}
                         />
                         {endError && (
                           <p className="text-xs text-red-600 mt-1">
@@ -705,8 +704,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               on during this outing.
             </p>
             {suggestions ||
-            allRequirements.length > 0 ||
-            allMeritBadges.length > 0 ? (
+              allRequirements.length > 0 ||
+              allMeritBadges.length > 0 ? (
               <div className="grid gap-8">
                 <div>
                   <div className="flex justify-between items-center mb-3">
@@ -714,36 +713,36 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     {(suggestions
                       ? suggestions.requirements.length > 0
                       : allRequirements.length > 0) && (
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const allReqs = suggestions
-                              ? suggestions.requirements.map((r) => r.id)
-                              : allRequirements.map((r) => r.id);
-                            setSelectedRequirements((prev) => {
-                              const newMap = new Map(prev);
-                              allReqs.forEach((id) => {
-                                if (!newMap.has(id)) {
-                                  newMap.set(id, "");
-                                }
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const allReqs = suggestions
+                                ? suggestions.requirements.map((r) => r.id)
+                                : allRequirements.map((r) => r.id);
+                              setSelectedRequirements((prev) => {
+                                const newMap = new Map(prev);
+                                allReqs.forEach((id) => {
+                                  if (!newMap.has(id)) {
+                                    newMap.set(id, "");
+                                  }
+                                });
+                                return newMap;
                               });
-                              return newMap;
-                            });
-                          }}
-                          className="text-xs px-3 py-1 rounded border border-bsa-olive text-bsa-olive hover:bg-[rgba(var(--bsa-olive-rgb),0.1)]"
-                        >
-                          Select All
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedRequirements(new Map())}
-                          className="text-xs px-3 py-1 rounded border border-card text-secondary hover:bg-tertiary"
-                        >
-                          Clear All
-                        </button>
-                      </div>
-                    )}
+                            }}
+                            className="text-xs px-3 py-1 rounded border border-bsa-olive text-bsa-olive hover:bg-[rgba(var(--bsa-olive-rgb),0.1)]"
+                          >
+                            Select All
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRequirements(new Map())}
+                            className="text-xs px-3 py-1 rounded border border-card text-secondary hover:bg-tertiary"
+                          >
+                            Clear All
+                          </button>
+                        </div>
+                      )}
                   </div>
                   {(
                     suggestions
@@ -755,25 +754,25 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     <div className="grid gap-4">
                       {(suggestions
                         ? suggestions.requirements.map((r) => ({
-                            id: r.id,
-                            rank: r.rank,
-                            requirement_number: r.requirement_number,
-                            requirement_text: r.description,
-                            category: "",
-                            match_score: r.match_score,
-                            matched_keywords: r.matched_keywords,
-                            isFlattened: true,
-                          }))
+                          id: r.id,
+                          rank: r.rank,
+                          requirement_number: r.requirement_number,
+                          requirement_text: r.description,
+                          category: "",
+                          match_score: r.match_score,
+                          matched_keywords: r.matched_keywords,
+                          isFlattened: true,
+                        }))
                         : allRequirements.map((r) => ({
-                            id: r.id,
-                            rank: r.rank,
-                            requirement_number: r.requirement_number,
-                            requirement_text: r.requirement_text,
-                            category: r.category || "",
-                            match_score: 0,
-                            matched_keywords: [] as string[],
-                            isFlattened: false,
-                          }))
+                          id: r.id,
+                          rank: r.rank,
+                          requirement_number: r.requirement_number,
+                          requirement_text: r.requirement_text,
+                          category: r.category || "",
+                          match_score: 0,
+                          matched_keywords: [] as string[],
+                          isFlattened: false,
+                        }))
                       ).map((reqObj) => {
                         const id = reqObj.id;
                         return (
@@ -850,36 +849,36 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     {(suggestions
                       ? suggestions.merit_badges.length > 0
                       : allMeritBadges.length > 0) && (
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const allBadges = suggestions
-                              ? suggestions.merit_badges.map((b) => b.name)
-                              : allMeritBadges.map((b) => b.id);
-                            setSelectedMeritBadges((prev) => {
-                              const newMap = new Map(prev);
-                              allBadges.forEach((id) => {
-                                if (!newMap.has(id)) {
-                                  newMap.set(id, "");
-                                }
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const allBadges = suggestions
+                                ? suggestions.merit_badges.map((b) => b.name)
+                                : allMeritBadges.map((b) => b.id);
+                              setSelectedMeritBadges((prev) => {
+                                const newMap = new Map(prev);
+                                allBadges.forEach((id) => {
+                                  if (!newMap.has(id)) {
+                                    newMap.set(id, "");
+                                  }
+                                });
+                                return newMap;
                               });
-                              return newMap;
-                            });
-                          }}
-                          className="text-xs px-3 py-1 rounded border border-bsa-olive text-bsa-olive hover:bg-[rgba(var(--bsa-olive-rgb),0.1)]"
-                        >
-                          Select All
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedMeritBadges(new Map())}
-                          className="text-xs px-3 py-1 rounded border border-card text-secondary hover:bg-tertiary"
-                        >
-                          Clear All
-                        </button>
-                      </div>
-                    )}
+                            }}
+                            className="text-xs px-3 py-1 rounded border border-bsa-olive text-bsa-olive hover:bg-[rgba(var(--bsa-olive-rgb),0.1)]"
+                          >
+                            Select All
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedMeritBadges(new Map())}
+                            className="text-xs px-3 py-1 rounded border border-card text-secondary hover:bg-tertiary"
+                          >
+                            Clear All
+                          </button>
+                        </div>
+                      )}
                   </div>
                   {(
                     suggestions
@@ -891,23 +890,23 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     <div className="grid gap-4">
                       {(suggestions
                         ? suggestions.merit_badges.map((b) => ({
-                            id: b.name,
-                            name: b.name,
-                            description: b.description,
-                            eagle_required: b.eagle_required,
-                            match_score: b.match_score,
-                            matched_keywords: b.matched_keywords,
-                            isFlattened: true,
-                          }))
+                          id: b.name,
+                          name: b.name,
+                          description: b.description,
+                          eagle_required: b.eagle_required,
+                          match_score: b.match_score,
+                          matched_keywords: b.matched_keywords,
+                          isFlattened: true,
+                        }))
                         : allMeritBadges.map((b) => ({
-                            id: b.id,
-                            name: b.name,
-                            description: b.description,
-                            eagle_required: b.eagle_required || false,
-                            match_score: 0,
-                            matched_keywords: [] as string[],
-                            isFlattened: false,
-                          }))
+                          id: b.id,
+                          name: b.name,
+                          description: b.description,
+                          eagle_required: b.eagle_required || false,
+                          match_score: 0,
+                          matched_keywords: [] as string[],
+                          isFlattened: false,
+                        }))
                       ).map((badgeObj) => {
                         const id = badgeObj.id;
                         return (
@@ -1007,11 +1006,10 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     {packingListTemplates.map((template) => (
                       <div
                         key={template.id}
-                        className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                          selectedTemplateId === template.id
-                            ? "border-bsa-olive bg-[rgba(var(--bsa-olive-rgb),0.1)]"
-                            : "border-card bg-tertiary hover:border-bsa-olive"
-                        }`}
+                        className={`p-4 rounded-lg border cursor-pointer transition-all ${selectedTemplateId === template.id
+                          ? "border-bsa-olive bg-[rgba(var(--bsa-olive-rgb),0.1)]"
+                          : "border-card bg-tertiary hover:border-bsa-olive"
+                          }`}
                         onClick={async () => {
                           setSelectedTemplateId(template.id);
                           try {
@@ -1341,11 +1339,11 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       // If not in suggestions, look in allRequirements
                       const requirement = req
                         ? {
-                            rank: req.rank,
-                            requirement_number: req.requirement_number,
-                            category: "",
-                            requirement_text: req.description,
-                          }
+                          rank: req.rank,
+                          requirement_number: req.requirement_number,
+                          category: "",
+                          requirement_text: req.description,
+                        }
                         : allRequirements.find((r) => r.id === reqId);
 
                       if (!requirement) return null;
@@ -1392,9 +1390,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       // If not in suggestions, look in allMeritBadges
                       const meritBadge = badge
                         ? {
-                            name: badge.name,
-                            eagle_required: badge.eagle_required,
-                          }
+                          name: badge.name,
+                          eagle_required: badge.eagle_required,
+                        }
                         : allMeritBadges.find((mb) => mb.id === badgeId);
 
                       if (!meritBadge) return null;
@@ -1534,8 +1532,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               {loading
                 ? "⏳"
                 : activeStep === steps.length - 1
-                ? "✓ Create Outing"
-                : "Next →"}
+                  ? "✓ Create Outing"
+                  : "Next →"}
             </button>
           </div>
         </div>

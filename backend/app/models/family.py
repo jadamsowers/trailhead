@@ -21,8 +21,10 @@ class FamilyMember(Base):
     gender = Column(String(20), nullable=True, index=True)  # 'male', 'female', 'other'
     
     # Scout-specific fields
-    troop_number = Column(String(50), index=True)  # e.g., "123", "456"
-    patrol_name = Column(String(100))  # e.g., "Eagle Patrol", "Wolf Patrol"
+    troop_number = Column(String(50), index=True)  # Legacy textual troop number
+    patrol_name = Column(String(100))  # Legacy textual patrol name
+    troop_id = Column(UUID(as_uuid=True), ForeignKey("troops.id", ondelete="SET NULL"), nullable=True, index=True)
+    patrol_id = Column(UUID(as_uuid=True), ForeignKey("patrols.id", ondelete="SET NULL"), nullable=True, index=True)
     
     # Adult-specific fields
     has_youth_protection = Column(Boolean, default=False, nullable=False)
@@ -38,6 +40,8 @@ class FamilyMember(Base):
 
     # Relationships
     user = relationship("User", back_populates="family_members")
+    troop = relationship("Troop", back_populates="family_members")
+    patrol = relationship("Patrol", back_populates="family_members")
     dietary_preferences = relationship("FamilyMemberDietaryPreference", back_populates="family_member", cascade="all, delete-orphan")
     allergies = relationship("FamilyMemberAllergy", back_populates="family_member", cascade="all, delete-orphan")
 

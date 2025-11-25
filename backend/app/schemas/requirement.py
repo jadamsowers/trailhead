@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
@@ -37,8 +37,7 @@ class RankRequirementResponse(RankRequirementBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ============================================================================
@@ -72,8 +71,7 @@ class MeritBadgeResponse(MeritBadgeBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ============================================================================
@@ -105,8 +103,7 @@ class OutingRequirementResponse(BaseModel):
     created_at: datetime
     requirement: RankRequirementResponse  # Include full requirement details
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ============================================================================
@@ -138,8 +135,7 @@ class OutingMeritBadgeResponse(BaseModel):
     created_at: datetime
     merit_badge: MeritBadgeResponse  # Include full merit badge details
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ============================================================================

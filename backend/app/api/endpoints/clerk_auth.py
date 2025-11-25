@@ -35,7 +35,8 @@ async def get_current_user_info(
         role=current_user.role,
         phone=current_user.phone,
         emergency_contact_name=current_user.emergency_contact_name,
-        emergency_contact_phone=current_user.emergency_contact_phone
+        emergency_contact_phone=current_user.emergency_contact_phone,
+        youth_protection_expiration=current_user.youth_protection_expiration
     )
 
 
@@ -56,6 +57,8 @@ async def update_contact_info(
         current_user.emergency_contact_name = contact_update.emergency_contact_name
     if contact_update.emergency_contact_phone is not None:
         current_user.emergency_contact_phone = contact_update.emergency_contact_phone
+    if contact_update.youth_protection_expiration is not None:
+        current_user.youth_protection_expiration = contact_update.youth_protection_expiration
     
     await db.commit()
     await db.refresh(current_user)
@@ -67,7 +70,8 @@ async def update_contact_info(
         role=current_user.role,
         phone=current_user.phone,
         emergency_contact_name=current_user.emergency_contact_name,
-        emergency_contact_phone=current_user.emergency_contact_phone
+        emergency_contact_phone=current_user.emergency_contact_phone,
+        youth_protection_expiration=current_user.youth_protection_expiration
     )
 
 
@@ -122,7 +126,8 @@ async def list_users(
             is_initial_admin=user.is_initial_admin,
             phone=user.phone,
             emergency_contact_name=user.emergency_contact_name,
-            emergency_contact_phone=user.emergency_contact_phone
+            emergency_contact_phone=user.emergency_contact_phone,
+            youth_protection_expiration=user.youth_protection_expiration
         )
         for user in users
     ]
@@ -176,5 +181,6 @@ async def update_user_role(
         is_initial_admin=target_user.is_initial_admin,
         phone=target_user.phone,
         emergency_contact_name=target_user.emergency_contact_name,
-        emergency_contact_phone=target_user.emergency_contact_phone
+        emergency_contact_phone=target_user.emergency_contact_phone,
+        youth_protection_expiration=target_user.youth_protection_expiration
     )

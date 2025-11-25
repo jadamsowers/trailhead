@@ -81,8 +81,9 @@ async def create_signup(db: AsyncSession, signup: SignupCreate) -> Signup:
         db.add(db_participant)
     
     await db.flush()
+    await db.commit()
     await db.refresh(db_signup)
-    
+
     # Load relationships
     result = await db.execute(
         select(Signup)
@@ -140,8 +141,9 @@ async def update_signup(db: AsyncSession, signup_id: UUID, signup_update: Signup
             db.add(db_participant)
     
     await db.flush()
+    await db.commit()
     await db.refresh(db_signup)
-    
+
     # Reload with relationships
     result = await db.execute(
         select(Signup)
@@ -167,5 +169,5 @@ async def delete_signup(db: AsyncSession, signup_id: UUID) -> bool:
         return False
     
     await db.delete(db_signup)
-    await db.flush()
+    await db.commit()
     return True

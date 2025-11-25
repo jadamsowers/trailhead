@@ -53,10 +53,10 @@ GRANT ALL PRIVILEGES ON DATABASE scouting_outing_manager TO scouting_outing;
 cd backend
 
 # Generate initial migration
-alembic revision --autogenerate -m "Initial migration"
+atlas migrate diff initial_schema --env sqlalchemy
 
 # Apply migrations to create tables
-alembic upgrade head
+atlas migrate apply --env sqlalchemy
 ```
 
 ## Step 5: Seed Initial Data
@@ -127,19 +127,16 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 
 ```bash
 # Create new migration after model changes
-alembic revision --autogenerate -m "Description"
+atlas migrate diff name_of_change --env sqlalchemy
 
 # Apply migrations
-alembic upgrade head
+atlas migrate apply --env sqlalchemy
 
-# Rollback one migration
-alembic downgrade -1
+# Check migration status
+atlas migrate status --env sqlalchemy
 
-# View migration history
-alembic history
-
-# Check current version
-alembic current
+# Inspect schema
+atlas schema inspect --env sqlalchemy
 ```
 
 ### Development
@@ -175,15 +172,11 @@ echo $POSTGRES_USER
 ### Migration Errors
 
 ```bash
-# Check current state
-alembic current
+# Check current status
+atlas migrate status --env sqlalchemy
 
-# View pending migrations
-alembic history
-
-# Reset database (development only!)
-alembic downgrade base
-alembic upgrade head
+# Validate migration directory
+atlas migrate validate --env sqlalchemy
 ```
 
 ### Import Errors
@@ -227,11 +220,10 @@ python -c "import sys; print(sys.path)"
 ## File Structure
 
 ```
+```
 backend/
-├── alembic/              # Database migrations
-│   ├── versions/         # Migration files
-│   ├── env.py           # Alembic environment
-│   └── README           # Migration instructions
+├── migrations/           # Atlas migrations
+│   └── ...              # SQL migration files
 ├── app/
 │   ├── api/             # API endpoints
 │   ├── core/            # Core configuration
@@ -240,7 +232,7 @@ backend/
 │   ├── models/          # SQLAlchemy models
 │   ├── schemas/         # Pydantic schemas
 │   └── main.py          # FastAPI application
-├── alembic.ini          # Alembic configuration
+├── atlas.hcl            # Atlas configuration
 ├── requirements.txt     # Python dependencies
 ├── .env.example         # Environment template
 └── MIGRATIONS.md        # Detailed migration guide

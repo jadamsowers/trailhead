@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from datetime import datetime
 from uuid import UUID
 from typing import Optional
@@ -55,8 +55,7 @@ class ParticipantResponse(BaseModel):
     medical_notes: Optional[str]
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SignupResponse(BaseModel):
@@ -73,8 +72,7 @@ class SignupResponse(BaseModel):
     created_at: datetime
     warnings: list[str] = Field(default_factory=list, description="Warning messages about Scouting America requirements")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SignupListResponse(BaseModel):

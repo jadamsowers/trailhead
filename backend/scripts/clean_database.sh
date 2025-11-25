@@ -35,22 +35,22 @@ echo ""
 
 # Step 2: Remove all migration files
 echo "📁 Step 2: Removing old migration files..."
-rm -rf backend/alembic/versions/*.py
-rm -rf backend/alembic/versions/__pycache__
+rm -rf backend/migrations/*.sql
+rm -f backend/migrations/atlas.sum
 
 echo "✅ Migration files removed"
 echo ""
 
 # Step 3: Generate fresh initial migration
 echo "📝 Step 3: Generating fresh initial migration from models..."
-docker-compose exec -T backend alembic revision --autogenerate -m "initial_schema"
+docker-compose exec -T backend atlas migrate diff initial_schema --env sqlalchemy
 
 echo "✅ Initial migration generated"
 echo ""
 
 # Step 4: Apply the migration
 echo "🚀 Step 4: Applying migration to create all tables..."
-docker-compose exec -T backend alembic upgrade head
+docker-compose exec -T backend atlas migrate apply --env sqlalchemy
 
 echo "✅ Migration applied"
 echo ""

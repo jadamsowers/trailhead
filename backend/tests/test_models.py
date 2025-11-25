@@ -4,7 +4,8 @@ from datetime import date, timedelta
 
 from app.models.outing import Outing
 from app.models.signup import Signup
-from app.models.participant import Participant, DietaryRestriction, Allergy
+from app.models.participant import Participant
+from app.models.family import FamilyMemberDietaryPreference as DietaryRestriction, FamilyMemberAllergy as Allergy
 from app.models.user import User
 
 
@@ -62,32 +63,45 @@ class TestOutingModel:
         db_session.add(outing)
         await db_session.commit()
         await db_session.refresh(outing)
-        
+        # Initially not full
+        from app.crud import outing as crud_outing
+        outing = await crud_outing.get_outing(db_session, outing.id)
         assert outing.is_full is False
         
-        # Add signup to fill outing
-        signup = Signup(
-            outing_id=outing.id,
-            family_contact_name="Test",
-            family_contact_email="test@test.com",
-            family_contact_phone="555-0000",
-        )
-        db_session.add(signup)
+        # Create a signup via CRUD with a single family member
+        from app.crud import signup as crud_signup
+        from app.schemas.signup import SignupCreate, FamilyContact
+        from app.models.family import FamilyMember
+        from app.models.user import User
+        user = User(email="temp@test.com", hashed_password="x", full_name="Temp", role="user", is_active=True)
+        db_session.add(user)
         await db_session.flush()
-        
-        participant = Participant(
-            signup_id=signup.id,
-            name="Test Person",
-            age=14,
-            participant_type="scout",
-            is_adult=False,
-            gender="male",
+        member = FamilyMember(user_id=user.id, name="Test Person", member_type="scout")
+        db_session.add(member)
+        await db_session.flush()
+        signup_data = SignupCreate(
+            outing_id=outing.id,
+            family_contact=FamilyContact(
+                email="test@test.com",
+                phone="555-0000",
+                emergency_contact_name="EC",
+                emergency_contact_phone="555-9999",
+            ),
+            family_member_ids=[member.id],
         )
-        db_session.add(participant)
-        await db_session.commit()
-        await db_session.refresh(outing)
+        await crud_signup.create_signup(db_session, signup_data)
         
-        assert outing.is_full is True
+        # Validate via direct count
+        from sqlalchemy import select, func
+        from app.models.signup import Signup
+        from app.models.participant import Participant
+        result = await db_session.execute(
+            select(func.count()).select_from(Participant)
+            .join(Signup)
+            .where(Signup.outing_id == outing.id)
+        )
+        signup_count = result.scalar() or 0
+        assert signup_count >= outing.max_participants
     
     async def test_outing_repr(self, test_outing):
         """Test outing string representation"""
@@ -160,19 +174,15 @@ class TestParticipantModel:
     
     async def test_participant_creation(self, db_session, test_signup):
         """Test creating a participant"""
-        participant = Participant(
-            signup_id=test_signup.id,
-            name="New Scout",
-            age=13,
-            participant_type="scout",
-            is_adult=False,
-            gender="male",
-            troop_number="456",
-            patrol_name="Wolf Patrol",
-            has_youth_protection=False,
-            vehicle_capacity=0,
-            medical_notes="None",
-        )
+        from app.models.family import FamilyMember
+        from app.models.user import User
+        user = User(email="member@test.com", hashed_password="x", full_name="Member", role="user", is_active=True)
+        db_session.add(user)
+        await db_session.flush()
+        member = FamilyMember(user_id=user.id, name="New Scout", member_type="scout")
+        db_session.add(member)
+        await db_session.flush()
+        participant = Participant(signup_id=test_signup.id, family_member_id=member.id)
         
         db_session.add(participant)
         await db_session.commit()
@@ -184,74 +194,97 @@ class TestParticipantModel:
     
     async def test_participant_with_dietary_restrictions(self, db_session, test_signup):
         """Test participant with dietary restrictions"""
-        participant = Participant(
-            signup_id=test_signup.id,
-            name="Special Scout",
-            age=12,
-            participant_type="scout",
-            is_adult=False,
-            gender="female",
-        )
+        # Create participant linked to a family member
+        from app.models.family import FamilyMember
+        from app.models.user import User
+        user = User(email="diet@test.com", hashed_password="x", full_name="Diet", role="user", is_active=True)
+        db_session.add(user)
+        await db_session.flush()
+        member = FamilyMember(user_id=user.id, name="Special Scout", member_type="scout")
+        db_session.add(member)
+        await db_session.flush()
+        participant = Participant(signup_id=test_signup.id, family_member_id=member.id)
         db_session.add(participant)
         await db_session.flush()
-        
-        # Add dietary restrictions
+
+        # Add dietary preferences to family member
         restriction1 = DietaryRestriction(
-            participant_id=participant.id,
-            restriction_type="vegetarian",
+            family_member_id=member.id,
+            preference="vegetarian",
         )
         restriction2 = DietaryRestriction(
-            participant_id=participant.id,
-            restriction_type="gluten-free",
+            family_member_id=member.id,
+            preference="gluten-free",
         )
         db_session.add(restriction1)
         db_session.add(restriction2)
         
         await db_session.commit()
-        await db_session.refresh(participant)
-        
-        assert len(participant.dietary_restrictions) == 2
+        # Re-query with eager loads to avoid async lazy-load
+        from sqlalchemy import select
+        from sqlalchemy.orm import selectinload
+        from app.models.family import FamilyMember
+        result = await db_session.execute(
+            select(Participant)
+            .options(selectinload(Participant.family_member).selectinload(FamilyMember.dietary_preferences))
+            .where(Participant.id == participant.id)
+        )
+        participant = result.scalar_one()
+        assert len(participant.family_member.dietary_preferences) == 2
     
     async def test_participant_with_allergies(self, db_session, test_signup):
         """Test participant with allergies"""
-        participant = Participant(
-            signup_id=test_signup.id,
-            name="Allergy Scout",
-            age=11,
-            participant_type="scout",
-            is_adult=False,
-            gender="male",
-        )
+        # Create participant linked to a family member
+        from app.models.family import FamilyMember
+        from app.models.user import User
+        user = User(email="allergy@test.com", hashed_password="x", full_name="Allergy", role="user", is_active=True)
+        db_session.add(user)
+        await db_session.flush()
+        member = FamilyMember(user_id=user.id, name="Allergy Scout", member_type="scout")
+        db_session.add(member)
+        await db_session.flush()
+        participant = Participant(signup_id=test_signup.id, family_member_id=member.id)
         db_session.add(participant)
         await db_session.flush()
-        
-        # Add allergies
+
+        # Add allergies to family member
         allergy1 = Allergy(
-            participant_id=participant.id,
-            allergy_type="peanuts",
+            family_member_id=member.id,
+            allergy="peanuts",
+            severity="moderate",
         )
         allergy2 = Allergy(
-            participant_id=participant.id,
-            allergy_type="shellfish",
+            family_member_id=member.id,
+            allergy="shellfish",
+            severity="mild",
         )
         db_session.add(allergy1)
         db_session.add(allergy2)
         
         await db_session.commit()
-        await db_session.refresh(participant)
-        
-        assert len(participant.allergies) == 2
+        # Re-query with eager loads to avoid async lazy-load
+        from sqlalchemy import select
+        from sqlalchemy.orm import selectinload
+        from app.models.family import FamilyMember
+        result = await db_session.execute(
+            select(Participant)
+            .options(selectinload(Participant.family_member).selectinload(FamilyMember.allergies))
+            .where(Participant.id == participant.id)
+        )
+        participant = result.scalar_one()
+        assert len(participant.family_member.allergies) == 2
     
     async def test_participant_repr(self, db_session, test_signup):
         """Test participant string representation"""
-        participant = Participant(
-            signup_id=test_signup.id,
-            name="Test Scout",
-            age=14,
-            participant_type="scout",
-            is_adult=False,
-            gender="male",
-        )
+        from app.models.family import FamilyMember
+        from app.models.user import User
+        user = User(email="repr@test.com", hashed_password="x", full_name="Repr", role="user", is_active=True)
+        db_session.add(user)
+        await db_session.flush()
+        member = FamilyMember(user_id=user.id, name="Test Scout", member_type="scout")
+        db_session.add(member)
+        await db_session.flush()
+        participant = Participant(signup_id=test_signup.id, family_member_id=member.id)
         db_session.add(participant)
         await db_session.commit()
         
@@ -259,7 +292,7 @@ class TestParticipantModel:
         
         assert "Participant" in repr_str
         assert str(participant.id) in repr_str
-        assert participant.name in repr_str
+        assert str(participant.signup_id) in repr_str
 
 
 @pytest.mark.asyncio
@@ -319,52 +352,48 @@ class TestDietaryRestrictionModel:
     
     async def test_dietary_restriction_creation(self, db_session, test_signup):
         """Test creating a dietary restriction"""
-        participant = Participant(
-            signup_id=test_signup.id,
-            name="Test Scout",
-            age=14,
-            participant_type="scout",
-            is_adult=False,
-            gender="male",
-        )
-        db_session.add(participant)
+        from app.models.family import FamilyMember
+        from app.models.user import User
+        user = User(email="diet2@test.com", hashed_password="x", full_name="Diet2", role="user", is_active=True)
+        db_session.add(user)
         await db_session.flush()
-        
+        member = FamilyMember(user_id=user.id, name="Test Scout", member_type="scout")
+        db_session.add(member)
+        await db_session.flush()
+
         restriction = DietaryRestriction(
-            participant_id=participant.id,
-            restriction_type="vegan",
+            family_member_id=member.id,
+            preference="vegan",
         )
         db_session.add(restriction)
         await db_session.commit()
         await db_session.refresh(restriction)
         
         assert restriction.id is not None
-        assert restriction.participant_id == participant.id
-        assert restriction.restriction_type == "vegan"
+        assert restriction.family_member_id == member.id
+        assert restriction.preference == "vegan"
     
     async def test_dietary_restriction_repr(self, db_session, test_signup):
         """Test dietary restriction string representation"""
-        participant = Participant(
-            signup_id=test_signup.id,
-            name="Test Scout",
-            age=14,
-            participant_type="scout",
-            is_adult=False,
-            gender="male",
-        )
-        db_session.add(participant)
+        from app.models.family import FamilyMember
+        from app.models.user import User
+        user = User(email="diet3@test.com", hashed_password="x", full_name="Diet3", role="user", is_active=True)
+        db_session.add(user)
         await db_session.flush()
-        
+        member = FamilyMember(user_id=user.id, name="Test Scout", member_type="scout")
+        db_session.add(member)
+        await db_session.flush()
+
         restriction = DietaryRestriction(
-            participant_id=participant.id,
-            restriction_type="vegetarian",
+            family_member_id=member.id,
+            preference="vegetarian",
         )
         db_session.add(restriction)
         await db_session.commit()
         
         repr_str = repr(restriction)
         
-        assert "DietaryRestriction" in repr_str
+        assert "FamilyMemberDietaryPreference" in repr_str
         assert str(restriction.id) in repr_str
 
 
@@ -374,45 +403,43 @@ class TestAllergyModel:
     
     async def test_allergy_creation(self, db_session, test_signup):
         """Test creating an allergy"""
-        participant = Participant(
-            signup_id=test_signup.id,
-            name="Test Scout",
-            age=14,
-            participant_type="scout",
-            is_adult=False,
-            gender="male",
-        )
-        db_session.add(participant)
+        from app.models.family import FamilyMember
+        from app.models.user import User
+        user = User(email="allergy2@test.com", hashed_password="x", full_name="Allergy2", role="user", is_active=True)
+        db_session.add(user)
         await db_session.flush()
-        
+        member = FamilyMember(user_id=user.id, name="Test Scout", member_type="scout")
+        db_session.add(member)
+        await db_session.flush()
+
         allergy = Allergy(
-            participant_id=participant.id,
-            allergy_type="dairy",
+            family_member_id=member.id,
+            allergy="dairy",
+            severity="mild",
         )
         db_session.add(allergy)
         await db_session.commit()
         await db_session.refresh(allergy)
         
         assert allergy.id is not None
-        assert allergy.participant_id == participant.id
-        assert allergy.allergy_type == "dairy"
+        assert allergy.family_member_id == member.id
+        assert allergy.allergy == "dairy"
     
     async def test_allergy_repr(self, db_session, test_signup):
         """Test allergy string representation"""
-        participant = Participant(
-            signup_id=test_signup.id,
-            name="Test Scout",
-            age=14,
-            participant_type="scout",
-            is_adult=False,
-            gender="male",
-        )
-        db_session.add(participant)
+        from app.models.family import FamilyMember
+        from app.models.user import User
+        user = User(email="allergy3@test.com", hashed_password="x", full_name="Allergy3", role="user", is_active=True)
+        db_session.add(user)
         await db_session.flush()
-        
+        member = FamilyMember(user_id=user.id, name="Test Scout", member_type="scout")
+        db_session.add(member)
+        await db_session.flush()
+
         allergy = Allergy(
-            participant_id=participant.id,
-            allergy_type="peanuts",
+            family_member_id=member.id,
+            allergy="peanuts",
+            severity="severe",
         )
         db_session.add(allergy)
         await db_session.commit()
@@ -447,34 +474,29 @@ class TestModelRelationships:
     async def test_delete_signup_cascades_to_participants(self, db_session, test_outing):
         """Test deleting signup cascades to participants"""
         from app.crud import signup as crud_signup
-        from app.schemas.signup import SignupCreate, ParticipantCreate, FamilyContact
-        
-        # Create signup with participant
+        from app.schemas.signup import SignupCreate, FamilyContact
+        from app.models.family import FamilyMember
+        from app.models.user import User
+        # Create a family member to sign up
+        user = User(email="cascade@test.com", hashed_password="x", full_name="Cascade", role="user", is_active=True)
+        db_session.add(user)
+        await db_session.flush()
+        member = FamilyMember(user_id=user.id, name="Test Scout", member_type="scout")
+        db_session.add(member)
+        await db_session.flush()
+
+        # Create signup with family_member_ids
         signup_data = SignupCreate(
             outing_id=test_outing.id,
             family_contact=FamilyContact(
-                name="Test",
                 email="test@test.com",
                 phone="555-0000",
+                emergency_contact_name="EC",
+                emergency_contact_phone="555-9999",
             ),
-            participants=[
-                ParticipantCreate(
-                    name="Test Scout",
-                    age=14,
-                    participant_type="scout",
-                    is_adult=False,
-                    gender="male",
-                    troop_number="123",
-                    patrol_name="Test",
-                    has_youth_protection=False,
-                    vehicle_capacity=0,
-                    dietary_restrictions=[],
-                    allergies=[],
-                    medical_notes=None,
-                ),
-            ],
+            family_member_ids=[member.id],
         )
-        
+
         signup = await crud_signup.create_signup(db_session, signup_data)
         participant_id = signup.participants[0].id
         

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, DateTime
+from sqlalchemy import Column, String, Boolean, DateTime, Date
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -23,6 +23,7 @@ class User(Base):
     phone = Column(String(50), nullable=True)
     emergency_contact_name = Column(String(255), nullable=True)
     emergency_contact_phone = Column(String(50), nullable=True)
+    youth_protection_expiration = Column(Date, nullable=True)
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

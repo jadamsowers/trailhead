@@ -1,18 +1,22 @@
-# Implementation Plan - Fix Outing Creation Datetime Error
+# Implementation Plan - Switch to Atlas
 
 ## Goal
-Resolve the `DBAPIError` caused by "can't subtract offset-naive and offset-aware datetimes" when creating an outing. This occurs because the frontend sends a timezone-aware datetime for `signups_close_at`, but the database column is `TIMESTAMP WITHOUT TIME ZONE` (naive), and other fields like `created_at` are naive UTC.
+Remove all traces of Alembic from the project and standardize on Atlas for database schema management. This ensures a single, modern workflow for database migrations and schema versioning.
 
 ## Proposed Changes
-1.  **Update `backend/app/crud/outing.py`**:
-    *   In the `create_outing` function, check if `outing.signups_close_at` is timezone-aware.
-    *   If it is, convert it to UTC and strip the timezone info (make it naive) before creating the `Outing` model instance.
-    *   This ensures consistency with `created_at` and `updated_at` which are naive UTC.
+
+### 1. Cleanup
+-   **Delete**: `backend/alembic.ini`
+-   **Update**: `backend/requirements.txt` (remove `alembic`)
+
+### 2. Script Updates
+-   **`backend/scripts/clean_database.sh`**: Replace Alembic commands with Atlas commands (e.g., `atlas schema clean`).
+-   **`backend/scripts/reset_migrations.sh`**: Update to use Atlas for re-initializing migrations.
+
+### 3. Documentation
+-   **`backend/docs/QUICKSTART.md`**: Update the "Database Setup" section to reference Atlas commands.
+-   **New Workflow**: Create `.agent/workflows/db-migration.md` to document the standard Atlas workflow for the user and future agents.
 
 ## Verification Plan
-1.  **Automated Tests**:
-    *   Create a new test case in `backend/tests/test_crud_outing.py` or `backend/tests/test_api_outings.py` that specifically passes a timezone-aware datetime for `signups_close_at`.
-    *   Verify that the outing is created successfully.
-2.  **Manual Verification**:
-    *   Use the frontend Outing Wizard to create an outing with a "Signup Close Date" set.
-    *   Verify that the request succeeds and the outing is created.
+1.  **Manual Verification**: Run the updated scripts (`clean_database.sh`, `reset_migrations.sh`) to ensure they work with the running container.
+2.  **Documentation Check**: Verify that the new workflow document is clear and accurate.

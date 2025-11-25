@@ -14,7 +14,8 @@ const ProfilePage: React.FC = () => {
     const [contactInfo, setContactInfo] = useState({
         phone: '',
         emergency_contact_name: '',
-        emergency_contact_phone: ''
+        emergency_contact_phone: '',
+        youth_protection_expiration: ''
     });
 
     useEffect(() => {
@@ -30,7 +31,8 @@ const ProfilePage: React.FC = () => {
             setContactInfo({
                 phone: userData.phone || '',
                 emergency_contact_name: userData.emergency_contact_name || '',
-                emergency_contact_phone: userData.emergency_contact_phone || ''
+                emergency_contact_phone: userData.emergency_contact_phone || '',
+                youth_protection_expiration: userData.youth_protection_expiration || ''
             });
         } catch (err) {
             setError('Failed to load profile information');
@@ -43,7 +45,7 @@ const ProfilePage: React.FC = () => {
     const formatPhoneNumber = (value: string) => {
         // Remove all non-numeric characters
         const cleaned = value.replace(/\D/g, '');
-        
+
         // Format as (XXX) XXX-XXXX
         if (cleaned.length <= 3) {
             return cleaned;
@@ -59,6 +61,10 @@ const ProfilePage: React.FC = () => {
         setContactInfo(prev => ({ ...prev, [field]: formatted }));
     };
 
+    const handleDateChange = (value: string) => {
+        setContactInfo(prev => ({ ...prev, youth_protection_expiration: value }));
+    };
+
     const validatePhone = (phone: string): boolean => {
         if (!phone) return true; // Optional
         const cleaned = phone.replace(/\D/g, '');
@@ -67,13 +73,13 @@ const ProfilePage: React.FC = () => {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         // Validate phone numbers
         if (contactInfo.phone && !validatePhone(contactInfo.phone)) {
             setError('Phone number must be 10 digits');
             return;
         }
-        
+
         if (contactInfo.emergency_contact_phone && !validatePhone(contactInfo.emergency_contact_phone)) {
             setError('Emergency contact phone must be 10 digits');
             return;
@@ -97,7 +103,7 @@ const ProfilePage: React.FC = () => {
             const updatedUser = await userAPI.updateContactInfo(contactInfo);
             setUser(updatedUser);
             setSuccessMessage('Profile updated successfully! These details will be used as defaults for future signups.');
-            
+
             // Clear success message after 5 seconds
             setTimeout(() => setSuccessMessage(null), 5000);
         } catch (err) {
@@ -125,8 +131,8 @@ const ProfilePage: React.FC = () => {
             </h1>
 
             {error && (
-                <div className="mb-6 p-4 rounded-lg" style={{ 
-                    backgroundColor: 'var(--color-error-bg, #ffebee)', 
+                <div className="mb-6 p-4 rounded-lg" style={{
+                    backgroundColor: 'var(--color-error-bg, #ffebee)',
                     color: 'var(--color-error, #c62828)',
                     border: '1px solid var(--color-error, #c62828)'
                 }}>
@@ -135,8 +141,8 @@ const ProfilePage: React.FC = () => {
             )}
 
             {successMessage && (
-                <div className="mb-6 p-4 rounded-lg" style={{ 
-                    backgroundColor: 'var(--color-success-bg, #e8f5e9)', 
+                <div className="mb-6 p-4 rounded-lg" style={{
+                    backgroundColor: 'var(--color-success-bg, #e8f5e9)',
                     color: 'var(--color-success, #2e7d32)',
                     border: '1px solid var(--color-success, #2e7d32)'
                 }}>
@@ -218,7 +224,7 @@ const ProfilePage: React.FC = () => {
                             <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
                                 Emergency Contact
                             </h3>
-                            
+
                             <div className="mb-4">
                                 <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
                                     Emergency Contact Name
@@ -226,9 +232,9 @@ const ProfilePage: React.FC = () => {
                                 <input
                                     type="text"
                                     value={contactInfo.emergency_contact_name}
-                                    onChange={(e) => setContactInfo(prev => ({ 
-                                        ...prev, 
-                                        emergency_contact_name: e.target.value 
+                                    onChange={(e) => setContactInfo(prev => ({
+                                        ...prev,
+                                        emergency_contact_name: e.target.value
                                     }))}
                                     placeholder="John Doe"
                                     className="w-full p-2.5 text-base rounded-md border"
@@ -261,6 +267,32 @@ const ProfilePage: React.FC = () => {
                                 </p>
                             </div>
                         </div>
+
+                        <div className="pt-4 border-t" style={{ borderColor: 'var(--border-light)' }}>
+                            <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--text-primary)' }}>
+                                Youth Protection
+                            </h3>
+
+                            <div>
+                                <label className="block text-sm font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                                    SAFE Youth Training Expiration
+                                </label>
+                                <input
+                                    type="date"
+                                    value={contactInfo.youth_protection_expiration}
+                                    onChange={(e) => handleDateChange(e.target.value)}
+                                    className="w-full p-2.5 text-base rounded-md border"
+                                    style={{
+                                        borderColor: 'var(--border-light)',
+                                        backgroundColor: 'var(--input-bg)',
+                                        color: 'var(--text-primary)'
+                                    }}
+                                />
+                                <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                    Please enter the expiration date from your Scouting America SAFE Youth Training certificate.
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="mt-6 flex gap-3">
@@ -277,7 +309,7 @@ const ProfilePage: React.FC = () => {
                         >
                             {saving ? 'Saving...' : 'Save Changes'}
                         </button>
-                        
+
                         <button
                             type="button"
                             onClick={loadUserProfile}

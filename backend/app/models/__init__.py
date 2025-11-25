@@ -13,6 +13,7 @@ from app.models.packing_list import (
     OutingPackingList,
     OutingPackingListItem,
 )
+from app.models.troop import Troop, Patrol
 
 __all__ = [
     "User",
@@ -33,4 +34,6 @@ __all__ = [
     "PackingListTemplateItem",
     "OutingPackingList",
     "OutingPackingListItem",
+    "Troop",
+    "Patrol",
 ]

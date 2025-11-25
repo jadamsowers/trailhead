@@ -13,7 +13,6 @@ from app.models.user import User
 from app.models.outing import Outing
 from app.models.signup import Signup
 from app.models.requirement import RankRequirement, MeritBadge, OutingRequirement, OutingMeritBadge
-from app.core.security import get_password_hash
 
 # ---------------------------------------------------------------------------
 # User
@@ -27,6 +26,8 @@ async def create_user(
     password: str = "testpassword123",
     is_active: bool = True,
 ) -> User:
+    from app.core.security import get_password_hash
+    
     user = User(
         id=uuid.uuid4(),
         email=email or f"factory_{uuid.uuid4().hex[:8]}@test.com",

@@ -1,0 +1,96 @@
+/* generated using openapi-typescript-codegen -- do not edit */
+/* istanbul ignore file */
+/* tslint:disable */
+/* eslint-disable */
+import type { UpdateUserRoleRequest } from '../models/UpdateUserRoleRequest';
+import type { UserContactUpdate } from '../models/UserContactUpdate';
+import type { UserResponse } from '../models/UserResponse';
+import type { CancelablePromise } from '../core/CancelablePromise';
+import { OpenAPI } from '../core/OpenAPI';
+import { request as __request } from '../core/request';
+export class ClerkAuthService {
+    /**
+     * Get Current User Info
+     * Get current authenticated user information including contact details.
+     * @returns UserResponse Successful Response
+     * @throws ApiError
+     */
+    public static getCurrentUserInfoApiClerkMeGet(): CancelablePromise<UserResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/clerk/me',
+        });
+    }
+    /**
+     * Update Contact Info
+     * Update current user's contact information.
+     * This serves as the default contact info for signups.
+     * @param requestBody
+     * @returns UserResponse Successful Response
+     * @throws ApiError
+     */
+    public static updateContactInfoApiClerkMeContactPatch(
+        requestBody: UserContactUpdate,
+    ): CancelablePromise<UserResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/clerk/me/contact',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Sync User Role
+     * Sync user role from Clerk metadata to local database.
+     * This endpoint fetches the role directly from Clerk to ensure security.
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static syncUserRoleApiClerkSyncRolePost(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/clerk/sync-role',
+        });
+    }
+    /**
+     * List Users
+     * List all users in the system. Admin only.
+     * @returns UserResponse Successful Response
+     * @throws ApiError
+     */
+    public static listUsersApiClerkUsersGet(): CancelablePromise<Array<UserResponse>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/clerk/users',
+        });
+    }
+    /**
+     * Update User Role
+     * Update a user's role. Admin only.
+     * Cannot demote the initial admin.
+     * @param userId
+     * @param requestBody
+     * @returns UserResponse Successful Response
+     * @throws ApiError
+     */
+    public static updateUserRoleApiClerkUsersUserIdRolePatch(
+        userId: string,
+        requestBody: UpdateUserRoleRequest,
+    ): CancelablePromise<UserResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/clerk/users/{user_id}/role',
+            path: {
+                'user_id': userId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+}

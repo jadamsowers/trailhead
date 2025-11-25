@@ -89,6 +89,7 @@ async def update_outing(
 ):
     """
     Update an outing (admin only).
+    Ensures a proper before/after diff by cloning the original state before mutation.
     """
     # Get existing outing for diff
     existing = await crud_outing.get_outing(db, outing_id)
@@ -97,13 +98,17 @@ async def update_outing(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Outing not found"
         )
+    # Clone original values to avoid in-place mutation eliminating diff
+    import copy
+    before_snapshot = copy.deepcopy(existing)
+
     db_outing = await crud_outing.update_outing(db, outing_id, outing)
 
-    # Compute diff
-    changed_fields = diff_outing(existing, db_outing)
+    # Compute diff using snapshot
+    changed_fields = diff_outing(before_snapshot, db_outing)
     email_draft = None
     if changed_fields:
-        subject, body = generate_outing_update_email(existing, db_outing, changed_fields)
+        subject, body = generate_outing_update_email(before_snapshot, db_outing, changed_fields)
         email_draft = OutingUpdateEmailDraft(subject=subject, body=body, changed_fields=changed_fields)
 
     return OutingUpdateResponse(

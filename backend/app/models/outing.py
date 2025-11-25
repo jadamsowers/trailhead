@@ -2,7 +2,7 @@ from sqlalchemy import Column, String, Integer, Boolean, Date, Text, DateTime, T
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.db.base import Base
 
@@ -34,6 +34,7 @@ class Outing(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     icon = Column(String(50), nullable=True)  # Outing icon (Bootstrap icon name or emoji)
+    restricted_troop_id = Column(UUID(as_uuid=True), ForeignKey("troops.id"), nullable=True, index=True)
     
     # Address fields with Place relationships
     outing_address = Column(Text, nullable=True)  # Full address of outing location
@@ -48,6 +49,7 @@ class Outing(Base):
     outing_requirements = relationship("OutingRequirement", back_populates="outing", cascade="all, delete-orphan")
     outing_merit_badges = relationship("OutingMeritBadge", back_populates="outing", cascade="all, delete-orphan")
     packing_lists = relationship("OutingPackingList", back_populates="outing", cascade="all, delete-orphan")
+    restricted_troop = relationship("Troop", back_populates="restricted_outings")
     
     # Place relationships
     outing_place = relationship("Place", foreign_keys=[outing_place_id], back_populates="outings_at_location")
@@ -142,6 +144,6 @@ class Outing(Base):
         """Check if signups are closed (manually or automatically based on close date)"""
         if self.signups_closed:
             return True
-        if self.signups_close_at and datetime.utcnow() >= self.signups_close_at:
+        if self.signups_close_at and datetime.now(timezone.utc).replace(tzinfo=None) >= self.signups_close_at:
             return True
         return False

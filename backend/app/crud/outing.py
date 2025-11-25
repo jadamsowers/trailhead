@@ -27,6 +27,11 @@ async def get_outing(db: AsyncSession, outing_id: UUID) -> Optional[Outing]:
     return result.scalar_one_or_none()
 
 
+async def get(db: AsyncSession, outing_id: UUID) -> Optional[Outing]:
+    """Get an outing by ID (alias for get_outing for consistency with other CRUD modules)"""
+    return await get_outing(db, outing_id)
+
+
 async def get_outing_with_details(db: AsyncSession, outing_id: UUID) -> Optional[Outing]:
     """Get an outing by ID with all details for PDF generation"""
     from app.models.requirement import OutingRequirement, RankRequirement, OutingMeritBadge, MeritBadge
@@ -95,7 +100,10 @@ async def create_outing(db: AsyncSession, outing: OutingCreate) -> Outing:
     db_outing = Outing(**outing_data)
     db.add(db_outing)
     await db.flush()
-    # Refresh signups and place relationships so downstream serialization does not trigger lazy IO
+    # Persist the new outing and refresh relationships for callers
+    await db.commit()
+    await db.refresh(db_outing)
+    # Ensure relationships are available for serialization
     await db.refresh(db_outing, ['signups', 'outing_place', 'pickup_place', 'dropoff_place'])
     return db_outing
 
@@ -106,11 +114,15 @@ async def update_outing(db: AsyncSession, outing_id: UUID, outing: OutingUpdate)
     if not db_outing:
         return None
     
-    for key, value in outing.model_dump().items():
+    # Only update fields that were explicitly provided (exclude_unset=True)
+    update_data = outing.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
         setattr(db_outing, key, value)
-    
+
     await db.flush()
-    # Ensure related relationships are loaded for serialization
+    # Persist updates and refresh relationships for callers
+    await db.commit()
+    await db.refresh(db_outing)
     await db.refresh(db_outing, ['signups', 'outing_place', 'pickup_place', 'dropoff_place'])
     return db_outing
 
@@ -125,7 +137,7 @@ async def delete_outing(db: AsyncSession, outing_id: UUID) -> bool:
         return False  # Cannot delete outing with signups
     
     await db.delete(db_outing)
-    await db.flush()
+    await db.commit()
     return True
 
 

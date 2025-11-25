@@ -11,7 +11,8 @@ from datetime import date
 from app.db.session import get_db
 from app.api.deps import get_current_user
 from app.models.user import User
-from app.models.family import FamilyMember, FamilyMemberDietaryPreference, FamilyMemberAllergy
+from app.models.family import FamilyMember
+from app.crud import family as crud_family
 from app.schemas.family import (
     FamilyMemberCreate,
     FamilyMemberUpdate,
@@ -32,17 +33,7 @@ async def list_family_members(
     Get all family members for the current user.
     Returns a list of family members with their dietary preferences and allergies.
     """
-    result = await db.execute(
-        select(FamilyMember)
-        .where(FamilyMember.user_id == current_user.id)
-        .options(
-            selectinload(FamilyMember.dietary_preferences),
-            selectinload(FamilyMember.allergies)
-        )
-        .order_by(FamilyMember.created_at)
-    )
-    members = result.scalars().all()
-    
+    members = await crud_family.get_family_members_for_user(db, current_user.id)
     return FamilyMemberListResponse(
         members=[FamilyMemberResponse.model_validate(member) for member in members],
         total=len(members)
@@ -65,12 +56,7 @@ async def list_family_members_summary(
     """
     print(f"📋 Getting family member summary for user: {current_user.email} (ID: {current_user.id})")
     
-    result = await db.execute(
-        select(FamilyMember)
-        .where(FamilyMember.user_id == current_user.id)
-        .order_by(FamilyMember.member_type, FamilyMember.name)
-    )
-    members = result.scalars().all()
+    members = await crud_family.get_family_members_for_user(db, current_user.id)
     
     print(f"   Found {len(members)} family members")
     for member in members:
@@ -127,22 +113,12 @@ async def get_family_member(
     Get a specific family member by ID.
     Only returns members belonging to the current user.
     """
-    result = await db.execute(
-        select(FamilyMember)
-        .where(FamilyMember.id == member_id, FamilyMember.user_id == current_user.id)
-        .options(
-            selectinload(FamilyMember.dietary_preferences),
-            selectinload(FamilyMember.allergies)
-        )
-    )
-    member = result.scalar_one_or_none()
-    
+    member = await crud_family.get_family_member(db, member_id, current_user.id)
     if not member:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Family member not found"
         )
-    
     return FamilyMemberResponse.model_validate(member)
 
 
@@ -156,53 +132,7 @@ async def create_family_member(
     Create a new family member.
     Includes dietary preferences and allergies.
     """
-    # Create the family member
-    member = FamilyMember(
-        user_id=current_user.id,
-        name=member_data.name,
-        member_type=member_data.member_type,
-        date_of_birth=member_data.date_of_birth,
-        troop_number=member_data.troop_number,
-        patrol_name=member_data.patrol_name,
-        has_youth_protection=member_data.has_youth_protection,
-        youth_protection_expiration=member_data.youth_protection_expiration,
-        vehicle_capacity=member_data.vehicle_capacity,
-        medical_notes=member_data.medical_notes,
-    )
-    db.add(member)
-    await db.flush()  # Get the member ID
-    
-    # Add dietary preferences
-    for pref in member_data.dietary_preferences:
-        dietary_pref = FamilyMemberDietaryPreference(
-            family_member_id=member.id,
-            preference=pref
-        )
-        db.add(dietary_pref)
-    
-    # Add allergies
-    for allergy_data in member_data.allergies:
-        allergy = FamilyMemberAllergy(
-            family_member_id=member.id,
-            allergy=allergy_data.allergy,
-            severity=allergy_data.severity
-        )
-        db.add(allergy)
-    
-    await db.commit()
-    await db.refresh(member)
-    
-    # Reload with relationships
-    result = await db.execute(
-        select(FamilyMember)
-        .where(FamilyMember.id == member.id)
-        .options(
-            selectinload(FamilyMember.dietary_preferences),
-            selectinload(FamilyMember.allergies)
-        )
-    )
-    member = result.scalar_one()
-    
+    member = await crud_family.create_family_member(db, current_user.id, member_data)
     return FamilyMemberResponse.model_validate(member)
 
 
@@ -217,75 +147,12 @@ async def update_family_member(
     Update an existing family member.
     Only the owner can update their family members.
     """
-    # Get the member
-    result = await db.execute(
-        select(FamilyMember)
-        .where(FamilyMember.id == member_id, FamilyMember.user_id == current_user.id)
-        .options(
-            selectinload(FamilyMember.dietary_preferences),
-            selectinload(FamilyMember.allergies)
-        )
-    )
-    member = result.scalar_one_or_none()
-    
+    member = await crud_family.update_family_member(db, member_id, current_user.id, member_data)
     if not member:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Family member not found"
         )
-    
-    # Update basic fields
-    update_data = member_data.model_dump(exclude_unset=True, exclude={'dietary_preferences', 'allergies'})
-    for field, value in update_data.items():
-        setattr(member, field, value)
-    
-    # Update dietary preferences if provided
-    if member_data.dietary_preferences is not None:
-        # Remove existing preferences
-        await db.execute(
-            select(FamilyMemberDietaryPreference)
-            .where(FamilyMemberDietaryPreference.family_member_id == member.id)
-        )
-        for pref in member.dietary_preferences:
-            await db.delete(pref)
-        
-        # Add new preferences
-        for pref in member_data.dietary_preferences:
-            dietary_pref = FamilyMemberDietaryPreference(
-                family_member_id=member.id,
-                preference=pref
-            )
-            db.add(dietary_pref)
-    
-    # Update allergies if provided
-    if member_data.allergies is not None:
-        # Remove existing allergies
-        for allergy in member.allergies:
-            await db.delete(allergy)
-        
-        # Add new allergies
-        for allergy_data in member_data.allergies:
-            allergy = FamilyMemberAllergy(
-                family_member_id=member.id,
-                allergy=allergy_data.allergy,
-                severity=allergy_data.severity
-            )
-            db.add(allergy)
-    
-    await db.commit()
-    await db.refresh(member)
-    
-    # Reload with relationships
-    result = await db.execute(
-        select(FamilyMember)
-        .where(FamilyMember.id == member.id)
-        .options(
-            selectinload(FamilyMember.dietary_preferences),
-            selectinload(FamilyMember.allergies)
-        )
-    )
-    member = result.scalar_one()
-    
     return FamilyMemberResponse.model_validate(member)
 
 
@@ -299,52 +166,10 @@ async def delete_family_member(
     Delete a family member.
     Only the owner can delete their family members.
     """
-    result = await db.execute(
-        select(FamilyMember)
-        .where(FamilyMember.id == member_id, FamilyMember.user_id == current_user.id)
-    )
-    member = result.scalar_one_or_none()
-    
-    if not member:
+    success = await crud_family.delete_family_member(db, member_id, current_user.id)
+    if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Family member not found"
         )
-    
-    # Get signups that this family member is part of before deletion
-    from app.models.participant import Participant
-    from app.models.signup import Signup
-    
-    participant_signups_result = await db.execute(
-        select(Participant.signup_id)
-        .where(Participant.family_member_id == member.id)
-    )
-    signup_ids = participant_signups_result.scalars().all()
-    
-    await db.delete(member)
-    await db.flush()  # Flush to trigger cascades
-    
-    # Check for empty signups and delete them
-    if signup_ids:
-        # We need to check each signup to see if it has any participants left
-        # Since we flushed, the participants for this member are gone
-        for signup_id in set(signup_ids):
-            # Count remaining participants
-            count_result = await db.execute(
-                select(Participant)
-                .where(Participant.signup_id == signup_id)
-            )
-            remaining = count_result.scalars().all()
-            
-            if not remaining:
-                # Delete the empty signup
-                signup_result = await db.execute(
-                    select(Signup).where(Signup.id == signup_id)
-                )
-                signup = signup_result.scalar_one_or_none()
-                if signup:
-                    await db.delete(signup)
-    
-    await db.commit()
-    
     return None

@@ -3,7 +3,7 @@ from sqlalchemy import and_, select, delete
 from sqlalchemy.orm import selectinload, joinedload
 from typing import List, Optional
 from uuid import UUID
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.models.checkin import CheckIn
 from app.models.participant import Participant
@@ -89,7 +89,7 @@ async def create_checkins(
     Returns list of created check-in records
     """
     checkins = []
-    checked_in_at = datetime.utcnow()
+    checked_in_at = datetime.now(timezone.utc).replace(tzinfo=None)
     
     for participant_id in participant_ids:
         # Get participant to find signup_id

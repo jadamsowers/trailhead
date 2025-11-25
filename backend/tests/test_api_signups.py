@@ -1,65 +1,91 @@
 """Tests for api/endpoints/signups.py"""
 import pytest
 from httpx import AsyncClient
+from datetime import date, timedelta
+import uuid
 
 
 @pytest.mark.asyncio
 class TestCreateSignup:
-    """Test POST /api/signups endpoint (public)"""
+    """Test POST /api/signups endpoint (requires auth)"""
     
-    async def test_create_signup_success(self, client: AsyncClient, test_outing, sample_signup_data):
+    async def test_create_signup_success(self, client: AsyncClient, auth_headers, test_outing, test_family_member, db_session):
         """Test creating a signup successfully"""
-        response = await client.post("/api/signups", json=sample_signup_data)
+        from app.models.family import FamilyMember
+        
+        # Create adult family members for two-deep leadership
+        adult_member = FamilyMember(
+            user_id=test_family_member.user_id,
+            name="Adult Leader",
+            date_of_birth=date.today() - timedelta(days=365*35),
+            member_type="adult",
+            gender="male",
+            has_youth_protection=True,
+        )
+        db_session.add(adult_member)
+        
+        adult_member2 = FamilyMember(
+            user_id=test_family_member.user_id,
+            name="Adult Leader 2",
+            date_of_birth=date.today() - timedelta(days=365*40),
+            member_type="adult",
+            gender="male",
+            has_youth_protection=True,
+        )
+        db_session.add(adult_member2)
+        await db_session.commit()
+        await db_session.refresh(adult_member)
+        await db_session.refresh(adult_member2)
+        
+        signup_data = {
+            "outing_id": str(test_outing.id),
+            "family_contact": {
+                "email": "test@test.com",
+                "phone": "555-0000",
+                "emergency_contact_name": "Emergency Contact",
+                "emergency_contact_phone": "555-1111",
+            },
+            "family_member_ids": [
+                str(test_family_member.id),
+                str(adult_member.id),
+                str(adult_member2.id),
+            ],
+        }
+        
+        response = await client.post("/api/signups", json=signup_data, headers=auth_headers)
         
         assert response.status_code == 201
         data = response.json()
         assert data["outing_id"] == str(test_outing.id)
-        assert data["family_contact_name"] == sample_signup_data["family_contact"]["name"]
-        assert len(data["participants"]) == len(sample_signup_data["participants"])
+        assert data["family_contact_email"] == "test@test.com"
+        assert len(data["participants"]) == 3
         assert "id" in data
-        assert "participant_count" in data
-        assert "scout_count" in data
-        assert "adult_count" in data
+        assert data["participant_count"] == 3
+        assert data["scout_count"] == 1
+        assert data["adult_count"] == 2
     
-    async def test_create_signup_outing_not_found(self, client: AsyncClient):
+    async def test_create_signup_outing_not_found(self, client: AsyncClient, auth_headers, test_family_member):
         """Test creating signup for non-existent outing"""
-        from uuid import uuid4
         
         signup_data = {
-            "outing_id": str(uuid4()),
+            "outing_id": str(uuid.uuid4()),
             "family_contact": {
-                "name": "Test Family",
                 "email": "test@test.com",
                 "phone": "555-0000",
+                "emergency_contact_name": "Emergency Contact",
+                "emergency_contact_phone": "555-1111",
             },
-            "participants": [
-                {
-                    "name": "Test Scout",
-                    "age": 14,
-                    "participant_type": "scout",
-                    "is_adult": False,
-                    "gender": "male",
-                    "troop_number": "123",
-                    "patrol_name": "Test",
-                    "has_youth_protection": False,
-                    "vehicle_capacity": 0,
-                    "dietary_restrictions": [],
-                    "allergies": [],
-                    "medical_notes": None,
-                },
-            ],
+            "family_member_ids": [str(test_family_member.id)],
         }
         
-        response = await client.post("/api/signups", json=signup_data)
+        response = await client.post("/api/signups", json=signup_data, headers=auth_headers)
         
         assert response.status_code == 404
     
-    async def test_create_signup_not_enough_spots(self, client: AsyncClient, db_session):
+    async def test_create_signup_not_enough_spots(self, client: AsyncClient, auth_headers, db_session, test_user):
         """Test creating signup when outing doesn't have enough spots"""
         from app.models.outing import Outing
-        from app.models.signup import Signup
-        from app.models.participant import Participant
-        from datetime import date, timedelta
+        from app.models.family import FamilyMember
         
         # Create outing with only 1 spot
         outing = Outing(
@@ -72,232 +98,210 @@ class TestCreateSignup:
         await db_session.commit()
         await db_session.refresh(outing)
         
+        # Create 2 family members
+        member1 = FamilyMember(
+            user_id=test_user.id,
+            name="Scout 1",
+            date_of_birth=date.today() - timedelta(days=365*14),
+            member_type="scout",
+            gender="male",
+            troop_number="123",
+        )
+        member2 = FamilyMember(
+            user_id=test_user.id,
+            name="Scout 2",
+            date_of_birth=date.today() - timedelta(days=365*15),
+            member_type="scout",
+            gender="male",
+            troop_number="123",
+        )
+        db_session.add(member1)
+        db_session.add(member2)
+        await db_session.commit()
+        await db_session.refresh(member1)
+        await db_session.refresh(member2)
+        
         # Try to signup 2 people
         signup_data = {
             "outing_id": str(outing.id),
             "family_contact": {
-                "name": "Test Family",
                 "email": "test@test.com",
                 "phone": "555-0000",
+                "emergency_contact_name": "Emergency Contact",
+                "emergency_contact_phone": "555-1111",
             },
-            "participants": [
-                {
-                    "name": "Scout 1",
-                    "age": 14,
-                    "participant_type": "scout",
-                    "is_adult": False,
-                    "gender": "male",
-                    "troop_number": "123",
-                    "patrol_name": "Test",
-                    "has_youth_protection": False,
-                    "vehicle_capacity": 0,
-                    "dietary_restrictions": [],
-                    "allergies": [],
-                    "medical_notes": None,
-                },
-                {
-                    "name": "Scout 2",
-                    "age": 14,
-                    "participant_type": "scout",
-                    "is_adult": False,
-                    "gender": "male",
-                    "troop_number": "123",
-                    "patrol_name": "Test",
-                    "has_youth_protection": False,
-                    "vehicle_capacity": 0,
-                    "dietary_restrictions": [],
-                    "allergies": [],
-                    "medical_notes": None,
-                },
-            ],
+            "family_member_ids": [str(member1.id), str(member2.id)],
         }
         
-        response = await client.post("/api/signups", json=signup_data)
+        response = await client.post("/api/signups", json=signup_data, headers=auth_headers)
         
         assert response.status_code == 400
         assert "available spots" in response.json()["detail"].lower()
     
-    async def test_create_signup_scouting_america_two_deep_leadership(self, client: AsyncClient, test_outing):
+    async def test_create_signup_scouting_america_two_deep_leadership(self, client: AsyncClient, auth_headers, test_outing, test_user, db_session):
         """Test Scouting America two-deep leadership requirement"""
-        # Try to signup with only 1 adult (should fail)
+        from app.models.family import FamilyMember
+        
+        # Create 1 scout and 1 adult (should fail - need 2 adults)
+        scout = FamilyMember(
+            user_id=test_user.id,
+            name="Scout",
+            date_of_birth=date.today() - timedelta(days=365*14),
+            member_type="scout",
+            gender="male",
+            troop_number="123",
+        )
+        adult = FamilyMember(
+            user_id=test_user.id,
+            name="Adult",
+            date_of_birth=date.today() - timedelta(days=365*40),
+            member_type="adult",
+            gender="male",
+            has_youth_protection=True,
+        )
+        db_session.add(scout)
+        db_session.add(adult)
+        await db_session.commit()
+        await db_session.refresh(scout)
+        await db_session.refresh(adult)
+        
         signup_data = {
             "outing_id": str(test_outing.id),
             "family_contact": {
-                "name": "Test Family",
                 "email": "test@test.com",
                 "phone": "555-0000",
+                "emergency_contact_name": "Emergency Contact",
+                "emergency_contact_phone": "555-1111",
             },
-            "participants": [
-                {
-                    "name": "Scout",
-                    "age": 14,
-                    "participant_type": "scout",
-                    "is_adult": False,
-                    "gender": "male",
-                    "troop_number": "123",
-                    "patrol_name": "Test",
-                    "has_youth_protection": False,
-                    "vehicle_capacity": 0,
-                    "dietary_restrictions": [],
-                    "allergies": [],
-                    "medical_notes": None,
-                },
-                {
-                    "name": "Adult",
-                    "age": 40,
-                    "participant_type": "adult",
-                    "is_adult": True,
-                    "gender": "male",
-                    "troop_number": None,
-                    "patrol_name": None,
-                    "has_youth_protection": True,
-                    "vehicle_capacity": 5,
-                    "dietary_restrictions": [],
-                    "allergies": [],
-                    "medical_notes": None,
-                },
-            ],
+            "family_member_ids": [str(scout.id), str(adult.id)],
         }
         
-        response = await client.post("/api/signups", json=signup_data)
+        response = await client.post("/api/signups", json=signup_data, headers=auth_headers)
         
-        assert response.status_code == 400
-        assert "2 adults" in response.json()["detail"]
+        # Should succeed but return a warning about 2 adults requirement
+        assert response.status_code == 201
+        data = response.json()
+        assert "warnings" in data
+        assert any("2 adults" in warning for warning in data["warnings"])
     
-    async def test_create_signup_scouting_america_female_leader_requirement(self, client: AsyncClient, test_outing):
+    async def test_create_signup_scouting_america_female_leader_requirement(self, client: AsyncClient, auth_headers, test_outing, test_user, db_session):
         """Test Scouting America female leader requirement when female youth present"""
-        # First, add 2 male adults to satisfy two-deep leadership
-        signup1_data = {
+        from app.models.family import FamilyMember
+        
+        # Create 2 male adults and 1 female scout (should fail - need female adult)
+        adult1 = FamilyMember(
+            user_id=test_user.id,
+            name="Male Adult 1",
+            date_of_birth=date.today() - timedelta(days=365*40),
+            member_type="adult",
+            gender="male",
+            has_youth_protection=True,
+        )
+        adult2 = FamilyMember(
+            user_id=test_user.id,
+            name="Male Adult 2",
+            date_of_birth=date.today() - timedelta(days=365*42),
+            member_type="adult",
+            gender="male",
+            has_youth_protection=True,
+        )
+        female_scout = FamilyMember(
+            user_id=test_user.id,
+            name="Female Scout",
+            date_of_birth=date.today() - timedelta(days=365*14),
+            member_type="scout",
+            gender="female",
+            troop_number="123",
+        )
+        db_session.add(adult1)
+        db_session.add(adult2)
+        db_session.add(female_scout)
+        await db_session.commit()
+        await db_session.refresh(adult1)
+        await db_session.refresh(adult2)
+        await db_session.refresh(female_scout)
+        
+        signup_data = {
             "outing_id": str(test_outing.id),
             "family_contact": {
-                "name": "Male Leaders",
-                "email": "males@test.com",
-                "phone": "555-0001",
+                "email": "test@test.com",
+                "phone": "555-0000",
+                "emergency_contact_name": "Emergency Contact",
+                "emergency_contact_phone": "555-1111",
             },
-            "participants": [
-                {
-                    "name": "Male Adult 1",
-                    "age": 40,
-                    "participant_type": "adult",
-                    "is_adult": True,
-                    "gender": "male",
-                    "troop_number": None,
-                    "patrol_name": None,
-                    "has_youth_protection": True,
-                    "vehicle_capacity": 5,
-                    "dietary_restrictions": [],
-                    "allergies": [],
-                    "medical_notes": None,
-                },
-                {
-                    "name": "Male Adult 2",
-                    "age": 42,
-                    "participant_type": "adult",
-                    "is_adult": True,
-                    "gender": "male",
-                    "troop_number": None,
-                    "patrol_name": None,
-                    "has_youth_protection": True,
-                    "vehicle_capacity": 5,
-                    "dietary_restrictions": [],
-                    "allergies": [],
-                    "medical_notes": None,
-                },
-            ],
+            "family_member_ids": [str(female_scout.id), str(adult1.id), str(adult2.id)],
         }
         
-        await client.post("/api/signups", json=signup1_data)
+        response = await client.post("/api/signups", json=signup_data, headers=auth_headers)
         
-        # Now try to add female youth without female adult (should fail)
-        signup2_data = {
-            "outing_id": str(test_outing.id),
-            "family_contact": {
-                "name": "Female Scout Family",
-                "email": "female@test.com",
-                "phone": "555-0002",
-            },
-            "participants": [
-                {
-                    "name": "Female Scout",
-                    "age": 14,
-                    "participant_type": "scout",
-                    "is_adult": False,
-                    "gender": "female",
-                    "troop_number": "123",
-                    "patrol_name": "Test",
-                    "has_youth_protection": False,
-                    "vehicle_capacity": 0,
-                    "dietary_restrictions": [],
-                    "allergies": [],
-                    "medical_notes": None,
-                },
-            ],
-        }
-        
-        response = await client.post("/api/signups", json=signup2_data)
-        
-        assert response.status_code == 400
-        assert "female adult" in response.json()["detail"].lower()
+        # Should succeed but return a warning about female leader requirement
+        assert response.status_code == 201
+        data = response.json()
+        assert "warnings" in data
+        assert any("female" in warning.lower() for warning in data["warnings"])
     
-    async def test_create_signup_overnight_youth_protection(self, client: AsyncClient, db_session):
-        """Test youth protection requirement for overnight outings"""
+    async def test_create_signup_overnight_youth_protection(self, client: AsyncClient, auth_headers, db_session, test_user):
+        """Test overnight outing requires youth protection for adults"""
         from app.models.outing import Outing
-        from datetime import date, timedelta
+        from app.models.family import FamilyMember
         
         # Create overnight outing
         outing = Outing(
-            name="Overnight Outing",
+            name="Overnight Camping",
             outing_date=date.today() + timedelta(days=30),
-            end_date=date.today() + timedelta(days=32),
-            location="Camp",
-            max_participants=20,
+            location="Test",
             is_overnight=True,
+            max_participants=10,
         )
         db_session.add(outing)
         await db_session.commit()
         await db_session.refresh(outing)
         
-        # First signup with 2 adults (one without youth protection)
-        signup1_data = {
+        # Create 2 adults without youth protection
+        adult1 = FamilyMember(
+            user_id=test_user.id,
+            name="Adult 1",
+            date_of_birth=date.today() - timedelta(days=365*40),
+            member_type="adult",
+            gender="male",
+            has_youth_protection=False,  # No YPT
+        )
+        adult2 = FamilyMember(
+            user_id=test_user.id,
+            name="Adult 2",
+            date_of_birth=date.today() - timedelta(days=365*42),
+            member_type="adult",
+            gender="male",
+            has_youth_protection=False,  # No YPT
+        )
+        scout = FamilyMember(
+            user_id=test_user.id,
+            name="Scout",
+            date_of_birth=date.today() - timedelta(days=365*14),
+            member_type="scout",
+            gender="male",
+            troop_number="123",
+        )
+        db_session.add(adult1)
+        db_session.add(adult2)
+        db_session.add(scout)
+        await db_session.commit()
+        await db_session.refresh(adult1)
+        await db_session.refresh(adult2)
+        await db_session.refresh(scout)
+        
+        signup_data = {
             "outing_id": str(outing.id),
             "family_contact": {
-                "name": "First Family",
-                "email": "first@test.com",
-                "phone": "555-0001",
+                "email": "test@test.com",
+                "phone": "555-0000",
+                "emergency_contact_name": "Emergency Contact",
+                "emergency_contact_phone": "555-1111",
             },
-            "participants": [
-                {
-                    "name": "Adult 1",
-                    "age": 40,
-                    "participant_type": "adult",
-                    "is_adult": True,
-                    "gender": "male",
-                    "troop_number": None,
-                    "patrol_name": None,
-                    "has_youth_protection": False,
-                    "vehicle_capacity": 5,
-                    "dietary_restrictions": [],
-                    "allergies": [],
-                    "medical_notes": None,
-                },
-                {
-                    "name": "Adult 2",
-                    "age": 42,
-                    "participant_type": "adult",
-                    "is_adult": True,
-                    "gender": "male",
-                    "troop_number": None,
-                    "patrol_name": None,
-                    "has_youth_protection": False,
-                    "vehicle_capacity": 5,
-                    "dietary_restrictions": [],
-                    "allergies": [],
-                    "medical_notes": None,
-                },
-            ],
+            "family_member_ids": [str(scout.id), str(adult1.id), str(adult2.id)],
         }
         
-        response = await client.post("/api/signups", json=signup1_data)
+        response = await client.post("/api/signups", json=signup_data, headers=auth_headers)
         
         assert response.status_code == 400
         assert "youth protection" in response.json()["detail"].lower()
@@ -305,52 +309,40 @@ class TestCreateSignup:
 
 @pytest.mark.asyncio
 class TestGetSignup:
-    """Test GET /api/signups/{signup_id} endpoint (public)"""
+    """Test GET /api/signups/{signup_id} endpoint"""
     
-    async def test_get_signup_success(self, client: AsyncClient, test_signup):
+    async def test_get_signup_success(self, client: AsyncClient, auth_headers, test_signup):
         """Test getting a signup"""
-        response = await client.get(f"/api/signups/{test_signup.id}")
+        response = await client.get(f"/api/signups/{test_signup.id}", headers=auth_headers)
         
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == str(test_signup.id)
-        assert data["family_contact_name"] == test_signup.family_contact_name
-        assert "participants" in data
+        assert data["outing_id"] == str(test_signup.outing_id)
     
-    async def test_get_signup_not_found(self, client: AsyncClient):
+    async def test_get_signup_not_found(self, client: AsyncClient, auth_headers):
         """Test getting non-existent signup"""
-        from uuid import uuid4
-        fake_id = uuid4()
-        
-        response = await client.get(f"/api/signups/{fake_id}")
+        response = await client.get(f"/api/signups/{uuid.uuid4()}", headers=auth_headers)
         
         assert response.status_code == 404
 
 
 @pytest.mark.asyncio
 class TestCancelSignup:
-    """Test DELETE /api/signups/{signup_id} endpoint (public)"""
+    """Test DELETE /api/signups/{signup_id} endpoint"""
     
-    async def test_cancel_signup_success(self, client: AsyncClient, test_outing, sample_signup_data):
+    async def test_cancel_signup_success(self, client: AsyncClient, auth_headers, test_signup):
         """Test canceling a signup"""
-        # Create a signup
-        create_response = await client.post("/api/signups", json=sample_signup_data)
-        signup_id = create_response.json()["id"]
-        
-        # Cancel it
-        response = await client.delete(f"/api/signups/{signup_id}")
+        response = await client.delete(f"/api/signups/{test_signup.id}", headers=auth_headers)
         
         assert response.status_code == 204
         
-        # Verify it's deleted
-        get_response = await client.get(f"/api/signups/{signup_id}")
+        # Verify signup is deleted
+        get_response = await client.get(f"/api/signups/{test_signup.id}", headers=auth_headers)
         assert get_response.status_code == 404
     
-    async def test_cancel_signup_not_found(self, client: AsyncClient):
+    async def test_cancel_signup_not_found(self, client: AsyncClient, auth_headers):
         """Test canceling non-existent signup"""
-        from uuid import uuid4
-        fake_id = uuid4()
-        
-        response = await client.delete(f"/api/signups/{fake_id}")
+        response = await client.delete(f"/api/signups/{uuid.uuid4()}", headers=auth_headers)
         
         assert response.status_code == 404

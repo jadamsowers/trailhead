@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -17,8 +17,7 @@ class CheckInParticipant(BaseModel):
     checked_in_at: Optional[datetime] = None
     checked_in_by: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CheckInSummary(BaseModel):
@@ -30,8 +29,7 @@ class CheckInSummary(BaseModel):
     checked_in_count: int
     participants: list[CheckInParticipant]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CheckInCreate(BaseModel):
@@ -56,8 +54,7 @@ class CheckInRecord(BaseModel):
     checked_in_by: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CheckInResponse(BaseModel):
@@ -79,5 +76,4 @@ class CheckInExportRow(BaseModel):
     checked_in_at: Optional[str] = None
     checked_in_by: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

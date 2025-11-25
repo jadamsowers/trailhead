@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 from uuid import UUID
 from typing import Optional, List
 from datetime import date, datetime
@@ -18,8 +18,7 @@ class DietaryPreferenceResponse(DietaryPreferenceBase):
     """Schema for dietary preference response"""
     id: UUID
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AllergyBase(BaseModel):
@@ -37,8 +36,7 @@ class AllergyResponse(AllergyBase):
     """Schema for allergy response"""
     id: UUID
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FamilyMemberBase(BaseModel):
@@ -48,20 +46,24 @@ class FamilyMemberBase(BaseModel):
     date_of_birth: Optional[date] = Field(None, description="Date of birth (required for scouts)")
     troop_number: Optional[str] = Field(None, max_length=50, description="Troop number")
     patrol_name: Optional[str] = Field(None, max_length=100, description="Patrol name (for scouts)")
+    troop_id: Optional[UUID] = Field(None, description="Relational troop ID (preferred over troop_number)")
+    patrol_id: Optional[UUID] = Field(None, description="Relational patrol ID (preferred over patrol_name)")
     has_youth_protection: bool = Field(default=False, description="Youth protection training status (for adults)")
     youth_protection_expiration: Optional[date] = Field(None, description="SAFE Youth Training certificate expiration date (for adults)")
     vehicle_capacity: int = Field(default=0, ge=0, description="Vehicle passenger capacity excluding driver (for adults)")
     medical_notes: Optional[str] = Field(None, description="Medical notes or conditions")
 
-    @validator('member_type')
+    @field_validator('member_type')
+    @classmethod
     def validate_member_type(cls, v):
         if v not in ['adult', 'scout']:
             raise ValueError('member_type must be either "adult" or "scout"')
         return v
 
-    @validator('date_of_birth')
-    def validate_date_of_birth(cls, v, values):
-        if values.get('member_type') == 'scout' and v is None:
+    @field_validator('date_of_birth')
+    @classmethod
+    def validate_date_of_birth(cls, v, info):
+        if info.data.get('member_type') == 'scout' and v is None:
             raise ValueError('date_of_birth is required for scouts')
         return v
 
@@ -78,6 +80,8 @@ class FamilyMemberUpdate(BaseModel):
     date_of_birth: Optional[date] = None
     troop_number: Optional[str] = Field(None, max_length=50)
     patrol_name: Optional[str] = Field(None, max_length=100)
+    troop_id: Optional[UUID] = None
+    patrol_id: Optional[UUID] = None
     has_youth_protection: Optional[bool] = None
     youth_protection_expiration: Optional[date] = None
     vehicle_capacity: Optional[int] = Field(None, ge=0)
@@ -94,9 +98,10 @@ class FamilyMemberResponse(FamilyMemberBase):
     allergies: List[AllergyResponse] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
+    troop_id: Optional[UUID] = None
+    patrol_id: Optional[UUID] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FamilyMemberListResponse(BaseModel):
@@ -111,10 +116,10 @@ class FamilyMemberSummary(BaseModel):
     name: str
     member_type: str
     troop_number: Optional[str] = None
+    troop_id: Optional[UUID] = None
     age: Optional[int] = None  # Calculated from date_of_birth
     vehicle_capacity: Optional[int] = None  # Vehicle passenger capacity (for adults)
     has_youth_protection: Optional[bool] = None  # Youth protection training status (for adults)
     youth_protection_expired: Optional[bool] = None  # Whether youth protection has expired (for adults)
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

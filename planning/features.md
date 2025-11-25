@@ -62,6 +62,10 @@ This should really happen when the first admin logs in.
 - [ ] Add troop configuration interface
 - [ ] Add option to restrict signup by troop for outings
 - [ ] Families choose troop from dropdown when setting up members
+- [ ] Ability to add patrols to troop
+- [ ] Ability to import troop rosters with patrols
+  - [ ] Can update troop roster as troop or patrols change
+- [ ] When parents are setting up family members, suggest linking to existing scouts from roster
 
 ## User Management
 
@@ -70,9 +74,10 @@ This should really happen when the first admin logs in.
 
 ## Family Management
 
-- [ ] ability for two or more family members to share common pool of scouts and sign each other up for outings
+- [ ] ability for two or more family members to share common pool of scouts and sign each other up for outings (marriage/partnership)
 - [ ] should be able to see each others' signups (if other user allows it)
 - [ ] should have ability to link family accounts (need some mutual acceptance)
+- [ ] there should also be some way for e.g. divorced couples to both have their own accounts, but manage shared scouts signups to prevent duplication
 
 ## Accessibility Improvements
 

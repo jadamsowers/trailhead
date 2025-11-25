@@ -4,6 +4,10 @@ import './index.css';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
 import { initializeTheme } from './utils/themeManager';
+import { initApiClient } from './utils/initClient';
+
+// Initialize generated API client
+initApiClient();
 
 // Initialize theme before rendering
 initializeTheme();

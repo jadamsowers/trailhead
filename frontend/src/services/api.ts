@@ -413,59 +413,56 @@ export const oauthAPI = {
   /**
    * Initiate OAuth flow
    */
-  initiateLogin(redirectUri: string, state?: string): void {
-    const stateParam = state || this.generateState();
-    sessionStorage.setItem("oauth_state", stateParam);
-    const url = `${API_BASE_URL}/oauth/authorize?redirect_uri=${encodeURIComponent(
-      redirectUri
-    )}&state=${stateParam}`;
-    window.location.href = url;
+  initiateLogin(_redirectUri: string, _state?: string): void {
+    // Use Clerk's sign-in flow instead of legacy OAuth endpoints
+    if (window.Clerk && typeof window.Clerk.openSignIn === "function") {
+      window.Clerk.openSignIn();
+      return;
+    }
+    console.error("Clerk sign-in UI not available.");
   },
 
   /**
    * Exchange authorization code for tokens
    */
   async exchangeCode(
-    code: string,
-    redirectUri: string
+    _code: string,
+    _redirectUri: string
   ): Promise<TokenResponse> {
-    const response = await fetch(`${API_BASE_URL}/oauth/token`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ code, redirect_uri: redirectUri }),
-    });
-    return handleResponse<TokenResponse>(response);
+    // Legacy OAuth code exchange is no longer supported.
+    // Authentication is handled by Clerk on the client.
+    throw new APIError(
+      501,
+      "OAuth code exchange not supported; use Clerk login."
+    );
   },
 
   /**
    * Refresh access token
    */
-  async refreshToken(refreshToken: string): Promise<TokenResponse> {
-    const response = await fetch(`${API_BASE_URL}/oauth/refresh`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    });
-    return handleResponse<TokenResponse>(response);
+  async refreshToken(_refreshToken: string): Promise<TokenResponse> {
+    // Obtain a fresh session token from Clerk
+    if (window.Clerk?.session) {
+      const token = await window.Clerk.session.getToken();
+      if (token) {
+        return {
+          access_token: token,
+          refresh_token: "",
+          token_type: "bearer",
+        };
+      }
+    }
+    throw new APIError(401, "Unable to refresh token via Clerk session");
   },
 
   /**
    * Logout user
    */
-  async logout(refreshToken: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/oauth/logout`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    });
-    if (!response.ok) {
-      throw new APIError(response.status, "Failed to logout");
+  async logout(_refreshToken: string): Promise<void> {
+    // Sign out via Clerk and clear local tokens
+    if (window.Clerk && typeof window.Clerk.signOut === "function") {
+      await window.Clerk.signOut();
+      return;
     }
   },
 
@@ -473,7 +470,7 @@ export const oauthAPI = {
    * Get current user info
    */
   async getCurrentUser(token: string): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/oauth/me`, {
+    const response = await fetch(`${API_BASE_URL}/clerk/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -1063,62 +1060,42 @@ import type {
   OutingMeritBadge,
   RankRequirement,
   MeritBadge,
-  Place,
   PlaceCreate,
 } from "../types";
+import { PlacesService } from "../client/services/PlacesService";
+import type { PlaceResponse } from "../client/models/PlaceResponse";
 
+// Wrap generated PlacesService for consistency
 export const placesAPI = {
   /**
    * Get all places with optional search filter
    */
-  async getPlaces(search?: string): Promise<Place[]> {
-    const params = new URLSearchParams();
-    if (search) params.append("search", search);
-
-    const response = await fetch(
-      `${API_BASE_URL}/places${params.toString() ? "?" + params : ""}`,
-      {
-        headers: await getAuthHeaders(),
-      }
-    );
-    return handleResponse<Place[]>(response);
+  async getPlaces(search?: string): Promise<PlaceResponse[]> {
+    return PlacesService.listPlacesApiPlacesGet(undefined, 100, search);
   },
 
   /**
    * Search places by name (for autocomplete)
    */
-  async searchPlaces(name: string, limit: number = 10): Promise<Place[]> {
-    const response = await fetch(
-      `${API_BASE_URL}/places/search/${encodeURIComponent(
-        name
-      )}?limit=${limit}`,
-      {
-        headers: await getAuthHeaders(),
-      }
-    );
-    return handleResponse<Place[]>(response);
+  async searchPlaces(
+    name: string,
+    limit: number = 10
+  ): Promise<PlaceResponse[]> {
+    return PlacesService.searchPlacesApiPlacesSearchNameGet(name, limit);
   },
 
   /**
    * Get a specific place by ID
    */
-  async getPlace(placeId: string): Promise<Place> {
-    const response = await fetch(`${API_BASE_URL}/places/${placeId}`, {
-      headers: await getAuthHeaders(),
-    });
-    return handleResponse<Place>(response);
+  async getPlace(placeId: string): Promise<PlaceResponse> {
+    return PlacesService.getPlaceApiPlacesPlaceIdGet(placeId);
   },
 
   /**
    * Create a new place
    */
-  async createPlace(data: PlaceCreate): Promise<Place> {
-    const response = await fetch(`${API_BASE_URL}/places`, {
-      method: "POST",
-      headers: await getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
-    return handleResponse<Place>(response);
+  async createPlace(data: PlaceCreate): Promise<PlaceResponse> {
+    return PlacesService.createPlaceApiPlacesPost(data as any);
   },
 
   /**
@@ -1127,24 +1104,134 @@ export const placesAPI = {
   async updatePlace(
     placeId: string,
     data: Partial<PlaceCreate>
-  ): Promise<Place> {
-    const response = await fetch(`${API_BASE_URL}/places/${placeId}`, {
-      method: "PUT",
-      headers: await getAuthHeaders(),
-      body: JSON.stringify(data),
-    });
-    return handleResponse<Place>(response);
+  ): Promise<PlaceResponse> {
+    return PlacesService.updatePlaceApiPlacesPlaceIdPut(placeId, data as any);
   },
 
   /**
    * Delete a place
    */
   async deletePlace(placeId: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/places/${placeId}`, {
+    return PlacesService.deletePlaceApiPlacesPlaceIdDelete(placeId);
+  },
+};
+
+// Troops & Patrols API
+export interface TroopCreate {
+  number: string;
+  charter_org?: string | null;
+  meeting_location?: string | null;
+  meeting_day?: string | null;
+  notes?: string | null;
+}
+export interface TroopUpdate {
+  charter_org?: string | null;
+  meeting_location?: string | null;
+  meeting_day?: string | null;
+  notes?: string | null;
+}
+export interface PatrolCreate {
+  troop_id: string;
+  name: string;
+  is_active?: boolean;
+}
+export interface PatrolUpdate {
+  name?: string;
+  is_active?: boolean;
+}
+export interface PatrolResponse {
+  id: string;
+  troop_id: string;
+  name: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+export interface TroopResponse {
+  id: string;
+  number: string;
+  charter_org?: string | null;
+  meeting_location?: string | null;
+  meeting_day?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+  patrols: PatrolResponse[];
+}
+
+export const troopAPI = {
+  async getAll(): Promise<TroopResponse[]> {
+    const response = await fetch(`${API_BASE_URL}/troops`);
+    const data = await handleResponse<{
+      troops: TroopResponse[];
+      total: number;
+    }>(response);
+    return data.troops;
+  },
+  async getById(id: string): Promise<TroopResponse> {
+    const response = await fetch(`${API_BASE_URL}/troops/${id}`);
+    return handleResponse<TroopResponse>(response);
+  },
+  async create(troop: TroopCreate): Promise<TroopResponse> {
+    const response = await fetch(`${API_BASE_URL}/troops`, {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(troop),
+    });
+    return handleResponse<TroopResponse>(response);
+  },
+  async update(id: string, troop: TroopUpdate): Promise<TroopResponse> {
+    const response = await fetch(`${API_BASE_URL}/troops/${id}`, {
+      method: "PUT",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(troop),
+    });
+    return handleResponse<TroopResponse>(response);
+  },
+  async delete(id: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/troops/${id}`, {
       method: "DELETE",
       headers: await getAuthHeaders(),
     });
-    return handleResponse<void>(response);
+    if (!response.ok) {
+      throw new APIError(response.status, "Failed to delete troop");
+    }
+  },
+};
+
+export const patrolAPI = {
+  async getByTroop(troopId: string): Promise<PatrolResponse[]> {
+    const response = await fetch(`${API_BASE_URL}/troops/${troopId}/patrols`);
+    const data = await handleResponse<{
+      patrols: PatrolResponse[];
+      total: number;
+    }>(response);
+    return data.patrols;
+  },
+  async create(patrol: PatrolCreate): Promise<PatrolResponse> {
+    const response = await fetch(`${API_BASE_URL}/patrols`, {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(patrol),
+    });
+    return handleResponse<PatrolResponse>(response);
+  },
+  async update(id: string, patrol: PatrolUpdate): Promise<PatrolResponse> {
+    const response = await fetch(`${API_BASE_URL}/patrols/${id}`, {
+      method: "PUT",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(patrol),
+    });
+    return handleResponse<PatrolResponse>(response);
+  },
+  async delete(id: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/patrols/${id}`, {
+      method: "DELETE",
+      headers: await getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new APIError(response.status, "Failed to delete patrol");
+    }
   },
 };
 
@@ -1208,7 +1295,7 @@ export const requirementsAPI = {
     if (category) params.append("category", category);
 
     const response = await fetch(
-      `${API_BASE_URL}/rank-requirements${
+      `${API_BASE_URL}/requirements/rank-requirements${
         params.toString() ? "?" + params : ""
       }`,
       {
@@ -1222,7 +1309,7 @@ export const requirementsAPI = {
    * Get all merit badges
    */
   async getMeritBadges(): Promise<MeritBadge[]> {
-    const response = await fetch(`${API_BASE_URL}/merit-badges`, {
+    const response = await fetch(`${API_BASE_URL}/requirements/merit-badges`, {
       headers: await getAuthHeaders(),
     });
     return handleResponse<MeritBadge[]>(response);
