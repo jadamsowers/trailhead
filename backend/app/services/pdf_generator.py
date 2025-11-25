@@ -16,45 +16,73 @@ from app.models.packing_list import OutingPackingList
 class PDFGenerator:
     def __init__(self):
         self.styles = getSampleStyleSheet()
+        
+        # Colors
+        self.bsa_olive = colors.HexColor('#6F784B')
+        self.dark_gray = colors.HexColor('#2E2E2E')
+        self.light_gray = colors.HexColor('#F5F5F5')
+        
         self.styles.add(ParagraphStyle(
             name='Header1',
             parent=self.styles['Heading1'],
-            fontSize=24,
+            fontSize=28,
+            leading=34,
             spaceAfter=20,
-            textColor=colors.HexColor('#6F784B'),  # BSA Olive
-            alignment=TA_CENTER
+            textColor=self.bsa_olive,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
         ))
+        
         self.styles.add(ParagraphStyle(
             name='SectionHeader',
             parent=self.styles['Heading2'],
-            fontSize=16,
+            fontSize=14,
+            leading=18,
             spaceBefore=15,
             spaceAfter=10,
-            textColor=colors.HexColor('#2E2E2E'),
-            borderPadding=5,
-            borderColor=colors.HexColor('#6F784B'),
-            borderWidth=0,
-            borderBottomWidth=1
+            textColor=colors.white,
+            backColor=self.bsa_olive,
+            borderPadding=8,
+            fontName='Helvetica-Bold',
+            alignment=TA_CENTER
         ))
+        
+        self.styles.add(ParagraphStyle(
+            name='CardTitle',
+            parent=self.styles['Heading3'],
+            fontSize=12,
+            leading=14,
+            textColor=self.bsa_olive,
+            spaceAfter=6,
+            fontName='Helvetica-Bold'
+        ))
+        
         self.styles.add(ParagraphStyle(
             name='Label',
             parent=self.styles['Normal'],
-            fontSize=10,
+            fontSize=9,
+            leading=11,
             textColor=colors.HexColor('#666666'),
-            fontName='Helvetica-Bold'
+            fontName='Helvetica-Bold',
+            spaceAfter=2
         ))
+        
         self.styles.add(ParagraphStyle(
             name='Value',
             parent=self.styles['Normal'],
-            fontSize=11,
-            textColor=colors.HexColor('#000000'),
-            spaceAfter=5
+            fontSize=10,
+            leading=13,
+            textColor=colors.black,
+            spaceAfter=8
         ))
+        
         self.styles.add(ParagraphStyle(
             name='CheckboxItem',
             parent=self.styles['Normal'],
             fontSize=10,
-            spaceAfter=2
+            leading=14,
+            spaceAfter=4,
+            textColor=self.dark_gray
         ))
 
     def _generate_qr_code(self, data: str) -> io.BytesIO:
@@ -93,21 +121,33 @@ class PDFGenerator:
         story.append(Spacer(1, 10))
         
         # 5Ws Section
-        story.append(Paragraph("Trip Details", self.styles['SectionHeader']))
+        story.append(Paragraph("TRIP DETAILS", self.styles['SectionHeader']))
+        story.append(Spacer(1, 5))
         
+        # Helper to create a card content
+        def create_card_content(title, items):
+            content = [Paragraph(title, self.styles['CardTitle'])]
+            for label, value in items:
+                if label:
+                    content.append(Paragraph(label, self.styles['Label']))
+                if value:
+                    if isinstance(value, list):
+                        for v in value:
+                            content.append(Paragraph(v, self.styles['Value']))
+                    else:
+                        content.append(Paragraph(value, self.styles['Value']))
+            return content
+
         # WHO
-        who_content = [
-            [Paragraph("WHO", self.styles['Heading3'])],
-            [Paragraph("Outing Lead:", self.styles['Label'])],
-            [Paragraph(f"{outing.outing_lead_name or 'TBD'} ({outing.outing_lead_phone or 'No phone'})", self.styles['Value'])],
-            [Paragraph("Participants:", self.styles['Label'])],
-            [Paragraph("All Scouts and Leaders", self.styles['Value'])]
+        who_items = [
+            ("Outing Lead:", f"{outing.outing_lead_name or 'TBD'}"),
+            ("Contact:", f"{outing.outing_lead_phone or 'No phone'}"),
+            ("Participants:", "All Scouts and Leaders")
         ]
         
         # WHAT
-        what_content = [
-            [Paragraph("WHAT", self.styles['Heading3'])],
-            [Paragraph(outing.description or "No description provided.", self.styles['Value'])]
+        what_items = [
+            ("Description:", outing.description or "No description provided.")
         ]
         
         # WHEN
@@ -115,17 +155,13 @@ class PDFGenerator:
         end_date = outing.end_date.strftime("%B %d, %Y") if outing.end_date else start_date
         date_str = f"{start_date} - {end_date}" if start_date != end_date else start_date
         
-        when_content = [
-            [Paragraph("WHEN", self.styles['Heading3'])],
-            [Paragraph("Dates:", self.styles['Label'])],
-            [Paragraph(date_str, self.styles['Value'])],
-            [Paragraph("Drop-off:", self.styles['Label'])],
-            [Paragraph(outing.drop_off_time or "TBD", self.styles['Value'])],
-            [Paragraph("Pick-up:", self.styles['Label'])],
-            [Paragraph(outing.pickup_time or "TBD", self.styles['Value'])]
+        when_items = [
+            ("Dates:", date_str),
+            ("Drop-off:", outing.drop_off_time.strftime("%I:%M %p") if outing.drop_off_time else "TBD"),
+            ("Pick-up:", outing.pickup_time.strftime("%I:%M %p") if outing.pickup_time else "TBD")
         ]
         
-        # WHY (Requirements)
+        # WHY
         reqs_text = []
         if outing.outing_requirements:
             for req in outing.outing_requirements:
@@ -138,40 +174,79 @@ class PDFGenerator:
         if not reqs_text:
             reqs_text.append("Fun and fellowship!")
             
-        why_content = [
-            [Paragraph("WHY", self.styles['Heading3'])],
-            [Paragraph("Requirements & Goals:", self.styles['Label'])],
-            [Paragraph("<br/>".join(reqs_text), self.styles['Value'])]
+        why_items = [
+            ("Requirements & Goals:", reqs_text)
+        ]
+
+        # Create sub-tables for the 2x2 grid
+        def make_cell(content_list):
+            return Table([[c] for c in content_list], 
+                        style=[
+                            ('LEFTPADDING', (0,0), (-1,-1), 10),
+                            ('RIGHTPADDING', (0,0), (-1,-1), 10),
+                            ('TOPPADDING', (0,0), (-1,-1), 10),
+                            ('BOTTOMPADDING', (0,0), (-1,-1), 10),
+                        ])
+
+        # Row 1: WHO | WHEN
+        row1_data = [
+            [make_cell(create_card_content("WHO", who_items)), 
+             make_cell(create_card_content("WHEN", when_items))]
         ]
         
-        # WHERE (Addresses & QR Codes)
-        where_rows = [[Paragraph("WHERE", self.styles['Heading3'])]]
+        t1 = Table(row1_data, colWidths=[3.75*inch, 3.75*inch])
+        t1.setStyle(TableStyle([
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E0E0E0')),
+            ('BACKGROUND', (0,0), (0,0), colors.white),
+            ('BACKGROUND', (1,0), (1,0), colors.white),
+        ]))
+        story.append(t1)
+        
+        # Row 2: WHAT | WHY
+        row2_data = [
+            [make_cell(create_card_content("WHAT", what_items)), 
+             make_cell(create_card_content("WHY", why_items))]
+        ]
+        
+        t2 = Table(row2_data, colWidths=[3.75*inch, 3.75*inch])
+        t2.setStyle(TableStyle([
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E0E0E0')),
+        ]))
+        story.append(t2)
+        
+        # WHERE Section
+        story.append(Spacer(1, 15))
+        story.append(Paragraph("LOCATIONS", self.styles['SectionHeader']))
+        story.append(Spacer(1, 5))
+        
+        where_data = []
         
         # Helper to add location row
-        def add_location(label, place_name, address, map_url=None):
-            content = [Paragraph(f"{label}:", self.styles['Label'])]
+        def add_location_row(label, place_name, address, map_url=None):
+            # Left column: Text details
+            content = [Paragraph(label, self.styles['CardTitle'])]
             content.append(Paragraph(place_name or "TBD", self.styles['Value']))
             if address:
-                content.append(Paragraph(address, self.styles['Value']))
+                content.append(Paragraph(address, self.styles['Label']))
             
-            cell_content = [content]
-            
-            # Add QR code if we have an address or URL
+            # Right column: QR Code
+            qr_img = ""
             qr_data = map_url
             if not qr_data and address:
                 qr_data = f"https://www.google.com/maps/search/?api=1&query={address.replace(' ', '+')}"
             
             if qr_data:
-                qr_img = Image(self._generate_qr_code(qr_data), width=1.2*inch, height=1.2*inch)
-                return [content, qr_img]
-            return [content, ""]
+                qr_img = Image(self._generate_qr_code(qr_data), width=1.0*inch, height=1.0*inch)
+            
+            return [content, qr_img]
 
         # Trip Location
         loc_name = outing.location
         if outing.outing_place:
             loc_name = outing.outing_place.name
         
-        # Use outing_address if available, otherwise try to get from place
         addr = outing.outing_address
         if not addr and outing.outing_place:
             addr = outing.outing_place.address
@@ -180,67 +255,40 @@ class PDFGenerator:
         if outing.outing_place and outing.outing_place.google_maps_url:
             map_url = outing.outing_place.google_maps_url
             
-        where_rows.append(add_location("Destination", loc_name, addr, map_url))
+        where_data.append(add_location_row("DESTINATION", loc_name, addr, map_url))
         
         # Drop-off (if different)
         if outing.drop_off_location and outing.drop_off_location != loc_name:
-             where_rows.append(add_location("Drop-off", outing.drop_off_location, outing.dropoff_address))
+             where_data.append(add_location_row("DROP-OFF", outing.drop_off_location, outing.dropoff_address))
              
         # Pick-up (if different)
         if outing.pickup_location and outing.pickup_location != loc_name and outing.pickup_location != outing.drop_off_location:
-             where_rows.append(add_location("Pick-up", outing.pickup_location, outing.pickup_address))
+             where_data.append(add_location_row("PICK-UP", outing.pickup_location, outing.pickup_address))
 
-        # Assemble 5Ws Table
-        # Row 1: Who | When
-        # Row 2: What | Why
-        # Row 3: Where (Full width)
-        
-        # Create sub-tables for cells to handle multiple elements
-        def make_cell(content_list):
-            return Table([[c] for c in content_list], style=[('LEFTPADDING', (0,0), (-1,-1), 0)])
-
-        # Layout logic
-        # We'll use a main table with 2 columns
-        
-        data = [
-            [make_cell(who_content), make_cell(when_content)],
-            [make_cell(what_content), make_cell(why_content)],
-        ]
-        
-        t = Table(data, colWidths=[3.75*inch, 3.75*inch])
-        t.setStyle(TableStyle([
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('TOPPADDING', (0,0), (-1,-1), 10),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 10),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E0E0E0')),
-        ]))
-        story.append(t)
-        
-        # Where section (separate table for full width)
-        story.append(Spacer(1, 10))
-        
-        # Where table
-        where_data = []
-        for row in where_rows[1:]: # Skip header
-            # row is [content_list, qr_image_or_empty]
-            # Flatten content list for the cell
-            text_col = row[0]
-            qr_col = row[1]
-            where_data.append([make_cell(text_col), qr_col])
-            
+        # Render Where Table
         if where_data:
-            story.append(Paragraph("WHERE", self.styles['Heading3']))
-            t_where = Table(where_data, colWidths=[5.5*inch, 2*inch])
+            # Convert content lists to Cells
+            final_where_data = []
+            for row in where_data:
+                text_cell = Table([[c] for c in row[0]], style=[('LEFTPADDING', (0,0), (-1,-1), 0)])
+                final_where_data.append([text_cell, row[1]])
+                
+            t_where = Table(final_where_data, colWidths=[6.0*inch, 1.5*inch])
             t_where.setStyle(TableStyle([
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                 ('ALIGN', (1,0), (1,-1), 'CENTER'),
-                ('LEFTPADDING', (0,0), (-1,-1), 0),
-                ('BOTTOMPADDING', (0,0), (-1,-1), 15),
+                ('LEFTPADDING', (0,0), (-1,-1), 10),
+                ('RIGHTPADDING', (0,0), (-1,-1), 10),
+                ('TOPPADDING', (0,0), (-1,-1), 10),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 10),
+                ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E0E0E0')),
             ]))
             story.append(t_where)
         
         # Packing List Section
-        story.append(Paragraph("Packing List", self.styles['SectionHeader']))
+        story.append(Spacer(1, 15))
+        story.append(Paragraph("PACKING LIST", self.styles['SectionHeader']))
+        story.append(Spacer(1, 5))
         
         if not packing_lists:
             story.append(Paragraph("No packing list specified for this outing.", self.styles['Normal']))
@@ -261,9 +309,8 @@ class PDFGenerator:
             
             for i, item in enumerate(all_items):
                 qty_str = f" ({item.quantity})" if item.quantity > 1 else ""
-                # Use a square for checkbox
-                checkbox = "☐" 
-                text = f"{checkbox}  {item.name}{qty_str}"
+                # Use a cleaner checkbox visual
+                text = f"<font name='ZapfDingbats'>o</font>  {item.name}{qty_str}"
                 p = Paragraph(text, self.styles['CheckboxItem'])
                 if i < mid:
                     col1.append(p)
@@ -282,7 +329,9 @@ class PDFGenerator:
                 t_list = Table(list_data, colWidths=[3.75*inch, 3.75*inch])
                 t_list.setStyle(TableStyle([
                     ('VALIGN', (0,0), (-1,-1), 'TOP'),
-                    ('LEFTPADDING', (0,0), (-1,-1), 0),
+                    ('LEFTPADDING', (0,0), (-1,-1), 10),
+                    ('RIGHTPADDING', (0,0), (-1,-1), 10),
+                    ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E0E0E0')),
                 ]))
                 story.append(t_list)
         

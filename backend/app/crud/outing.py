@@ -25,11 +25,8 @@ async def get_outing(db: AsyncSession, outing_id: UUID) -> Optional[Outing]:
 
 async def get_outing_with_details(db: AsyncSession, outing_id: UUID) -> Optional[Outing]:
     """Get an outing by ID with all details for PDF generation"""
-    from app.models.outing_requirement import OutingRequirement
-    from app.models.outing_merit_badge import OutingMeritBadge
+    from app.models.requirement import OutingRequirement, RankRequirement, OutingMeritBadge, MeritBadge
     from app.models.packing_list import OutingPackingList
-    from app.models.requirement import RankRequirement
-    from app.models.merit_badge import MeritBadge
 
     result = await db.execute(
         select(Outing)
