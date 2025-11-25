@@ -9,7 +9,10 @@ from app.schemas.requirement import RequirementSuggestion, MeritBadgeSuggestion,
 
 DOMAIN_STOPWORDS = {
     # Generic words that appeared frequently and reduced precision
-    'badge', 'merit', 'learn', 'learning', 'including', 'activities', 'activity'
+    'badge', 'merit', 'learn', 'learning', 'including', 'activities', 'activity',
+    # Common filler words that add noise
+    'you', 'your', 'get', 'make', 'one', 'two', 'three', 'may', 'might', 'must',
+    'also', 'even', 'part', 'way', 'help', 'plus', 'ready', 'best', 'don', 'miss'
     # NOTE: retain 'outdoor', 'outdoors', 'skill', 'skills' for matching; previously removed
 }
 
@@ -67,8 +70,8 @@ def calculate_match_score(
     outing_keywords: List[str]
 ) -> Tuple[float, List[str]]:
     """Calculate match score between requirement and outing keywords.
-    New scoring strategy: score = matched / max(len(requirement_keywords), 1)
-    (focus on how much of the requirement is covered by outing description).
+    Scoring strategy: score = matched / max(len(outing_keywords), 1)
+    (focus on how much of the PROMPT is matched by requirement keywords).
     Returns (score, matched_keywords).
     """
     if not requirement_keywords or not outing_keywords:
@@ -79,14 +82,15 @@ def calculate_match_score(
     matched = req_set.intersection(out_set)
     if not matched:
         return 0.0, []
-    score = len(matched) / max(len(req_set), 1)
+    # Changed: divide by outing keywords instead of requirement keywords
+    score = len(matched) / max(len(out_set), 1)
     return score, list(matched)
 
 
 def get_requirement_suggestions(
     db: Session,
     outing: Outing,
-    min_score: float = 0.1,
+    min_score: float = 0.05,
     max_results: int = 10
 ) -> List[RequirementSuggestion]:
     """
@@ -126,6 +130,7 @@ def get_requirement_suggestions(
         if score >= min_score:
             suggestions.append(
                 RequirementSuggestion(
+                    id=requirement.id,
                     rank=requirement.rank,
                     requirement_number=requirement.requirement_number,
                     description=requirement.requirement_text,
@@ -142,7 +147,7 @@ def get_requirement_suggestions(
 def get_merit_badge_suggestions(
     db: Session,
     outing: Outing,
-    min_score: float = 0.1,
+    min_score: float = 0.02,
     max_results: int = 10
 ) -> List[MeritBadgeSuggestion]:
     """
@@ -182,6 +187,7 @@ def get_merit_badge_suggestions(
         if score >= min_score:
             suggestions.append(
                 MeritBadgeSuggestion(
+                    id=badge.id,
                     name=badge.name,
                     description=badge.description,
                     eagle_required=bool(getattr(badge, "eagle_required", False)),
@@ -198,7 +204,7 @@ def get_merit_badge_suggestions(
 def get_outing_suggestions(
     db: Session,
     outing: Outing,
-    min_score: float = 0.1,
+    min_score: float = 0.02,
     max_requirements: int = 10,
     max_merit_badges: int = 10
 ) -> OutingSuggestions:

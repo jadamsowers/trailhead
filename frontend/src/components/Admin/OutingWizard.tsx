@@ -171,25 +171,27 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
     setActiveStep((prev) => prev - 1);
   };
 
-  const handleToggleRequirement = (req: RequirementSuggestion) => {
+  const handleToggleRequirement = (req: RequirementSuggestion | { requirement: RankRequirement; match_score: number; matched_keywords: string[] }) => {
     setSelectedRequirements((prev) => {
       const newMap = new Map(prev);
-      if (newMap.has(req.requirement.id)) {
-        newMap.delete(req.requirement.id);
+      const reqId = 'requirement' in req ? req.requirement.id : req.id;
+      if (newMap.has(reqId)) {
+        newMap.delete(reqId);
       } else {
-        newMap.set(req.requirement.id, "");
+        newMap.set(reqId, "");
       }
       return newMap;
     });
   };
 
-  const handleToggleMeritBadge = (badge: MeritBadgeSuggestion) => {
+  const handleToggleMeritBadge = (badge: MeritBadgeSuggestion | { merit_badge: MeritBadge; match_score: number; matched_keywords: string[] }) => {
     setSelectedMeritBadges((prev) => {
       const newMap = new Map(prev);
-      if (newMap.has(badge.merit_badge.id)) {
-        newMap.delete(badge.merit_badge.id);
+      const badgeId = 'merit_badge' in badge ? badge.merit_badge.id : badge.id;
+      if (newMap.has(badgeId)) {
+        newMap.delete(badgeId);
       } else {
-        newMap.set(badge.merit_badge.id, "");
+        newMap.set(badgeId, "");
       }
       return newMap;
     });
@@ -557,10 +559,13 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   <p className="text-secondary text-sm">
                     {suggestions.merit_badges.length} relevant badges found
                   </p>
-                  {suggestions.merit_badges.slice(0, 3).map((badge) => (
-                    <div key={badge.merit_badge.id} className="mt-2">
+                  {suggestions.merit_badges.slice(0, 3).map((badge, idx) => (
+                    <div key={badge.name || idx} className="mt-2">
                       <div className="font-bold text-sm">
-                        {badge.merit_badge.name}
+                        {badge.name}
+                        {badge.eagle_required && (
+                          <span className="ml-2 text-xs">🦅</span>
+                        )}
                       </div>
                       <div className="text-xs text-secondary">
                         Match: {(badge.match_score * 100).toFixed(0)}%
@@ -615,14 +620,27 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   ) : (
                     <div className="grid gap-4">
                       {(suggestions
-                        ? suggestions.requirements
+                        ? suggestions.requirements.map((r) => ({
+                          id: r.id,
+                          rank: r.rank,
+                          requirement_number: r.requirement_number,
+                          requirement_text: r.description,
+                          category: '',
+                          match_score: r.match_score,
+                          matched_keywords: r.matched_keywords,
+                          isFlattened: true,
+                        }))
                         : allRequirements.map((r) => ({
-                          requirement: r,
+                          id: r.id,
+                          rank: r.rank,
+                          requirement_number: r.requirement_number,
+                          requirement_text: r.requirement_text,
+                          category: r.category || '',
                           match_score: 0,
                           matched_keywords: [] as string[],
+                          isFlattened: false,
                         }))
-                      ).map((req) => {
-                        const reqObj = req.requirement;
+                      ).map((reqObj) => {
                         const id = reqObj.id;
                         return (
                           <div
@@ -638,15 +656,26 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                               <input
                                 type="checkbox"
                                 checked={selectedRequirements.has(id)}
-                                onChange={() => handleToggleRequirement(req)}
+                                onChange={() => {
+                                  setSelectedRequirements((prev) => {
+                                    const newMap = new Map(prev);
+                                    if (newMap.has(id)) {
+                                      newMap.delete(id);
+                                    } else {
+                                      newMap.set(id, "");
+                                    }
+                                    return newMap;
+                                  });
+                                }}
                                 className="mt-1"
                               />
                               <div className="flex-1">
                                 <div className="font-bold mb-1">
-                                  {reqObj.rank} - {reqObj.category}
-                                  {suggestions && (
+                                  {reqObj.rank} {reqObj.requirement_number}
+                                  {reqObj.category && ` - ${reqObj.category}`}
+                                  {suggestions && reqObj.match_score > 0 && (
                                     <span className="ml-2 text-xs py-0.5 px-2 rounded-xl bg-[rgba(var(--bsa-olive-rgb),0.2)]">
-                                      {(req.match_score * 100).toFixed(0)}%
+                                      {(reqObj.match_score * 100).toFixed(0)}%
                                       match
                                     </span>
                                   )}
@@ -692,14 +721,25 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   ) : (
                     <div className="grid gap-4">
                       {(suggestions
-                        ? suggestions.merit_badges
+                        ? suggestions.merit_badges.map((b) => ({
+                          id: b.name,
+                          name: b.name,
+                          description: b.description,
+                          eagle_required: b.eagle_required,
+                          match_score: b.match_score,
+                          matched_keywords: b.matched_keywords,
+                          isFlattened: true,
+                        }))
                         : allMeritBadges.map((b) => ({
-                          merit_badge: b,
+                          id: b.id,
+                          name: b.name,
+                          description: b.description,
+                          eagle_required: b.eagle_required || false,
                           match_score: 0,
                           matched_keywords: [] as string[],
+                          isFlattened: false,
                         }))
-                      ).map((badge) => {
-                        const badgeObj = badge.merit_badge;
+                      ).map((badgeObj) => {
                         const id = badgeObj.id;
                         return (
                           <div
@@ -715,15 +755,28 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                               <input
                                 type="checkbox"
                                 checked={selectedMeritBadges.has(id)}
-                                onChange={() => handleToggleMeritBadge(badge)}
+                                onChange={() => {
+                                  setSelectedMeritBadges((prev) => {
+                                    const newMap = new Map(prev);
+                                    if (newMap.has(id)) {
+                                      newMap.delete(id);
+                                    } else {
+                                      newMap.set(id, "");
+                                    }
+                                    return newMap;
+                                  });
+                                }}
                                 className="mt-1"
                               />
                               <div className="flex-1">
                                 <div className="font-bold mb-1">
                                   {badgeObj.name}
-                                  {suggestions && (
+                                  {badgeObj.eagle_required && (
+                                    <span className="ml-2 text-xs">🦅</span>
+                                  )}
+                                  {suggestions && badgeObj.match_score > 0 && (
                                     <span className="ml-2 text-xs py-0.5 px-2 rounded-xl bg-[rgba(0,150,0,0.2)]">
-                                      {(badge.match_score * 100).toFixed(0)}%
+                                      {(badgeObj.match_score * 100).toFixed(0)}%
                                       match
                                     </span>
                                   )}

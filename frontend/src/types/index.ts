@@ -382,18 +382,25 @@ export interface MeritBadge {
   name: string;
   description: string;
   keywords: string[];
+  eagle_required?: boolean;
   created_at: string;
   updated_at: string;
 }
 
 export interface RequirementSuggestion {
-  requirement: RankRequirement;
+  id: string;
+  rank: string;
+  requirement_number: string;
+  description: string;
   match_score: number;
   matched_keywords: string[];
 }
 
 export interface MeritBadgeSuggestion {
-  merit_badge: MeritBadge;
+  id: string;
+  name: string;
+  description?: string;
+  eagle_required: boolean;
   match_score: number;
   matched_keywords: string[];
 }

@@ -386,7 +386,7 @@ class PreviewSuggestionsRequest(BaseModel):
 @router.post("/requirements/preview-suggestions", response_model=OutingSuggestions)
 async def get_preview_suggestions(
     request: PreviewSuggestionsRequest,
-    min_score: float = 0.1,
+    min_score: float = 0.02,
     max_requirements: int = 10,
     max_merit_badges: int = 10,
     db: AsyncSession = Depends(get_db),
@@ -414,15 +414,17 @@ async def get_preview_suggestions(
     requirements = await crud_requirement.search_rank_requirements_by_keywords(db, keywords)
     merit_badges = await crud_requirement.search_merit_badges_by_keywords(db, keywords)
 
-    # Build suggestion objects with nested full resource + match metadata
+    # Build suggestion objects with flattened structure + match metadata
     requirement_suggestions: list[RequirementSuggestion] = []
     for req in requirements:
         req_keywords = req.keywords or []
-        match_score, matched_keywords = calculate_match_score(keywords, req_keywords)
+        # Use prompt-based scoring: requirement_keywords, outing_keywords
+        match_score, matched_keywords = calculate_match_score(req_keywords, keywords)
         if match_score < min_score:
             continue
         requirement_suggestions.append(
             RequirementSuggestion(
+                id=req.id,
                 rank=req.rank,
                 requirement_number=req.requirement_number,
                 description=req.requirement_text,
@@ -434,11 +436,13 @@ async def get_preview_suggestions(
     merit_badge_suggestions: list[MeritBadgeSuggestion] = []
     for badge in merit_badges:
         badge_keywords = badge.keywords or []
-        match_score, matched_keywords = calculate_match_score(keywords, badge_keywords)
+        # Use prompt-based scoring: badge_keywords, outing_keywords
+        match_score, matched_keywords = calculate_match_score(badge_keywords, keywords)
         if match_score < min_score:
             continue
         merit_badge_suggestions.append(
             MeritBadgeSuggestion(
+                id=badge.id,
                 name=badge.name,
                 description=badge.description,
                 eagle_required=bool(getattr(badge, "eagle_required", False)),
@@ -464,7 +468,7 @@ async def get_preview_suggestions(
 @router.get("/outings/{outing_id}/suggestions", response_model=OutingSuggestions)
 async def get_suggestions_for_outing(
     outing_id: UUID,
-    min_score: float = 0.1,
+    min_score: float = 0.02,
     max_requirements: int = 10,
     max_merit_badges: int = 10,
     db: AsyncSession = Depends(get_db),

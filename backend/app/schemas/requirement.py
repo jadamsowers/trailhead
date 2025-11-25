@@ -151,6 +151,7 @@ class RequirementSuggestion(BaseModel):
 
     Returns only the fields requested by the client plus match metadata.
     """
+    id: UUID = Field(..., description="Requirement UUID for selection")
     rank: str = Field(..., description="Scout rank")
     requirement_number: str = Field(..., description="Requirement number (e.g. '1a')")
     description: str = Field(..., description="Full requirement description")
@@ -163,6 +164,7 @@ class MeritBadgeSuggestion(BaseModel):
 
     Returns badge name and description plus match metadata.
     """
+    id: UUID = Field(..., description="Badge UUID for selection")
     name: str = Field(..., description="Merit badge name")
     description: Optional[str] = Field(None, description="Merit badge description")
     eagle_required: bool = Field(False, description="Eagle-required badge indicator")
