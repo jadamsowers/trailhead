@@ -152,7 +152,7 @@ INSERT INTO rank_requirements (rank, requirement_number, requirement_text, keywo
 ('Scout', '5', 'Tell what you need to know about pocketknife safety and responsibility.', ARRAY['know', 'need', 'pocketknife', 'responsibility', 'safety', 'scout', 'tell', 'tools', 'what', 'you'], 'Tools');
 
 INSERT INTO rank_requirements (rank, requirement_number, requirement_text, keywords, category) VALUES
-('Scout', '6', 'With your parent or guardian complete the exercises in the pamphlet How to Protect Your Children From Child Abuse: A Parent''s Guide and view the Personal Safety Awareness videos.', ARRAY['abuse', 'awareness', 'child', 'children', 'complete', 'exercises', 'guardian', 'guide', 'pamphlet', 'parent', 'parent's', 'personal', 'personal safety', 'protect', 'safety', 'scout', 'videos', 'view', 'your'], 'Personal Safety');
+('Scout', '6', 'With your parent or guardian complete the exercises in the pamphlet How to Protect Your Children From Child Abuse: A Parent''s Guide and view the Personal Safety Awareness videos.', ARRAY['abuse', 'awareness', 'child', 'children', 'complete', 'exercises', 'guardian', 'guide', 'pamphlet', 'parent', 'parent''s', 'personal', 'personal safety', 'protect', 'safety', 'scout', 'videos', 'view', 'your'], 'Personal Safety');
 
 INSERT INTO rank_requirements (rank, requirement_number, requirement_text, keywords, category) VALUES
 ('Second Class', '1a', 'Since joining Scouts BSA participate in five separate troop/patrol activities at least three of which must be held outdoors. Of the outdoor activities at least two must include overnight camping. These activities do not include troop or patrol meetings. On campouts spend the night in a tent that you pitch or other structure that you help erect such as a lean-to snow cave or tepee.', ARRAY['bsa', 'camp', 'camping', 'campouts', 'cave', 'class', 'erect', 'five', 'held', 'help', 'include', 'join', 'joining', 'lean', 'least', 'meetings', 'must', 'night', 'outdoor', 'outdoors', 'overnight', 'participate', 'patrol', 'pitch', 'scouts', 'second', 'separate', 'since', 'snow', 'spend', 'structure', 'tent', 'tepee', 'three', 'troop', 'two', 'which', 'you'], 'Camping');
@@ -251,7 +251,7 @@ INSERT INTO rank_requirements (rank, requirement_number, requirement_text, keywo
 ('Second Class', '8e', 'Participate in two hours of service through one or more service projects approved by your Scoutmaster. Tell how your service to others relates to the Scout Oath.', ARRAY['approved', 'class', 'hours', 'oath', 'one', 'others', 'participate', 'projects', 'relates', 'scout', 'scoutmaster', 'second', 'service', 'tell', 'two', 'your'], 'Service');
 
 INSERT INTO rank_requirements (rank, requirement_number, requirement_text, keywords, category) VALUES
-('Second Class', '9a', 'Explain the three R''s of personal safety and protection.', ARRAY['class', 'explain', 'personal', 'personal safety', 'protection', 'r's', 'safety', 'second', 'three'], 'Personal Safety');
+('Second Class', '9a', 'Explain the three R''s of personal safety and protection.', ARRAY['class', 'explain', 'personal', 'personal safety', 'protection', 'r''s', 'safety', 'second', 'three'], 'Personal Safety');
 
 INSERT INTO rank_requirements (rank, requirement_number, requirement_text, keywords, category) VALUES
 ('Second Class', '9b', 'Describe bullying; tell what the appropriate response is to someone who is bullying you or another person.', ARRAY['another', 'appropriate', 'bully', 'bullying', 'class', 'describe', 'person', 'personal', 'response', 'safety', 'second', 'someone', 'tell', 'what', 'who', 'you'], 'Personal Safety');
@@ -326,5 +326,5 @@ INSERT INTO rank_requirements (rank, requirement_number, requirement_text, keywo
 ('Tenderfoot', '7b', 'Participate in a total of one hour of service in one or more service projects approved by your Scoutmaster. Explain how your service to others relates to the Scout slogan and Scout motto.', ARRAY['approved', 'explain', 'hour', 'motto', 'one', 'others', 'participate', 'projects', 'relates', 'scout', 'scoutmaster', 'service', 'slogan', 'tenderfoot', 'total', 'your'], 'Service');
 
 INSERT INTO rank_requirements (rank, requirement_number, requirement_text, keywords, category) VALUES
-('Tenderfoot', '8', 'Describe the steps in Scouting''s Teaching EDGE method. Use the Teaching EDGE method to teach another person how to tie the square knot.', ARRAY['another', 'describe', 'edge', 'knot', 'method', 'person', 'scouting's', 'square', 'steps', 'teach', 'teaching', 'tenderfoot', 'tie', 'use'], 'Teaching');
+('Tenderfoot', '8', 'Describe the steps in Scouting''s Teaching EDGE method. Use the Teaching EDGE method to teach another person how to tie the square knot.', ARRAY['another', 'describe', 'edge', 'knot', 'method', 'person', 'scouting''s', 'square', 'steps', 'teach', 'teaching', 'tenderfoot', 'tie', 'use'], 'Teaching');
 
