@@ -289,6 +289,7 @@ All CRUD operations follow async patterns with consistent transaction management
 #### 3. Response Schemas
 
 - **Computed Fields**: Include read-only computed properties:
+
   ```python
   class ItemResponse(ItemBase):
       id: UUID
@@ -298,6 +299,7 @@ All CRUD operations follow async patterns with consistent transaction management
 
       model_config = ConfigDict(from_attributes=True)
   ```
+
 - **Nested Objects**: Include related data in responses when needed
 - **Model Config**: Always set `from_attributes=True` (Pydantic v2) or `orm_mode=True` (v1) for ORM compatibility
 
@@ -311,3 +313,115 @@ All CRUD operations follow async patterns with consistent transaction management
 6. **Async All the Way**: Never mix sync and async database operations
 7. **Descriptive Names**: Use clear, self-documenting function and variable names
 8. **Documentation**: Include docstrings for all public endpoint functions explaining purpose, auth requirements, and special behavior
+
+## Async SQLAlchemy / Pydantic Greenlet Troubleshooting & Checklist
+
+This project uses async SQLAlchemy together with Pydantic response models. A common class of runtime error looks like:
+
+- MissingGreenlet: greenlet_spawn has not been called; can't call await_only() here.
+- pydantic_core.\_pydantic_core.ValidationError: Error extracting attribute
+
+These errors occur when Pydantic attempts to access an ORM attribute that triggers SQLAlchemy to lazy-load a relationship (which performs IO). In the async runtime that IO must be awaited from a greenlet-aware context; if it's attempted indirectly during Pydantic attribute extraction it fails.
+
+When you (or the assistant) encounter this, follow this checklist to diagnose and fix reliably:
+
+- Reproduce & capture
+
+  - Reproduce the failure locally and capture the full traceback and the exact request that triggered it (method, URL, payload, headers).
+  - Example: run the failing request with `curl` (include auth token) or run the unit test that triggers it.
+
+- Identify the failing attribute
+
+  - The Pydantic ValidationError will include the attribute name (e.g., `outing_place`). Note that the attribute may be a property that internally iterates relationships.
+  - Search the model class for that attribute/property (e.g., `app/models/outing.py`).
+
+- Inspect how the ORM object was loaded
+
+  - Open the CRUD function that returned the ORM instance (e.g., `app/crud/outing.py`).
+  - Confirm whether the query used `selectinload()` / `joinedload()` for relationships referenced by the Pydantic model or by computed properties.
+
+- Fix options (pick one, prefer 1 or 2)
+
+  1. Eager-load relationships the response needs
+
+     - Add `selectinload()` to the select options for each relationship used by the response model or by computed properties.
+     - After create/update, explicitly `await db.refresh(obj, ["rel1","rel2"])` to ensure the relationship objects are populated before serialization.
+     - This is the recommended, minimal change and keeps Pydantic's `from_attributes=True` workflow.
+
+  2. Build an explicit response dict before validating with Pydantic
+     - If a response computes values with properties that could trigger IO, compute those values while still in a context where IO is allowed (i.e., after eager-loading), and pass a plain dict to Pydantic.
+     - Example pattern used in endpoints:
+
+```python
+# compute explicit response dict to avoid hidden lazy loads
+outing = db_outing
+outing_data = {k: getattr(outing, k) for k in ("id","name","outing_date","location","created_at","updated_at")}
+outing_data.update({
+    "signup_count": outing.signup_count,
+    "available_spots": outing.available_spots,
+    "outing_place": PlaceResponse.model_validate(outing.outing_place) if outing.outing_place else None,
+})
+return OutingResponse.model_validate(outing_data)
+```
+
+3. Avoid triggering lazy loads from property getters
+   - If a property performs navigation that may lazy-load, consider rewriting it to expect relationships to be present or move the computation into the CRUD layer and store the result on the response dict.
+
+- Developer testing commands
+  - Start Docker services (backend + db):
+
+```bash
+docker-compose up -d
+```
+
+- Restart only the backend container (if needed):
+
+```bash
+docker-compose restart trailhead-backend
+```
+
+- Run the failing request (adapt token/payload):
+
+```bash
+curl -X POST "http://localhost:8000/api/outings" \
+  -H "Authorization: Bearer $YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test Outing","outing_date":"2025-11-28","location":"Test","max_participants":10}'
+```
+
+- Quick async script pattern to run CRUD functions from a REPL/test harness (use the project's async session factory):
+
+```python
+import asyncio
+from app.db.session import AsyncSessionLocal
+from app.schemas.outing import OutingCreate
+from app.crud import outing as crud_outing
+
+async def main():
+    async with AsyncSessionLocal() as db:
+        oc = OutingCreate(name="Test", outing_date="2025-11-28", location="Test", max_participants=5)
+        created = await crud_outing.create_outing(db, oc)
+        print('created', created.id)
+
+asyncio.run(main())
+```
+
+- Test & verify
+  - Run the project's test suite to ensure no regression:
+
+```bash
+cd backend
+pytest -q
+```
+
+- PR checklist for fixes
+  - Add/adjust migrations (Atlas) if model columns changed.
+  - Add unit tests that exercise endpoint serialization (including computed properties and nested relationships).
+  - Ensure CRUD uses `selectinload()` for relationships used by schemas/property getters.
+  - Ensure create/update functions `await db.refresh(obj, [...])` for relationships referenced immediately after creation.
+
+Notes / gotchas
+
+- Do not mix sync SQLAlchemy sessions with async sessions in the same request or test harness; it will produce confusing failures.
+- Passing raw ORM instances directly to Pydantic is convenient but requires care: either eager-load all referenced relationships or pass a plain dict with computed values.
+- When debugging, instrument the CRUD function with a temporary `print()` or logger showing SQL emitted, or enable SQLAlchemy echo (`echo=True` for debugging) to see lazy-load queries.
