@@ -44,6 +44,18 @@ async def init_db() -> None:
         print("  - Enable two-factor authentication in Clerk dashboard")
         print("  - Use a strong, unique password")
         print("="*60 + "\n")
+        # Attempt to import default packing list templates (no-op if already present)
+        try:
+            import scripts.import_packing_lists as import_packing_lists
+
+            print("\n📥 Checking packing-list templates and importing if missing...")
+            try:
+                asyncio.run(import_packing_lists.main())
+            except Exception as e:
+                print(f"⚠️  Packing list import encountered an error: {e}")
+        except Exception as e:
+            # If scripts module isn't available or import fails, just warn and continue
+            print(f"⚠️  Could not run packing list import script: {e}")
         
     except Exception as e:
         print(f"\n✗ Error connecting to database: {e}", file=sys.stderr)

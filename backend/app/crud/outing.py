@@ -71,9 +71,17 @@ async def get_available_outings(db: AsyncSession) -> list[Outing]:
     return [outing for outing in outings if not outing.is_full]
 
 
+from datetime import timezone
+
 async def create_outing(db: AsyncSession, outing: OutingCreate) -> Outing:
     """Create a new outing"""
-    db_outing = Outing(**outing.model_dump())
+    outing_data = outing.model_dump()
+    
+    # Ensure signups_close_at is naive UTC if present
+    if outing_data.get('signups_close_at') and outing_data['signups_close_at'].tzinfo is not None:
+        outing_data['signups_close_at'] = outing_data['signups_close_at'].astimezone(timezone.utc).replace(tzinfo=None)
+        
+    db_outing = Outing(**outing_data)
     db.add(db_outing)
     await db.flush()
     await db.refresh(db_outing, ['signups'])
