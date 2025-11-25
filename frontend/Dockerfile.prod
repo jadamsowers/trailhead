@@ -42,8 +42,8 @@ server {
 
     # Prefer pre-compressed static files when available and supported.
     gzip_static on;
-    # brotli_static may not be available in this image; harmless if ignored.
-    brotli_static on;
+    # brotli_static is not available in the stock nginx:alpine image,
+    # so we avoid enabling it here to prevent startup failures.
 
     # Ensure proxies/CDNs will vary on Accept-Encoding
     add_header Vary Accept-Encoding;
