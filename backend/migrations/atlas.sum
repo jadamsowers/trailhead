@@ -1,4 +1,4 @@
-h1:qzXMXNcQybfjDt7F4cQ9co3AJG/2m/1VZf6TVs7Ex9A=
+h1:4hxm2Wi2GxouvauKQYS+hwxZ+XXptychwhKP9IEvHz4=
 20251124000001_initial.sql h1:yNcdKslq6H+4pFl6p5HFvNpaOqccXPZVzbjf9ykutL8=
 20251124000002_add_checkins_table.sql h1:oW9pKwu7SNaerWm5B1NtMWy3a8UUNk6GB9h0Efl53DU=
 20251124000003_add_outing_icon.sql h1:OFIamhOlr0wIDdVnw1QNi6djxtzpW9OUDzSmfGNLtUQ=
@@ -10,3 +10,4 @@ h1:qzXMXNcQybfjDt7F4cQ9co3AJG/2m/1VZf6TVs7Ex9A=
 20251124000009_add_packing_lists.sql h1:n15j0XCtNuN58GsrUf5HyQdUJgIvxDyD5xSjhUt0sOg=
 20251124000010_add_signup_closure.sql h1:f1eFwRA/ek2UelXTSbKbGdBFjekq/yiwaox9uzBFJms=
 20251124000011_add_eagle_required_to_merit_badges.sql h1:0br6xlbbdO2DVNIeUUzRXY/ufbfkfkw72eMFnK5Dv5w=
+20251125000001_seed_packing_list_templates.sql h1:nl6arHpmI0dQuKDAxUQxy+9p6TGUC9ePII27DNClQ3U=
