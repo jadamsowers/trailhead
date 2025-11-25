@@ -195,7 +195,7 @@ const HomePage: React.FC = () => {
 };
 
 const Navigation: React.FC = () => {
-  const { user } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [backendUser, setBackendUser] = useState<User | null>(null);
@@ -204,16 +204,25 @@ const Navigation: React.FC = () => {
   useEffect(() => {
     const fetchUserRole = async () => {
       try {
+        // Wait for Clerk to be fully loaded and user to be signed in
+        if (!isLoaded || !isSignedIn) {
+          console.log(
+            "⏳ Navigation: Waiting for Clerk to load and user to sign in"
+          );
+          return;
+        }
+
+        console.log("🔄 Navigation: Fetching user role from backend");
         const userData = await userAPI.getCurrentUser();
         setBackendUser(userData);
+        console.log("✅ Navigation: User role fetched:", userData.role);
       } catch (error) {
-        console.error("Failed to fetch user role:", error);
+        console.error("❌ Navigation: Failed to fetch user role:", error);
       }
     };
-    if (user) {
-      fetchUserRole();
-    }
-  }, [user]);
+
+    fetchUserRole();
+  }, [user, isLoaded, isSignedIn]);
 
   const isAdmin = backendUser?.role === "admin";
   const isActive = (path: string) => location.pathname === path;

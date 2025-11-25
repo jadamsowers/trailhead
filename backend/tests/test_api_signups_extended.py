@@ -482,3 +482,89 @@ class TestEmailAndExport:
         r = await client.get(f"/api/signups/outings/{outing.id}/export-pdf", headers=auth_headers)
         assert r.status_code == 200
         assert r.headers.get("content-type") == "application/pdf"
+
+
+@pytest.mark.asyncio
+class TestTroopRestriction:
+    async def test_create_signup_troop_restriction_success(self, client: AsyncClient, auth_headers, db_session, test_user):
+        """Test signup with matching troop restriction"""
+        from app.models.troop import Troop
+        
+        # Create restricted troop
+        troop = Troop(number="999", meeting_location="Location")
+        db_session.add(troop)
+        await db_session.commit(); await db_session.refresh(troop)
+        
+        # Create restricted outing
+        outing = Outing(
+            id=uuid.uuid4(),
+            name="Restricted Outing",
+            outing_date=date.today() + timedelta(days=30),
+            location="Loc",
+            max_participants=10,
+            restricted_troop_id=troop.id
+        )
+        db_session.add(outing)
+        
+        # Create family member in that troop
+        member = FamilyMember(
+            user_id=test_user.id,
+            name="Troop Scout",
+            date_of_birth=date.today() - timedelta(days=365*13),
+            member_type="scout",
+            gender="male",
+            troop_number="999",
+            troop_id=troop.id
+        )
+        db_session.add(member)
+        await db_session.commit(); await db_session.refresh(outing); await db_session.refresh(member)
+        
+        payload = {
+            "outing_id": str(outing.id),
+            "family_contact": {"email": "x@test.com", "phone": "555", "emergency_contact_name": "EC", "emergency_contact_phone": "555"},
+            "family_member_ids": [str(member.id)]
+        }
+        r = await client.post("/api/signups", json=payload, headers=auth_headers)
+        assert r.status_code == 201
+
+    async def test_create_signup_troop_restriction_mismatch(self, client: AsyncClient, auth_headers, db_session, test_user):
+        """Test signup with mismatched troop restriction"""
+        from app.models.troop import Troop
+        
+        # Create restricted troop
+        troop = Troop(number="999", meeting_location="Location")
+        db_session.add(troop)
+        await db_session.commit(); await db_session.refresh(troop)
+        
+        # Create restricted outing
+        outing = Outing(
+            id=uuid.uuid4(),
+            name="Restricted Outing 2",
+            outing_date=date.today() + timedelta(days=30),
+            location="Loc",
+            max_participants=10,
+            restricted_troop_id=troop.id
+        )
+        db_session.add(outing)
+        
+        # Create family member in DIFFERENT troop
+        member = FamilyMember(
+            user_id=test_user.id,
+            name="Other Troop Scout",
+            date_of_birth=date.today() - timedelta(days=365*13),
+            member_type="scout",
+            gender="male",
+            troop_number="888" # Mismatch
+        )
+        db_session.add(member)
+        await db_session.commit(); await db_session.refresh(outing); await db_session.refresh(member)
+        
+        payload = {
+            "outing_id": str(outing.id),
+            "family_contact": {"email": "x@test.com", "phone": "555", "emergency_contact_name": "EC", "emergency_contact_phone": "555"},
+            "family_member_ids": [str(member.id)]
+        }
+        r = await client.post("/api/signups", json=payload, headers=auth_headers)
+        assert r.status_code == 400
+        assert "not part of restricted troop" in r.json()["detail"]
+

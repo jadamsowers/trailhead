@@ -64,8 +64,18 @@ async def get_current_user(
                 hashed_password=""  # No password needed for Clerk users
             )
             db.add(user)
-            await db.commit()
-            await db.refresh(user)
+            try:
+                await db.commit()
+                await db.refresh(user)
+                print(f"✅ Created new user: {email} with role {role}")
+            except Exception as commit_error:
+                # Handle race condition - another request might have created the user
+                await db.rollback()
+                print(f"⚠️ Race condition creating user, fetching existing: {commit_error}")
+                result = await db.execute(select(User).where(User.email == email))
+                user = result.scalar_one_or_none()
+                if user is None:
+                    raise  # Re-raise if user still doesn't exist
         else:
             # If user exists and matches admin email, ensure they have admin role
             if email.lower() == settings.INITIAL_ADMIN_EMAIL.lower() and user.role != "admin":

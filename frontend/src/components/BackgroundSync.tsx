@@ -1,82 +1,102 @@
-
-import { useUser } from '@clerk/clerk-react';
-import { useEffect, useRef, useState } from 'react';
-import { outingAPI, signupAPI, userAPI } from '../services/api';
-import { SyncToast } from './Shared/SyncToast';
-import { User } from '../types';
+import { useUser } from "@clerk/clerk-react";
+import { useEffect, useRef, useState } from "react";
+import { outingAPI, signupAPI, userAPI } from "../services/api";
+import { SyncToast } from "./Shared/SyncToast";
+import { User } from "../types";
 
 // LocalStorage keys
-const OUTINGS_CACHE_KEY = 'cached_outings';
-const ROSTER_CACHE_PREFIX = 'cached_roster_';
+const OUTINGS_CACHE_KEY = "cached_outings";
+const ROSTER_CACHE_PREFIX = "cached_roster_";
 
 export const BackgroundSync: React.FC = () => {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [backendUser, setBackendUser] = useState<User | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch user from backend to get role
   useEffect(() => {
+    // Wait for Clerk to be fully loaded
+    if (!isLoaded) {
+      console.debug("BackgroundSync: Waiting for Clerk to load");
+      return;
+    }
+
     if (!isSignedIn) {
+      console.debug("BackgroundSync: User not signed in");
       setBackendUser(null);
       return;
     }
 
     const fetchUser = async () => {
       try {
+        console.debug("BackgroundSync: Fetching user from backend");
         const user = await userAPI.getCurrentUser();
         setBackendUser(user);
-        console.debug('BackgroundSync: Fetched user from backend', { role: user.role });
+        console.debug("BackgroundSync: Fetched user from backend", {
+          role: user.role,
+        });
       } catch (error) {
-        console.error('BackgroundSync: Failed to fetch user', error);
+        console.error("BackgroundSync: Failed to fetch user", error);
       }
     };
 
     fetchUser();
-  }, [isSignedIn]);
+  }, [isSignedIn, isLoaded]);
 
   // Check if user has admin role from backend
-  const isAdmin = backendUser?.role === 'admin';
+  const isAdmin = backendUser?.role === "admin";
 
   useEffect(() => {
-    console.debug('BackgroundSync: Component mounted', { isSignedIn, isAdmin, role: backendUser?.role, userId: backendUser?.id });
+    console.debug("BackgroundSync: Component mounted", {
+      isSignedIn,
+      isAdmin,
+      role: backendUser?.role,
+      userId: backendUser?.id,
+    });
     // Only run if user is signed in and is admin
     if (!isSignedIn || !backendUser || !isAdmin) {
-      console.debug('BackgroundSync: Skipping sync, user not admin or not logged in', { role: backendUser?.role });
+      console.debug(
+        "BackgroundSync: Skipping sync, user not admin or not logged in",
+        { role: backendUser?.role }
+      );
       return;
     }
     if (!navigator.onLine) {
-      console.debug('BackgroundSync: Skipping sync, offline');
+      console.debug("BackgroundSync: Skipping sync, offline");
       return;
     }
 
     const doSync = async () => {
-      console.debug('BackgroundSync: Sync started');
+      console.debug("BackgroundSync: Sync started");
       try {
         // Always cache user object for offline admin detection
         if (backendUser) {
-          localStorage.setItem('cached_user', JSON.stringify(backendUser));
-          console.debug('BackgroundSync: cached_user updated');
+          localStorage.setItem("cached_user", JSON.stringify(backendUser));
+          console.debug("BackgroundSync: cached_user updated");
         }
         // 1. Sync all outings
         const outings = await outingAPI.getAll();
         localStorage.setItem(OUTINGS_CACHE_KEY, JSON.stringify(outings));
-        console.debug('BackgroundSync: Outings synced');
+        console.debug("BackgroundSync: Outings synced");
 
         // 2. Sync all rosters for each outing
         await Promise.all(
           outings.map(async (outing) => {
             const roster = await signupAPI.getByOuting(outing.id);
-            localStorage.setItem(`${ROSTER_CACHE_PREFIX}${outing.id}`, JSON.stringify(roster));
+            localStorage.setItem(
+              `${ROSTER_CACHE_PREFIX}${outing.id}`,
+              JSON.stringify(roster)
+            );
           })
         );
-        console.debug('BackgroundSync: Rosters synced');
-        setToastMsg('Outings and rosters synced');
+        console.debug("BackgroundSync: Rosters synced");
+        setToastMsg("Outings and rosters synced");
       } catch (err) {
-        setToastMsg('Sync failed');
-        console.error('BackgroundSync: Sync failed', err);
+        setToastMsg("Sync failed");
+        console.error("BackgroundSync: Sync failed", err);
       }
-      console.debug('BackgroundSync: Sync finished');
+      console.debug("BackgroundSync: Sync finished");
     };
 
     // Force immediate sync on mount

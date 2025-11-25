@@ -26,7 +26,56 @@ This document serves as a guide for the AI assistant when working on the Trailhe
 - **Migration Tool**: We use **Atlas** (not Alembic) for database migrations. See `backend/docs/MIGRATIONS.md` for workflow details.
 - **Versioning Convention**: `YYYYMMDDHHmmss_description.sql` (e.g., `20251124000008_add_outing_logistics_fields.sql`). When multiple migrations are created on the same day, increment the last digits (seconds) to ensure uniqueness.
 - **Do Not** rename already-applied migration files; create a new timestamped file for subsequent changes.
-- **Hashing**: After adding or editing migration files run `atlas migrate hash --env sqlalchemy` to update `atlas.sum`.
+- **Hashing**: After adding or editing migration files run `atlas migrate hash --dir file://backend/migrations` to update `atlas.sum`.
+
+### Atlas Migration Procedure (Local Dev)
+
+- **Prereqs**:
+
+  - Docker is running, and the dev Postgres container is available (used by Atlas `docker://postgres/15/dev`).
+  - Atlas CLI is installed (`atlas version`).
+
+- **Run migrations against dev DB**:
+
+  - Check status:
+    ```bash
+    atlas migrate status --dir file://backend/migrations --url docker://postgres/15/dev
+    ```
+  - Apply pending migrations:
+    ```bash
+    atlas migrate apply --dir file://backend/migrations --url docker://postgres/15/dev
+    ```
+
+- **Update migration checksums**:
+
+  - Regenerate `atlas.sum` after any migration file changes:
+    ```bash
+    atlas migrate hash --dir file://backend/migrations
+    ```
+
+- **Notes**:
+  - Prefer explicit `--dir file://backend/migrations` and `--url docker://postgres/15/dev` flags from the repo root so you don't need to change directories.
+  - If you see `missing driver` errors, avoid `--env` and pass `--url docker://postgres/15/dev` explicitly.
+  - The backend container will apply migrations on startup in production; for local tests run the commands above before `pytest`.
+
+### When adding schema changes
+
+- Create a new timestamped migration in `backend/migrations` (do not edit applied files):
+  ```
+  YYYYMMDDHHmmss_description.sql
+  ```
+- Run status, apply, then update `atlas.sum` as shown above.
+
+### Troubleshooting
+
+- If `atlas migrate status` says PENDING but apply fails, ensure the dev DB is reachable:
+  ```bash
+  docker-compose up -d postgres
+  ```
+- To inspect applied versions:
+  ```bash
+  atlas migrate status --dir file://backend/migrations --url docker://postgres/15/dev
+  ```
 
 ## Project Context
 

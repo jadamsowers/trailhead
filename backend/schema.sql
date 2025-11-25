@@ -29,6 +29,14 @@ CREATE TABLE outings (
 	outing_lead_name VARCHAR(255), 
 	outing_lead_email VARCHAR(255), 
 	outing_lead_phone VARCHAR(50), 
+	-- Added fields via migrations
+	icon VARCHAR(50),
+	drop_off_time TIME,
+	drop_off_location VARCHAR(255),
+	pickup_time TIME,
+	pickup_location VARCHAR(255),
+	cost NUMERIC(10, 2),
+	gear_list TEXT,
 	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
 	PRIMARY KEY (id)
@@ -36,6 +44,12 @@ CREATE TABLE outings (
 CREATE INDEX ix_outings_id ON outings (id);
 CREATE INDEX ix_outings_outing_date ON outings (outing_date);
 CREATE INDEX ix_outings_end_date ON outings (end_date);
+-- Troop restriction (optional)
+ALTER TABLE outings ADD COLUMN IF NOT EXISTS restricted_troop_id UUID;
+ALTER TABLE outings
+	ADD CONSTRAINT IF NOT EXISTS outings_restricted_troop_id_fkey
+	FOREIGN KEY (restricted_troop_id) REFERENCES troops(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS ix_outings_restricted_troop_id ON outings (restricted_troop_id);
 CREATE TABLE signups (
 	id UUID NOT NULL, 
 	outing_id UUID NOT NULL, 
@@ -84,6 +98,17 @@ CREATE INDEX ix_family_members_troop_number ON family_members (troop_number);
 CREATE INDEX ix_family_members_id ON family_members (id);
 CREATE INDEX ix_family_members_member_type ON family_members (member_type);
 CREATE INDEX ix_family_members_gender ON family_members (gender);
+-- Relational troop/patrol references
+ALTER TABLE family_members ADD COLUMN IF NOT EXISTS troop_id UUID;
+ALTER TABLE family_members ADD COLUMN IF NOT EXISTS patrol_id UUID;
+ALTER TABLE family_members
+	ADD CONSTRAINT IF NOT EXISTS family_members_troop_id_fkey
+	FOREIGN KEY (troop_id) REFERENCES troops(id) ON DELETE SET NULL;
+ALTER TABLE family_members
+	ADD CONSTRAINT IF NOT EXISTS family_members_patrol_id_fkey
+	FOREIGN KEY (patrol_id) REFERENCES patrols(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS ix_family_members_troop_id ON family_members (troop_id);
+CREATE INDEX IF NOT EXISTS ix_family_members_patrol_id ON family_members (patrol_id);
 CREATE TABLE participants (
 	id UUID NOT NULL, 
 	signup_id UUID NOT NULL, 
@@ -133,6 +158,38 @@ CREATE INDEX ix_checkins_id ON checkins (id);
 CREATE INDEX ix_checkins_outing_id ON checkins (outing_id);
 CREATE INDEX ix_checkins_signup_id ON checkins (signup_id);
 CREATE INDEX ix_checkins_participant_id ON checkins (participant_id);
+
+-- Places (reusable addresses with optional Google Maps URL)
+CREATE TABLE IF NOT EXISTS places (
+	id UUID PRIMARY KEY,
+	name VARCHAR(255) NOT NULL,
+	address TEXT NOT NULL,
+	google_maps_url TEXT,
+	created_at TIMESTAMP NOT NULL,
+	updated_at TIMESTAMP NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_places_name ON places(name);
+
+-- Address and place references on outings
+ALTER TABLE outings
+	ADD COLUMN IF NOT EXISTS outing_address TEXT,
+	ADD COLUMN IF NOT EXISTS outing_place_id UUID,
+	ADD COLUMN IF NOT EXISTS pickup_address TEXT,
+	ADD COLUMN IF NOT EXISTS pickup_place_id UUID,
+	ADD COLUMN IF NOT EXISTS dropoff_address TEXT,
+	ADD COLUMN IF NOT EXISTS dropoff_place_id UUID;
+ALTER TABLE outings
+	ADD CONSTRAINT IF NOT EXISTS outings_outing_place_id_fkey
+	FOREIGN KEY (outing_place_id) REFERENCES places(id) ON DELETE SET NULL;
+ALTER TABLE outings
+	ADD CONSTRAINT IF NOT EXISTS outings_pickup_place_id_fkey
+	FOREIGN KEY (pickup_place_id) REFERENCES places(id) ON DELETE SET NULL;
+ALTER TABLE outings
+	ADD CONSTRAINT IF NOT EXISTS outings_dropoff_place_id_fkey
+	FOREIGN KEY (dropoff_place_id) REFERENCES places(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_outings_outing_place_id ON outings(outing_place_id);
+CREATE INDEX IF NOT EXISTS idx_outings_pickup_place_id ON outings(pickup_place_id);
+CREATE INDEX IF NOT EXISTS idx_outings_dropoff_place_id ON outings(dropoff_place_id);
 
 -- Scout rank requirements
 CREATE TABLE rank_requirements (
@@ -194,3 +251,92 @@ CREATE TABLE outing_merit_badges (
 CREATE INDEX ix_outing_merit_badges_outing_id ON outing_merit_badges (outing_id);
 CREATE INDEX ix_outing_merit_badges_merit_badge_id ON outing_merit_badges (merit_badge_id);
 CREATE INDEX ix_outing_merit_badges_id ON outing_merit_badges (id);
+
+-- Packing list templates and outing packing lists
+CREATE TABLE IF NOT EXISTS packing_list_templates (
+		id UUID NOT NULL,
+		name VARCHAR(255) NOT NULL,
+		description TEXT,
+		created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+		updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+		PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_packing_list_templates_id ON packing_list_templates (id);
+CREATE INDEX IF NOT EXISTS ix_packing_list_templates_name ON packing_list_templates (name);
+
+CREATE TABLE IF NOT EXISTS packing_list_template_items (
+		id UUID NOT NULL,
+		template_id UUID NOT NULL,
+		name VARCHAR(255) NOT NULL,
+		quantity INTEGER NOT NULL,
+		sort_order INTEGER NOT NULL,
+		created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+		updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+		PRIMARY KEY (id)
+);
+CREATE INDEX IF NOT EXISTS ix_packing_list_template_items_id ON packing_list_template_items (id);
+CREATE INDEX IF NOT EXISTS ix_packing_list_template_items_template_id ON packing_list_template_items (template_id);
+
+CREATE TABLE IF NOT EXISTS outing_packing_lists (
+		id UUID NOT NULL,
+		outing_id UUID NOT NULL,
+		template_id UUID,
+		created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+		PRIMARY KEY (id)
+);
+	ALTER TABLE outing_packing_lists
+		ADD CONSTRAINT IF NOT EXISTS outing_packing_lists_outing_id_fkey
+		FOREIGN KEY (outing_id) REFERENCES outings(id) ON DELETE CASCADE;
+	ALTER TABLE outing_packing_lists
+		ADD CONSTRAINT IF NOT EXISTS outing_packing_lists_template_id_fkey
+		FOREIGN KEY (template_id) REFERENCES packing_list_templates(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS ix_outing_packing_lists_id ON outing_packing_lists (id);
+CREATE INDEX IF NOT EXISTS ix_outing_packing_lists_outing_id ON outing_packing_lists (outing_id);
+CREATE INDEX IF NOT EXISTS ix_outing_packing_lists_template_id ON outing_packing_lists (template_id);
+
+CREATE TABLE IF NOT EXISTS outing_packing_list_items (
+		id UUID NOT NULL,
+		outing_packing_list_id UUID NOT NULL,
+		name VARCHAR(255) NOT NULL,
+		quantity INTEGER NOT NULL,
+		checked BOOLEAN NOT NULL,
+		created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+		updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+		PRIMARY KEY (id)
+);
+	ALTER TABLE outing_packing_list_items
+		ADD CONSTRAINT IF NOT EXISTS outing_packing_list_items_outing_packing_list_id_fkey
+		FOREIGN KEY (outing_packing_list_id) REFERENCES outing_packing_lists(id) ON DELETE CASCADE;
+CREATE INDEX IF NOT EXISTS ix_outing_packing_list_items_id ON outing_packing_list_items (id);
+CREATE INDEX IF NOT EXISTS ix_outing_packing_list_items_outing_packing_list_id ON outing_packing_list_items (outing_packing_list_id);
+
+-- Troops and Patrols
+CREATE TABLE IF NOT EXISTS troops (
+	id UUID NOT NULL,
+	number VARCHAR(50) NOT NULL,
+	charter_org VARCHAR(255),
+	meeting_location VARCHAR(255),
+	meeting_day VARCHAR(20),
+	notes TEXT,
+	created_at TIMESTAMP NOT NULL,
+	updated_at TIMESTAMP NOT NULL,
+	PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_troops_number ON troops (number);
+CREATE INDEX IF NOT EXISTS ix_troops_id ON troops (id);
+
+CREATE TABLE IF NOT EXISTS patrols (
+	id UUID NOT NULL,
+	troop_id UUID NOT NULL,
+	name VARCHAR(100) NOT NULL,
+	is_active BOOLEAN NOT NULL,
+	created_at TIMESTAMP NOT NULL,
+	updated_at TIMESTAMP NOT NULL,
+	PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_patrols_troop_id_name ON patrols (troop_id, name);
+CREATE INDEX IF NOT EXISTS ix_patrols_id ON patrols (id);
+CREATE INDEX IF NOT EXISTS ix_patrols_troop_id ON patrols (troop_id);
+
+-- Add youth protection expiration to users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS youth_protection_expiration DATE;

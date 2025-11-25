@@ -154,8 +154,11 @@ async function getAuthHeaders(): Promise<HeadersInit> {
   try {
     // Wait for Clerk to be loaded with retry logic
     let retries = 0;
-    const maxRetries = 10;
+    const maxRetries = 20; // Increased from 10 to allow more time
     while (!window.Clerk && retries < maxRetries) {
+      console.log(
+        `⏳ Waiting for Clerk to load... (attempt ${retries + 1}/${maxRetries})`
+      );
       await new Promise((resolve) => setTimeout(resolve, 100));
       retries++;
     }
@@ -169,7 +172,7 @@ async function getAuthHeaders(): Promise<HeadersInit> {
 
     // Check if user is signed in
     if (!window.Clerk.session) {
-      console.error("❌ No Clerk session found");
+      console.warn("⚠️ No Clerk session found - user may not be signed in yet");
       throw new Error(
         "You must be signed in to access this feature. Please sign in and try again."
       );
@@ -184,11 +187,14 @@ async function getAuthHeaders(): Promise<HeadersInit> {
       );
     }
 
-    console.log("✅ Using Clerk session token");
+    console.log(
+      "✅ Using Clerk session token (first 20 chars):",
+      token.substring(0, 20) + "..."
+    );
     headers["Authorization"] = `Bearer ${token}`;
     return headers;
   } catch (error) {
-    console.error("❌ Authentication error:", error);
+    console.error("❌ Authentication error in getAuthHeaders:", error);
     throw error;
   }
 }
@@ -1161,7 +1167,9 @@ export interface TroopResponse {
 
 export const troopAPI = {
   async getAll(): Promise<TroopResponse[]> {
-    const response = await fetch(`${API_BASE_URL}/troops`);
+    const response = await fetch(`${API_BASE_URL}/troops`, {
+      headers: await getAuthHeaders(),
+    });
     const data = await handleResponse<{
       troops: TroopResponse[];
       total: number;
@@ -1169,7 +1177,9 @@ export const troopAPI = {
     return data.troops;
   },
   async getById(id: string): Promise<TroopResponse> {
-    const response = await fetch(`${API_BASE_URL}/troops/${id}`);
+    const response = await fetch(`${API_BASE_URL}/troops/${id}`, {
+      headers: await getAuthHeaders(),
+    });
     return handleResponse<TroopResponse>(response);
   },
   async create(troop: TroopCreate): Promise<TroopResponse> {
