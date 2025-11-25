@@ -51,6 +51,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   const [description, setDescription] = useState("");
   const [dropoffTime, setDropoffTime] = useState("");
   const [pickupTime, setPickupTime] = useState("");
+  const [isDayTrip, setIsDayTrip] = useState(false);
 
   // Address fields
   const [outingAddress, setOutingAddress] = useState<{
@@ -344,7 +345,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
         return false;
       }
       // End date must be after start date
-      if (end <= start) {
+      if (end < start) {
         return false;
       }
       return true;
@@ -376,7 +377,6 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   className="form-input"
                 />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block mb-1 font-semibold text-primary text-sm">
@@ -389,20 +389,37 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     className="form-input"
                   />
                 </div>
-                <div>
-                  <label className="block mb-1 font-semibold text-primary text-sm">
-                    End Date *
-                  </label>
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    min={startDate}
-                    className="form-input"
-                  />
-                </div>
+                {!isDayTrip && (
+                  <div>
+                    <label className="block mb-1 font-semibold text-primary text-sm">
+                      End Date *
+                    </label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      min={startDate}
+                      className="form-input"
+                    />
+                  </div>
+                )}
               </div>
-
+              <div className="mt-2">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={isDayTrip}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setIsDayTrip(checked);
+                      if (checked) {
+                        setEndDate(startDate);
+                      }
+                    }}
+                  />
+                  Day‑trip (same start & end date)
+                </label>
+              </div>{" "}
               <div>
                 <label className="block mb-1 font-semibold text-primary text-sm">
                   Location *
@@ -415,7 +432,6 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   className="form-input"
                 />
               </div>
-
               <div>
                 <label className="block mb-1 font-semibold text-primary text-sm">
                   Description
@@ -432,7 +448,6 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   and merit badges
                 </small>
               </div>
-
               <div>
                 <PlacePicker
                   label="Outing Address"
@@ -442,7 +457,6 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   autoName={location}
                 />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <PlacePicker
@@ -461,7 +475,6 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   />
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block mb-1 font-semibold text-primary text-sm">
@@ -598,8 +611,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               on during this outing.
             </p>
             {suggestions ||
-              allRequirements.length > 0 ||
-              allMeritBadges.length > 0 ? (
+            allRequirements.length > 0 ||
+            allMeritBadges.length > 0 ? (
               <div className="grid gap-8">
                 <div>
                   <h3>🏆 Rank Requirements</h3>
@@ -613,25 +626,25 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     <div className="grid gap-4">
                       {(suggestions
                         ? suggestions.requirements.map((r) => ({
-                          id: r.id,
-                          rank: r.rank,
-                          requirement_number: r.requirement_number,
-                          requirement_text: r.description,
-                          category: "",
-                          match_score: r.match_score,
-                          matched_keywords: r.matched_keywords,
-                          isFlattened: true,
-                        }))
+                            id: r.id,
+                            rank: r.rank,
+                            requirement_number: r.requirement_number,
+                            requirement_text: r.description,
+                            category: "",
+                            match_score: r.match_score,
+                            matched_keywords: r.matched_keywords,
+                            isFlattened: true,
+                          }))
                         : allRequirements.map((r) => ({
-                          id: r.id,
-                          rank: r.rank,
-                          requirement_number: r.requirement_number,
-                          requirement_text: r.requirement_text,
-                          category: r.category || "",
-                          match_score: 0,
-                          matched_keywords: [] as string[],
-                          isFlattened: false,
-                        }))
+                            id: r.id,
+                            rank: r.rank,
+                            requirement_number: r.requirement_number,
+                            requirement_text: r.requirement_text,
+                            category: r.category || "",
+                            match_score: 0,
+                            matched_keywords: [] as string[],
+                            isFlattened: false,
+                          }))
                       ).map((reqObj) => {
                         const id = reqObj.id;
                         return (
@@ -714,23 +727,23 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     <div className="grid gap-4">
                       {(suggestions
                         ? suggestions.merit_badges.map((b) => ({
-                          id: b.name,
-                          name: b.name,
-                          description: b.description,
-                          eagle_required: b.eagle_required,
-                          match_score: b.match_score,
-                          matched_keywords: b.matched_keywords,
-                          isFlattened: true,
-                        }))
+                            id: b.name,
+                            name: b.name,
+                            description: b.description,
+                            eagle_required: b.eagle_required,
+                            match_score: b.match_score,
+                            matched_keywords: b.matched_keywords,
+                            isFlattened: true,
+                          }))
                         : allMeritBadges.map((b) => ({
-                          id: b.id,
-                          name: b.name,
-                          description: b.description,
-                          eagle_required: b.eagle_required || false,
-                          match_score: 0,
-                          matched_keywords: [] as string[],
-                          isFlattened: false,
-                        }))
+                            id: b.id,
+                            name: b.name,
+                            description: b.description,
+                            eagle_required: b.eagle_required || false,
+                            match_score: 0,
+                            matched_keywords: [] as string[],
+                            isFlattened: false,
+                          }))
                       ).map((badgeObj) => {
                         const id = badgeObj.id;
                         return (
@@ -830,10 +843,11 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     {packingListTemplates.map((template) => (
                       <div
                         key={template.id}
-                        className={`p-4 rounded-lg border cursor-pointer transition-all ${selectedTemplateId === template.id
+                        className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                          selectedTemplateId === template.id
                             ? "border-bsa-olive bg-[rgba(var(--bsa-olive-rgb),0.1)]"
                             : "border-card bg-tertiary hover:border-bsa-olive"
-                          }`}
+                        }`}
                         onClick={async () => {
                           setSelectedTemplateId(template.id);
                           try {
@@ -1157,10 +1171,10 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       // If not in suggestions, look in allRequirements
                       const requirement = req
                         ? {
-                          rank: req.rank,
-                          requirement_number: req.requirement_number,
-                          category: "",
-                        }
+                            rank: req.rank,
+                            requirement_number: req.requirement_number,
+                            category: "",
+                          }
                         : allRequirements.find((r) => r.id === reqId);
 
                       if (!requirement) return null;
@@ -1197,9 +1211,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                       // If not in suggestions, look in allMeritBadges
                       const meritBadge = badge
                         ? {
-                          name: badge.name,
-                          eagle_required: badge.eagle_required,
-                        }
+                            name: badge.name,
+                            eagle_required: badge.eagle_required,
+                          }
                         : allMeritBadges.find((mb) => mb.id === badgeId);
 
                       if (!meritBadge) return null;
@@ -1339,8 +1353,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               {loading
                 ? "⏳"
                 : activeStep === steps.length - 1
-                  ? "✓ Create Outing"
-                  : "Next →"}
+                ? "✓ Create Outing"
+                : "Next →"}
             </button>
           </div>
         </div>
