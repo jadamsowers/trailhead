@@ -12,7 +12,11 @@ import type {
 } from "../../types";
 import { outingAPI, requirementsAPI, packingListAPI } from "../../services/api";
 import { PlacePicker } from "./PlacePicker";
-import { OutingIconPicker, suggestIconFromName, OUTING_ICONS } from "../OutingIconPicker";
+import {
+  OutingIconPicker,
+  suggestIconFromName,
+  OUTING_ICONS,
+} from "../OutingIconPicker";
 
 interface OutingWizardProps {
   open: boolean;
@@ -161,6 +165,13 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
       }
     }
   }, [name]);
+
+  // If this is a day trip, keep endDate synced to startDate so the picker evaluates immediately
+  useEffect(() => {
+    if (isDayTrip && startDate) {
+      setEndDate(startDate);
+    }
+  }, [isDayTrip, startDate]);
 
   const loadSuggestions = async () => {
     setLoading(true);
@@ -352,20 +363,58 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
       if (!name || !startDate || !endDate || !location) {
         return false;
       }
-      const now = new Date();
+      // Compare dates using date-only (midnight) to avoid time-of-day issues
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
       const end = new Date(endDate);
-      // Start date must be in the future (after today)
-      if (start <= now) {
+      end.setHours(0, 0, 0, 0);
+      // Start date must be today or after (allow same-day outings)
+      if (start < today) {
         return false;
       }
-      // End date must be after start date
+      // End date must be same or after start date (allow same-day for day trips handled elsewhere)
       if (end < start) {
         return false;
       }
       return true;
     }
     return true;
+  };
+
+  // Return validation flags/messages for date inputs to show immediate feedback
+  const getDateErrors = () => {
+    const result = {
+      startError: false as boolean,
+      startMessage: "" as string,
+      endError: false as boolean,
+      endMessage: "" as string,
+    };
+
+    if (!startDate) return result;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const s = new Date(startDate);
+    s.setHours(0, 0, 0, 0);
+    let e: Date | null = null;
+    if (endDate) {
+      e = new Date(endDate);
+      e.setHours(0, 0, 0, 0);
+    }
+
+    if (s < today) {
+      result.startError = true;
+      result.startMessage = "Start date must be today or in the future";
+    }
+
+    if (e && e < s) {
+      result.endError = true;
+      result.endMessage = "End date must be the same or after the start date";
+    }
+
+    return result;
   };
 
   if (!open) return null;
@@ -401,33 +450,50 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   An icon is automatically suggested based on your outing name
                 </small>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block mb-1 font-semibold text-primary text-sm">
-                    Start Date *
-                  </label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="form-input"
-                  />
-                </div>
-                {!isDayTrip && (
-                  <div>
-                    <label className="block mb-1 font-semibold text-primary text-sm">
-                      End Date *
-                    </label>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      min={startDate}
-                      className="form-input"
-                    />
+              {(() => {
+                const { startError, startMessage, endError, endMessage } =
+                  getDateErrors();
+                return (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block mb-1 font-semibold text-primary text-sm">
+                        Start Date *
+                      </label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className={`form-input ${
+                          startError ? "ring-2 ring-red-500" : ""
+                        }`}
+                      />
+                      {startError && (
+                        <p className="text-xs text-red-600 mt-1">{startMessage}</p>
+                      )}
+                    </div>
+
+                    {!isDayTrip && (
+                      <div>
+                        <label className="block mb-1 font-semibold text-primary text-sm">
+                          End Date *
+                        </label>
+                        <input
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          min={startDate}
+                          className={`form-input ${
+                            endError ? "ring-2 ring-red-500" : ""
+                          }`}
+                        />
+                        {endError && (
+                          <p className="text-xs text-red-600 mt-1">{endMessage}</p>
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                );
+              })()}
               <div className="mt-2">
                 <label className="flex items-center gap-2">
                   <input
@@ -1206,10 +1272,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                 {icon && (
                   <p>
                     <strong>Icon:</strong>{" "}
-                    {
-                      OUTING_ICONS.find((i) => i.name === icon)?.icon
-                    }{" "}
-                    {icon}
+                    {OUTING_ICONS.find((i) => i.name === icon)?.icon} {icon}
                   </p>
                 )}
                 <p>
