@@ -24,7 +24,11 @@ class RankRequirement(Base):
     outing_requirements = relationship("OutingRequirement", back_populates="requirement", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<RankRequirement(id={self.id}, rank={self.rank}, number={self.requirement_number})>"
+        # Use __dict__.get to avoid triggering SQLAlchemy loader on expired/detached instances
+        id_val = self.__dict__.get('id')
+        rank_val = self.__dict__.get('rank')
+        num_val = self.__dict__.get('requirement_number')
+        return f"<RankRequirement(id={id_val}, rank={rank_val}, number={num_val})>"
 
 
 class MeritBadge(Base):
@@ -43,7 +47,9 @@ class MeritBadge(Base):
     outing_merit_badges = relationship("OutingMeritBadge", back_populates="merit_badge", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<MeritBadge(id={self.id}, name={self.name})>"
+        id_val = self.__dict__.get('id')
+        name_val = self.__dict__.get('name')
+        return f"<MeritBadge(id={id_val}, name={name_val})>"
 
 
 class OutingRequirement(Base):
@@ -61,7 +67,10 @@ class OutingRequirement(Base):
     requirement = relationship("RankRequirement", back_populates="outing_requirements")
 
     def __repr__(self):
-        return f"<OutingRequirement(id={self.id}, outing_id={self.outing_id}, requirement_id={self.rank_requirement_id})>"
+        id_val = self.__dict__.get('id')
+        outing_id_val = self.__dict__.get('outing_id')
+        req_id_val = self.__dict__.get('rank_requirement_id')
+        return f"<OutingRequirement(id={id_val}, outing_id={outing_id_val}, requirement_id={req_id_val})>"
 
 
 class OutingMeritBadge(Base):
@@ -79,4 +88,7 @@ class OutingMeritBadge(Base):
     merit_badge = relationship("MeritBadge", back_populates="outing_merit_badges")
 
     def __repr__(self):
-        return f"<OutingMeritBadge(id={self.id}, outing_id={self.outing_id}, merit_badge_id={self.merit_badge_id})>"
+        id_val = self.__dict__.get('id')
+        outing_id_val = self.__dict__.get('outing_id')
+        mb_id_val = self.__dict__.get('merit_badge_id')
+        return f"<OutingMeritBadge(id={id_val}, outing_id={outing_id_val}, merit_badge_id={mb_id_val})>"
