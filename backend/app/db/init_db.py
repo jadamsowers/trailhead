@@ -50,7 +50,7 @@ async def init_db() -> None:
 
             print("\n📥 Checking packing-list templates and importing if missing...")
             try:
-                asyncio.run(import_packing_lists.main())
+                await import_packing_lists.main()
             except Exception as e:
                 print(f"⚠️  Packing list import encountered an error: {e}")
         except Exception as e:
