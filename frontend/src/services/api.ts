@@ -16,6 +16,8 @@ import {
   FamilyMemberListResponse,
 } from "../types";
 
+import { getApiBase } from "../utils/apiBase";
+
 // Extend Window interface for Clerk
 declare global {
   interface Window {
@@ -23,13 +25,14 @@ declare global {
   }
 }
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+// API base is computed from the generated OpenAPI.BASE via `getApiBase()`.
+// We compute it lazily using the helper so that init order (initApiClient())
+// can set OpenAPI.BASE before fetches are performed and to avoid '/api/api'.
 
 // Log API configuration on load
 console.log("🔧 API Configuration:", {
   VITE_API_URL: import.meta.env.VITE_API_URL,
-  API_BASE_URL,
+  API_BASE_URL: getApiBase(),
   mode: import.meta.env.MODE,
   dev: import.meta.env.DEV,
   prod: import.meta.env.PROD,
@@ -38,7 +41,7 @@ console.log("🔧 API Configuration:", {
 // Health check API
 export const healthAPI = {
   async check(): Promise<{ status: string; message: string }> {
-    const healthUrl = `${API_BASE_URL}/health`;
+    const healthUrl = `${getApiBase()}/health`;
     console.log("🏥 Health Check:", {
       url: healthUrl,
       timestamp: new Date().toISOString(),
@@ -202,7 +205,7 @@ async function getAuthHeaders(): Promise<HeadersInit> {
 // Outing API
 export const outingAPI = {
   async getAll(): Promise<Outing[]> {
-    const url = `${API_BASE_URL}/outings`;
+    const url = `${getApiBase()}/outings`;
     console.log("🚀 API Request: GET", url);
     const response = await fetch(url);
     const data = await handleResponse<{ outings: Outing[]; total: number }>(
@@ -212,7 +215,7 @@ export const outingAPI = {
   },
 
   async getAvailable(): Promise<Outing[]> {
-    const url = `${API_BASE_URL}/outings/available`;
+    const url = `${getApiBase()}/outings/available`;
     console.log("🚀 API Request: GET", url);
     const response = await fetch(url);
     const data = await handleResponse<{ outings: Outing[]; total: number }>(
@@ -222,7 +225,7 @@ export const outingAPI = {
   },
 
   async getById(id: string): Promise<Outing> {
-    const url = `${API_BASE_URL}/outings/${id}`;
+    const url = `${getApiBase()}/outings/${id}`;
     console.log("🚀 API Request: GET", url);
     const response = await fetch(url, {
       headers: await getAuthHeaders(),
@@ -231,7 +234,7 @@ export const outingAPI = {
   },
 
   async create(outing: OutingCreate): Promise<Outing> {
-    const url = `${API_BASE_URL}/outings`;
+    const url = `${getApiBase()}/outings`;
     console.log("🚀 API Request: POST", url, outing);
     const response = await fetch(url, {
       method: "POST",
@@ -245,7 +248,7 @@ export const outingAPI = {
     id: string,
     outing: Partial<OutingCreate>
   ): Promise<OutingUpdateResponse> {
-    const url = `${API_BASE_URL}/outings/${id}`;
+    const url = `${getApiBase()}/outings/${id}`;
     console.log("🚀 API Request: PUT", url, outing);
     const response = await fetch(url, {
       method: "PUT",
@@ -256,7 +259,7 @@ export const outingAPI = {
   },
 
   async delete(id: string): Promise<void> {
-    const url = `${API_BASE_URL}/outings/${id}`;
+    const url = `${getApiBase()}/outings/${id}`;
     console.log("🚀 API Request: DELETE", url);
     const response = await fetch(url, {
       method: "DELETE",
@@ -268,7 +271,7 @@ export const outingAPI = {
   },
 
   async getOutingHandout(id: string): Promise<Blob> {
-    const url = `${API_BASE_URL}/outings/${id}/handout`;
+    const url = `${getApiBase()}/outings/${id}/handout`;
     console.log("🚀 API Request: GET", url);
     const response = await fetch(url, {
       headers: await getAuthHeaders(),
@@ -283,7 +286,7 @@ export const outingAPI = {
 // Signup API
 export const signupAPI = {
   async create(signup: SignupCreate): Promise<SignupResponse> {
-    const response = await fetch(`${API_BASE_URL}/signups`, {
+    const response = await fetch(`${getApiBase()}/signups`, {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(signup),
@@ -292,13 +295,13 @@ export const signupAPI = {
   },
 
   async getById(id: string): Promise<SignupWithDetails> {
-    const response = await fetch(`${API_BASE_URL}/signups/${id}`);
+    const response = await fetch(`${getApiBase()}/signups/${id}`);
     return handleResponse<SignupWithDetails>(response);
   },
 
   async getByOuting(outingId: string): Promise<SignupResponse[]> {
     const response = await fetch(
-      `${API_BASE_URL}/outings/${outingId}/signups`,
+      `${getApiBase()}/outings/${outingId}/signups`,
       {
         headers: await getAuthHeaders(),
       }
@@ -311,7 +314,7 @@ export const signupAPI = {
   },
 
   async getMySignups(): Promise<SignupResponse[]> {
-    const response = await fetch(`${API_BASE_URL}/signups/my-signups`, {
+    const response = await fetch(`${getApiBase()}/signups/my-signups`, {
       headers: await getAuthHeaders(),
     });
     return handleResponse<SignupResponse[]>(response);
@@ -329,7 +332,7 @@ export const signupAPI = {
       family_member_ids?: string[];
     }
   ): Promise<SignupResponse> {
-    const response = await fetch(`${API_BASE_URL}/signups/${signupId}`, {
+    const response = await fetch(`${getApiBase()}/signups/${signupId}`, {
       method: "PUT",
       headers: await getAuthHeaders(),
       body: JSON.stringify(updateData),
@@ -338,7 +341,7 @@ export const signupAPI = {
   },
 
   async cancelSignup(signupId: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/signups/${signupId}`, {
+    const response = await fetch(`${getApiBase()}/signups/${signupId}`, {
       method: "DELETE",
       headers: await getAuthHeaders(),
     });
@@ -350,7 +353,7 @@ export const signupAPI = {
     outingId: string
   ): Promise<{ emails: string[]; count: number }> {
     const response = await fetch(
-      `${API_BASE_URL}/signups/outings/${outingId}/emails`,
+      `${getApiBase()}/signups/outings/${outingId}/emails`,
       {
         headers: await getAuthHeaders(),
       }
@@ -376,7 +379,7 @@ export const signupAPI = {
     note: string;
   }> {
     const response = await fetch(
-      `${API_BASE_URL}/signups/outings/${outingId}/send-email`,
+      `${getApiBase()}/signups/outings/${outingId}/send-email`,
       {
         method: "POST",
         headers: await getAuthHeaders(),
@@ -391,7 +394,7 @@ export const signupAPI = {
 export const pdfAPI = {
   async exportRosterPDF(outingId: string): Promise<Blob> {
     const response = await fetch(
-      `${API_BASE_URL}/signups/outings/${outingId}/export-pdf`,
+      `${getApiBase()}/signups/outings/${outingId}/export-pdf`,
       {
         headers: await getAuthHeaders(),
       }
@@ -476,7 +479,7 @@ export const oauthAPI = {
    * Get current user info
    */
   async getCurrentUser(token: string): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/clerk/me`, {
+    const response = await fetch(`${getApiBase()}/clerk/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -512,7 +515,7 @@ export const registrationAPI = {
     first_name: string;
     last_name: string;
   }): Promise<{ message: string; user_id: string; email: string }> {
-    const response = await fetch(`${API_BASE_URL}/register/register`, {
+    const response = await fetch(`${getApiBase()}/register/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -526,7 +529,7 @@ export const registrationAPI = {
 // Legacy Auth API (kept for backward compatibility with admin accounts)
 export const authAPI = {
   async login(credentials: LoginRequest): Promise<TokenResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+    const response = await fetch(`${getApiBase()}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -537,7 +540,7 @@ export const authAPI = {
   },
 
   async getCurrentUser(token: string): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+    const response = await fetch(`${getApiBase()}/auth/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -546,7 +549,7 @@ export const authAPI = {
   },
 
   async refreshToken(refreshToken: string): Promise<TokenResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    const response = await fetch(`${getApiBase()}/auth/refresh`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -557,7 +560,7 @@ export const authAPI = {
   },
 
   async logout(token: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+    const response = await fetch(`${getApiBase()}/auth/logout`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -569,7 +572,7 @@ export const authAPI = {
   },
 
   async checkSetupStatus(): Promise<{ setup_complete: boolean }> {
-    const response = await fetch(`${API_BASE_URL}/auth/setup-status`, {
+    const response = await fetch(`${getApiBase()}/auth/setup-status`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -583,7 +586,7 @@ export const authAPI = {
     password: string;
     full_name: string;
   }): Promise<{ message: string; user_id: string }> {
-    const response = await fetch(`${API_BASE_URL}/auth/setup-admin`, {
+    const response = await fetch(`${getApiBase()}/auth/setup-admin`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -603,7 +606,7 @@ export const familyAPI = {
    * Get all family members for the current user
    */
   async getAll(): Promise<FamilyMemberListResponse> {
-    const url = `${API_BASE_URL}/family/`;
+    const url = `${getApiBase()}/family/`;
     console.log("🚀 API Request: GET", url);
 
     try {
@@ -647,7 +650,7 @@ export const familyAPI = {
    * @param outingId - Optional outing ID to check youth protection expiration against outing end date
    */
   async getSummary(outingId?: string): Promise<FamilyMemberSummary[]> {
-    let url = `${API_BASE_URL}/family/summary`;
+    let url = `${getApiBase()}/family/summary`;
     if (outingId) {
       url += `?outing_id=${encodeURIComponent(outingId)}`;
     }
@@ -688,7 +691,7 @@ export const familyAPI = {
    * Get a specific family member by ID
    */
   async getById(id: string): Promise<FamilyMember> {
-    const response = await fetch(`${API_BASE_URL}/family/${id}`, {
+    const response = await fetch(`${getApiBase()}/family/${id}`, {
       headers: await getAuthHeaders(),
     });
     return handleResponse<FamilyMember>(response);
@@ -698,7 +701,7 @@ export const familyAPI = {
    * Create a new family member
    */
   async create(member: FamilyMemberCreate): Promise<FamilyMember> {
-    const response = await fetch(`${API_BASE_URL}/family/`, {
+    const response = await fetch(`${getApiBase()}/family/`, {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(member),
@@ -710,7 +713,7 @@ export const familyAPI = {
    * Update an existing family member
    */
   async update(id: string, member: FamilyMemberUpdate): Promise<FamilyMember> {
-    const response = await fetch(`${API_BASE_URL}/family/${id}`, {
+    const response = await fetch(`${getApiBase()}/family/${id}`, {
       method: "PUT",
       headers: await getAuthHeaders(),
       body: JSON.stringify(member),
@@ -722,7 +725,7 @@ export const familyAPI = {
    * Delete a family member
    */
   async delete(id: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/family/${id}`, {
+    const response = await fetch(`${getApiBase()}/family/${id}`, {
       method: "DELETE",
       headers: await getAuthHeaders(),
     });
@@ -738,7 +741,7 @@ export const userAPI = {
    * Get current user information including contact details
    */
   async getCurrentUser(): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/clerk/me`, {
+    const response = await fetch(`${getApiBase()}/clerk/me`, {
       headers: await getAuthHeaders(),
     });
     return handleResponse<User>(response);
@@ -752,7 +755,7 @@ export const userAPI = {
     emergency_contact_name?: string;
     emergency_contact_phone?: string;
   }): Promise<User> {
-    const response = await fetch(`${API_BASE_URL}/clerk/me/contact`, {
+    const response = await fetch(`${getApiBase()}/clerk/me/contact`, {
       method: "PATCH",
       headers: await getAuthHeaders(),
       body: JSON.stringify(contactInfo),
@@ -784,7 +787,7 @@ export const checkInAPI = {
   ): Promise<import("../types").CheckInSummary> {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/outings/${outingId}/checkin`,
+        `${getApiBase()}/outings/${outingId}/checkin`,
         {
           headers: await getAuthHeaders(),
         }
@@ -831,7 +834,7 @@ export const checkInAPI = {
   ): Promise<import("../types").CheckInResponse> {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/outings/${outingId}/checkin`,
+        `${getApiBase()}/outings/${outingId}/checkin`,
         {
           method: "POST",
           headers: await getAuthHeaders(),
@@ -907,7 +910,7 @@ export const checkInAPI = {
   ): Promise<{ message: string }> {
     try {
       const response = await fetch(
-        `${API_BASE_URL}/outings/${outingId}/checkin/${participantId}`,
+        `${getApiBase()}/outings/${outingId}/checkin/${participantId}`,
         {
           method: "DELETE",
           headers: await getAuthHeaders(),
@@ -984,14 +987,16 @@ export const checkInAPI = {
     for (const item of queue) {
       try {
         if (item.type === "checkin" && item.data) {
-          await fetch(`${API_BASE_URL}/outings/${item.outingId}/checkin`, {
+          await fetch(`${getApiBase()}/outings/${item.outingId}/checkin`, {
             method: "POST",
             headers: await getAuthHeaders(),
             body: JSON.stringify(item.data),
           });
         } else if (item.type === "undo" && item.participantId) {
           await fetch(
-            `${API_BASE_URL}/outings/${item.outingId}/checkin/${item.participantId}`,
+            `${getApiBase()}/outings/${item.outingId}/checkin/${
+              item.participantId
+            }`,
             {
               method: "DELETE",
               headers: await getAuthHeaders(),
@@ -1017,7 +1022,7 @@ export const checkInAPI = {
     outingId: string
   ): Promise<{ message: string; count: number }> {
     const response = await fetch(
-      `${API_BASE_URL}/outings/${outingId}/checkin`,
+      `${getApiBase()}/outings/${outingId}/checkin`,
       {
         method: "DELETE",
         headers: await getAuthHeaders(),
@@ -1031,7 +1036,7 @@ export const checkInAPI = {
    */
   async exportCheckInCSV(outingId: string): Promise<Blob> {
     const response = await fetch(
-      `${API_BASE_URL}/outings/${outingId}/checkin/export`,
+      `${getApiBase()}/outings/${outingId}/checkin/export`,
       {
         headers: await getAuthHeaders(),
       }
@@ -1167,7 +1172,7 @@ export interface TroopResponse {
 
 export const troopAPI = {
   async getAll(): Promise<TroopResponse[]> {
-    const response = await fetch(`${API_BASE_URL}/troops`, {
+    const response = await fetch(`${getApiBase()}/troops`, {
       headers: await getAuthHeaders(),
     });
     const data = await handleResponse<{
@@ -1177,13 +1182,13 @@ export const troopAPI = {
     return data.troops;
   },
   async getById(id: string): Promise<TroopResponse> {
-    const response = await fetch(`${API_BASE_URL}/troops/${id}`, {
+    const response = await fetch(`${getApiBase()}/troops/${id}`, {
       headers: await getAuthHeaders(),
     });
     return handleResponse<TroopResponse>(response);
   },
   async create(troop: TroopCreate): Promise<TroopResponse> {
-    const response = await fetch(`${API_BASE_URL}/troops`, {
+    const response = await fetch(`${getApiBase()}/troops`, {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(troop),
@@ -1191,7 +1196,7 @@ export const troopAPI = {
     return handleResponse<TroopResponse>(response);
   },
   async update(id: string, troop: TroopUpdate): Promise<TroopResponse> {
-    const response = await fetch(`${API_BASE_URL}/troops/${id}`, {
+    const response = await fetch(`${getApiBase()}/troops/${id}`, {
       method: "PUT",
       headers: await getAuthHeaders(),
       body: JSON.stringify(troop),
@@ -1199,7 +1204,7 @@ export const troopAPI = {
     return handleResponse<TroopResponse>(response);
   },
   async delete(id: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/troops/${id}`, {
+    const response = await fetch(`${getApiBase()}/troops/${id}`, {
       method: "DELETE",
       headers: await getAuthHeaders(),
     });
@@ -1211,7 +1216,7 @@ export const troopAPI = {
 
 export const patrolAPI = {
   async getByTroop(troopId: string): Promise<PatrolResponse[]> {
-    const response = await fetch(`${API_BASE_URL}/troops/${troopId}/patrols`);
+    const response = await fetch(`${getApiBase()}/troops/${troopId}/patrols`);
     const data = await handleResponse<{
       patrols: PatrolResponse[];
       total: number;
@@ -1219,7 +1224,7 @@ export const patrolAPI = {
     return data.patrols;
   },
   async create(patrol: PatrolCreate): Promise<PatrolResponse> {
-    const response = await fetch(`${API_BASE_URL}/patrols`, {
+    const response = await fetch(`${getApiBase()}/patrols`, {
       method: "POST",
       headers: await getAuthHeaders(),
       body: JSON.stringify(patrol),
@@ -1227,7 +1232,7 @@ export const patrolAPI = {
     return handleResponse<PatrolResponse>(response);
   },
   async update(id: string, patrol: PatrolUpdate): Promise<PatrolResponse> {
-    const response = await fetch(`${API_BASE_URL}/patrols/${id}`, {
+    const response = await fetch(`${getApiBase()}/patrols/${id}`, {
       method: "PUT",
       headers: await getAuthHeaders(),
       body: JSON.stringify(patrol),
@@ -1235,7 +1240,7 @@ export const patrolAPI = {
     return handleResponse<PatrolResponse>(response);
   },
   async delete(id: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/patrols/${id}`, {
+    const response = await fetch(`${getApiBase()}/patrols/${id}`, {
       method: "DELETE",
       headers: await getAuthHeaders(),
     });
@@ -1261,7 +1266,7 @@ export const requirementsAPI = {
       max_merit_badges: maxMeritBadges.toString(),
     });
     const response = await fetch(
-      `${API_BASE_URL}/outings/${outingId}/suggestions?${params}`,
+      `${getApiBase()}/outings/${outingId}/suggestions?${params}`,
       {
         headers: await getAuthHeaders(),
       }
@@ -1290,7 +1295,7 @@ export const requirementsAPI = {
     }
 
     const response = await fetch(
-      `${API_BASE_URL}/requirements/requirements/preview-suggestions`,
+      `${getApiBase()}/requirements/requirements/preview-suggestions`,
       {
         method: "POST",
         headers: {
@@ -1318,7 +1323,7 @@ export const requirementsAPI = {
     if (category) params.append("category", category);
 
     const response = await fetch(
-      `${API_BASE_URL}/requirements/rank-requirements${
+      `${getApiBase()}/requirements/rank-requirements${
         params.toString() ? "?" + params : ""
       }`,
       {
@@ -1332,7 +1337,7 @@ export const requirementsAPI = {
    * Get all merit badges
    */
   async getMeritBadges(): Promise<MeritBadge[]> {
-    const response = await fetch(`${API_BASE_URL}/requirements/merit-badges`, {
+    const response = await fetch(`${getApiBase()}/requirements/merit-badges`, {
       headers: await getAuthHeaders(),
     });
     return handleResponse<MeritBadge[]>(response);
@@ -1343,7 +1348,7 @@ export const requirementsAPI = {
    */
   async getOutingRequirements(outingId: string): Promise<OutingRequirement[]> {
     const response = await fetch(
-      `${API_BASE_URL}/outings/${outingId}/requirements`,
+      `${getApiBase()}/outings/${outingId}/requirements`,
       {
         headers: await getAuthHeaders(),
       }
@@ -1356,7 +1361,7 @@ export const requirementsAPI = {
    */
   async getOutingMeritBadges(outingId: string): Promise<OutingMeritBadge[]> {
     const response = await fetch(
-      `${API_BASE_URL}/outings/${outingId}/merit-badges`,
+      `${getApiBase()}/outings/${outingId}/merit-badges`,
       {
         headers: await getAuthHeaders(),
       }
@@ -1372,7 +1377,7 @@ export const requirementsAPI = {
     data: OutingRequirementCreate
   ): Promise<OutingRequirement> {
     const response = await fetch(
-      `${API_BASE_URL}/outings/${outingId}/requirements`,
+      `${getApiBase()}/outings/${outingId}/requirements`,
       {
         method: "POST",
         headers: await getAuthHeaders(),
@@ -1390,7 +1395,7 @@ export const requirementsAPI = {
     data: OutingMeritBadgeCreate
   ): Promise<OutingMeritBadge> {
     const response = await fetch(
-      `${API_BASE_URL}/outings/${outingId}/merit-badges`,
+      `${getApiBase()}/outings/${outingId}/merit-badges`,
       {
         method: "POST",
         headers: await getAuthHeaders(),
@@ -1407,7 +1412,7 @@ export const requirementsAPI = {
     outingRequirementId: string
   ): Promise<void> {
     const response = await fetch(
-      `${API_BASE_URL}/outings/requirements/${outingRequirementId}`,
+      `${getApiBase()}/outings/requirements/${outingRequirementId}`,
       {
         method: "DELETE",
         headers: await getAuthHeaders(),
@@ -1421,7 +1426,7 @@ export const requirementsAPI = {
    */
   async removeMeritBadgeFromOuting(outingMeritBadgeId: string): Promise<void> {
     const response = await fetch(
-      `${API_BASE_URL}/outings/merit-badges/${outingMeritBadgeId}`,
+      `${getApiBase()}/outings/merit-badges/${outingMeritBadgeId}`,
       {
         method: "DELETE",
         headers: await getAuthHeaders(),
@@ -1439,7 +1444,7 @@ export const packingListAPI = {
   async getTemplates(): Promise<
     import("../types").PackingListTemplateListResponse
   > {
-    const response = await fetch(`${API_BASE_URL}/packing-lists/templates`);
+    const response = await fetch(`${getApiBase()}/packing-lists/templates`);
     return handleResponse<import("../types").PackingListTemplateListResponse>(
       response
     );
@@ -1452,7 +1457,7 @@ export const packingListAPI = {
     templateId: string
   ): Promise<import("../types").PackingListTemplateWithItems> {
     const response = await fetch(
-      `${API_BASE_URL}/packing-lists/templates/${templateId}`
+      `${getApiBase()}/packing-lists/templates/${templateId}`
     );
     return handleResponse<import("../types").PackingListTemplateWithItems>(
       response
@@ -1467,7 +1472,7 @@ export const packingListAPI = {
     data: import("../types").OutingPackingListCreate
   ): Promise<import("../types").OutingPackingList> {
     const response = await fetch(
-      `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists`,
+      `${getApiBase()}/packing-lists/outings/${outingId}/packing-lists`,
       {
         method: "POST",
         headers: await getAuthHeaders(),
@@ -1484,7 +1489,7 @@ export const packingListAPI = {
     outingId: string
   ): Promise<import("../types").OutingPackingList[]> {
     const response = await fetch(
-      `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists`,
+      `${getApiBase()}/packing-lists/outings/${outingId}/packing-lists`,
       {
         headers: await getAuthHeaders(),
       }
@@ -1500,7 +1505,7 @@ export const packingListAPI = {
     packingListId: string
   ): Promise<void> {
     const response = await fetch(
-      `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists/${packingListId}`,
+      `${getApiBase()}/packing-lists/outings/${outingId}/packing-lists/${packingListId}`,
       {
         method: "DELETE",
         headers: await getAuthHeaders(),
@@ -1520,7 +1525,7 @@ export const packingListAPI = {
     item: import("../types").OutingPackingListItemCreate
   ): Promise<import("../types").OutingPackingListItem> {
     const response = await fetch(
-      `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists/${packingListId}/items`,
+      `${getApiBase()}/packing-lists/outings/${outingId}/packing-lists/${packingListId}/items`,
       {
         method: "POST",
         headers: await getAuthHeaders(),
@@ -1539,7 +1544,7 @@ export const packingListAPI = {
     updates: import("../types").OutingPackingListItemUpdate
   ): Promise<import("../types").OutingPackingListItem> {
     const response = await fetch(
-      `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists/items/${itemId}`,
+      `${getApiBase()}/packing-lists/outings/${outingId}/packing-lists/items/${itemId}`,
       {
         method: "PATCH",
         headers: await getAuthHeaders(),
@@ -1554,7 +1559,7 @@ export const packingListAPI = {
    */
   async deleteItem(outingId: string, itemId: string): Promise<void> {
     const response = await fetch(
-      `${API_BASE_URL}/packing-lists/outings/${outingId}/packing-lists/items/${itemId}`,
+      `${getApiBase()}/packing-lists/outings/${outingId}/packing-lists/items/${itemId}`,
       {
         method: "DELETE",
         headers: await getAuthHeaders(),
