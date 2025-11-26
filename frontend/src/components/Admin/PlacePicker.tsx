@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import type { Place } from "../../types";
-import { placesAPI } from "../../services/api";
+import { placesAPI, nominatimAPI, type NominatimResult } from "../../services/api";
 
 interface PlacePickerProps {
   label: string;
@@ -30,6 +30,7 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
   autoName,
 }) => {
   const [options, setOptions] = useState<any[]>([]);
+  const [nominatimResults, setNominatimResults] = useState<NominatimResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [customAddress, setCustomAddress] = useState(value.address || "");
@@ -58,6 +59,32 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
     }
   }, [value.placeId]);
 
+  // Helper function to format Nominatim address into two-line format
+  const formatNominatimAddress = (result: NominatimResult): string => {
+    const addr = result.address;
+    const line1Parts: string[] = [];
+    const line2Parts: string[] = [];
+
+    // Line 1: Street address
+    if (addr.house_number) line1Parts.push(addr.house_number);
+    if (addr.road) line1Parts.push(addr.road);
+
+    // Line 2: City, State ZIP
+    const city = addr.city || addr.town || addr.village || "";
+    if (city) line2Parts.push(city);
+    
+    const stateParts: string[] = [];
+    if (addr.state) stateParts.push(addr.state);
+    if (addr.postcode) stateParts.push(addr.postcode);
+    if (stateParts.length > 0) line2Parts.push(stateParts.join(" "));
+
+    const lines: string[] = [];
+    if (line1Parts.length > 0) lines.push(line1Parts.join(" "));
+    if (line2Parts.length > 0) lines.push(line2Parts.join(", "));
+
+    return lines.join("\n") || result.display_name;
+  };
+
   // Debounced search with useRef
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -70,6 +97,7 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
 
     if (!searchValue || showCustomInput || searchValue.length < 2) {
       setOptions([]);
+      setNominatimResults([]);
       setShowDropdown(false);
       return;
     }
@@ -83,12 +111,23 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
     searchTimeoutRef.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const results = await placesAPI.searchPlaces(searchValue, 10);
-        setOptions(results);
+        // First, search saved places
+        const savedPlaces = await placesAPI.searchPlaces(searchValue, 10);
+        setOptions(savedPlaces);
+
+        // If no saved places found, search Nominatim
+        if (savedPlaces.length === 0) {
+          const nominatimPlaces = await nominatimAPI.search(searchValue, 5);
+          setNominatimResults(nominatimPlaces);
+        } else {
+          setNominatimResults([]);
+        }
+
         setShowDropdown(true);
       } catch (error) {
         console.error("Error searching places:", error);
         setOptions([]);
+        setNominatimResults([]);
         setShowDropdown(false);
       } finally {
         setLoading(false);
@@ -154,6 +193,50 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
       placeId: undefined,
       place: undefined,
     });
+  };
+
+  const handleNominatimSelect = (result: NominatimResult) => {
+    const formattedAddress = formatNominatimAddress(result);
+    const placeName = result.address.road || result.display_name.split(",")[0];
+    
+    setSearchValue(placeName);
+    setShowDropdown(false);
+    placeSelectedRef.current = true;
+    onChange({
+      name: placeName,
+      address: formattedAddress,
+      placeId: undefined,
+      place: undefined,
+    });
+    setCustomAddress(formattedAddress);
+    setCustomName(placeName);
+  };
+
+  const handleSaveNominatimAsPlace = async (result: NominatimResult) => {
+    try {
+      const formattedAddress = formatNominatimAddress(result);
+      const placeName = customName.trim() || result.address.road || result.display_name.split(",")[0];
+
+      const newPlace = await placesAPI.createPlace({
+        name: placeName,
+        address: formattedAddress,
+      });
+
+      onChange({
+        name: newPlace.name,
+        address: newPlace.address,
+        placeId: newPlace.id,
+        place: undefined,
+      });
+      setShowDropdown(false);
+      setNominatimResults([]);
+      setSearchValue(newPlace.name);
+      setCustomAddress("");
+      setCustomName("");
+    } catch (error) {
+      console.error("Error saving Nominatim result as place:", error);
+      alert("Failed to save place. Please try again.");
+    }
   };
 
   const handleSaveAsPlace = async () => {
@@ -244,24 +327,51 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
             className="w-full p-2 text-sm rounded border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--input-text)] focus:outline-none focus:ring-2 focus:ring-[var(--bsa-olive)]"
           />
           {loading && <div className="absolute right-2 top-2 text-sm">⏳</div>}
-          {showDropdown && options.length > 0 && (
+          {showDropdown && (options.length > 0 || nominatimResults.length > 0) && (
             <div className="absolute top-full left-0 right-0 mt-0.5 max-h-52 overflow-y-auto z-10 bg-[var(--bg-tertiary)] border border-[var(--card-border)] rounded shadow-lg">
+              {/* Saved places */}
               {options.map((place) => (
                 <button
                   type="button"
                   key={place.id}
                   onClick={() => handlePlaceSelect(place)}
-                  className="w-full text-left px-3 py-2 text-sm border-b last:border-b-0 border-[var(--card-border)] hover:bg-[rgba(var(--bsa-olive-rgb),0.1)] transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm border-b border-[var(--card-border)] hover:bg-[rgba(var(--bsa-olive-rgb),0.1)] transition-colors"
                 >
-                  <div className="font-semibold">{place.name}</div>
+                  <div className="font-semibold">💾 {place.name}</div>
                   <div className="text-[11px] text-[var(--text-secondary)]">
                     {place.address}
                   </div>
                 </button>
               ))}
+              
+              {/* Nominatim results */}
+              {nominatimResults.map((result) => (
+                <button
+                  type="button"
+                  key={result.place_id}
+                  onClick={() => handleNominatimSelect(result)}
+                  className="w-full text-left px-3 py-2 text-sm border-b border-[var(--card-border)] hover:bg-[rgba(var(--bsa-olive-rgb),0.1)] transition-colors"
+                >
+                  <div className="font-semibold">🌍 {result.address.road || result.display_name.split(",")[0]}</div>
+                  <div className="text-[11px] text-[var(--text-secondary)]">
+                    {formatNominatimAddress(result)}
+                  </div>
+                </button>
+              ))}
+              
+              {/* Option to save Nominatim result as new place */}
+              {nominatimResults.length > 0 && nominatimResults[0] && (
+                <button
+                  type="button"
+                  onClick={() => handleSaveNominatimAsPlace(nominatimResults[0])}
+                  className="w-full text-left px-3 py-2 text-sm bg-[var(--bsa-olive)] text-white hover:opacity-90 transition-colors font-semibold"
+                >
+                  💾 Save first result as reusable place
+                </button>
+              )}
             </div>
           )}
-          {showDropdown && searchValue && options.length === 0 && !loading && (
+          {showDropdown && searchValue && options.length === 0 && nominatimResults.length === 0 && !loading && (
             <button
               type="button"
               onClick={(e) => {
