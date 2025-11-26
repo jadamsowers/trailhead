@@ -502,6 +502,7 @@ const DevDataSeeder: React.FC = () => {
               5,
               5
             );
+            console.log(`Suggestions for outing '${name}':`, suggestions);
 
             // Add top 3 rank requirements
             const topRequirements = suggestions.requirements.slice(0, 3);
@@ -513,7 +514,11 @@ const DevDataSeeder: React.FC = () => {
                 });
                 requirementsAdded++;
               } catch (error) {
-                console.error(`Error adding requirement:`, error);
+                console.error(
+                  `Error adding requirement to outing '${name}' (requirement id: ${req.id}):`,
+                  error,
+                  req
+                );
               }
             }
 
@@ -529,14 +534,21 @@ const DevDataSeeder: React.FC = () => {
                 });
                 meritBadgesAdded++;
               } catch (error) {
-                console.error(`Error adding merit badge:`, error);
+                console.error(
+                  `Error adding merit badge to outing '${name}' (badge id: ${badge.id}):`,
+                  error,
+                  badge
+                );
               }
             }
           } catch (error) {
-            console.error(`Error getting suggestions for ${name}:`, error);
+            console.error(
+              `Error getting suggestions for outing '${name}':`,
+              error
+            );
           }
         } catch (error) {
-          console.error(`Error creating outing ${name}:`, error);
+          console.error(`Error creating outing '${name}':`, error);
         }
       }
 
@@ -550,14 +562,8 @@ const DevDataSeeder: React.FC = () => {
           `Step 3 - Outings & Requirements:\n` +
           `• Outings created: ${outingsCreated}\n` +
           `• Rank requirements added: ${requirementsAdded}\n` +
-          `• Merit badges added: ${meritBadgesAdded}\n\n` +
-          `The page will refresh in 3 seconds...`
+          `• Merit badges added: ${meritBadgesAdded}`
       );
-
-      // Refresh the page after 3 seconds
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
     } catch (error) {
       console.error("Error seeding data:", error);
       setSeedError(
