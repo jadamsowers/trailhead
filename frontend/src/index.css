@@ -64,28 +64,8 @@ body {
   font-size: var(--font-size-base);
   line-height: 1.8;
   color: var(--text-primary);
-  background-color: var(--bg-secondary);
-  background-image: radial-gradient(
-      at 0% 0%,
-      rgba(var(--bsa-tan-rgb), 0.1) 0px,
-      transparent 50%
-    ),
-    radial-gradient(
-      at 100% 0%,
-      rgba(var(--bsa-olive-rgb), 0.08) 0px,
-      transparent 50%
-    ),
-    radial-gradient(
-      at 100% 100%,
-      rgba(var(--bsa-red-rgb), 0.05) 0px,
-      transparent 50%
-    ),
-    radial-gradient(
-      at 0% 100%,
-      rgba(var(--bsa-tan-rgb), 0.12) 0px,
-      transparent 50%
-    );
-  background-attachment: fixed;
+  background-color: transparent; /* Let TopoBackground show through */
+  background-image: none; /* Remove gradient to show topo background */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

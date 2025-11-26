@@ -1,6 +1,6 @@
 .topo-bg {
-  /* Use theme background variable */
-  background-color: var(--bg-primary, var(--color-primary));
+  /* Use tan-300 for light mode - balanced warmth */
+  background-color: var(--bsa-tan-300) !important;
   position: fixed;
   top: 0;
   left: 0;
@@ -11,23 +11,51 @@
   pointer-events: none;
 }
 
+/* Explicit light theme */
+:root .topo-bg,
+[data-theme="light"] .topo-bg {
+  background-color: var(--bsa-tan-200) !important;
+}
+
+/* Explicit dark theme */
+[data-theme="dark"] .topo-bg {
+  background-color: var(--bg-primary) !important;
+}
+
+/* High contrast mode - hide topo background */
+[data-theme="high-contrast"] .topo-bg {
+  display: none !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .topo-bg {
+    background-color: var(--bg-primary) !important;
+  }
+}
+
 .topo-svg {
   width: 100%;
   height: 100%;
   animation: slow-pan 40s linear infinite alternate;
   display: block;
+  will-change: transform;
+  transform: translate3d(0, 0, 0); /* Force GPU acceleration */
+  filter: blur(1px); /* Increased blur to soften lines more */
+}
+
+.topo-svg text {
+  text-rendering: geometricPrecision; /* Smoother text animation */
 }
 
 .topo-path {
-  stroke: var(--text-primary, #fff);
-  /* Opacity is set inline for each path */
+  stroke: var(--text-primary, #333);
 }
 
 @keyframes slow-pan {
   from {
-    transform: translateX(0) translateY(0) scale(1.05);
+    transform: translate3d(0, 0, 0) scale(1.05);
   }
   to {
-    transform: translateX(-40px) translateY(-40px) scale(1.05);
+    transform: translate3d(-40px, -40px, 0) scale(1.05);
   }
 }
