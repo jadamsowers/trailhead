@@ -346,3 +346,123 @@ class TestCancelSignup:
         response = await client.delete(f"/api/signups/{uuid.uuid4()}", headers=auth_headers)
         
         assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+class TestListSignups:
+    """Test GET /api/signups endpoint"""
+
+    async def test_list_signups_admin(self, client: AsyncClient, auth_headers, test_signup):
+        """Test admin can list all signups"""
+        response = await client.get("/api/signups", headers=auth_headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total"] >= 1
+        assert len(data["signups"]) >= 1
+        assert any(s["id"] == str(test_signup.id) for s in data["signups"])
+
+    async def test_list_signups_filter(self, client: AsyncClient, auth_headers, test_signup):
+        """Test filtering signups by outing_id"""
+        response = await client.get(f"/api/signups?outing_id={test_signup.outing_id}", headers=auth_headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["signups"]) >= 1
+        assert all(s["outing_id"] == str(test_signup.outing_id) for s in data["signups"])
+
+
+@pytest.mark.asyncio
+class TestGetMySignups:
+    """Test GET /api/signups/my-signups endpoint"""
+
+    async def test_get_my_signups_success(self, client: AsyncClient, auth_headers, test_signup, test_user, db_session):
+        """Test getting current user's signups"""
+        # Ensure test_signup belongs to test_user (via family member)
+        # The fixture test_signup uses test_family_member which uses test_user, so this should work
+        response = await client.get("/api/signups/my-signups", headers=auth_headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) >= 1
+        assert any(s["id"] == str(test_signup.id) for s in data)
+
+    async def test_get_my_signups_empty(self, client: AsyncClient, regular_user_headers):
+        """Test getting empty list for user with no signups"""
+        response = await client.get("/api/signups/my-signups", headers=regular_user_headers)
+        assert response.status_code == 200
+        assert response.json() == []
+
+
+@pytest.mark.asyncio
+class TestUpdateSignup:
+    """Test PUT /api/signups/{signup_id} endpoint"""
+
+    async def test_update_signup_success(self, client: AsyncClient, auth_headers, test_signup):
+        """Test updating signup contact info"""
+        update_data = {
+            "family_contact": {
+                "email": "updated@test.com",
+                "phone": "555-9999",
+                "emergency_contact_name": "New EC",
+                "emergency_contact_phone": "555-8888"
+            }
+        }
+        response = await client.put(f"/api/signups/{test_signup.id}", json=update_data, headers=auth_headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["family_contact_email"] == "updated@test.com"
+        assert data["family_contact_phone"] == "555-9999"
+
+    async def test_update_signup_participants(self, client: AsyncClient, auth_headers, test_signup, test_family_member, db_session, test_user):
+        """Test updating signup participants"""
+        from app.models.family import FamilyMember
+        
+        # Create another family member
+        new_member = FamilyMember(
+            user_id=test_user.id,
+            name="New Scout",
+            date_of_birth=date.today() - timedelta(days=365*12),
+            member_type="scout",
+            gender="male",
+            troop_number="123"
+        )
+        db_session.add(new_member)
+        await db_session.commit()
+        await db_session.refresh(new_member)
+
+        update_data = {
+            "family_member_ids": [str(test_family_member.id), str(new_member.id)]
+        }
+        response = await client.put(f"/api/signups/{test_signup.id}", json=update_data, headers=auth_headers)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["participants"]) == 2
+        assert data["participant_count"] == 2
+
+    async def test_update_signup_forbidden(self, client: AsyncClient, regular_user_headers, test_signup):
+        """Test user cannot update another user's signup"""
+        update_data = {
+            "family_contact": {
+                "email": "hacker@test.com",
+                "phone": "555-6666",
+                "emergency_contact_name": "Hacker Mom",
+                "emergency_contact_phone": "555-7777"
+            }
+        }
+        response = await client.put(f"/api/signups/{test_signup.id}", json=update_data, headers=regular_user_headers)
+        assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+class TestExportOutingRoster:
+    """Test GET /api/signups/outings/{outing_id}/export-pdf endpoint"""
+
+    async def test_export_pdf_admin(self, client: AsyncClient, auth_headers, test_outing):
+        """Test admin can export roster PDF"""
+        response = await client.get(f"/api/signups/outings/{test_outing.id}/export-pdf", headers=auth_headers)
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/pdf"
+        assert "attachment" in response.headers["content-disposition"]
+
+    async def test_export_pdf_forbidden(self, client: AsyncClient, regular_user_headers, test_outing):
+        """Test non-admin cannot export roster PDF"""
+        response = await client.get(f"/api/signups/outings/{test_outing.id}/export-pdf", headers=regular_user_headers)
+        assert response.status_code == 403
