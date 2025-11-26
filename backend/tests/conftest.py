@@ -50,7 +50,8 @@ creds = load_credentials()
 os.environ["POSTGRES_SERVER"] = "localhost"
 os.environ["POSTGRES_USER"] = creds["user"]
 os.environ["POSTGRES_PASSWORD"] = creds["password"]
-os.environ["POSTGRES_DB"] = creds["database"]
+# CRITICAL: Use a separate test database to avoid destroying production data!
+os.environ["POSTGRES_DB"] = creds["database"] + "_test"  # Add _test suffix
 os.environ["POSTGRES_PORT"] = creds["port"]
 os.environ["SECRET_KEY"] = creds["secret_key"]
 os.environ["CLERK_SECRET_KEY"] = creds["clerk_secret"]
@@ -86,9 +87,10 @@ from app.models.troop import Troop, Patrol
 
 
 # Build PostgreSQL connection URL from credentials
+# CRITICAL: Use separate test database!
 TEST_DATABASE_URL = (
     f"postgresql+asyncpg://{creds['user']}:{creds['password']}"
-    f"@localhost:{creds['port']}/{creds['database']}"
+    f"@localhost:{creds['port']}/{creds['database']}_test"  # Add _test suffix
 )
 
 
@@ -98,6 +100,47 @@ def event_loop() -> Generator:
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
+
+async def ensure_test_database_exists():
+    """Create test database if it doesn't exist."""
+    import asyncpg
+    
+    # Connect to default 'postgres' database to create test database
+    try:
+        conn = await asyncpg.connect(
+            user=creds["user"],
+            password=creds["password"],
+            host="localhost",
+            port=creds["port"],
+            database="postgres"  # Connect to default database
+        )
+        
+        # Check if test database exists
+        test_db_name = f"{creds['database']}_test"
+        result = await conn.fetchval(
+            "SELECT 1 FROM pg_database WHERE datname = $1",
+            test_db_name
+        )
+        
+        if not result:
+            # Create test database
+            await conn.execute(f'CREATE DATABASE "{test_db_name}"')
+            print(f"✅ Created test database: {test_db_name}")
+        else:
+            print(f"✅ Test database already exists: {test_db_name}")
+        
+        await conn.close()
+    except Exception as e:
+        print(f"⚠️  Warning: Could not create test database: {e}")
+        print(f"   Please create it manually: createdb {creds['database']}_test")
+        raise
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def setup_test_database():
+    """Ensure test database exists before running any tests."""
+    await ensure_test_database_exists()
 
 
 @pytest.fixture(scope="function")

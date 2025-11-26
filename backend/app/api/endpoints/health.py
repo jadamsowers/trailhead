@@ -1,20 +1,3 @@
-@router.get("/ready", tags=["health"])
-async def readiness_check():
-    """Readiness check endpoint - returns 200 if DB and tables are ready, 503 otherwise."""
-    db_status = "unknown"
-    tables_present = False
-    try:
-        async with AsyncSessionLocal() as session:
-            await session.execute(text("SELECT 1"))
-            db_status = "ok"
-            result = await session.execute(text("SELECT to_regclass('public.users')"))
-            table_exists = result.scalar()
-            tables_present = bool(table_exists)
-    except Exception:
-        db_status = "error"
-    ready = db_status == "ok" and tables_present
-    status_code = status.HTTP_200_OK if ready else status.HTTP_503_SERVICE_UNAVAILABLE
-    return JSONResponse(content={"status": "ready" if ready else "not ready"}, status_code=status_code)
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -24,6 +7,7 @@ from app.models import User, Outing
 import logging
 
 router = APIRouter()
+
 
 @router.get("/health", tags=["health"])
 async def health_check():
@@ -68,3 +52,22 @@ async def health_check():
     }
     status_code = status.HTTP_200_OK if health["status"] == "healthy" else status.HTTP_503_SERVICE_UNAVAILABLE
     return JSONResponse(content=health, status_code=status_code)
+
+
+@router.get("/ready", tags=["health"])
+async def readiness_check():
+    """Readiness check endpoint - returns 200 if DB and tables are ready, 503 otherwise."""
+    db_status = "unknown"
+    tables_present = False
+    try:
+        async with AsyncSessionLocal() as session:
+            await session.execute(text("SELECT 1"))
+            db_status = "ok"
+            result = await session.execute(text("SELECT to_regclass('public.users')"))
+            table_exists = result.scalar()
+            tables_present = bool(table_exists)
+    except Exception:
+        db_status = "error"
+    ready = db_status == "ok" and tables_present
+    status_code = status.HTTP_200_OK if ready else status.HTTP_503_SERVICE_UNAVAILABLE
+    return JSONResponse(content={"status": "ready" if ready else "not ready"}, status_code=status_code)

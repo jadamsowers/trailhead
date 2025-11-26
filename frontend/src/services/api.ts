@@ -1,3 +1,44 @@
+// Nominatim (OpenStreetMap) API for address autocomplete
+export const nominatimAPI = {
+  /**
+   * Search for places using Nominatim (OpenStreetMap)
+   * @param query - The search string (address or place name)
+   * @param limit - Max number of results
+   * @returns Array of { display_name, lat, lon, address, ... }
+   */
+  async search(query: string, limit: number = 5): Promise<NominatimResult[]> {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(
+      query
+    )}&limit=${limit}`;
+    const response = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Nominatim search failed");
+    }
+    return response.json();
+  },
+};
+
+export interface NominatimResult {
+  place_id: string;
+  display_name: string;
+  lat: string;
+  lon: string;
+  address: {
+    house_number?: string;
+    road?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    state?: string;
+    postcode?: string;
+    country?: string;
+    [key: string]: string | undefined;
+  };
+}
 import {
   Outing,
   OutingCreate,
