@@ -1,3 +1,11 @@
+asyncpg==0.29.0
+pytest-cov==4.1.0
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+reportlab==4.0.7
+email-validator==2.1.0
+qrcode[pil]==7.4.2
+Pillow>=10.0.0
 # Test dependencies
 pytest==7.4.3
 pytest-asyncio==0.21.1
@@ -6,4 +14,10 @@ pytest-mock==3.12.0
 httpx>=0.28.1
 faker==20.1.0
 greenlet==3.0.1
+aiosqlite==0.19.0
+# Ensure test_api_health.py dependencies
+fastapi==0.104.1
+sqlalchemy==2.0.34
+pydantic>=2.11.2
+clerk-backend-api==4.0.0
 aiosqlite==0.19.0
