@@ -145,65 +145,22 @@ async def general_exception_handler(request: Request, exc: Exception):
 
 
 # Include routers
-app.include_router(
-    outings.router,
-    prefix=f"{settings.API_V1_STR}/outings",
-    tags=["outings"]
-)
 
-app.include_router(
-    signups.router,
-    prefix=f"{settings.API_V1_STR}/signups",
-    tags=["signups"]
-)
+# Routers
+app.include_router(outings.router, prefix=f"{settings.API_V1_STR}/outings", tags=["outings"])
+app.include_router(signups.router, prefix=f"{settings.API_V1_STR}/signups", tags=["signups"])
+app.include_router(clerk_auth.router, prefix=f"{settings.API_V1_STR}/clerk", tags=["clerk-auth"])
+app.include_router(registration.router, prefix=f"{settings.API_V1_STR}/register", tags=["registration"])
+app.include_router(family.router, prefix=f"{settings.API_V1_STR}/family", tags=["family-management"])
+app.include_router(checkin.router, prefix=f"{settings.API_V1_STR}/outings", tags=["check-in"])
+app.include_router(requirements.router, prefix=f"{settings.API_V1_STR}/requirements", tags=["requirements"])
+app.include_router(places.router, prefix=f"{settings.API_V1_STR}", tags=["places"])
+app.include_router(packing_lists.router, prefix=f"{settings.API_V1_STR}/packing-lists", tags=["packing-lists"])
+app.include_router(troops.router, prefix=f"{settings.API_V1_STR}", tags=["troops"])
 
-app.include_router(
-    clerk_auth.router,
-    prefix=f"{settings.API_V1_STR}/clerk",
-    tags=["clerk-auth"]
-)
-
-app.include_router(
-    registration.router,
-    prefix=f"{settings.API_V1_STR}/register",
-    tags=["registration"]
-)
-
-app.include_router(
-    family.router,
-    prefix=f"{settings.API_V1_STR}/family",
-    tags=["family-management"]
-)
-
-app.include_router(
-    checkin.router,
-    prefix=f"{settings.API_V1_STR}/outings",
-    tags=["check-in"]
-)
-
-app.include_router(
-    requirements.router,
-    prefix=f"{settings.API_V1_STR}/requirements",
-    tags=["requirements"]
-)
-
-app.include_router(
-    places.router,
-    prefix=f"{settings.API_V1_STR}",
-    tags=["places"]
-)
-
-app.include_router(
-    packing_lists.router,
-    prefix=f"{settings.API_V1_STR}/packing-lists",
-    tags=["packing-lists"]
-)
-
-app.include_router(
-    troops.router,
-    prefix=f"{settings.API_V1_STR}",
-    tags=["troops"]
-)
+# Health endpoint
+from app.api.endpoints import health
+app.include_router(health.router, prefix=f"{settings.API_V1_STR}")
 
 
 
@@ -228,17 +185,9 @@ async def root():
     }
 
 
-@app.get(f"{settings.API_V1_STR}/health")
-async def health_check():
-    """Health check endpoint - returns healthy status"""
-    return {"status": "healthy", "message": "Backend is running"}
 
 
-@app.get(f"{settings.API_V1_STR}/ready")
-async def readiness_check():
-    """Readiness check endpoint - verifies service is ready to accept requests"""
-    # TODO: Add database connection check
-    return {"status": "ready"}
+
 
 
 if __name__ == "__main__":
