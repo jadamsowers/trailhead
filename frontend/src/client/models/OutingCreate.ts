@@ -83,6 +83,10 @@ export type OutingCreate = {
      */
     signups_closed?: boolean;
     /**
+     * Date after which users cannot cancel
+     */
+    cancellation_deadline?: (string | null);
+    /**
      * Outing icon (Bootstrap icon name or emoji)
      */
     icon?: (string | null);

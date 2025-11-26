@@ -30,6 +30,7 @@ class Outing(Base):
     cost = Column(Numeric(10, 2), nullable=True)  # Cost in dollars
     gear_list = Column(Text, nullable=True)  # Suggested gear list
     signups_close_at = Column(DateTime, nullable=True)  # Automatic signup closure date/time
+    cancellation_deadline = Column(DateTime, nullable=True)  # Date after which users cannot cancel
     signups_closed = Column(Boolean, default=False, nullable=False)  # Manual signup closure flag
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

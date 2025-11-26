@@ -27,6 +27,7 @@ class OutingBase(BaseModel):
     cost: Optional[Decimal] = Field(None, ge=0, description="Cost of the outing in dollars")
     gear_list: Optional[str] = Field(None, description="Suggested gear list for participants")
     signups_close_at: Optional[datetime] = Field(None, description="Automatic signup closure date/time")
+    cancellation_deadline: Optional[datetime] = Field(None, description="Date after which users cannot cancel")
     signups_closed: bool = Field(False, description="Manual signup closure flag")
     icon: Optional[str] = Field(None, max_length=50, description="Outing icon (Bootstrap icon name or emoji)")
     
@@ -89,6 +90,7 @@ class OutingUpdate(BaseModel):
     cost: Optional[Decimal] = Field(None, ge=0, description="Cost of the outing in dollars")
     gear_list: Optional[str] = Field(None, description="Suggested gear list for participants")
     signups_close_at: Optional[datetime] = Field(None, description="Automatic signup closure date/time")
+    cancellation_deadline: Optional[datetime] = Field(None, description="Date after which users cannot cancel")
     signups_closed: Optional[bool] = Field(None, description="Manual signup closure flag")
     icon: Optional[str] = Field(None, max_length=50, description="Outing icon (Bootstrap icon name or emoji)")
     

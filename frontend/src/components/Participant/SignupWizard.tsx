@@ -221,6 +221,22 @@ const SignupWizard: React.FC = () => {
       return;
     }
 
+    // Check cancellation deadline
+    const signup = mySignups.find((s) => s.id === signupId);
+    if (signup) {
+      const outing = outings.find((o) => o.id === signup.outing_id);
+      if (outing && outing.cancellation_deadline) {
+        const deadline = new Date(outing.cancellation_deadline);
+        const now = new Date();
+        if (now > deadline) {
+          alert(
+            `The cancellation deadline for this outing was ${deadline.toLocaleDateString()}. Please contact the outing lead or Scoutmaster to cancel.`
+          );
+          return;
+        }
+      }
+    }
+
     try {
       setCancelingSignupId(signupId);
       setError(null);
@@ -718,6 +734,12 @@ const SignupWizard: React.FC = () => {
                           {isExpanded ? "▼" : "▶"}
                         </span>
                       </div>
+                      {outing.cancellation_deadline &&
+                        new Date(outing.cancellation_deadline) < new Date() && (
+                          <div className="mt-2 text-sm text-amber-600 font-medium">
+                            ⚠️ Cancellation deadline passed
+                          </div>
+                        )}
                     </div>
 
                     {isExpanded && (

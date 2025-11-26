@@ -43,6 +43,7 @@ export interface Outing {
   cost?: number;
   gear_list?: string;
   signups_close_at?: string;
+  cancellation_deadline?: string;
   signups_closed?: boolean;
   are_signups_closed?: boolean;
   created_at: string;
@@ -79,6 +80,7 @@ export interface OutingCreate {
   cost?: number;
   gear_list?: string;
   signups_close_at?: string;
+  cancellation_deadline?: string;
   signups_closed?: boolean;
   icon?: string;
   // Address fields with Place relationships

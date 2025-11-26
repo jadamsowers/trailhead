@@ -106,6 +106,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   const [capacity, setCapacity] = useState<number>(30);
   const [cost, setCost] = useState<string>("");
   const [signupCloseDate, setSignupCloseDate] = useState<string>("");
+  const [cancellationDeadline, setCancellationDeadline] = useState<string>("");
   const [icon, setIcon] = useState<string>("");
 
   // Load suggestions when moving to step 2
@@ -154,6 +155,11 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
       const closeDate = new Date(start);
       closeDate.setDate(closeDate.getDate() - 14); // 2 weeks before
       setSignupCloseDate(closeDate.toISOString().split("T")[0]);
+      
+      // Default cancellation deadline to 1 week before
+      const cancelDate = new Date(start);
+      cancelDate.setDate(cancelDate.getDate() - 7);
+      setCancellationDeadline(cancelDate.toISOString().split("T")[0]);
     }
   }, [startDate]);
 
@@ -254,6 +260,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
         signups_close_at: signupCloseDate
           ? `${signupCloseDate}T23:59:59Z`
           : undefined,
+        cancellation_deadline: cancellationDeadline
+          ? `${cancellationDeadline}T23:59:59Z`
+          : undefined,
       };
 
       const newOuting = await OutingsService.createOutingApiOutingsPost(
@@ -347,8 +356,10 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
     setSelectedMeritBadges(new Map());
     setCapacityType("fixed");
     setCapacity(30);
+    setCapacity(30);
     setCost("");
     setSignupCloseDate("");
+    setCancellationDeadline("");
     setIcon("");
     setSuggestions(null);
     setError(null);
@@ -1242,20 +1253,35 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                 </div>
               </div>
 
-              <div>
-                <label className="block mb-1 font-semibold text-primary text-sm">
-                  Signup Close Date
-                </label>
-                <input
-                  type="date"
-                  value={signupCloseDate}
-                  onChange={(e) => setSignupCloseDate(e.target.value)}
-                  className="form-input"
-                />
-                <small className="helper-text">
-                  Signups will automatically close at 11:59 PM on this date
-                  (defaults to 2 weeks before start)
-                </small>
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block mb-1 font-semibold text-primary text-sm">
+                    Signups Close Date
+                  </label>
+                  <input
+                    type="date"
+                    value={signupCloseDate}
+                    onChange={(e) => setSignupCloseDate(e.target.value)}
+                    className="form-input"
+                  />
+                  <small className="helper-text">
+                    When should signups automatically close?
+                  </small>
+                </div>
+                <div>
+                  <label className="block mb-1 font-semibold text-primary text-sm">
+                    Cancellation Deadline
+                  </label>
+                  <input
+                    type="date"
+                    value={cancellationDeadline}
+                    onChange={(e) => setCancellationDeadline(e.target.value)}
+                    className="form-input"
+                  />
+                  <small className="helper-text">
+                    Last day for users to self-cancel
+                  </small>
+                </div>
               </div>
             </div>
           </div>
