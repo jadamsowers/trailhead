@@ -93,132 +93,208 @@ export const TroopAdminPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Troop Administration</h1>
-      {error && <div className="text-red-600 mb-2">{error}</div>}
-      <div className="flex gap-8">
-        <div className="w-1/3">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-xl font-semibold">Troops</h2>
-            <button className="btn btn-primary" onClick={handleAddTroop}>
-              Add Troop
-            </button>
-          </div>
-          {loading ? (
-            <div>Loading...</div>
-          ) : (
-            <ul className="border rounded divide-y">
-              {troops.map((troop) => (
-                <li
-                  key={troop.id}
-                  className={`p-2 cursor-pointer hover:bg-gray-100 ${
-                    selectedTroop?.id === troop.id ? "bg-blue-50" : ""
-                  }`}
-                  onClick={() => handleSelectTroop(troop)}
-                >
-                  <div className="flex justify-between items-center">
-                    <span>Troop {troop.number}</span>
-                    <button
-                      className="btn btn-xs btn-secondary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditTroop(troop);
-                      }}
-                    >
-                      Edit
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+    <div
+      style={{
+        backgroundColor: "var(--card-bg)",
+        boxShadow: "var(--card-shadow)",
+        borderRadius: "8px",
+        overflow: "hidden",
+        border: "1px solid var(--card-border)",
+      }}
+    >
+      <div
+        style={{
+          padding: "1.5rem",
+          borderBottom: "1px solid var(--card-border)",
+        }}
+      >
+        <h2
+          style={{
+            fontSize: "1.5rem",
+            fontWeight: "bold",
+            color: "var(--text-primary)",
+            margin: 0,
+          }}
+        >
+          Troop Management
+        </h2>
+        <p
+          style={{
+            fontSize: "0.875rem",
+            color: "var(--text-secondary)",
+            marginTop: "0.25rem",
+            marginBottom: 0,
+          }}
+        >
+          Manage troops and patrols
+        </p>
+      </div>
+
+      {error && (
+        <div
+          style={{
+            margin: "1rem 1.5rem 0",
+            padding: "1rem",
+            backgroundColor: "var(--alert-error-bg)",
+            border: "1px solid var(--alert-error-border)",
+            borderRadius: "4px",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "0.875rem",
+              color: "var(--alert-error-text)",
+              margin: 0,
+            }}
+          >
+            {error}
+          </p>
         </div>
-        <div className="flex-1">
-          {showTroopForm && (
-            <TroopForm
-              troop={selectedTroop}
-              onSuccess={() => {
-                setShowTroopForm(false);
-                fetchTroops();
-              }}
-              onCancel={() => setShowTroopForm(false)}
-            />
-          )}
-          {selectedTroop && !showTroopForm && (
-            <div>
-              <h2 className="text-xl font-semibold mb-2">
-                Troop {selectedTroop.number}
-              </h2>
-              <div className="mb-2">
-                <button
-                  className="btn btn-secondary mr-2"
-                  onClick={handleAddPatrol}
-                >
-                  Add Patrol
-                </button>
-                <button
-                  className="btn btn-danger"
-                  onClick={() => handleDeleteTroop(selectedTroop.id)}
-                >
-                  Delete Troop
-                </button>
-              </div>
-              <div className="mb-4">
-                <strong>Charter Org:</strong>{" "}
-                {selectedTroop.charter_org || <em>None</em>}
-                <br />
-                <strong>Meeting Location:</strong>{" "}
-                {selectedTroop.meeting_location || <em>None</em>}
-                <br />
-                <strong>Meeting Day:</strong>{" "}
-                {selectedTroop.meeting_day || <em>None</em>}
-                <br />
-                <strong>Notes:</strong> {selectedTroop.notes || <em>None</em>}
-              </div>
-              <h3 className="font-semibold mb-1">Patrols</h3>
-              <ul className="border rounded divide-y mb-2">
-                {selectedTroop.patrols.map((patrol) => (
+      )}
+
+      <div style={{ padding: "1.5rem" }}>
+        <div className="flex gap-8">
+          <div className="w-1/3">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-xl font-semibold">Troops</h2>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleAddTroop}
+              >
+                Add Troop
+              </button>
+            </div>
+            {loading ? (
+              <div>Loading...</div>
+            ) : (
+              <ul className="border rounded divide-y">
+                {troops.map((troop) => (
                   <li
-                    key={patrol.id}
-                    className="p-2 flex justify-between items-center"
+                    key={troop.id}
+                    className={`p-2 cursor-pointer hover:bg-gray-100 ${
+                      selectedTroop?.id === troop.id ? "bg-blue-50" : ""
+                    }`}
+                    onClick={() => handleSelectTroop(troop)}
                   >
-                    <span>
-                      {patrol.name}{" "}
-                      {patrol.is_active ? "" : <em>(inactive)</em>}
-                    </span>
-                    <span>
+                    <div className="flex justify-between items-center">
+                      <span>Troop {troop.number}</span>
                       <button
-                        className="btn btn-xs btn-secondary mr-2"
-                        onClick={() => handleEditPatrol(patrol)}
+                        type="button"
+                        className="btn btn-xs btn-secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditTroop(troop);
+                        }}
+                        aria-label={`Edit troop ${troop.number}`}
                       >
                         Edit
                       </button>
-                      <button
-                        className="btn btn-xs btn-danger"
-                        onClick={() => handleDeletePatrol(patrol.id)}
-                      >
-                        Delete
-                      </button>
-                    </span>
+                    </div>
                   </li>
                 ))}
-                {selectedTroop.patrols.length === 0 && (
-                  <li className="p-2 text-gray-500">No patrols</li>
-                )}
               </ul>
-              {showPatrolForm && (
-                <PatrolForm
-                  troopId={selectedTroop.id}
-                  patrol={editingPatrol}
-                  onSuccess={() => {
-                    setShowPatrolForm(false);
-                    fetchTroops();
-                  }}
-                  onCancel={() => setShowPatrolForm(false)}
-                />
-              )}
-            </div>
-          )}
+            )}
+          </div>
+          <div className="flex-1">
+            {showTroopForm && (
+              <TroopForm
+                troop={selectedTroop}
+                onSuccess={() => {
+                  setShowTroopForm(false);
+                  fetchTroops();
+                }}
+                onCancel={() => setShowTroopForm(false)}
+              />
+            )}
+            {selectedTroop && !showTroopForm && (
+              <div>
+                <h2 className="text-xl font-semibold mb-2">
+                  Troop {selectedTroop.number}
+                </h2>
+                <div className="mb-2">
+                  <button
+                    type="button"
+                    className="btn btn-secondary mr-2"
+                    onClick={handleAddPatrol}
+                  >
+                    Add Patrol
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={() => handleDeleteTroop(selectedTroop.id)}
+                  >
+                    Delete Troop
+                  </button>
+                </div>
+                <div className="mb-4">
+                  <strong>Charter Org:</strong>{" "}
+                  {selectedTroop.charter_org || <em>None</em>}
+                  <br />
+                  <strong>Meeting Location:</strong>{" "}
+                  {selectedTroop.meeting_location || <em>None</em>}
+                  <br />
+                  <strong>Meeting Day:</strong>{" "}
+                  {selectedTroop.meeting_day || <em>None</em>}
+                  <br />
+                  <strong>Notes:</strong> {selectedTroop.notes || <em>None</em>}
+                </div>
+                <h3 className="font-semibold mb-1">Patrols</h3>
+                <ul className="border rounded divide-y mb-2">
+                  {selectedTroop.patrols.map((patrol) => (
+                    <li
+                      key={patrol.id}
+                      className="p-2 flex justify-between items-center"
+                    >
+                      <span>
+                        {patrol.name}{" "}
+                        {patrol.is_active ? "" : <em>(inactive)</em>}
+                      </span>
+                      <span>
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-secondary mr-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditPatrol(patrol);
+                          }}
+                          aria-label={`Edit patrol ${patrol.name}`}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-danger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeletePatrol(patrol.id);
+                          }}
+                          aria-label={`Delete patrol ${patrol.name}`}
+                        >
+                          Delete
+                        </button>
+                      </span>
+                    </li>
+                  ))}
+                  {selectedTroop.patrols.length === 0 && (
+                    <li className="p-2 text-gray-500">No patrols</li>
+                  )}
+                </ul>
+                {showPatrolForm && (
+                  <PatrolForm
+                    troopId={selectedTroop.id}
+                    patrol={editingPatrol}
+                    onSuccess={() => {
+                      setShowPatrolForm(false);
+                      fetchTroops();
+                    }}
+                    onCancel={() => setShowPatrolForm(false)}
+                  />
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

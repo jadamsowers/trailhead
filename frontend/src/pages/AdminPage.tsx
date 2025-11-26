@@ -52,13 +52,14 @@ const AdminPage: React.FC = () => {
           style={{ borderColor: "var(--border-light)" }}
         >
           <nav
-            className="-mb-px flex flex-col sm:flex-row gap-2 sm:gap-0"
+            className="-mb-px flex flex-wrap gap-2 sm:gap-0"
             aria-label="Tabs"
           >
             <button
+              type="button"
               onClick={() => setActiveTab("outings")}
               className={`
-                                sm:flex-1 whitespace-nowrap py-3 sm:py-4 px-4 sm:px-1 border-b-2 font-medium text-sm sm:text-base transition-colors duration-200 flex items-center justify-center gap-2
+                                flex-1 sm:flex-1 whitespace-nowrap py-3 sm:py-4 px-4 sm:px-1 border-b-2 font-medium text-sm sm:text-base transition-colors duration-200 flex items-center justify-center gap-2
                             `}
               style={{
                 borderColor:
@@ -92,9 +93,10 @@ const AdminPage: React.FC = () => {
               <span className="sm:hidden">Outings</span>
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("troops")}
               className={`
-                                sm:flex-1 whitespace-nowrap py-3 sm:py-4 px-4 sm:px-1 border-b-2 font-medium text-sm sm:text-base transition-colors duration-200 flex items-center justify-center gap-2
+                                flex-1 sm:flex-1 whitespace-nowrap py-3 sm:py-4 px-4 sm:px-1 border-b-2 font-medium text-sm sm:text-base transition-colors duration-200 flex items-center justify-center gap-2
                             `}
               style={{
                 borderColor:
@@ -128,9 +130,10 @@ const AdminPage: React.FC = () => {
               <span className="sm:hidden">Troops</span>
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab("users")}
               className={`
-                                sm:flex-1 whitespace-nowrap py-3 sm:py-4 px-4 sm:px-1 border-b-2 font-medium text-sm sm:text-base transition-colors duration-200 flex items-center justify-center gap-2
+                                flex-1 sm:flex-1 whitespace-nowrap py-3 sm:py-4 px-4 sm:px-1 border-b-2 font-medium text-sm sm:text-base transition-colors duration-200 flex items-center justify-center gap-2
                             `}
               style={{
                 borderColor:
