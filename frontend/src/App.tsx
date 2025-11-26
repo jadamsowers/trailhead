@@ -280,7 +280,7 @@ const Navigation: React.FC = () => {
           </div>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex md:items-center">
+          <div className="hidden lg:flex lg:items-center">
             <SignedIn>
               <div className="flex items-center w-full gap-4">
                 {/* Left side navigation */}
@@ -360,7 +360,7 @@ const Navigation: React.FC = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="flex items-center md:hidden">
+          <div className="flex items-center lg:hidden">
             <button
               type="button"
               className="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20"
@@ -410,7 +410,7 @@ const Navigation: React.FC = () => {
       <div
         className={`${
           mobileMenuOpen ? "block" : "hidden"
-        } md:hidden border-t border-white/10`}
+        } lg:hidden border-t border-white/10`}
         style={{ backgroundColor: "var(--color-primary)" }}
         role="menu"
       >
