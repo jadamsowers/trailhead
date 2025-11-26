@@ -54,6 +54,7 @@ services:
         condition: service_healthy
     volumes:
       - ${BACKEND_VOLUME_MOUNT:-./backend:/app}
+      - ./backend/migrations:/app/migrations
     command: ${BACKEND_COMMAND:-sh -c "echo 'Waiting for database...' && sleep 5 && echo 'Running Atlas migrations...' && atlas migrate apply --env sqlalchemy --url \"postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable\" && echo 'Initializing database...' && python -m app.db.init_db || echo 'Database already initialized' && echo 'Starting server...' && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"}
     networks:
       - trailhead-network
