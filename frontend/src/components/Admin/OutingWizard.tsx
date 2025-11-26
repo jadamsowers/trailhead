@@ -518,15 +518,17 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                 </label>
               </div>{" "}
               <div>
-                <label className="block mb-1 font-semibold text-primary text-sm">
-                  Location *
-                </label>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g., Camp Whispering Pines"
-                  className="form-input"
+                <PlacePicker
+                  label="Outing Location *"
+                  value={outingAddress}
+                  onChange={(val) => {
+                    setOutingAddress(val);
+                    const newLocation = val.place?.name || val.address || "";
+                    setLocation(newLocation);
+                  }}
+                  helperText={
+                    "Search saved places or enter a new one. When entering manually, use two lines: street on the first line, city and state on the second (ZIP optional)."
+                  }
                 />
               </div>
               <div>
@@ -545,22 +547,16 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   and merit badges
                 </small>
               </div>
-              <div>
-                <PlacePicker
-                  label="Outing Address"
-                  value={outingAddress}
-                  onChange={setOutingAddress}
-                  helperText="Where is the outing taking place?"
-                  autoName={location}
-                />
-              </div>
+              {/* Outing address is now combined with Outing Location above */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <PlacePicker
                     label="Drop-off Location"
                     value={dropoffAddress}
                     onChange={setDropoffAddress}
-                    helperText="Where are scouts dropped off after?"
+                    helperText={
+                      "Where are scouts dropped off after? Use the two-line address format when entering manually."
+                    }
                   />
                 </div>
                 <div>
@@ -568,7 +564,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     label="Pickup Location"
                     value={pickupAddress}
                     onChange={setPickupAddress}
-                    helperText="Where do scouts/families meet?"
+                    helperText={
+                      "Where do scouts/families meet? Use the two-line address format when entering manually."
+                    }
                   />
                 </div>
               </div>

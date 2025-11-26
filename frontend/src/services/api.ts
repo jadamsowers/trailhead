@@ -1086,13 +1086,15 @@ export const placesAPI = {
   },
 
   /**
-   * Search places by name (for autocomplete)
+   * Search places by name or address (for autocomplete)
+   * Uses the general list endpoint with search param, which matches both fields.
    */
   async searchPlaces(
-    name: string,
+    query: string,
     limit: number = 10
   ): Promise<PlaceResponse[]> {
-    return PlacesService.searchPlacesApiPlacesSearchNameGet(name, limit);
+    // The listPlaces endpoint supports a search param that matches both name and address
+    return PlacesService.listPlacesApiPlacesGet(undefined, limit, query);
   },
 
   /**

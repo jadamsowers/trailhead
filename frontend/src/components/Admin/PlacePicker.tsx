@@ -5,11 +5,13 @@ import { placesAPI } from "../../services/api";
 interface PlacePickerProps {
   label: string;
   value: {
+    name?: string;
     address?: string;
     placeId?: string;
     place?: Place;
   };
   onChange: (value: {
+    name?: string;
     address?: string;
     placeId?: string;
     place?: Place;
@@ -27,10 +29,11 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
   helperText,
   autoName,
 }) => {
-  const [options, setOptions] = useState<Place[]>([]);
+  const [options, setOptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [customAddress, setCustomAddress] = useState(value.address || "");
+  const [customName, setCustomName] = useState(value.name || autoName || "");
   const [showCustomInput, setShowCustomInput] = useState(false); // Hidden until no results
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -40,10 +43,16 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
   // Load initial place if placeId is provided
   useEffect(() => {
     if (value.placeId && !value.place) {
-      placesAPI.getPlaces().then((places) => {
-        const place = places.find((p) => p.id === value.placeId);
+      placesAPI.getPlaces().then((places: any[]) => {
+        const place = places.find((p: any) => p.id === value.placeId);
         if (place) {
-          onChange({ ...value, place });
+          onChange({
+            ...value,
+            name: place.name,
+            address: place.address,
+            placeId: place.id,
+            place: undefined,
+          });
         }
       });
     }
@@ -103,20 +112,23 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
     }
   }, [autoName, searchValue]);
 
-  const handlePlaceSelect = (place: Place | null) => {
+  const handlePlaceSelect = (place: any | null) => {
     if (place) {
       setSearchValue(place.name);
       setShowDropdown(false);
       placeSelectedRef.current = true; // Mark that a place was selected
       onChange({
+        name: place.name,
         address: place.address,
         placeId: place.id,
-        place: place,
+        place: undefined,
       });
       setCustomAddress("");
+      setCustomName(place.name);
     } else {
       setSearchValue("");
       onChange({
+        name: undefined,
         address: undefined,
         placeId: undefined,
         place: undefined,
@@ -127,7 +139,18 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
   const handleCustomAddressChange = (address: string) => {
     setCustomAddress(address);
     onChange({
+      name: customName || undefined,
       address: address || undefined,
+      placeId: undefined,
+      place: undefined,
+    });
+  };
+
+  const handleCustomNameChange = (name: string) => {
+    setCustomName(name);
+    onChange({
+      name: name || undefined,
+      address: customAddress || undefined,
       placeId: undefined,
       place: undefined,
     });
@@ -137,8 +160,11 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
     if (!customAddress.trim()) return;
     try {
       const addressLines = customAddress.trim().split("\n");
+      // Prefer the user's Title; fall back to autoName or the first address line
       const baseName =
-        autoName && autoName.trim() ? autoName.trim() : addressLines[0];
+        (customName && customName.trim()) ||
+        (autoName && autoName.trim()) ||
+        addressLines[0];
       const placeName = baseName.substring(0, 100);
 
       const newPlace = await placesAPI.createPlace({
@@ -147,12 +173,14 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
       });
 
       onChange({
+        name: newPlace.name,
         address: newPlace.address,
         placeId: newPlace.id,
-        place: newPlace,
+        place: undefined,
       });
       setShowCustomInput(false);
       setCustomAddress("");
+      setCustomName("");
       setSearchValue(newPlace.name);
     } catch (error) {
       console.error("Error saving place:", error);
@@ -164,8 +192,8 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
     value.place?.google_maps_url ||
     (value.address
       ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-        value.address
-      )}`
+          value.address
+        )}`
       : undefined);
 
   return (
@@ -239,24 +267,60 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                // If input starts with a number, treat as address; else treat as name
+                const isAddress = /^\d/.test(searchValue.trim());
+                if (isAddress) {
+                  setCustomAddress(searchValue);
+                  // Suggest a name: use autoName if provided, else first line of address
+                  let suggestedName = autoName && autoName.trim();
+                  if (!suggestedName) {
+                    const firstLine = searchValue.split("\n")[0].trim();
+                    suggestedName = firstLine;
+                  }
+                  setCustomName(suggestedName || "");
+                } else {
+                  setCustomName(searchValue);
+                  setCustomAddress("");
+                }
                 setShowCustomInput(true);
                 setShowDropdown(false);
               }}
               className="absolute top-full left-0 right-0 mt-0.5 px-3 py-2 text-sm bg-[var(--bg-tertiary)] border border-[var(--card-border)] rounded text-[var(--text-secondary)] hover:bg-[rgba(var(--bsa-olive-rgb),0.1)] hover:text-[var(--text-primary)] transition-colors cursor-pointer text-left w-full"
             >
-              No saved places found. <span className="text-[var(--bsa-olive)] font-semibold">Click to create a new one →</span>
+              No saved places found.{" "}
+              <span className="text-[var(--bsa-olive)] font-semibold">
+                Click to create a new one →
+              </span>
             </button>
           )}
         </div>
       ) : (
         <div>
+          <div className="mb-2">
+            <input
+              type="text"
+              value={customName}
+              onChange={(e) => handleCustomNameChange(e.target.value)}
+              placeholder="Title (e.g., Camp Whispering Pines)"
+              className="w-full p-2 text-sm rounded border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--input-text)] focus:outline-none focus:ring-2 focus:ring-[var(--bsa-olive)]"
+            />
+            <p className="mt-1 text-[11px] text-[var(--text-secondary)]">
+              A short title helps identify the place.
+            </p>
+          </div>
           <textarea
             value={customAddress}
             onChange={(e) => handleCustomAddressChange(e.target.value)}
-            placeholder="Enter full address..."
+            placeholder={
+              "Enter address in two lines, e.g.\n117 Deer Run Road\nCimarron, NM 87714 (ZIP code is optional)"
+            }
             rows={3}
             className="w-full p-2 text-sm rounded border border-[var(--input-border)] bg-[var(--input-bg)] text-[var(--input-text)] resize-y focus:outline-none focus:ring-2 focus:ring-[var(--bsa-olive)]"
           />
+          <p className="mt-1 text-[11px] text-[var(--text-secondary)]">
+            Format: first line is the street; second line is city and state; ZIP
+            optional.
+          </p>
           {customAddress.trim() && (
             <button
               type="button"
@@ -281,7 +345,17 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
                 {value.place.address}
               </>
             ) : (
-              value.address
+              <>
+                {value.name && (
+                  <>
+                    <strong className="text-[var(--text-primary)]">
+                      {value.name}
+                    </strong>
+                    <br />
+                  </>
+                )}
+                {value.address}
+              </>
             )}
           </div>
           {googleMapsUrl && (
