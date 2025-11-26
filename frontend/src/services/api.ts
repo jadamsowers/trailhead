@@ -186,7 +186,23 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
     throw new APIError(response.status, errorDetail);
   }
-  return response.json();
+
+  try {
+    const jsonText = await response.text();
+    console.log("📝 Raw JSON response:", jsonText.substring(0, 500));
+    return JSON.parse(jsonText);
+  } catch (parseError) {
+    console.error("❌ JSON Parse Error:", {
+      error: parseError,
+      message: parseError instanceof Error ? parseError.message : "Unknown",
+      url: response.url,
+    });
+    throw new Error(
+      `Failed to parse JSON response: ${
+        parseError instanceof Error ? parseError.message : "Unknown error"
+      }`
+    );
+  }
 }
 
 // Helper function to get auth headers with Clerk token

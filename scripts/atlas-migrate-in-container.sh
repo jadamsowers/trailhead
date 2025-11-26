@@ -33,10 +33,11 @@ echo "Atlas migrations complete."
 
   # Check latest applied migration version in DB
   echo "Checking latest applied migration version in database..."
-  LATEST_DB_VERSION=$(docker-compose exec -T backend env PGPASSWORD="$pg_pass" psql -h postgres -U "$pg_user" -d "$pg_db" -tAc "SELECT version FROM atlas_schema_revisions ORDER BY executed_at DESC LIMIT 1;")
+  LATEST_DB_VERSION=$(docker-compose exec -T backend env PGPASSWORD="$pg_pass" psql -h postgres -U "$pg_user" -d "$pg_db" -tAc 'SELECT version FROM "atlas_schema_revisions"."atlas_schema_revisions" ORDER BY executed_at DESC LIMIT 1;')
 
-  # Get latest migration file version from atlas.sum (skip comment/hash lines)
-  LATEST_FILE_VERSION=$(grep -v '^h' backend/migrations/atlas.sum | awk '{print $1}' | tail -n 1)
+  # Get latest migration file version from atlas.sum (skip comment/hash lines, extract version number from filename)
+  # Format: 20251125000003_description.sql - we want just the version number
+  LATEST_FILE_VERSION=$(grep -v '^h' backend/migrations/atlas.sum | awk '{print $1}' | sed 's/\.sql$//' | sed 's/_.*$//' | tail -n 1)
 
   echo "Latest DB version:   $LATEST_DB_VERSION"
   echo "Latest file version: $LATEST_FILE_VERSION"

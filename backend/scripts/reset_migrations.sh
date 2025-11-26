@@ -13,7 +13,7 @@ rm -f backend/migrations/atlas.sum
 
 # Step 2: Clear the atlas_schema_revisions table in the database
 echo "🗄️  Clearing atlas_schema_revisions table..."
-docker-compose exec -T postgres psql -U scouting_outing -d scouting_outing_manager -c "DELETE FROM atlas_schema_revisions;"
+docker-compose exec -T postgres psql -U trailhead -d trailhead -c 'DELETE FROM "atlas_schema_revisions"."atlas_schema_revisions";'
 
 # Step 3: Generate new initial migration
 echo "📝 Generating new initial migration..."

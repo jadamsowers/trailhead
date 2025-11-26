@@ -27,10 +27,12 @@ async def health_check():
             table_exists = result.scalar()
             tables_present = bool(table_exists)
             # Check latest migration (Atlas: check atlas_schema_revisions table)
-            migration_result = await session.execute(text("SELECT version FROM atlas_schema_revisions ORDER BY executed_at DESC LIMIT 1"))
+            migration_result = await session.execute(text('SELECT version FROM "atlas_schema_revisions"."atlas_schema_revisions" ORDER BY executed_at DESC LIMIT 1'))
             latest_migration = migration_result.scalar()
             # Compare with latest migration in atlas.sum
-            with open("backend/migrations/atlas.sum") as f:
+            import os
+            atlas_sum_path = "migrations/atlas.sum" if os.path.exists("migrations/atlas.sum") else "/app/migrations/atlas.sum"
+            with open(atlas_sum_path) as f:
                 lines = [l for l in f if l.strip() and l.strip()[0] != 'h']
                 if lines:
                     last_line = lines[-1]
