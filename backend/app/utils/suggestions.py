@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Tuple
 import re
 
@@ -116,8 +116,8 @@ def calculate_match_score(
     return score, matched_orig
 
 
-def get_requirement_suggestions(
-    db: Session,
+async def get_requirement_suggestions(
+    db: AsyncSession,
     outing: Outing,
     min_score: float = 0.05,
     max_results: int = 10
@@ -142,7 +142,7 @@ def get_requirement_suggestions(
         return []
     
     # Search for requirements with matching keywords
-    all_requirements = crud_requirement.search_rank_requirements_by_keywords(
+    all_requirements = await crud_requirement.search_rank_requirements_by_keywords(
         db, outing_keywords
     )
     
@@ -173,8 +173,8 @@ def get_requirement_suggestions(
     return suggestions[:max_results]
 
 
-def get_merit_badge_suggestions(
-    db: Session,
+async def get_merit_badge_suggestions(
+    db: AsyncSession,
     outing: Outing,
     min_score: float = 0.02,
     max_results: int = 10
@@ -199,7 +199,7 @@ def get_merit_badge_suggestions(
         return []
     
     # Search for merit badges with matching keywords
-    all_badges = crud_requirement.search_merit_badges_by_keywords(
+    all_badges = await crud_requirement.search_merit_badges_by_keywords(
         db, outing_keywords
     )
     
@@ -230,8 +230,8 @@ def get_merit_badge_suggestions(
     return suggestions[:max_results]
 
 
-def get_outing_suggestions(
-    db: Session,
+async def get_outing_suggestions(
+    db: AsyncSession,
     outing: Outing,
     min_score: float = 0.02,
     max_requirements: int = 10,
@@ -251,10 +251,10 @@ def get_outing_suggestions(
         OutingSuggestions with both requirements and merit badges
     """
     return OutingSuggestions(
-        requirements=get_requirement_suggestions(
+        requirements=await get_requirement_suggestions(
             db, outing, min_score, max_requirements
         ),
-        merit_badges=get_merit_badge_suggestions(
+        merit_badges=await get_merit_badge_suggestions(
             db, outing, min_score, max_merit_badges
         )
     )

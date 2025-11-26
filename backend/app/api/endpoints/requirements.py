@@ -487,7 +487,7 @@ async def get_suggestions_for_outing(
         )
     
     # Get suggestions
-    return get_outing_suggestions(
+    return await get_outing_suggestions(
         db,
         outing,
         min_score=min_score,

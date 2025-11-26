@@ -1325,7 +1325,7 @@ export const requirementsAPI = {
       max_merit_badges: maxMeritBadges.toString(),
     });
     const response = await fetch(
-      `${getApiBase()}/outings/${outingId}/suggestions?${params}`,
+      `${getApiBase()}/requirements/outings/${outingId}/suggestions?${params}`,
       {
         headers: await getAuthHeaders(),
       }
@@ -1407,7 +1407,7 @@ export const requirementsAPI = {
    */
   async getOutingRequirements(outingId: string): Promise<OutingRequirement[]> {
     const response = await fetch(
-      `${getApiBase()}/outings/${outingId}/requirements`,
+      `${getApiBase()}/requirements/outings/${outingId}/requirements`,
       {
         headers: await getAuthHeaders(),
       }
@@ -1420,7 +1420,7 @@ export const requirementsAPI = {
    */
   async getOutingMeritBadges(outingId: string): Promise<OutingMeritBadge[]> {
     const response = await fetch(
-      `${getApiBase()}/outings/${outingId}/merit-badges`,
+      `${getApiBase()}/requirements/outings/${outingId}/merit-badges`,
       {
         headers: await getAuthHeaders(),
       }
@@ -1436,7 +1436,7 @@ export const requirementsAPI = {
     data: OutingRequirementCreate
   ): Promise<OutingRequirement> {
     const response = await fetch(
-      `${getApiBase()}/outings/${outingId}/requirements`,
+      `${getApiBase()}/requirements/outings/${outingId}/requirements`,
       {
         method: "POST",
         headers: await getAuthHeaders(),
@@ -1454,7 +1454,7 @@ export const requirementsAPI = {
     data: OutingMeritBadgeCreate
   ): Promise<OutingMeritBadge> {
     const response = await fetch(
-      `${getApiBase()}/outings/${outingId}/merit-badges`,
+      `${getApiBase()}/requirements/outings/${outingId}/merit-badges`,
       {
         method: "POST",
         headers: await getAuthHeaders(),
@@ -1471,7 +1471,7 @@ export const requirementsAPI = {
     outingRequirementId: string
   ): Promise<void> {
     const response = await fetch(
-      `${getApiBase()}/outings/requirements/${outingRequirementId}`,
+      `${getApiBase()}/requirements/outings/requirements/${outingRequirementId}`,
       {
         method: "DELETE",
         headers: await getAuthHeaders(),
@@ -1485,7 +1485,7 @@ export const requirementsAPI = {
    */
   async removeMeritBadgeFromOuting(outingMeritBadgeId: string): Promise<void> {
     const response = await fetch(
-      `${getApiBase()}/outings/merit-badges/${outingMeritBadgeId}`,
+      `${getApiBase()}/requirements/outings/merit-badges/${outingMeritBadgeId}`,
       {
         method: "DELETE",
         headers: await getAuthHeaders(),
