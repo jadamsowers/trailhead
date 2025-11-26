@@ -99,33 +99,88 @@ This document serves as a guide for the AI assistant when working on the Trailhe
 
 ### Frontend Styling Guidelines
 
-- **Tailwind-Only Mandate**: All UI components should be styled exclusively with Tailwind utility classes, CSS variables, and minimal custom CSS modules if absolutely required. This ensures consistency, performance, and reduces bundle weight.
-- **Prohibited Libraries**: Do NOT add Material UI (MUI) or similar heavy UI kits (Chakra, Ant Design, Bootstrap React). Rationale: they add runtime + CSS bloat, conflict with existing theme tokens, and slow iteration.
+- **Tailwind-Only Mandate**: All UI components MUST be styled exclusively with Tailwind utility classes combined with CSS custom properties (CSS variables). No inline CSS styles except for dynamic values (e.g., computed widths, positions).
+- **Prohibited Libraries**: Do NOT add Material UI (MUI), Chakra UI, Ant Design, Bootstrap React, or similar component libraries. Rationale: they add runtime + CSS bloat, conflict with existing theme tokens, and slow iteration.
+- **Theme System (CSS Variables)**: The project uses a comprehensive CSS variable system for theming. ALWAYS use these variables instead of hardcoded colors:
+
+  **Required CSS Variables for All New UI:**
+
+  - **Text Colors**: `var(--text-primary)`, `var(--text-secondary)`, `var(--text-tertiary)`
+  - **Background Colors**: `var(--bg-primary)`, `var(--bg-secondary)`, `var(--bg-tertiary)`, `var(--card-bg)`
+  - **Border Colors**: `var(--border-light)`, `var(--border-dark)`, `var(--card-border)`
+  - **Button Colors**:
+    - Primary: `var(--btn-primary-bg)`, `var(--btn-primary-text)`
+    - Secondary: `var(--btn-secondary-bg)`, `var(--btn-secondary-text)`
+  - **Form Input Colors**: `var(--input-bg)`, `var(--input-border)`, `var(--input-text)`
+  - **Brand Colors**: `var(--color-primary)`, `var(--bsa-olive-rgb)` (for rgba opacity usage)
+  - **Alert Colors**: `var(--alert-error-bg)`, `var(--alert-error-border)`, `var(--alert-error-text)`
+  - **Shadows**: `var(--card-shadow)`, `var(--shadow-sm)`, `var(--shadow-md)`
+
+  **Example Usage Pattern:**
+
+  ```tsx
+  <button
+    className="px-4 py-2 rounded-lg font-medium transition-all hover:shadow-lg"
+    style={{
+      backgroundColor: "var(--btn-primary-bg)",
+      color: "var(--btn-primary-text)",
+    }}
+  >
+    Click Me
+  </button>
+  ```
+
 - **Component Patterns**:
-  - Prefer small, composable primitives (buttons, inputs, modals) built manually.
+
+  - Prefer small, composable primitives (buttons, inputs, modals) built manually with Tailwind + CSS variables.
   - Extract repeated Tailwind class sets into helper components or class constants when duplication exceeds 3 occurrences.
   - Use semantic HTML elements first (e.g., `<button>`, `<nav>`, `<fieldset>`, `<section>`).
-- **Responsive Design**: Leverage Tailwind breakpoint utilities (`sm:`, `md:`, `lg:`) directly; avoid custom media queries unless edge case.
-- **Stateful Styles**: Use Tailwind pseudo-class variants (`hover:`, `focus:`, `disabled:`, `aria-[]:`) instead of inline style mutation where possible. Fallback to small inline style changes only for dynamic numeric values.
-- **Dark Mode / Theming**: Continue using existing CSS variables (e.g., `--text-primary`, `--bg-tertiary`) combined with Tailwind classes; do not hardcode colors that bypass the theme.
-- **Animations**: Prefer Tailwind built-in transition/animation utilities; if custom keyframes are needed, define them once in a global stylesheet.
-- **Forms**: Native HTML form controls styled via Tailwind; avoid replacing with headless libraries unless accessibility gaps force it.
-- **Accessibility**: Ensure interactive regions have focus styles (`focus:outline-none focus:ring` patterns) and proper ARIA roles only when semantics are insufficient.
-- **Icon Usage**: Continue using existing icon strategy (custom, emojis, or lightweight sets). Avoid importing large icon packs tied to UI libraries.
-- **Testing Visual Changes**: When adding new UI, include a quick screenshot diff step or visual verification note if substantial layout shifts occur.
+  - **Card Pattern**: Use rounded-lg with `var(--card-bg)` background and `var(--border-light)` borders
+  - **Button Pattern**: Use rounded-lg, padding (px-4 py-2 or px-6 py-3), font-medium, with CSS variable colors
+  - **Input Pattern**: Use rounded-lg, padding (px-4 py-2), with `var(--input-bg)` and `var(--border-light)`
 
-### Rationale (Tailwind over MUI)
+- **Layout Guidelines**:
+
+  - Use responsive grid/flexbox layouts: `grid grid-cols-1 lg:grid-cols-3`, `flex flex-col md:flex-row`
+  - Standard page wrapper: `w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8`
+  - Consistent spacing: `space-y-4`, `space-y-6`, `gap-4`, `gap-8`
+  - Section headers: `text-2xl font-bold font-heading mb-4` with `var(--text-primary)`
+
+- **Responsive Design**: Leverage Tailwind breakpoint utilities (`sm:`, `md:`, `lg:`, `xl:`) directly; avoid custom media queries unless edge case.
+- **Stateful Styles**: Use Tailwind pseudo-class variants (`hover:`, `focus:`, `disabled:`, `aria-[]:`) instead of inline style mutation where possible. Fallback to small inline style changes only for dynamic numeric values or theme colors.
+- **Typography**:
+  - Use `font-heading` class for titles/headings
+  - Font sizes: `text-xs`, `text-sm`, `text-base`, `text-lg`, `text-xl`, `text-2xl`, `text-3xl`
+  - Responsive font sizes: Use `clamp()` for truly fluid typography
+- **Animations**: Prefer Tailwind built-in transition/animation utilities (`transition-all`, `hover:-translate-y-1`, `hover:shadow-xl`); if custom keyframes are needed, define them once in a global stylesheet.
+- **Forms**: Native HTML form controls styled via Tailwind + CSS variables; avoid replacing with headless libraries unless accessibility gaps force it.
+- **Accessibility**: Ensure interactive regions have focus styles (`focus:outline-none focus:ring` patterns) and proper ARIA roles/labels only when semantics are insufficient.
+- **Icon Usage**: Continue using existing icon strategy (inline SVG with currentColor, emojis, or lightweight sets). Avoid importing large icon packs tied to UI libraries.
+- **List Styling**: Use border dividers (`border-b border-[var(--border-light)]`) for list items, not background color alternation
+- **Empty States**: Provide helpful empty state messages centered with `text-center py-8` and `var(--text-secondary)` color
+
+### Rationale (Tailwind + CSS Variables over Component Libraries)
 
 - **Performance**: No large component abstraction layer or theme context overhead.
-- **Design Consistency**: Tailwind + variables enforce a single source of truth; MUI theming would duplicate effort.
+- **Design Consistency**: Tailwind + CSS variables enforce a single source of truth; component library theming would duplicate effort.
 - **Maintainability**: Easier to refactor class-based utility composition than override deep generated styles.
 - **Bundle Size**: Avoids shipping unused prebuilt component logic.
+- **Theme Flexibility**: CSS variables allow runtime theme switching without rebuilding
 
-### Enforcement
+### Enforcement & Code Review Checklist
 
-- PRs introducing Material UI (or similar) should be rejected.
+- **Prohibited**: PRs introducing Material UI, inline CSS (except for CSS variable usage), or hardcoded color values should be rejected.
+- **Required for All New UI**:
+  - ✅ Uses Tailwind utility classes for layout/spacing
+  - ✅ Uses CSS variables for ALL colors (text, background, borders, buttons)
+  - ✅ Uses semantic HTML elements
+  - ✅ Includes proper responsive breakpoints
+  - ✅ Has hover/focus states
+  - ✅ Includes empty states for lists
+  - ✅ Uses consistent rounded corners (rounded-lg)
+  - ✅ Uses consistent spacing scale (4, 6, 8, 12 for gap/padding)
 - If a complex component (e.g., date picker, autocomplete) is needed, first attempt a native HTML / lightweight custom solution. Document tradeoffs if a third-party headless solution becomes necessary.
-- All new components must include: semantic structure, Tailwind classes, and optional notes if extending theme variables.
+- **Testing Visual Changes**: When adding new UI, verify it matches existing pages' visual style (fonts, colors, spacing, shadows).
 
 ## Backend Development Patterns
 
