@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import OutingAdmin from "../components/Admin/OutingAdmin";
 import UserManagement from "../components/Admin/UserManagement";
-import DevDataSeeder from "../components/Admin/DevDataSeeder";
 import TroopAdminTab from "../components/Admin/TroopAdminTab";
+import DevDataSeeder from "../components/Admin/DevDataSeeder";
 
 const AdminPage: React.FC = () => {
   const { isLoaded } = useUser();
@@ -173,22 +173,18 @@ const AdminPage: React.FC = () => {
         <div>
           {activeTab === "outings" && <OutingAdmin />}
           {activeTab === "troops" && <TroopAdminTab />}
-          {activeTab === "users" && (
-            <div className="space-y-12">
-              <UserManagement />
+          {activeTab === "users" && <UserManagement />}
+        </div>
 
-              {/* Seed Data Section - Only visible in Users tab */}
-              <div>
-                <h2
-                  className="text-2xl font-bold mb-4"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  Development Tools
-                </h2>
-                <DevDataSeeder />
-              </div>
-            </div>
-          )}
+        {/* Development Data Seeder - Visible at bottom of all tabs */}
+        <div className="mt-12">
+          <h2
+            className="text-2xl font-bold mb-4"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Development Tools
+          </h2>
+          <DevDataSeeder />
         </div>
       </div>
     </div>

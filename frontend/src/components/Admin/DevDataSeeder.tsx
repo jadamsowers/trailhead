@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
-import { outingAPI, familyAPI } from '../../services/api';
+import { outingAPI, familyAPI, troopAPI, patrolAPI, requirementsAPI } from '../../services/api';
 
 // Fake data pools
-const FIRST_NAMES_MALE = ["James", "John", "Robert", "Michael", "William", "David", "Richard", "Joseph", "Thomas", "Christopher"];
-const FIRST_NAMES_FEMALE = ["Mary", "Patricia", "Jennifer", "Linda", "Elizabeth", "Barbara", "Susan", "Jessica", "Sarah", "Karen"];
-const SCOUT_NAMES_MALE = ["Ethan", "Noah", "Liam", "Mason", "Jacob", "Lucas", "Logan", "Oliver", "Aiden", "Elijah"];
-const SCOUT_NAMES_FEMALE = ["Emma", "Olivia", "Ava", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn"];
+const FIRST_NAMES_MALE = ["Ethan", "Noah", "Liam", "Mason", "Jacob", "Lucas", "Logan", "Oliver", "Aiden", "Elijah", 
+    "Benjamin", "Carter", "Wyatt", "Dylan", "Nathan", "Samuel", "Henry", "Owen", "Sebastian", "Jackson"];
+const FIRST_NAMES_FEMALE = ["Emma", "Olivia", "Ava", "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn",
+    "Abigail", "Emily", "Elizabeth", "Sofia", "Avery", "Ella", "Scarlett", "Grace", "Chloe", "Victoria"];
 const LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez",
-    "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin"];
-
-const TROOP_NUMBERS = ["123", "456", "789", "234", "567", "890"];
+    "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin",
+    "Lee", "Walker", "Hall", "Allen", "Young", "King", "Wright", "Scott", "Green", "Baker"];
 const PATROL_NAMES = ["Eagle Patrol", "Wolf Patrol", "Bear Patrol", "Fox Patrol", "Hawk Patrol", "Lion Patrol",
-    "Tiger Patrol", "Panther Patrol", "Cobra Patrol", "Dragon Patrol"];
+    "Tiger Patrol", "Panther Patrol", "Cobra Patrol", "Dragon Patrol", "Falcon Patrol", "Raven Patrol"];
+
+const TROOP_CONFIGS = [
+    { number: "123", charterOrg: "First United Methodist Church", meetingLocation: "Church Fellowship Hall", meetingDay: "Monday" },
+    { number: "456", charterOrg: "Rotary Club", meetingLocation: "Community Center", meetingDay: "Tuesday" },
+    { number: "789", charterOrg: "VFW Post 1234", meetingLocation: "VFW Hall", meetingDay: "Wednesday" },
+];
 
 const DIETARY_PREFERENCES = ["vegetarian", "vegan", "gluten-free", "dairy-free", "kosher", "halal", "pescatarian"];
 const ALLERGIES = [
@@ -118,30 +123,6 @@ const randomDateOfBirth = (minAge: number, maxAge: number): string => {
     return `${birthYear}-${String(birthMonth).padStart(2, '0')}-${String(birthDay).padStart(2, '0')}`;
 };
 
-const randomYouthProtectionExpiration = (hasTraining: boolean): string | undefined => {
-    if (!hasTraining) {
-        return undefined;
-    }
-
-    const today = new Date();
-
-    // 85% have valid (future) expiration dates
-    // 15% have expired certificates
-    if (Math.random() < 0.85) {
-        // Valid certificate: expires 1-24 months in the future
-        const monthsUntilExpiry = randomInt(1, 24);
-        const expiryDate = new Date(today);
-        expiryDate.setMonth(today.getMonth() + monthsUntilExpiry);
-        return expiryDate.toISOString().split('T')[0];
-    } else {
-        // Expired certificate: expired 1-6 months ago
-        const monthsSinceExpiry = randomInt(1, 6);
-        const expiryDate = new Date(today);
-        expiryDate.setMonth(today.getMonth() - monthsSinceExpiry);
-        return expiryDate.toISOString().split('T')[0];
-    }
-};
-
 const DevDataSeeder: React.FC = () => {
     const [isSeeding, setIsSeeding] = useState(false);
     const [progress, setProgress] = useState<string>('');
@@ -216,63 +197,11 @@ const DevDataSeeder: React.FC = () => {
             gear_list_length: CAMPING_GEAR_LIST.length
         });
 
-        await outingAPI.create(outingData);
-    };
-
-    const createFamily = async (lastName: string, numScouts: number) => {
-        const members = [];
-
-        // Create primary adult
-        const parent1First = randomChoice(Math.random() > 0.5 ? FIRST_NAMES_MALE : FIRST_NAMES_FEMALE);
-        const parent1Name = `${parent1First} ${lastName}`;
-
-        const hasVehicle = Math.random() < 0.7;
-        const vehicleCapacity = hasVehicle ? randomChoice([0, 4, 5, 6, 7]) : 0;
-
-        const hasYouthProtection = true; // All adults must have YPT for outings
-        const youthProtectionExpiration = randomYouthProtectionExpiration(hasYouthProtection);
-
-        const parentMember = await familyAPI.create({
-            name: parent1Name,
-            member_type: 'adult',
-            date_of_birth: randomDateOfBirth(30, 55),
-            has_youth_protection: hasYouthProtection,
-            youth_protection_expiration: youthProtectionExpiration,
-            vehicle_capacity: vehicleCapacity,
-            medical_notes: randomChoice(MEDICAL_NOTES) || undefined,
-            dietary_preferences: Math.random() < 0.3 ? [randomChoice(DIETARY_PREFERENCES)] : [],
-            allergies: Math.random() < 0.2 ? [randomChoice(ALLERGIES)] : [],
-        });
-        members.push(parentMember);
-
-        // Create scouts
-        const troop = randomChoice(TROOP_NUMBERS);
-        const patrol = randomChoice(PATROL_NAMES);
-
-        for (let i = 0; i < numScouts; i++) {
-            const scoutFirst = randomChoice(Math.random() > 0.3 ? SCOUT_NAMES_MALE : SCOUT_NAMES_FEMALE);
-            const scoutName = `${scoutFirst} ${lastName}`;
-
-            const scoutMember = await familyAPI.create({
-                name: scoutName,
-                member_type: 'scout',
-                date_of_birth: randomDateOfBirth(11, 17),
-                troop_number: troop,
-                patrol_name: patrol,
-                has_youth_protection: false,
-                vehicle_capacity: 0,
-                medical_notes: randomChoice(MEDICAL_NOTES) || undefined,
-                dietary_preferences: Math.random() < 0.25 ? [randomChoice(DIETARY_PREFERENCES)] : [],
-                allergies: Math.random() < 0.15 ? [randomChoice(ALLERGIES)] : [],
-            });
-            members.push(scoutMember);
-        }
-
-        return members;
+        return await outingAPI.create(outingData);
     };
 
     const handleSeedData = async () => {
-        if (!window.confirm('This will create sample outings and family data. Continue?')) {
+        if (!window.confirm('This will create sample troops, scouts, and outings with requirements/merit badges. This may take a minute. Continue?')) {
             return;
         }
 
@@ -281,13 +210,104 @@ const DevDataSeeder: React.FC = () => {
         setSeedMessage(null);
         setSeedError(null);
 
+        let troopsCreated = 0;
+        let patrolsCreated = 0;
+        let scoutsCreated = 0;
         let outingsCreated = 0;
-        let familiesCreated = 0;
-        let totalMembers = 0;
+        let requirementsAdded = 0;
+        let meritBadgesAdded = 0;
 
         try {
-            // Create outings
-            setProgress('Creating outings...');
+            // STEP 1: Create troops with patrols
+            setProgress('Step 1/3: Creating troops with patrols...');
+            const createdTroops = [];
+
+            for (const config of TROOP_CONFIGS) {
+                try {
+                    const troop = await troopAPI.create({
+                        number: config.number,
+                        charter_org: config.charterOrg,
+                        meeting_location: config.meetingLocation,
+                        meeting_day: config.meetingDay,
+                        notes: `Sample troop ${config.number} for development testing`
+                    });
+                    troopsCreated++;
+                    createdTroops.push(troop);
+                    setProgress(`Step 1/3: Created ${troopsCreated}/${TROOP_CONFIGS.length} troops...`);
+
+                    // Create 3-4 patrols for each troop
+                    const numPatrols = Math.floor(Math.random() * 2) + 3;
+                    const usedPatrolNames = new Set<string>();
+                    
+                    for (let i = 0; i < numPatrols; i++) {
+                        let patrolName: string;
+                        do {
+                            patrolName = randomChoice(PATROL_NAMES);
+                        } while (usedPatrolNames.has(patrolName));
+                        usedPatrolNames.add(patrolName);
+
+                        await patrolAPI.create({
+                            troop_id: troop.id,
+                            name: patrolName
+                        });
+                        patrolsCreated++;
+                    }
+
+                    setProgress(`Step 1/3: Created ${troopsCreated} troops with ${patrolsCreated} patrols...`);
+                } catch (error) {
+                    console.error(`Error creating troop ${config.number}:`, error);
+                }
+            }
+
+            // STEP 2: Create scouts and assign to patrols
+            setProgress('Step 2/3: Creating scouts and assigning to patrols...');
+            
+            // Fetch all troops with patrols to get updated data
+            const allTroops = await troopAPI.getAll();
+            const allPatrols: Array<{ troopNumber: string; patrolName: string }> = [];
+            
+            for (const troop of allTroops) {
+                if (troop.patrols && troop.patrols.length > 0) {
+                    for (const patrol of troop.patrols) {
+                        allPatrols.push({
+                            troopNumber: troop.number,
+                            patrolName: patrol.name
+                        });
+                    }
+                }
+            }
+
+            const targetScouts = 25;
+            for (let i = 0; i < targetScouts; i++) {
+                try {
+                    const isMale = Math.random() > 0.3;
+                    const scoutFirst = randomChoice(isMale ? FIRST_NAMES_MALE : FIRST_NAMES_FEMALE);
+                    const scoutLast = randomChoice(LAST_NAMES);
+                    const scoutName = `${scoutFirst} ${scoutLast}`;
+                    const patrol = randomChoice(allPatrols);
+
+                    await familyAPI.create({
+                        name: scoutName,
+                        member_type: 'scout',
+                        date_of_birth: randomDateOfBirth(11, 17),
+                        troop_number: patrol.troopNumber,
+                        patrol_name: patrol.patrolName,
+                        has_youth_protection: false,
+                        vehicle_capacity: 0,
+                        medical_notes: randomChoice(MEDICAL_NOTES) || undefined,
+                        dietary_preferences: Math.random() < 0.25 ? [randomChoice(DIETARY_PREFERENCES)] : [],
+                        allergies: Math.random() < 0.15 ? [randomChoice(ALLERGIES)] : [],
+                    });
+
+                    scoutsCreated++;
+                    setProgress(`Step 2/3: Created ${scoutsCreated}/${targetScouts} scouts...`);
+                } catch (error) {
+                    console.error(`Error creating scout ${i + 1}:`, error);
+                }
+            }
+
+            // STEP 3: Create outings with suggested requirements
+            setProgress('Step 3/3: Creating outings with requirements...');
             const outingConfigs: [string, string, number, boolean, 'fixed' | 'vehicle', number, string][] = [
                 [TRIP_NAMES[0], LOCATIONS[0], 7, true, 'fixed', 25, 'Camping'],
                 [TRIP_NAMES[1], LOCATIONS[1], 14, false, 'fixed', 30, 'Hiking'],
@@ -303,36 +323,67 @@ const DevDataSeeder: React.FC = () => {
 
             for (const [name, location, days, overnight, capType, maxPart, icon] of outingConfigs) {
                 try {
-                    await createOuting(name, location, days, overnight, capType, maxPart, icon);
+                    const outing = await createOuting(name, location, days, overnight, capType, maxPart, icon);
                     outingsCreated++;
-                    setProgress(`Created ${outingsCreated}/${outingConfigs.length} outings...`);
+                    setProgress(`Step 3/3: Created ${outingsCreated}/${outingConfigs.length} outings...`);
+
+                    // Get suggestions and add to outing
+                    try {
+                        const suggestions = await requirementsAPI.getSuggestions(outing.id, 0.1, 5, 5);
+
+                        // Add top 3 rank requirements
+                        const topRequirements = suggestions.requirements.slice(0, 3);
+                        for (const req of topRequirements) {
+                            try {
+                                await requirementsAPI.addRequirementToOuting(outing.id, {
+                                    rank_requirement_id: req.id,
+                                    notes: `Matched keywords: ${req.matched_keywords.join(', ')}`
+                                });
+                                requirementsAdded++;
+                            } catch (error) {
+                                console.error(`Error adding requirement:`, error);
+                            }
+                        }
+
+                        // Add top 2 merit badges
+                        const topBadges = suggestions.merit_badges.slice(0, 2);
+                        for (const badge of topBadges) {
+                            try {
+                                await requirementsAPI.addMeritBadgeToOuting(outing.id, {
+                                    merit_badge_id: badge.id,
+                                    notes: `Matched keywords: ${badge.matched_keywords.join(', ')}`
+                                });
+                                meritBadgesAdded++;
+                            } catch (error) {
+                                console.error(`Error adding merit badge:`, error);
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Error getting suggestions for ${name}:`, error);
+                    }
                 } catch (error) {
                     console.error(`Error creating outing ${name}:`, error);
                 }
             }
 
-            // Create families
-            setProgress('Creating families...');
-            for (let i = 0; i < 5; i++) {
-                const lastName = LAST_NAMES[i];
-                try {
-                    const numScouts = randomChoice([1, 1, 1, 1, 1, 1, 2, 2, 2, 3]); // Weighted: 60% 1, 30% 2, 10% 3
-                    const members = await createFamily(lastName, numScouts);
-                    familiesCreated++;
-                    totalMembers += members.length;
-                    setProgress(`Created ${familiesCreated}/5 families (${totalMembers} members)...`);
-                } catch (error) {
-                    console.error(`Error creating family ${lastName}:`, error);
-                }
-            }
-
             setSeedMessage(
                 `✅ Successfully seeded database!\n\n` +
+                `Step 1 - Troops & Patrols:\n` +
+                `• Troops created: ${troopsCreated}\n` +
+                `• Patrols created: ${patrolsCreated}\n\n` +
+                `Step 2 - Scouts:\n` +
+                `• Scouts created: ${scoutsCreated}\n\n` +
+                `Step 3 - Outings & Requirements:\n` +
                 `• Outings created: ${outingsCreated}\n` +
-                `• Families created: ${familiesCreated}\n` +
-                `• Total members: ${totalMembers}\n\n` +
-                `Note: All family members were created under your account.`
+                `• Rank requirements added: ${requirementsAdded}\n` +
+                `• Merit badges added: ${meritBadgesAdded}\n\n` +
+                `The page will refresh in 3 seconds...`
             );
+
+            // Refresh the page after 3 seconds
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
         } catch (error) {
             console.error('Error seeding data:', error);
             setSeedError(error instanceof Error ? error.message : 'Failed to seed data');
@@ -363,8 +414,9 @@ const DevDataSeeder: React.FC = () => {
                         🌱 Development Data Seeding
                     </h3>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                        Quickly populate the database with sample outings and family data for testing and development.
-                        This will create 10 outings and 5 families with realistic test data.
+                        Quickly populate the database with complete test data. This will create troops with patrols, 
+                        scouts assigned to those patrols, and outings with automatically matched rank requirements and 
+                        merit badges. The page will automatically refresh when complete so you can see the results.
                     </p>
                     {progress && (
                         <div style={{
