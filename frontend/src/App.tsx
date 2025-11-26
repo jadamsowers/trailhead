@@ -733,7 +733,7 @@ const App: React.FC = () => {
                   {/* Logo and Title */}
                   <div className="flex items-center gap-5">
                     <img
-                      src="/icon/icon-small-bordered.png"
+                      src="/icon/icon-large-bordered.png"
                       alt="Trailhead Logo"
                       className="h-14 w-14 sm:h-20 sm:w-20"
                     />
