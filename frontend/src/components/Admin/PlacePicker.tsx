@@ -271,6 +271,32 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
     }
   };
 
+  // Helper to split Nominatim result into display parts
+  const getNominatimDisplayParts = (result: NominatimResult) => {
+    const addr = result.address;
+    const line1Parts: string[] = [];
+    const line2Parts: string[] = [];
+
+    // Line 1: Street address
+    if (addr.house_number) line1Parts.push(addr.house_number);
+    if (addr.road) line1Parts.push(addr.road);
+
+    // Line 2: City, State ZIP
+    const city = addr.city || addr.town || addr.village || "";
+    if (city) line2Parts.push(city);
+    
+    const stateParts: string[] = [];
+    if (addr.state) stateParts.push(addr.state);
+    if (addr.postcode) stateParts.push(addr.postcode);
+    if (stateParts.length > 0) line2Parts.push(stateParts.join(" "));
+
+    // Fallback if no structured address
+    const header = line1Parts.join(" ") || result.display_name.split(",")[0];
+    const subtext = line2Parts.join(", ");
+    
+    return { header, subtext };
+  };
+
   const googleMapsUrl =
     value.place?.google_maps_url ||
     (value.address
@@ -344,20 +370,25 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
                 </button>
               ))}
               
+
+
               {/* Nominatim results */}
-              {nominatimResults.map((result) => (
-                <button
-                  type="button"
-                  key={result.place_id}
-                  onClick={() => handleNominatimSelect(result)}
-                  className="w-full text-left px-3 py-2 text-sm border-b border-[var(--card-border)] hover:bg-[rgba(var(--bsa-olive-rgb),0.1)] transition-colors"
-                >
-                  <div className="font-semibold">🌍 {result.address.road || result.display_name.split(",")[0]}</div>
-                  <div className="text-[11px] text-[var(--text-secondary)]">
-                    {formatNominatimAddress(result)}
-                  </div>
-                </button>
-              ))}
+              {nominatimResults.map((result) => {
+                const { header, subtext } = getNominatimDisplayParts(result);
+                return (
+                  <button
+                    type="button"
+                    key={result.place_id}
+                    onClick={() => handleNominatimSelect(result)}
+                    className="w-full text-left px-3 py-2 text-sm border-b border-[var(--card-border)] hover:bg-[rgba(var(--bsa-olive-rgb),0.1)] transition-colors"
+                  >
+                    <div className="font-bold text-[var(--text-primary)]">🌍 {header}</div>
+                    <div className="text-[11px] text-[var(--text-secondary)]">
+                      {subtext}
+                    </div>
+                  </button>
+                );
+              })}
               
               {/* Option to save Nominatim result as new place */}
               {nominatimResults.length > 0 && nominatimResults[0] && (

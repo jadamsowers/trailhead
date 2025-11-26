@@ -5,6 +5,11 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import traceback
 import logging
+import uuid
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
 from app.api.endpoints import outings, signups, registration, family, clerk_auth, requirements, places, packing_lists, troops
@@ -13,6 +18,9 @@ from app.api import checkin
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Initialize rate limiter
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/minute"])
 
 # Create FastAPI application with enhanced documentation
 app = FastAPI(
@@ -57,6 +65,10 @@ For detailed documentation, see the individual endpoint descriptions below.
     },
 )
 
+# Register rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -68,21 +80,53 @@ app.add_middleware(
 )
 
 
-# Middleware to log incoming requests for debugging
+# Middleware to log incoming requests for monitoring
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    """Log incoming requests with headers for debugging"""
+    """Log incoming requests for monitoring"""
     logger.info(f"📨 Incoming request: {request.method} {request.url.path}")
-    logger.info(f"   Headers: {dict(request.headers)}")
-    
-    # Check for Authorization header
-    auth_header = request.headers.get("authorization")
-    if auth_header:
-        logger.info(f"   🔑 Authorization header present: {auth_header[:20]}...")
-    else:
-        logger.info(f"   ⚠️  No Authorization header found")
     
     response = await call_next(request)
+    return response
+
+
+# Security headers middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add security headers to all responses"""
+    response = await call_next(request)
+    
+    # Prevent clickjacking attacks
+    response.headers["X-Frame-Options"] = "DENY"
+    
+    # Prevent MIME type sniffing
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    
+    # Enable browser XSS protection
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    
+    # Referrer policy
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
+    # Content Security Policy
+    # Allow self and Clerk domains for authentication
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev https://challenges.cloudflare.com; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: https:; "
+        "font-src 'self' data:; "
+        "connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com; "
+        "frame-src 'self' https://*.clerk.accounts.dev;"
+    )
+    
+    # HTTPS enforcement (HSTS) - only in production
+    if not settings.DEBUG:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+    
+    # Permissions policy (formerly Feature-Policy)
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    
     return response
 
 
@@ -121,19 +165,24 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    """Handle all unhandled exceptions with proper CORS headers and detailed logging"""
-    # Log the full traceback for debugging
-    logger.error(f"Unhandled Exception: {type(exc).__name__}")
+    """Handle all unhandled exceptions with proper CORS headers and secure logging"""
+    # Generate unique error ID for support tracking
+    error_id = str(uuid.uuid4())
+    
+    # Log detailed error server-side only with error ID
+    logger.error(
+        f"Error ID: {error_id} | Type: {type(exc).__name__} | "
+        f"Path: {request.url.path} | Method: {request.method}"
+    )
     logger.error(f"Error details: {str(exc)}")
     logger.error(f"Traceback:\n{traceback.format_exc()}")
     
-    # Return a proper 500 error with CORS headers
+    # Return sanitized error to client (never expose internal details)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
-            "detail": "Internal server error. Please check server logs for details.",
-            "error_type": type(exc).__name__,
-            "error_message": str(exc) if settings.DEBUG else "An unexpected error occurred"
+            "detail": "An internal error occurred. Please contact support with the error ID if this persists.",
+            "error_id": error_id
         },
         headers={
             "Access-Control-Allow-Origin": request.headers.get("origin", "*"),

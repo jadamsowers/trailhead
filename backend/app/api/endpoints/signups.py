@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -6,6 +6,8 @@ from sqlalchemy.orm import selectinload
 from uuid import UUID
 from datetime import date
 from pydantic import BaseModel, EmailStr
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.db.session import get_db
 from app.models.user import User
@@ -19,6 +21,7 @@ from app.api.deps import get_current_user, get_current_admin_user
 from app.utils.pdf_generator import generate_outing_roster_pdf
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
 class EmailListResponse(BaseModel):
@@ -35,13 +38,16 @@ class EmailSendRequest(BaseModel):
 
 
 @router.post("", response_model=SignupResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def create_signup(
+    request: Request,
     signup: SignupCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Create a new signup for an outing using family member IDs.
+    Rate limit: 5 signups per minute per IP.
     
     Scouting America Requirements enforced:
     - Minimum 2 adults required per outing

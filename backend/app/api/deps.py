@@ -20,14 +20,9 @@ async def get_current_user(
     """
     token = credentials.credentials
     
-    print(f"🔐 get_current_user called")
-    print(f"   Token (first 30 chars): {token[:30]}...")
-    
     try:
         clerk = get_clerk_client()
-        print(f"   Clerk client initialized")
         token_data = await clerk.verify_token(token)
-        print(f"   Token verified successfully")
         clerk_user_id = token_data["user_id"]
         
         # Get user info from Clerk
@@ -67,11 +62,9 @@ async def get_current_user(
             try:
                 await db.commit()
                 await db.refresh(user)
-                print(f"✅ Created new user: {email} with role {role}")
             except Exception as commit_error:
                 # Handle race condition - another request might have created the user
                 await db.rollback()
-                print(f"⚠️ Race condition creating user, fetching existing: {commit_error}")
                 result = await db.execute(select(User).where(User.email == email))
                 user = result.scalar_one_or_none()
                 if user is None:
@@ -94,11 +87,10 @@ async def get_current_user(
     except HTTPException:
         raise
     except Exception as e:
-        # Log the actual error for debugging
-        print(f"❌ Authentication error in get_current_user: {str(e)}")
-        print(f"   Exception type: {type(e).__name__}")
-        import traceback
-        traceback.print_exc()
+        # Log error without sensitive details
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Authentication error: {type(e).__name__}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials"

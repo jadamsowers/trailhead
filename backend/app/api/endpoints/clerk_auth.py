@@ -1,11 +1,13 @@
 """
 Clerk authentication endpoints
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
 from pydantic import BaseModel
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.db.session import get_db
 from app.core.clerk import get_clerk_client
@@ -14,6 +16,7 @@ from app.api.deps import get_current_user, get_current_admin_user
 from app.models.user import User
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
 class UpdateUserRoleRequest(BaseModel):
@@ -22,11 +25,14 @@ class UpdateUserRoleRequest(BaseModel):
 
 
 @router.get("/me", response_model=UserResponse)
+@limiter.limit("30/minute")
 async def get_current_user_info(
+    request: Request,
     current_user: User = Depends(get_current_user)
 ):
     """
     Get current authenticated user information including contact details.
+    Rate limit: 30 requests per minute per IP.
     """
     return UserResponse(
         id=current_user.id,
@@ -76,13 +82,16 @@ async def update_contact_info(
 
 
 @router.post("/sync-role")
+@limiter.limit("10/minute")
 async def sync_user_role(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
     Sync user role from Clerk metadata to local database.
     This endpoint fetches the role directly from Clerk to ensure security.
+    Rate limit: 10 requests per minute per IP.
     """
     # Fetch user metadata from Clerk
     clerk = get_clerk_client()

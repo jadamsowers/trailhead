@@ -54,13 +54,7 @@ async def list_family_members_summary(
     the outing's end date (or outing date if no end date). Otherwise, it's
     checked against today's date.
     """
-    print(f"📋 Getting family member summary for user: {current_user.email} (ID: {current_user.id})")
-    
     members = await crud_family.get_family_members_for_user(db, current_user.id)
-    
-    print(f"   Found {len(members)} family members")
-    for member in members:
-        print(f"   - {member.name} ({member.member_type})")
     
     # Get outing end date if outing_id is provided
     comparison_date = date.today()
