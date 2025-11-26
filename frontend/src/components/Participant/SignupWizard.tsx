@@ -15,6 +15,9 @@ import {
   invalidateSignups,
   invalidateFamilyData,
 } from "../../hooks/useSWR";
+import { RequirementsService } from "../../client/services/RequirementsService";
+import type { OutingRequirementResponse } from "../../client/models/OutingRequirementResponse";
+import type { OutingMeritBadgeResponse } from "../../client/models/OutingMeritBadgeResponse";
 
 type WizardStep =
   | "select-trip"
@@ -107,6 +110,20 @@ const SignupWizard: React.FC = () => {
   const [collapsedGear, setCollapsedGear] = useState<{
     [outingId: string]: boolean;
   }>({});
+  const [collapsedRequirements, setCollapsedRequirements] = useState<{
+    [outingId: string]: boolean;
+  }>({});
+
+  // Requirements and merit badges data
+  const [outingRequirements, setOutingRequirements] = useState<{
+    [outingId: string]: OutingRequirementResponse[];
+  }>({});
+  const [outingMeritBadges, setOutingMeritBadges] = useState<{
+    [outingId: string]: OutingMeritBadgeResponse[];
+  }>({});
+  const [loadingRequirements, setLoadingRequirements] = useState<{
+    [outingId: string]: boolean;
+  }>({});
 
   // Load user contact info on mount
   useEffect(() => {
@@ -165,6 +182,33 @@ const SignupWizard: React.FC = () => {
           email: user.primaryEmailAddress?.emailAddress || prev.email,
         }));
       }
+    }
+  };
+
+  const loadOutingRequirementsAndBadges = async (outingId: string) => {
+    // Don't load if already loading or already loaded
+    if (loadingRequirements[outingId] || outingRequirements[outingId]) {
+      return;
+    }
+
+    try {
+      setLoadingRequirements((prev) => ({ ...prev, [outingId]: true }));
+
+      const [requirements, meritBadges] = await Promise.all([
+        RequirementsService.listOutingRequirementsApiRequirementsOutingsOutingIdRequirementsGet(
+          outingId
+        ),
+        RequirementsService.listOutingMeritBadgesApiRequirementsOutingsOutingIdMeritBadgesGet(
+          outingId
+        ),
+      ]);
+
+      setOutingRequirements((prev) => ({ ...prev, [outingId]: requirements }));
+      setOutingMeritBadges((prev) => ({ ...prev, [outingId]: meritBadges }));
+    } catch (err) {
+      console.error("Failed to load requirements/badges for outing:", err);
+    } finally {
+      setLoadingRequirements((prev) => ({ ...prev, [outingId]: false }));
     }
   };
 
@@ -1211,6 +1255,283 @@ ${
                                 )}
                               </div>
                             )}
+
+                            {/* Requirements & Merit Badges */}
+                            <div className="mt-3">
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Load data if not already loaded
+                                  if (
+                                    !outingRequirements[outing.id] &&
+                                    !loadingRequirements[outing.id]
+                                  ) {
+                                    loadOutingRequirementsAndBadges(outing.id);
+                                  }
+                                  setCollapsedRequirements((prev) => ({
+                                    ...prev,
+                                    [outing.id]:
+                                      prev[outing.id] === false ? true : false,
+                                  }));
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" || e.key === " ") {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (
+                                      !outingRequirements[outing.id] &&
+                                      !loadingRequirements[outing.id]
+                                    ) {
+                                      loadOutingRequirementsAndBadges(
+                                        outing.id
+                                      );
+                                    }
+                                    setCollapsedRequirements((prev) => ({
+                                      ...prev,
+                                      [outing.id]:
+                                        prev[outing.id] === false
+                                          ? true
+                                          : false,
+                                    }));
+                                  }
+                                }}
+                                role="button"
+                                tabIndex={0}
+                                aria-expanded={
+                                  collapsedRequirements[outing.id] === false
+                                }
+                                className="p-2 rounded cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                style={{
+                                  backgroundColor: "var(--bg-secondary)",
+                                  border: "1px solid var(--card-border)",
+                                }}
+                              >
+                                <p
+                                  className="m-0 font-bold"
+                                  style={{ color: "var(--text-primary)" }}
+                                >
+                                  {collapsedRequirements[outing.id] === false
+                                    ? "▼"
+                                    : "▶"}{" "}
+                                  🏆 Possible Requirements & Merit Badges to
+                                  earn
+                                </p>
+                              </div>
+                              {collapsedRequirements[outing.id] === false && (
+                                <div
+                                  className="p-3 rounded-b"
+                                  style={{
+                                    backgroundColor: "var(--bg-secondary)",
+                                    border: "1px solid var(--card-border)",
+                                    borderTop: "none",
+                                  }}
+                                >
+                                  {loadingRequirements[outing.id] ? (
+                                    <p
+                                      className="text-sm text-center py-2"
+                                      style={{ color: "var(--text-secondary)" }}
+                                    >
+                                      Loading...
+                                    </p>
+                                  ) : (
+                                    <>
+                                      {/* Requirements Table */}
+                                      {outingRequirements[outing.id] &&
+                                      outingRequirements[outing.id].length >
+                                        0 ? (
+                                        <div className="mb-3">
+                                          <h4
+                                            className="text-sm font-bold mb-2"
+                                            style={{
+                                              color: "var(--text-primary)",
+                                            }}
+                                          >
+                                            Rank Requirements
+                                          </h4>
+                                          <div className="overflow-x-auto">
+                                            <table className="w-full text-sm border-collapse">
+                                              <thead>
+                                                <tr
+                                                  style={{
+                                                    borderBottom:
+                                                      "1px solid var(--card-border)",
+                                                  }}
+                                                >
+                                                  <th
+                                                    className="text-left py-1 px-2"
+                                                    style={{
+                                                      color:
+                                                        "var(--text-primary)",
+                                                    }}
+                                                  >
+                                                    Rank
+                                                  </th>
+                                                  <th
+                                                    className="text-left py-1 px-2"
+                                                    style={{
+                                                      color:
+                                                        "var(--text-primary)",
+                                                    }}
+                                                  >
+                                                    Requirement
+                                                  </th>
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                                {outingRequirements[
+                                                  outing.id
+                                                ].map((req) => (
+                                                  <tr
+                                                    key={req.id}
+                                                    style={{
+                                                      borderBottom:
+                                                        "1px solid var(--border-light)",
+                                                    }}
+                                                  >
+                                                    <td
+                                                      className="py-1 px-2 align-top"
+                                                      style={{
+                                                        color:
+                                                          "var(--text-secondary)",
+                                                      }}
+                                                    >
+                                                      {req.requirement.rank}
+                                                    </td>
+                                                    <td
+                                                      className="py-1 px-2"
+                                                      style={{
+                                                        color:
+                                                          "var(--text-secondary)",
+                                                      }}
+                                                    >
+                                                      <div className="font-medium">
+                                                        {
+                                                          req.requirement
+                                                            .category
+                                                        }
+                                                      </div>
+                                                      {req.requirement
+                                                        .requirement_text && (
+                                                        <div className="text-xs mt-0.5">
+                                                          {
+                                                            req.requirement
+                                                              .requirement_text
+                                                          }
+                                                        </div>
+                                                      )}
+                                                    </td>
+                                                  </tr>
+                                                ))}
+                                              </tbody>
+                                            </table>
+                                          </div>
+                                        </div>
+                                      ) : null}
+
+                                      {/* Merit Badges Table */}
+                                      {outingMeritBadges[outing.id] &&
+                                      outingMeritBadges[outing.id].length >
+                                        0 ? (
+                                        <div>
+                                          <h4
+                                            className="text-sm font-bold mb-2"
+                                            style={{
+                                              color: "var(--text-primary)",
+                                            }}
+                                          >
+                                            Merit Badges
+                                          </h4>
+                                          <div className="overflow-x-auto">
+                                            <table className="w-full text-sm border-collapse">
+                                              <thead>
+                                                <tr
+                                                  style={{
+                                                    borderBottom:
+                                                      "1px solid var(--card-border)",
+                                                  }}
+                                                >
+                                                  <th
+                                                    className="text-left py-1 px-2"
+                                                    style={{
+                                                      color:
+                                                        "var(--text-primary)",
+                                                    }}
+                                                  >
+                                                    Badge
+                                                  </th>
+                                                  <th
+                                                    className="text-left py-1 px-2"
+                                                    style={{
+                                                      color:
+                                                        "var(--text-primary)",
+                                                    }}
+                                                  >
+                                                    Type
+                                                  </th>
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                                {outingMeritBadges[
+                                                  outing.id
+                                                ].map((badge) => (
+                                                  <tr
+                                                    key={badge.id}
+                                                    style={{
+                                                      borderBottom:
+                                                        "1px solid var(--border-light)",
+                                                    }}
+                                                  >
+                                                    <td
+                                                      className="py-1 px-2"
+                                                      style={{
+                                                        color:
+                                                          "var(--text-secondary)",
+                                                      }}
+                                                    >
+                                                      {badge.merit_badge.name}
+                                                    </td>
+                                                    <td
+                                                      className="py-1 px-2"
+                                                      style={{
+                                                        color:
+                                                          "var(--text-secondary)",
+                                                      }}
+                                                    >
+                                                      {badge.merit_badge
+                                                        .eagle_required
+                                                        ? "🦅 Eagle Required"
+                                                        : "Elective"}
+                                                    </td>
+                                                  </tr>
+                                                ))}
+                                              </tbody>
+                                            </table>
+                                          </div>
+                                        </div>
+                                      ) : null}
+
+                                      {/* No data message */}
+                                      {(!outingRequirements[outing.id] ||
+                                        outingRequirements[outing.id].length ===
+                                          0) &&
+                                        (!outingMeritBadges[outing.id] ||
+                                          outingMeritBadges[outing.id]
+                                            .length === 0) && (
+                                          <p
+                                            className="text-sm text-center py-2"
+                                            style={{
+                                              color: "var(--text-secondary)",
+                                            }}
+                                          >
+                                            No requirements or merit badges
+                                            linked to this outing yet.
+                                          </p>
+                                        )}
+                                    </>
+                                  )}
+                                </div>
+                              )}
+                            </div>
                           </div>
 
                           {/* Capacity Badge */}
