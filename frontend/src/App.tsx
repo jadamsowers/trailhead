@@ -30,6 +30,8 @@ import FamilySetupPage from "./pages/FamilySetupPage";
 import OutingsPage from "./pages/OutingsPage";
 import CheckInPage from "./pages/CheckInPage";
 import ProfilePage from "./pages/ProfilePage";
+import InitialSignInWizard from "./components/InitialSignInWizard";
+import { InitialSetupGuard } from "./components/InitialSetupGuard";
 import { userAPI } from "./services/api";
 import type { User } from "./types";
 
@@ -686,7 +688,7 @@ const App: React.FC = () => {
                     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-5">
                       <div className="glass-panel p-8 rounded-xl w-full max-w-md">
                         <SignUp
-                          afterSignUpUrl="/family-setup"
+                          afterSignUpUrl="/initial-setup"
                           signInUrl="/login"
                         />
                       </div>
@@ -696,10 +698,20 @@ const App: React.FC = () => {
                 <Route path="/admin-setup" element={<AdminSetupPage />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route
+                  path="/initial-setup"
+                  element={
+                    <SignedIn>
+                      <InitialSignInWizard />
+                    </SignedIn>
+                  }
+                />
+                <Route
                   path="/family-setup"
                   element={
                     <SignedIn>
-                      <FamilySetupPage />
+                      <InitialSetupGuard>
+                        <FamilySetupPage />
+                      </InitialSetupGuard>
                     </SignedIn>
                   }
                 />
@@ -707,16 +719,24 @@ const App: React.FC = () => {
                   path="/profile"
                   element={
                     <SignedIn>
-                      <ProfilePage />
+                      <InitialSetupGuard>
+                        <ProfilePage />
+                      </InitialSetupGuard>
                     </SignedIn>
                   }
                 />
-                <Route path="/outings" element={<OutingsPage />} />
+                <Route path="/outings" element={
+                  <InitialSetupGuard>
+                    <OutingsPage />
+                  </InitialSetupGuard>
+                } />
                 <Route
                   path="/check-in/:outingId"
                   element={
                     <SignedIn>
-                      <CheckInPage />
+                      <InitialSetupGuard>
+                        <CheckInPage />
+                      </InitialSetupGuard>
                     </SignedIn>
                   }
                 />
