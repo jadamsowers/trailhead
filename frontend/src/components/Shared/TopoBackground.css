@@ -1,0 +1,33 @@
+.topo-bg {
+  /* Use theme background variable */
+  background-color: var(--bg-primary, var(--color-primary));
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.topo-svg {
+  width: 100%;
+  height: 100%;
+  animation: slow-pan 40s linear infinite alternate;
+  display: block;
+}
+
+.topo-path {
+  stroke: var(--text-primary, #fff);
+  /* Opacity is set inline for each path */
+}
+
+@keyframes slow-pan {
+  from {
+    transform: translateX(0) translateY(0) scale(1.05);
+  }
+  to {
+    transform: translateX(-40px) translateY(-40px) scale(1.05);
+  }
+}

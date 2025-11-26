@@ -22,6 +22,7 @@ import {
 import BackendHealthCheck from "./components/Shared/BackendHealthCheck";
 import { BackgroundSync } from "./components/BackgroundSync";
 import { ThemeToggleCompact } from "./components/Shared/ThemeToggle";
+import TopoBackground from "./components/Shared/TopoBackground";
 import AdminPage from "./pages/AdminPage";
 import LoginPage from "./pages/LoginPage";
 import AdminSetupPage from "./pages/AdminSetupPage";
@@ -669,6 +670,7 @@ const App: React.FC = () => {
       <BackendHealthCheck>
         <Router>
           <div className="min-h-screen relative flex flex-col">
+            <TopoBackground />
             {/* Navigation Bar */}
             <Navigation />
             {/* Background Sync (global) */}
