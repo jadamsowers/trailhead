@@ -22,7 +22,7 @@ pip install -r requirements.txt
 #### Run Database Migrations
 ```bash
 # Make sure you're in the backend directory
-alembic upgrade head
+atlas migrate apply --env sqlalchemy
 ```
 
 #### Create Admin User

@@ -38,7 +38,7 @@ spec:
         command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;']
       - name: run-migrations
         image: -backend:latest  # Replace with your actual image
-        command: ['alembic', 'upgrade', 'head']
+        command: ['atlas', 'migrate', 'apply', '--env', 'sqlalchemy']
         env:
         - name: POSTGRES_SERVER
           value: postgres

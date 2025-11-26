@@ -1,10 +1,10 @@
 #!/bin/bash
-# Script to reset Alembic migrations to a clean state
+# Script to reset Atlas migrations to a clean state
 # This script removes all migration files and creates a fresh initial migration
 
 set -e
 
-echo "🧹 Resetting Alembic migrations..."
+echo "🧹 Resetting Atlas migrations..."
 
 # Step 1: Remove all existing migration files
 echo "📁 Removing old migration files..."

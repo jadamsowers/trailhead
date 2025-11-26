@@ -128,7 +128,7 @@ Once deployed, access the application at:
 Migrations run automatically via init container in the backend deployment. To run manually:
 
 ```bash
-kubectl exec -it deployment/backend -n  -- alembic upgrade head
+kubectl exec -it deployment/backend -n  -- atlas migrate apply --env sqlalchemy
 ```
 
 ### Create Admin User

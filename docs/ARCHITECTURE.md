@@ -356,7 +356,7 @@ src/
 - Python 3.11+
 - FastAPI framework
 - SQLAlchemy ORM
-- Alembic for migrations
+- Atlas for migrations
 - Pydantic for validation
 - asyncpg for async PostgreSQL
 

@@ -106,7 +106,7 @@ See [CLERK_MIGRATION_GUIDE.md](CLERK_MIGRATION_GUIDE.md) for detailed setup inst
 - FastAPI (Python)
 - PostgreSQL database
 - SQLAlchemy ORM
-- Alembic for migrations
+- Atlas for migrations
 - Clerk Backend API for auth
 
 ### Infrastructure
@@ -125,7 +125,7 @@ trailhead/
 │   │   ├── models/      # Database models
 │   │   ├── schemas/     # Pydantic schemas
 │   │   └── utils/       # Utilities
-│   ├── alembic/         # Database migrations
+│   ├── migrations/      # Database migrations
 │   └── tests/           # Backend tests
 ├── frontend/            # React frontend
 │   ├── src/
@@ -154,7 +154,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
 # Run migrations
-alembic upgrade head
+atlas migrate apply --env sqlalchemy
 
 # Start development server
 uvicorn app.main:app --reload

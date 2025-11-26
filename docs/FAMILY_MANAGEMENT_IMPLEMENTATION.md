@@ -22,7 +22,7 @@ Created three new models:
   - Links to FamilyMember
   - Stores allergy type and severity
 
-### 2. Database Migration (`backend/alembic/versions/f8a9b3c5d6e7_add_family_management_tables.py`)
+### 2. Database Migration (`backend/migrations/f8a9b3c5d6e7_add_family_management_tables.py`)
 - Creates family_members table
 - Creates family_member_dietary_preferences table
 - Creates family_member_allergies table
@@ -190,7 +190,7 @@ family_member_allergies
 Execute the migration to create the new tables:
 ```bash
 cd backend
-python3 -m alembic upgrade head
+python3 -m atlas migrate apply --env sqlalchemy
 ```
 
 ### 2. Testing
