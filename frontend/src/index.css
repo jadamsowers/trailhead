@@ -314,7 +314,7 @@ code {
   font-family: var(--font-body);
 }
 
-/* Enhanced heading styles for Merriweather */
+/* Enhanced heading styles for EB Garamond */
 .heading-serif {
   font-family: var(--font-heading);
   font-feature-settings: "liga", "kern";
