@@ -1276,14 +1276,27 @@ export const requirementsAPI = {
     outingName: string,
     description: string = ""
   ): Promise<OutingSuggestions> {
-    // Create a temporary outing object to get suggestions
-    // We'll need to call this differently since the outing doesn't exist yet
-    // For now, we'll simulate by making a POST request with the data
+    let headers: HeadersInit | undefined;
+    try {
+      headers = await getAuthHeaders();
+    } catch (authErr) {
+      console.warn("Preview suggestions: auth unavailable", authErr);
+      // Return empty suggestions so the UI shows the 'Suggestions
+      // unavailable' fallback instead of a hard error (403).
+      return {
+        requirements: [],
+        merit_badges: [],
+      } as OutingSuggestions;
+    }
+
     const response = await fetch(
-      `${API_BASE_URL}/requirements/preview-suggestions`,
+      `${API_BASE_URL}/requirements/requirements/preview-suggestions`,
       {
         method: "POST",
-        headers: await getAuthHeaders(),
+        headers: {
+          ...(headers as Record<string, string>),
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           name: outingName,
           description: description,
