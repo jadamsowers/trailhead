@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import useSWR, { mutate } from "swr";
 import {
   troopAPI,
   patrolAPI,
@@ -8,59 +8,68 @@ import {
   PatrolUpdate,
 } from "../services/api";
 
+const TROOPS_KEY = "/api/troops";
+
 export function useTroops() {
-  return useQuery({
-    queryKey: ["troops"],
-    queryFn: () => troopAPI.getAll(),
-  });
+  return useSWR(TROOPS_KEY, () => troopAPI.getAll());
 }
 
 export function useCreateTroop() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: TroopCreate) => troopAPI.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["troops"] }),
-  });
+  return {
+    trigger: async (data: TroopCreate) => {
+      const result = await troopAPI.create(data);
+      mutate(TROOPS_KEY);
+      return result;
+    },
+  };
 }
 
 export function useUpdateTroop() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: TroopUpdate }) =>
-      troopAPI.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["troops"] }),
-  });
+  return {
+    trigger: async ({ id, data }: { id: string; data: TroopUpdate }) => {
+      const result = await troopAPI.update(id, data);
+      mutate(TROOPS_KEY);
+      return result;
+    },
+  };
 }
 
 export function useDeleteTroop() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => troopAPI.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["troops"] }),
-  });
+  return {
+    trigger: async (id: string) => {
+      const result = await troopAPI.delete(id);
+      mutate(TROOPS_KEY);
+      return result;
+    },
+  };
 }
 
 export function useCreatePatrol() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: PatrolCreate) => patrolAPI.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["troops"] }),
-  });
+  return {
+    trigger: async (data: PatrolCreate) => {
+      const result = await patrolAPI.create(data);
+      mutate(TROOPS_KEY);
+      return result;
+    },
+  };
 }
 
 export function useUpdatePatrol() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: PatrolUpdate }) =>
-      patrolAPI.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["troops"] }),
-  });
+  return {
+    trigger: async ({ id, data }: { id: string; data: PatrolUpdate }) => {
+      const result = await patrolAPI.update(id, data);
+      mutate(TROOPS_KEY);
+      return result;
+    },
+  };
 }
 
 export function useDeletePatrol() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => patrolAPI.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["troops"] }),
-  });
+  return {
+    trigger: async (id: string) => {
+      const result = await patrolAPI.delete(id);
+      mutate(TROOPS_KEY);
+      return result;
+    },
+  };
 }
