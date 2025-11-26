@@ -147,7 +147,7 @@ class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, max_size: int = 10 * 1024 * 1024):
         super().__init__(app)
         self.max_size = max_size
-    
+
     async def dispatch(self, request: Request, call_next):
         if request.headers.get("content-length"):
             content_length = int(request.headers["content-length"])
@@ -248,21 +248,21 @@ def normalize_email(email: str) -> str:
     Handles Gmail dots, plus-addressing, and case.
     """
     email = email.lower().strip()
-    
+
     try:
         local, domain = email.split('@')
     except ValueError:
         return email  # Invalid format, return as-is
-    
+
     # Gmail/Google Workspace: remove dots and plus-addressing
     if domain in ['gmail.com', 'googlemail.com']:
         local = local.split('+')[0]  # Remove plus-addressing
         local = local.replace('.', '')  # Remove dots
-    
+
     # For other providers, just handle plus-addressing
     else:
         local = local.split('+')[0]
-    
+
     return f"{local}@{domain}"
 ```
 
@@ -290,48 +290,48 @@ name: Security Scan
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   schedule:
-    - cron: '0 0 * * 0'  # Weekly on Sunday
+    - cron: "0 0 * * 0" # Weekly on Sunday
 
 jobs:
   security:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r backend/requirements.txt
-        pip install safety bandit
-    
-    - name: Run Safety check
-      run: |
-        cd backend
-        safety check --json || true
-    
-    - name: Run Bandit
-      run: |
-        cd backend
-        bandit -r app -f json -o bandit-report.json || true
-        bandit -r app
-    
-    - name: Upload scan results
-      uses: actions/upload-artifact@v3
-      if: always()
-      with:
-        name: security-reports
-        path: |
-          backend/bandit-report.json
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install safety bandit
+
+      - name: Run Safety check
+        run: |
+          cd backend
+          safety check --json || true
+
+      - name: Run Bandit
+        run: |
+          cd backend
+          bandit -r app -f json -o bandit-report.json || true
+          bandit -r app
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            backend/bandit-report.json
 ```
 
 **Local usage:**
@@ -363,29 +363,29 @@ active_sessions = {}
 
 async def track_session_activity(request: Request, call_next):
     """Track user session activity for timeout detection"""
-    
+
     # Only track authenticated requests
     auth_header = request.headers.get("authorization")
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header[7:]
         token_hash = hash(token)  # Don't store actual token
-        
+
         now = datetime.utcnow()
         last_activity = active_sessions.get(token_hash)
-        
+
         # Check for session timeout (30 minutes)
         if last_activity and (now - last_activity) > timedelta(minutes=30):
             logger.warning(f"Session timeout detected")
             # Could force re-authentication here
-        
+
         # Update last activity
         active_sessions[token_hash] = now
-        
+
         # Cleanup old sessions (simple approach)
         if len(active_sessions) > 10000:
             cutoff = now - timedelta(hours=1)
             active_sessions.clear()  # Simple cleanup
-    
+
     response = await call_next(request)
     return response
 ```
@@ -395,14 +395,17 @@ async def track_session_activity(request: Request, call_next):
 ## Implementation Priority
 
 ### Immediate (Do First)
+
 1. ✅ Config Validation (prevents misconfig)
 2. ✅ Rate Limit Public Endpoints (prevents abuse)
 
 ### Soon (This Week)
+
 3. Request Size Limits (prevents DoS)
 4. Dependency Scanning (automation)
 
 ### When Time Permits
+
 5. Audit Logging (compliance)
 6. Email Normalization (edge case)
 7. Health Check Auth (defense in depth)

@@ -1,0 +1,85 @@
+{
+  "timestamp": "2025-11-26T14:51:55.939290",
+  "target": "http://localhost:8000",
+  "summary": {
+    "total_tests": 10,
+    "passed": 7,
+    "failed": 3,
+    "critical": 1,
+    "high": 1,
+    "medium": 1,
+    "low": 0
+  },
+  "results": [
+    {
+      "test": "Security Headers",
+      "passed": true,
+      "severity": "info",
+      "details": "All required security headers present and correct",
+      "recommendation": ""
+    },
+    {
+      "test": "CORS Configuration",
+      "passed": true,
+      "severity": "info",
+      "details": "CORS properly restricted",
+      "recommendation": ""
+    },
+    {
+      "test": "SQL Injection",
+      "passed": true,
+      "severity": "info",
+      "details": "No SQL injection vulnerabilities detected",
+      "recommendation": ""
+    },
+    {
+      "test": "Cross-Site Scripting (XSS)",
+      "passed": true,
+      "severity": "info",
+      "details": "No XSS vulnerabilities detected",
+      "recommendation": ""
+    },
+    {
+      "test": "Authentication Bypass",
+      "passed": true,
+      "severity": "info",
+      "details": "All protected endpoints require authentication",
+      "recommendation": ""
+    },
+    {
+      "test": "Rate Limiting",
+      "passed": false,
+      "severity": "medium",
+      "details": "No rate limiting detected after 70 requests",
+      "recommendation": "Implement rate limiting to prevent abuse"
+    },
+    {
+      "test": "Information Disclosure",
+      "passed": true,
+      "severity": "info",
+      "details": "Error messages properly sanitized",
+      "recommendation": ""
+    },
+    {
+      "test": "HTTPS Enforcement",
+      "passed": false,
+      "severity": "high",
+      "details": "API not served over HTTPS",
+      "recommendation": "Enable HTTPS in production"
+    },
+    {
+      "test": "Authorization Flaws",
+      "passed": false,
+      "severity": "critical",
+      "details": "Admin endpoints accessible: /api/outings",
+      "recommendation": "Verify JWT tokens and check user roles"
+    },
+    {
+      "test": "Verbose Error Messages",
+      "passed": true,
+      "severity": "info",
+      "details": "Error messages properly sanitized",
+      "recommendation": ""
+    }
+  ]
+}
