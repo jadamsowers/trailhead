@@ -38,7 +38,14 @@ const BackendErrorOverlay: React.FC<BackendErrorOverlayProps> = ({
       role="alertdialog"
       aria-modal="true"
     >
-      <div className="flex flex-col items-center max-w-lg w-full px-6 py-10 rounded-xl shadow-2xl border border-[color:var(--alert-error-border,#e57373)] bg-white/90">
+      <div
+        className="flex flex-col items-center max-w-lg w-full px-6 py-10 rounded-xl shadow-2xl border"
+        style={{
+          background: "var(--card-bg)",
+          borderColor: "var(--card-border)",
+          color: "var(--text-primary)",
+        }}
+      >
         <div className="text-5xl mb-4">⚠️</div>
         <h1
           className="text-2xl font-bold mb-2 text-center"
