@@ -33,6 +33,13 @@ export const TroopAdminPage: React.FC = () => {
     try {
       const data = await troopAPI.getAll();
       setTroops(data);
+      // If a troop is currently selected, update it with fresh data
+      if (selectedTroop) {
+        const updatedTroop = data.find((t) => t.id === selectedTroop.id);
+        if (updatedTroop) {
+          setSelectedTroop(updatedTroop);
+        }
+      }
     } catch (e: any) {
       setError(e.message || "Failed to load troops");
     } finally {
@@ -93,58 +100,19 @@ export const TroopAdminPage: React.FC = () => {
   }
 
   return (
-    <div
-      style={{
-        backgroundColor: "var(--card-bg)",
-        boxShadow: "var(--card-shadow)",
-        borderRadius: "8px",
-        overflow: "hidden",
-        border: "1px solid var(--card-border)",
-      }}
-    >
-      <div
-        style={{
-          padding: "1.5rem",
-          borderBottom: "1px solid var(--card-border)",
-        }}
-      >
-        <h2
-          style={{
-            fontSize: "1.5rem",
-            fontWeight: "bold",
-            color: "var(--text-primary)",
-            margin: 0,
-          }}
-        >
-          Troop Management
-        </h2>
-        <p
-          style={{
-            fontSize: "0.875rem",
-            color: "var(--text-secondary)",
-            marginTop: "0.25rem",
-            marginBottom: 0,
-          }}
-        >
-          Manage troops and patrols
-        </p>
-      </div>
-
+    <div>
       {error && (
         <div
+          className="mb-6 p-4 rounded-lg"
           style={{
-            margin: "1rem 1.5rem 0",
-            padding: "1rem",
             backgroundColor: "var(--alert-error-bg)",
             border: "1px solid var(--alert-error-border)",
-            borderRadius: "4px",
           }}
         >
           <p
+            className="text-sm"
             style={{
-              fontSize: "0.875rem",
               color: "var(--alert-error-text)",
-              margin: 0,
             }}
           >
             {error}
@@ -152,36 +120,79 @@ export const TroopAdminPage: React.FC = () => {
         </div>
       )}
 
-      <div style={{ padding: "1.5rem" }}>
-        <div className="flex gap-8">
-          <div className="w-1/3">
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="text-xl font-semibold">Troops</h2>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleAddTroop}
-              >
-                Add Troop
-              </button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column - Troops List */}
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h3
+              className="text-base font-semibold"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Troops
+            </h3>
+            <button
+              type="button"
+              className="px-4 py-2 rounded-lg font-medium transition-all hover:shadow-lg"
+              style={{
+                backgroundColor: "var(--btn-primary-bg)",
+                color: "var(--btn-primary-text)",
+              }}
+              onClick={handleAddTroop}
+            >
+              Add Troop
+            </button>
+          </div>
+          {loading ? (
+            <div
+              className="text-center py-8"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Loading...
             </div>
-            {loading ? (
-              <div>Loading...</div>
-            ) : (
-              <ul className="border rounded divide-y">
-                {troops.map((troop) => (
-                  <li
-                    key={troop.id}
-                    className={`p-2 cursor-pointer hover:bg-gray-100 ${
-                      selectedTroop?.id === troop.id ? "bg-blue-50" : ""
-                    }`}
-                    onClick={() => handleSelectTroop(troop)}
-                  >
-                    <div className="flex justify-between items-center">
-                      <span>Troop {troop.number}</span>
+          ) : (
+            <div
+              className="rounded-lg overflow-hidden"
+              style={{
+                backgroundColor: "var(--card-bg)",
+                border: "1px solid var(--border-light)",
+              }}
+            >
+              {troops.map((troop, idx) => (
+                <div
+                  key={troop.id}
+                  className="p-4 cursor-pointer transition-colors"
+                  style={{
+                    borderBottom:
+                      idx < troops.length - 1
+                        ? "1px solid var(--border-light)"
+                        : "none",
+                    backgroundColor:
+                      selectedTroop?.id === troop.id
+                        ? "rgba(var(--bsa-olive-rgb), 0.1)"
+                        : "transparent",
+                  }}
+                  onClick={() => handleSelectTroop(troop)}
+                >
+                  <div className="flex justify-between items-center">
+                    <span
+                      className="font-medium"
+                      style={{
+                        color:
+                          selectedTroop?.id === troop.id
+                            ? "var(--color-primary)"
+                            : "var(--text-primary)",
+                      }}
+                    >
+                      Troop {troop.number}
+                    </span>
+                    <div className="flex gap-2">
                       <button
                         type="button"
-                        className="btn btn-xs btn-secondary"
+                        className="px-3 py-1 text-sm rounded transition-colors"
+                        style={{
+                          backgroundColor: "var(--btn-secondary-bg)",
+                          color: "var(--btn-secondary-text)",
+                        }}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEditTroop(troop);
@@ -190,71 +201,154 @@ export const TroopAdminPage: React.FC = () => {
                       >
                         Edit
                       </button>
+                      <button
+                        type="button"
+                        className="px-3 py-1 text-sm rounded transition-colors"
+                        style={{
+                          backgroundColor: "#dc2626",
+                          color: "white",
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteTroop(troop.id);
+                        }}
+                        aria-label={`Delete troop ${troop.number}`}
+                      >
+                        Delete
+                      </button>
                     </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <div className="flex-1">
-            {showTroopForm && (
-              <TroopForm
-                troop={selectedTroop}
-                onSuccess={() => {
-                  setShowTroopForm(false);
-                  fetchTroops();
-                }}
-                onCancel={() => setShowTroopForm(false)}
-              />
-            )}
-            {selectedTroop && !showTroopForm && (
-              <div>
-                <h2 className="text-xl font-semibold mb-2">
+                  </div>
+                </div>
+              ))}
+              {troops.length === 0 && (
+                <div
+                  className="p-8 text-center"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  No troops yet. Click "Add Troop" to get started.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right Column - Details/Forms */}
+        <div className="lg:col-span-2">
+          {showTroopForm && (
+            <TroopForm
+              troop={selectedTroop}
+              onSuccess={() => {
+                setShowTroopForm(false);
+                fetchTroops();
+              }}
+              onCancel={() => setShowTroopForm(false)}
+            />
+          )}
+          {selectedTroop && !showTroopForm && (
+            <div>
+              <div className="mb-6">
+                <h3
+                  className="text-base font-semibold mb-4"
+                  style={{ color: "var(--text-primary)" }}
+                >
                   Troop {selectedTroop.number}
-                </h2>
-                <div className="mb-2">
+                </h3>
+                <div
+                  className="p-6 rounded-lg space-y-3"
+                  style={{
+                    backgroundColor: "var(--card-bg)",
+                    border: "1px solid var(--border-light)",
+                  }}
+                >
+                  <div>
+                    <strong style={{ color: "var(--text-primary)" }}>
+                      Charter Org:
+                    </strong>{" "}
+                    <span style={{ color: "var(--text-secondary)" }}>
+                      {selectedTroop.charter_org || <em>None</em>}
+                    </span>
+                  </div>
+                  <div>
+                    <strong style={{ color: "var(--text-primary)" }}>
+                      Meeting Location:
+                    </strong>{" "}
+                    <span style={{ color: "var(--text-secondary)" }}>
+                      {selectedTroop.meeting_location || <em>None</em>}
+                    </span>
+                  </div>
+                  <div>
+                    <strong style={{ color: "var(--text-primary)" }}>
+                      Meeting Day:
+                    </strong>{" "}
+                    <span style={{ color: "var(--text-secondary)" }}>
+                      {selectedTroop.meeting_day || <em>None</em>}
+                    </span>
+                  </div>
+                  <div>
+                    <strong style={{ color: "var(--text-primary)" }}>
+                      Notes:
+                    </strong>{" "}
+                    <span style={{ color: "var(--text-secondary)" }}>
+                      {selectedTroop.notes || <em>None</em>}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3
+                    className="text-base font-semibold"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    Patrols
+                  </h3>
                   <button
                     type="button"
-                    className="btn btn-secondary mr-2"
+                    className="px-4 py-2 rounded-lg font-medium transition-all hover:shadow-lg"
+                    style={{
+                      backgroundColor: "var(--btn-primary-bg)",
+                      color: "var(--btn-primary-text)",
+                    }}
                     onClick={handleAddPatrol}
                   >
                     Add Patrol
                   </button>
-                  <button
-                    type="button"
-                    className="btn btn-danger"
-                    onClick={() => handleDeleteTroop(selectedTroop.id)}
-                  >
-                    Delete Troop
-                  </button>
                 </div>
-                <div className="mb-4">
-                  <strong>Charter Org:</strong>{" "}
-                  {selectedTroop.charter_org || <em>None</em>}
-                  <br />
-                  <strong>Meeting Location:</strong>{" "}
-                  {selectedTroop.meeting_location || <em>None</em>}
-                  <br />
-                  <strong>Meeting Day:</strong>{" "}
-                  {selectedTroop.meeting_day || <em>None</em>}
-                  <br />
-                  <strong>Notes:</strong> {selectedTroop.notes || <em>None</em>}
-                </div>
-                <h3 className="font-semibold mb-1">Patrols</h3>
-                <ul className="border rounded divide-y mb-2">
-                  {selectedTroop.patrols.map((patrol) => (
-                    <li
+                <div
+                  className="rounded-lg overflow-hidden mb-6"
+                  style={{
+                    backgroundColor: "var(--card-bg)",
+                    border: "1px solid var(--border-light)",
+                  }}
+                >
+                  {selectedTroop.patrols.map((patrol, idx) => (
+                    <div
                       key={patrol.id}
-                      className="p-2 flex justify-between items-center"
+                      className="p-4 flex justify-between items-center"
+                      style={{
+                        borderBottom:
+                          idx < selectedTroop.patrols.length - 1
+                            ? "1px solid var(--border-light)"
+                            : "none",
+                      }}
                     >
-                      <span>
+                      <span style={{ color: "var(--text-primary)" }}>
                         {patrol.name}{" "}
-                        {patrol.is_active ? "" : <em>(inactive)</em>}
+                        {!patrol.is_active && (
+                          <em style={{ color: "var(--text-secondary)" }}>
+                            (inactive)
+                          </em>
+                        )}
                       </span>
-                      <span>
+                      <div className="flex gap-2">
                         <button
                           type="button"
-                          className="btn btn-xs btn-secondary mr-2"
+                          className="px-3 py-1 text-sm rounded transition-colors"
+                          style={{
+                            backgroundColor: "var(--btn-secondary-bg)",
+                            color: "var(--btn-secondary-text)",
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditPatrol(patrol);
@@ -265,7 +359,11 @@ export const TroopAdminPage: React.FC = () => {
                         </button>
                         <button
                           type="button"
-                          className="btn btn-xs btn-danger"
+                          className="px-3 py-1 text-sm rounded transition-colors"
+                          style={{
+                            backgroundColor: "#dc2626",
+                            color: "white",
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeletePatrol(patrol.id);
@@ -274,13 +372,18 @@ export const TroopAdminPage: React.FC = () => {
                         >
                           Delete
                         </button>
-                      </span>
-                    </li>
+                      </div>
+                    </div>
                   ))}
                   {selectedTroop.patrols.length === 0 && (
-                    <li className="p-2 text-gray-500">No patrols</li>
+                    <div
+                      className="p-8 text-center"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      No patrols yet. Click "Add Patrol" to get started.
+                    </div>
                   )}
-                </ul>
+                </div>
                 {showPatrolForm && (
                   <PatrolForm
                     troopId={selectedTroop.id}
@@ -293,8 +396,22 @@ export const TroopAdminPage: React.FC = () => {
                   />
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+          {!selectedTroop && !showTroopForm && (
+            <div
+              className="p-12 text-center rounded-lg"
+              style={{
+                backgroundColor: "var(--card-bg)",
+                border: "1px solid var(--border-light)",
+              }}
+            >
+              <p className="text-lg" style={{ color: "var(--text-secondary)" }}>
+                Select a troop from the list to view details, or click "Add
+                Troop" to create a new one.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -312,8 +429,8 @@ const TroopForm: React.FC<TroopFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
-  const [form, setForm] = useState<TroopCreate | TroopUpdate>({
-    number: troop?.number || "",
+  const [number, setNumber] = useState(troop?.number || "");
+  const [form, setForm] = useState<Omit<TroopCreate, "number">>({
     charter_org: troop?.charter_org || "",
     meeting_location: troop?.meeting_location || "",
     meeting_day: troop?.meeting_day || "",
@@ -330,7 +447,7 @@ const TroopForm: React.FC<TroopFormProps> = ({
       if (troop) {
         await troopAPI.update(troop.id, form as TroopUpdate);
       } else {
-        await troopAPI.create(form as TroopCreate);
+        await troopAPI.create({ ...form, number } as TroopCreate);
       }
       onSuccess();
     } catch (e: any) {
@@ -341,60 +458,150 @@ const TroopForm: React.FC<TroopFormProps> = ({
   }
 
   return (
-    <form className="border rounded p-4 mb-4 bg-white" onSubmit={handleSubmit}>
-      <h3 className="font-semibold mb-2">
+    <form
+      className="p-6 rounded-lg"
+      style={{
+        backgroundColor: "var(--card-bg)",
+        border: "1px solid var(--border-light)",
+      }}
+      onSubmit={handleSubmit}
+    >
+      <h3
+        className="text-xl font-semibold font-heading mb-6"
+        style={{ color: "var(--text-primary)" }}
+      >
         {troop ? "Edit Troop" : "Add Troop"}
       </h3>
-      {error && <div className="text-red-600 mb-2">{error}</div>}
-      <div className="mb-2">
-        <label className="block font-medium">Troop Number</label>
-        <input
-          className="input input-bordered w-full"
-          value={form.number}
-          onChange={(e) => setForm({ ...form, number: e.target.value })}
-          required
-          disabled={!!troop}
-        />
+      {error && (
+        <div
+          className="mb-4 p-3 rounded-lg text-sm"
+          style={{
+            backgroundColor: "var(--alert-error-bg)",
+            border: "1px solid var(--alert-error-border)",
+            color: "var(--alert-error-text)",
+          }}
+        >
+          {error}
+        </div>
+      )}
+      <div className="space-y-4">
+        <div>
+          <label
+            className="block font-medium mb-2"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Troop Number
+          </label>
+          <input
+            className="w-full px-4 py-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: "var(--input-bg)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+            }}
+            value={number}
+            onChange={(e) => setNumber(e.target.value)}
+            required
+            disabled={!!troop}
+          />
+        </div>
+        <div>
+          <label
+            className="block font-medium mb-2"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Charter Org
+          </label>
+          <input
+            className="w-full px-4 py-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: "var(--input-bg)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+            }}
+            value={form.charter_org || ""}
+            onChange={(e) => setForm({ ...form, charter_org: e.target.value })}
+          />
+        </div>
+        <div>
+          <label
+            className="block font-medium mb-2"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Meeting Location
+          </label>
+          <input
+            className="w-full px-4 py-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: "var(--input-bg)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+            }}
+            value={form.meeting_location || ""}
+            onChange={(e) =>
+              setForm({ ...form, meeting_location: e.target.value })
+            }
+          />
+        </div>
+        <div>
+          <label
+            className="block font-medium mb-2"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Meeting Day
+          </label>
+          <input
+            className="w-full px-4 py-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: "var(--input-bg)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+            }}
+            value={form.meeting_day || ""}
+            onChange={(e) => setForm({ ...form, meeting_day: e.target.value })}
+          />
+        </div>
+        <div>
+          <label
+            className="block font-medium mb-2"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Notes
+          </label>
+          <textarea
+            className="w-full px-4 py-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: "var(--input-bg)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+            }}
+            rows={4}
+            value={form.notes || ""}
+            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+          />
+        </div>
       </div>
-      <div className="mb-2">
-        <label className="block font-medium">Charter Org</label>
-        <input
-          className="input input-bordered w-full"
-          value={form.charter_org || ""}
-          onChange={(e) => setForm({ ...form, charter_org: e.target.value })}
-        />
-      </div>
-      <div className="mb-2">
-        <label className="block font-medium">Meeting Location</label>
-        <input
-          className="input input-bordered w-full"
-          value={form.meeting_location || ""}
-          onChange={(e) =>
-            setForm({ ...form, meeting_location: e.target.value })
-          }
-        />
-      </div>
-      <div className="mb-2">
-        <label className="block font-medium">Meeting Day</label>
-        <input
-          className="input input-bordered w-full"
-          value={form.meeting_day || ""}
-          onChange={(e) => setForm({ ...form, meeting_day: e.target.value })}
-        />
-      </div>
-      <div className="mb-2">
-        <label className="block font-medium">Notes</label>
-        <textarea
-          className="textarea textarea-bordered w-full"
-          value={form.notes || ""}
-          onChange={(e) => setForm({ ...form, notes: e.target.value })}
-        />
-      </div>
-      <div className="flex gap-2 mt-2">
-        <button className="btn btn-primary" type="submit" disabled={saving}>
+      <div className="flex gap-3 mt-6">
+        <button
+          className="px-6 py-2 rounded-lg font-medium transition-all hover:shadow-lg"
+          style={{
+            backgroundColor: "var(--btn-primary-bg)",
+            color: "var(--btn-primary-text)",
+          }}
+          type="submit"
+          disabled={saving}
+        >
           {saving ? "Saving..." : "Save"}
         </button>
-        <button className="btn btn-secondary" type="button" onClick={onCancel}>
+        <button
+          className="px-6 py-2 rounded-lg font-medium transition-all"
+          style={{
+            backgroundColor: "var(--btn-secondary-bg)",
+            color: "var(--btn-secondary-text)",
+          }}
+          type="button"
+          onClick={onCancel}
+        >
           Cancel
         </button>
       </div>
@@ -442,33 +649,90 @@ const PatrolForm: React.FC<PatrolFormProps> = ({
   }
 
   return (
-    <form className="border rounded p-4 mb-4 bg-white" onSubmit={handleSubmit}>
-      <h3 className="font-semibold mb-2">
+    <form
+      className="p-6 rounded-lg"
+      style={{
+        backgroundColor: "var(--card-bg)",
+        border: "1px solid var(--border-light)",
+      }}
+      onSubmit={handleSubmit}
+    >
+      <h3
+        className="text-xl font-semibold font-heading mb-6"
+        style={{ color: "var(--text-primary)" }}
+      >
         {patrol ? "Edit Patrol" : "Add Patrol"}
       </h3>
-      {error && <div className="text-red-600 mb-2">{error}</div>}
-      <div className="mb-2">
-        <label className="block font-medium">Patrol Name</label>
-        <input
-          className="input input-bordered w-full"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
+      {error && (
+        <div
+          className="mb-4 p-3 rounded-lg text-sm"
+          style={{
+            backgroundColor: "var(--alert-error-bg)",
+            border: "1px solid var(--alert-error-border)",
+            color: "var(--alert-error-text)",
+          }}
+        >
+          {error}
+        </div>
+      )}
+      <div className="space-y-4">
+        <div>
+          <label
+            className="block font-medium mb-2"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Patrol Name
+          </label>
+          <input
+            className="w-full px-4 py-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: "var(--input-bg)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+            }}
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="patrol-active"
+            className="w-4 h-4 rounded"
+            checked={form.is_active}
+            onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+          />
+          <label
+            htmlFor="patrol-active"
+            className="font-medium cursor-pointer"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Active
+          </label>
+        </div>
       </div>
-      <div className="mb-2">
-        <label className="block font-medium">Active</label>
-        <input
-          type="checkbox"
-          checked={form.is_active}
-          onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-        />
-      </div>
-      <div className="flex gap-2 mt-2">
-        <button className="btn btn-primary" type="submit" disabled={saving}>
+      <div className="flex gap-3 mt-6">
+        <button
+          className="px-6 py-2 rounded-lg font-medium transition-all hover:shadow-lg"
+          style={{
+            backgroundColor: "var(--btn-primary-bg)",
+            color: "var(--btn-primary-text)",
+          }}
+          type="submit"
+          disabled={saving}
+        >
           {saving ? "Saving..." : "Save"}
         </button>
-        <button className="btn btn-secondary" type="button" onClick={onCancel}>
+        <button
+          className="px-6 py-2 rounded-lg font-medium transition-all"
+          style={{
+            backgroundColor: "var(--btn-secondary-bg)",
+            color: "var(--btn-secondary-text)",
+          }}
+          type="button"
+          onClick={onCancel}
+        >
           Cancel
         </button>
       </div>
