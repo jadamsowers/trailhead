@@ -737,7 +737,9 @@ const SignupWizard: React.FC = () => {
                       {outing.cancellation_deadline &&
                         new Date(outing.cancellation_deadline) < new Date() && (
                           <div className="mt-2 text-sm text-amber-600 font-medium">
-                            ⚠️ Cancellation deadline passed
+                            ⚠️ Cancellation deadline passed. Please contact the
+                            outing lead or Scoutmaster for cancellation
+                            requests.
                           </div>
                         )}
                     </div>
