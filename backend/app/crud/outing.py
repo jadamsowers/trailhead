@@ -96,6 +96,10 @@ async def create_outing(db: AsyncSession, outing: OutingCreate) -> Outing:
     # Ensure signups_close_at is naive UTC if present
     if outing_data.get('signups_close_at') and outing_data['signups_close_at'].tzinfo is not None:
         outing_data['signups_close_at'] = outing_data['signups_close_at'].astimezone(timezone.utc).replace(tzinfo=None)
+
+    # Ensure cancellation_deadline is naive UTC if present
+    if outing_data.get('cancellation_deadline') and outing_data['cancellation_deadline'].tzinfo is not None:
+        outing_data['cancellation_deadline'] = outing_data['cancellation_deadline'].astimezone(timezone.utc).replace(tzinfo=None)
         
     db_outing = Outing(**outing_data)
     db.add(db_outing)
@@ -116,6 +120,11 @@ async def update_outing(db: AsyncSession, outing_id: UUID, outing: OutingUpdate)
     
     # Only update fields that were explicitly provided (exclude_unset=True)
     update_data = outing.model_dump(exclude_unset=True)
+
+    # Ensure datetime fields are naive UTC if present
+    for field in ['signups_close_at', 'cancellation_deadline']:
+        if update_data.get(field) and update_data[field].tzinfo is not None:
+            update_data[field] = update_data[field].astimezone(timezone.utc).replace(tzinfo=None)
     for key, value in update_data.items():
         setattr(db_outing, key, value)
 

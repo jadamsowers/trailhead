@@ -1,4 +1,4 @@
-h1:Is77iMPyRN76PRCG+WqECIiXVhJ5+2MpxEdzPDGqPSA=
+h1:nDwKRyTVfqHGXVzrHFX0d1BRX9wa9NKykgd0dns33Ec=
 20251124000001_initial.sql h1:yNcdKslq6H+4pFl6p5HFvNpaOqccXPZVzbjf9ykutL8=
 20251124000002_add_checkins_table.sql h1:oW9pKwu7SNaerWm5B1NtMWy3a8UUNk6GB9h0Efl53DU=
 20251124000003_add_outing_icon.sql h1:OFIamhOlr0wIDdVnw1QNi6djxtzpW9OUDzSmfGNLtUQ=
@@ -14,3 +14,4 @@ h1:Is77iMPyRN76PRCG+WqECIiXVhJ5+2MpxEdzPDGqPSA=
 20251125000002_add_troops_and_patrols.sql h1:PU5P51ozBG1sW+Uhluh3GiO2vdALnJzbKy5EljvMcak=
 20251125000003_add_user_youth_protection.sql h1:QbW8iyUA8gS3KDe70G40kXmnO77sjgu646MBiBqI/wo=
 20251126000001_add_cancellation_deadline.sql h1:iACX67YKTP4Y1UniiF/F44+j4yVUmixfh9j1x9JkPHo=
+20251126150000_add_user_timezone.sql h1:P4yzKeGc+igTasuyHZ6K7m3xwLMtToe1SqbPHM7AtY0=

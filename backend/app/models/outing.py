@@ -142,9 +142,11 @@ class Outing(Base):
 
     @property
     def are_signups_closed(self):
-        """Check if signups are closed (manually or automatically based on close date)"""
+        """Check if signups are closed (manually or automatically based on close date)
+        Policy: store UTC in DB as naive timestamps; compare using datetime.utcnow() to avoid tz confusion.
+        """
         if self.signups_closed:
             return True
-        if self.signups_close_at and datetime.now(timezone.utc).replace(tzinfo=None) >= self.signups_close_at:
+        if self.signups_close_at and datetime.utcnow() >= self.signups_close_at:
             return True
         return False

@@ -24,6 +24,9 @@ class User(Base):
     emergency_contact_name = Column(String(255), nullable=True)
     emergency_contact_phone = Column(String(50), nullable=True)
     youth_protection_expiration = Column(Date, nullable=True)
+    # Preferred IANA time zone for this user (used to render local times)
+    # Stored as a string like "America/New_York"; default to Eastern time
+    timezone = Column(String(100), nullable=False, default="America/New_York")
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

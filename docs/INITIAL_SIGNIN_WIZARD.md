@@ -1,3 +1,20 @@
+# Initial Sign-In Wizard
+
+This guide explains the initial sign-in wizard flow for setting up the first admin user and troop data.
+
+## Timezone Selection
+
+- New users can select their preferred timezone (IANA format, e.g., "America/New_York").
+- Default timezone is Eastern (`America/New_York`).
+- The backend stores all timestamps in UTC; the selected timezone is used to render local times and interpret user-entered schedule times.
+- Daylight Saving Time (DST) is handled automatically using the IANA timezone database via Python `zoneinfo`.
+
+### UX Notes
+
+- Provide a searchable dropdown of common timezones with a link to "Show all".
+- Keep labels and help text accessible; include `aria-describedby` for helper copy.
+- Persist the selection to the user profile (`users.timezone`).
+
 # Initial Sign-In Wizard Implementation
 
 ## Overview
