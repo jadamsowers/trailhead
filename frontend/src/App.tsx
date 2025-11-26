@@ -725,11 +725,14 @@ const App: React.FC = () => {
                     </SignedIn>
                   }
                 />
-                <Route path="/outings" element={
-                  <InitialSetupGuard>
-                    <OutingsPage />
-                  </InitialSetupGuard>
-                } />
+                <Route
+                  path="/outings"
+                  element={
+                    <InitialSetupGuard>
+                      <OutingsPage />
+                    </InitialSetupGuard>
+                  }
+                />
                 <Route
                   path="/check-in/:outingId"
                   element={

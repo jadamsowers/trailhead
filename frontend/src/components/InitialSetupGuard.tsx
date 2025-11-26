@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
-import { getApiBase } from '../utils/apiBase';
+import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
+import { getApiBase } from "../utils/apiBase";
 
 /**
  * InitialSetupGuard
@@ -9,7 +9,9 @@ import { getApiBase } from '../utils/apiBase';
  * If not, redirects to /initial-setup
  * Excludes certain routes from the check
  */
-export const InitialSetupGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const InitialSetupGuard: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { user, isLoaded } = useUser();
   const navigate = useNavigate();
   const location = useLocation();
@@ -17,7 +19,13 @@ export const InitialSetupGuard: React.FC<{ children: React.ReactNode }> = ({ chi
   const [needsSetup, setNeedsSetup] = useState(false);
 
   // Routes that don't require setup check
-  const excludedRoutes = ['/initial-setup', '/login', '/sign-up', '/admin-setup', '/'];
+  const excludedRoutes = [
+    "/initial-setup",
+    "/login",
+    "/sign-up",
+    "/admin-setup",
+    "/",
+  ];
 
   useEffect(() => {
     const checkSetup = async () => {
@@ -30,22 +38,25 @@ export const InitialSetupGuard: React.FC<{ children: React.ReactNode }> = ({ chi
       try {
         // Check if user has completed initial setup by fetching their profile
         const response = await fetch(`${getApiBase()}/auth/me`, {
-          credentials: 'include',
+          credentials: "include",
         });
 
         if (response.ok) {
           const userData = await response.json();
-          
+
           // Check if user has phone and emergency contact set
-          const hasCompletedSetup = userData.phone && userData.emergency_contact_name && userData.emergency_contact_phone;
-          
+          const hasCompletedSetup =
+            userData.phone &&
+            userData.emergency_contact_name &&
+            userData.emergency_contact_phone;
+
           if (!hasCompletedSetup) {
             setNeedsSetup(true);
-            navigate('/initial-setup', { replace: true });
+            navigate("/initial-setup", { replace: true });
           }
         }
       } catch (error) {
-        console.error('Error checking initial setup status:', error);
+        console.error("Error checking initial setup status:", error);
       } finally {
         setChecking(false);
       }
@@ -56,8 +67,11 @@ export const InitialSetupGuard: React.FC<{ children: React.ReactNode }> = ({ chi
 
   if (checking) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-secondary)' }}>
-        <div style={{ color: 'var(--text-secondary)' }}>Loading...</div>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: "var(--bg-secondary)" }}
+      >
+        <div style={{ color: "var(--text-secondary)" }}>Loading...</div>
       </div>
     );
   }
