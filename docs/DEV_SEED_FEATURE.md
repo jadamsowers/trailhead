@@ -9,6 +9,7 @@ The development data seeding provides a comprehensive, one-click solution for po
 ### Frontend Changes
 
 1. **Updated Component** (`frontend/src/components/Admin/DevDataSeeder.tsx`)
+
    - Comprehensive React component that seeds all data types in logical order
    - Uses existing backend APIs:
      - [`troopAPI.create()`](frontend/src/services/api.ts) for creating troops
@@ -33,6 +34,7 @@ The development data seeding provides a comprehensive, one-click solution for po
 ### Backend Changes
 
 **None!** The seeding functionality uses the existing backend APIs:
+
 - [`POST /api/outings`](backend/app/api/endpoints/outings.py) for creating outings
 - [`POST /api/family/`](backend/app/api/endpoints/family.py) for creating family members
 
@@ -53,17 +55,20 @@ The development data seeding provides a comprehensive, one-click solution for po
 ### What Gets Created
 
 **Step 1 - Troops & Patrols:**
+
 - 3 troops with different charter organizations and meeting schedules
 - 3-4 patrols per troop (randomly assigned from patrol name pool)
 - Realistic troop numbers, meeting locations, and charter organizations
 
 **Step 2 - Scouts:**
+
 - 25 scouts distributed across all patrols
 - Realistic names, ages (11-17), and scouting details
 - Random medical notes, dietary preferences, and allergies
 - Each scout assigned to a specific troop and patrol
 
 **Step 3 - Outings with Requirements:**
+
 - 10 diverse outings (camping, hiking, kayaking, rock climbing, etc.)
 - Mix of overnight and day outings
 - Mix of fixed and vehicle-based capacity
@@ -87,6 +92,7 @@ The development data seeding provides a comprehensive, one-click solution for po
 ## Technical Details
 
 ### Architecture
+
 - **Frontend-only implementation** - No special backend endpoint
 - Uses existing authenticated API endpoints:
   - [`outingAPI.create()`](frontend/src/services/api.ts:172) for outings
@@ -95,11 +101,13 @@ The development data seeding provides a comprehensive, one-click solution for po
 - Sequential creation with progress updates
 
 ### Authentication
+
 - Uses Clerk session tokens automatically via [`getAuthHeaders()`](frontend/src/services/api.ts:110)
 - Requires admin role in Clerk public metadata
 - All family members are created under the authenticated admin user
 
 ### Data Generation
+
 - Uses the same realistic data pools as the original script
 - Random but realistic combinations of:
   - Names (male/female, adult/scout appropriate)
@@ -110,7 +118,9 @@ The development data seeding provides a comprehensive, one-click solution for po
   - Youth Protection Training status
 
 ### Progress Tracking
+
 The component shows real-time progress:
+
 - "Creating outings..." with count (e.g., "Created 5/10 outings...")
 - "Creating families..." with count (e.g., "Created 8/15 families (24 members)...")
 - Final success message with totals
@@ -136,6 +146,7 @@ The component shows real-time progress:
 ## Future Enhancements
 
 Possible improvements for the future:
+
 - Option to clear existing data before seeding
 - Configurable number of outings/families to create
 - Option to create signups for the outings
