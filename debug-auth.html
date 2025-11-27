@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Debug</title>
+</head>
+<body>
+    <h1>Authentication Debug Tool</h1>
+    <div id="status"></div>
+    <button onclick="checkAuth()">Check Auth Status</button>
+    <button onclick="testFamilyAPI()">Test Family API</button>
+    <pre id="output"></pre>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const outputPre = document.getElementById('output');
+
+        function log(message) {
+            outputPre.textContent += message + '\n';
+            console.log(message);
+        }
+
+        async function checkAuth() {
+            outputPre.textContent = '';
+            log('=== Checking Authentication ===');
+            
+            // Check if Clerk is loaded
+            if (!window.Clerk) {
+                log('❌ Clerk is not loaded');
+                statusDiv.innerHTML = '<span style="color: red;">Clerk not loaded</span>';
+                return;
+            }
+            log('✅ Clerk is loaded');
+            
+            // Check if user is signed in
+            if (!window.Clerk.session) {
+                log('❌ No Clerk session found');
+                statusDiv.innerHTML = '<span style="color: red;">Not signed in</span>';
+                return;
+            }
+            log('✅ Clerk session found');
+            
+            // Get token
+            try {
+                const token = await window.Clerk.session.getToken();
+                if (!token) {
+                    log('❌ Failed to get token');
+                    statusDiv.innerHTML = '<span style="color: red;">No token</span>';
+                    return;
+                }
+                log('✅ Token obtained');
+                log('Token (first 50 chars): ' + token.substring(0, 50) + '...');
+                
+                // Decode token (without verification)
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    log('❌ Invalid token format');
+                    return;
+                }
+                
+                const payload = JSON.parse(atob(parts[1]));
+                log('Token payload:');
+                log(JSON.stringify(payload, null, 2));
+                
+                // Check expiration
+                const now = Math.floor(Date.now() / 1000);
+                const exp = payload.exp;
+                const timeUntilExpiry = exp - now;
+                
+                if (timeUntilExpiry < 0) {
+                    log(`❌ Token expired ${Math.abs(timeUntilExpiry)} seconds ago`);
+                    statusDiv.innerHTML = '<span style="color: red;">Token expired</span>';
+                } else {
+                    log(`✅ Token valid for ${timeUntilExpiry} seconds (${Math.floor(timeUntilExpiry / 60)} minutes)`);
+                    statusDiv.innerHTML = '<span style="color: green;">Authenticated</span>';
+                }
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+                statusDiv.innerHTML = '<span style="color: red;">Error: ' + error.message + '</span>';
+            }
+        }
+
+        async function testFamilyAPI() {
+            outputPre.textContent = '';
+            log('=== Testing Family API ===');
+            
+            if (!window.Clerk || !window.Clerk.session) {
+                log('❌ Not authenticated');
+                return;
+            }
+            
+            try {
+                const token = await window.Clerk.session.getToken();
+                log('Making request to http://localhost:8000/api/family/');
+                log('Token (first 50 chars): ' + token.substring(0, 50) + '...');
+                
+                const response = await fetch('http://localhost:8000/api/family/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                log(`Response status: ${response.status} ${response.statusText}`);
+                
+                const data = await response.json();
+                log('Response data:');
+                log(JSON.stringify(data, null, 2));
+                
+                if (response.ok) {
+                    log('✅ API call successful');
+                } else {
+                    log('❌ API call failed');
+                }
+            } catch (error) {
+                log('❌ Error: ' + error.message);
+                log('Stack: ' + error.stack);
+            }
+        }
+
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            setTimeout(checkAuth, 1000);
+        });
+    </script>
+    
+    <!-- Load Clerk -->
+    <script
+        async
+        crossorigin="anonymous"
+        data-clerk-publishable-key="pk_test_YWRhcHRpbmctcGVuZ3Vpbi0yNy5jbGVyay5hY2NvdW50cy5kZXYk"
+        src="https://adapting-penguin-27.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+        type="text/javascript"
+    ></script>
+</body>
+</html>

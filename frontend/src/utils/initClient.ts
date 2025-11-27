@@ -17,16 +17,38 @@ export const initApiClient = () => {
   OpenAPI.TOKEN = async () => {
     // Wait for Clerk to load
     let retries = 0;
-    const maxRetries = 10;
+    const maxRetries = 20; // Increased from 10 to match getAuthHeaders
     while (!window.Clerk && retries < maxRetries) {
       await new Promise((resolve) => setTimeout(resolve, 100));
       retries++;
     }
 
-    if (window.Clerk?.session) {
-      const token = await window.Clerk.session.getToken();
-      return token || "";
+    if (!window.Clerk) {
+      console.error("❌ Clerk is not loaded after retries");
+      throw new Error(
+        "Authentication system not initialized. Please refresh the page."
+      );
     }
-    return "";
+
+    if (!window.Clerk.session) {
+      console.warn("⚠️ No Clerk session found - user may not be signed in yet");
+      throw new Error(
+        "You must be signed in to access this feature. Please sign in and try again."
+      );
+    }
+
+    const token = await window.Clerk.session.getToken();
+    if (!token) {
+      console.error("❌ Failed to get Clerk session token");
+      throw new Error(
+        "Failed to get authentication token. Please sign out and sign in again."
+      );
+    }
+
+    console.log(
+      "✅ Using Clerk session token (first 20 chars):",
+      token.substring(0, 20) + "..."
+    );
+    return token;
   };
 };

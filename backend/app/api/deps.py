@@ -87,10 +87,10 @@ async def get_current_user(
     except HTTPException:
         raise
     except Exception as e:
-        # Log error without sensitive details
+        # Log error with full details for debugging
         import logging
         logger = logging.getLogger(__name__)
-        logger.error(f"Authentication error: {type(e).__name__}")
+        logger.error(f"Authentication error: {type(e).__name__}: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials"

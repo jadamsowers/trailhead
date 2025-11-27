@@ -280,6 +280,13 @@ const InitialSignInWizard: React.FC = () => {
               value={form.yptDate}
               onChange={handleChange}
             />
+            <label
+              className="block text-xs font-medium mb-1"
+              htmlFor="yptDate"
+              style={{ color: "var(--text-primary)" }}
+            >
+              <em>You will need a valid youth protection training certificate to attend outings. If you do not have one, please let us know.</em>
+            </label>
             {yptWarning && (
               <div className="mt-2 text-yellow-700 bg-yellow-100 border-l-4 border-yellow-400 p-2 rounded">
                 <strong>Warning:</strong> You must complete Youth Protection
