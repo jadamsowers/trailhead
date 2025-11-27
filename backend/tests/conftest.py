@@ -4,7 +4,7 @@ import asyncio
 import os
 from typing import AsyncGenerator, Generator
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import NullPool, StaticPool
 from httpx import AsyncClient, ASGITransport
 from datetime import datetime, date, timedelta
 import uuid
@@ -12,33 +12,38 @@ from pathlib import Path
 
 
 def load_credentials():
-    """Load database credentials from credentials.txt"""
+    """Load database credentials from credentials.txt or use defaults for SQLite testing"""
     credentials_file = Path(__file__).parent.parent.parent / "credentials.txt"
     
-    if not credentials_file.exists():
-        raise FileNotFoundError(
-            f"credentials.txt not found at {credentials_file}. "
-            "Run bootstrap.sh to generate it."
-        )
+    # Default credentials for testing (SQLite or when credentials.txt is missing)
+    creds = {
+        "user": "testuser",
+        "password": "testpassword",
+        "database": "testdb",
+        "port": "5432",
+        "secret_key": "test_secret_key_for_testing_only_do_not_use_in_production",
+        "clerk_secret": "sk_test_mock_clerk_secret_key",
+        "clerk_publishable": "pk_test_mock_clerk_publishable_key",
+    }
     
-    creds = {}
-    with open(credentials_file) as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith("PostgreSQL User:"):
-                creds["user"] = line.split(":", 1)[1].strip()
-            elif line.startswith("PostgreSQL Password:"):
-                creds["password"] = line.split(":", 1)[1].strip()
-            elif line.startswith("PostgreSQL Database:"):
-                creds["database"] = line.split(":", 1)[1].strip()
-            elif line.startswith("PostgreSQL Port:"):
-                creds["port"] = line.split(":", 1)[1].strip()
-            elif line.startswith("Secret Key:"):
-                creds["secret_key"] = line.split(":", 1)[1].strip()
-            elif line.startswith("Clerk Secret Key:"):
-                creds["clerk_secret"] = line.split(":", 1)[1].strip()
-            elif line.startswith("Clerk Publishable Key:"):
-                creds["clerk_publishable"] = line.split(":", 1)[1].strip()
+    if credentials_file.exists():
+        with open(credentials_file) as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("PostgreSQL User:"):
+                    creds["user"] = line.split(":", 1)[1].strip()
+                elif line.startswith("PostgreSQL Password:"):
+                    creds["password"] = line.split(":", 1)[1].strip()
+                elif line.startswith("PostgreSQL Database:"):
+                    creds["database"] = line.split(":", 1)[1].strip()
+                elif line.startswith("PostgreSQL Port:"):
+                    creds["port"] = line.split(":", 1)[1].strip()
+                elif line.startswith("Secret Key:"):
+                    creds["secret_key"] = line.split(":", 1)[1].strip()
+                elif line.startswith("Clerk Secret Key:"):
+                    creds["clerk_secret"] = line.split(":", 1)[1].strip()
+                elif line.startswith("Clerk Publishable Key:"):
+                    creds["clerk_publishable"] = line.split(":", 1)[1].strip()
     
     return creds
 
@@ -86,12 +91,31 @@ from app.models import (
 from app.models.troop import Troop, Patrol
 
 
-# Build PostgreSQL connection URL from credentials
-# CRITICAL: Use separate test database!
-TEST_DATABASE_URL = (
-    f"postgresql+asyncpg://{creds['user']}:{creds['password']}"
-    f"@localhost:{creds['port']}/{creds['database']}_test"  # Add _test suffix
-)
+def _check_postgres_available():
+    """Check if PostgreSQL is available for testing"""
+    import socket
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex(('localhost', int(creds["port"])))
+        sock.close()
+        return result == 0
+    except Exception:
+        return False
+
+
+# Use SQLite for testing when PostgreSQL is not available
+USE_SQLITE = not _check_postgres_available()
+
+if USE_SQLITE:
+    TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+else:
+    # Build PostgreSQL connection URL from credentials
+    # CRITICAL: Use separate test database!
+    TEST_DATABASE_URL = (
+        f"postgresql+asyncpg://{creds['user']}:{creds['password']}"
+        f"@localhost:{creds['port']}/{creds['database']}_test"  # Add _test suffix
+    )
 
 
 @pytest.fixture(scope="session")
@@ -103,7 +127,11 @@ def event_loop() -> Generator:
 
 
 async def ensure_test_database_exists():
-    """Create test database if it doesn't exist."""
+    """Create test database if it doesn't exist (PostgreSQL only)."""
+    if USE_SQLITE:
+        # SQLite in-memory database doesn't need setup
+        return
+    
     import asyncpg
     
     # Connect to default 'postgres' database to create test database
@@ -146,11 +174,19 @@ async def setup_test_database():
 @pytest.fixture(scope="function")
 async def test_engine():
     """Create a test database engine"""
-    engine = create_async_engine(
-        TEST_DATABASE_URL,
-        echo=False,
-        poolclass=NullPool,
-    )
+    if USE_SQLITE:
+        engine = create_async_engine(
+            TEST_DATABASE_URL,
+            echo=False,
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        )
+    else:
+        engine = create_async_engine(
+            TEST_DATABASE_URL,
+            echo=False,
+            poolclass=NullPool,
+        )
     
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
