@@ -49,6 +49,10 @@ export interface Outing {
   created_at: string;
   updated_at: string;
   icon?: string;
+  // Food budget fields for grubmaster
+  food_budget_per_person?: number;
+  meal_count?: number;
+  budget_type?: "total" | "per_meal";
   // Address fields with Place relationships
   outing_address?: string;
   outing_place_id?: string;
@@ -83,6 +87,10 @@ export interface OutingCreate {
   cancellation_deadline?: string;
   signups_closed?: boolean;
   icon?: string;
+  // Food budget fields for grubmaster
+  food_budget_per_person?: number;
+  meal_count?: number;
+  budget_type?: "total" | "per_meal";
   // Address fields with Place relationships
   outing_address?: string;
   outing_place_id?: string;
@@ -114,13 +122,22 @@ export interface ParticipantResponse {
   dietary_restrictions: string[];
   allergies: string[];
   medical_notes: string | null;
+  grubmaster_interest?: boolean;
+  grubmaster_reason?: string;
   created_at: string;
+}
+
+export interface GrubmasterRequestItem {
+  family_member_id: string;
+  grubmaster_interest: boolean;
+  grubmaster_reason?: string;
 }
 
 export interface SignupCreate {
   outing_id: string;
   family_contact: FamilyContact;
   family_member_ids: string[];
+  grubmaster_requests?: GrubmasterRequestItem[];
 }
 
 export interface SignupResponse {
@@ -515,4 +532,117 @@ export interface OutingUpdateEmailDraft {
 export interface OutingUpdateResponse {
   outing: Outing;
   email_draft?: OutingUpdateEmailDraft | null;
+}
+
+// Grubmaster Types
+export interface EatingGroupMember {
+  id: string;
+  participant_id: string;
+  is_grubmaster: boolean;
+  created_at: string;
+  participant_name?: string;
+  patrol_name?: string;
+  dietary_restrictions: string[];
+  allergies: string[];
+}
+
+export interface EatingGroup {
+  id: string;
+  outing_id: string;
+  name: string;
+  notes?: string;
+  members: EatingGroupMember[];
+  member_count: number;
+  grubmaster_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EatingGroupCreate {
+  outing_id: string;
+  name: string;
+  notes?: string;
+  member_ids?: string[];
+}
+
+export interface EatingGroupUpdate {
+  name?: string;
+  notes?: string;
+}
+
+export interface GrubmasterSummaryParticipant {
+  participant_id: string;
+  name: string;
+  patrol_name?: string;
+  troop_number?: string;
+  grubmaster_interest: boolean;
+  grubmaster_reason?: string;
+  dietary_restrictions: string[];
+  allergies: string[];
+  eating_group_id?: string;
+  eating_group_name?: string;
+  is_grubmaster: boolean;
+}
+
+export interface GrubmasterSummaryResponse {
+  outing_id: string;
+  outing_name: string;
+  food_budget_per_person?: number;
+  meal_count?: number;
+  budget_type?: string;
+  total_budget?: number;
+  treasurer_email?: string;
+  participants: GrubmasterSummaryParticipant[];
+  eating_groups: EatingGroup[];
+  unassigned_count: number;
+  grubmaster_requests_count: number;
+}
+
+export interface MoveParticipantRequest {
+  participant_id: string;
+  target_eating_group_id?: string;
+  is_grubmaster?: boolean;
+}
+
+export interface AutoAssignRequest {
+  group_size_min?: number;
+  group_size_max?: number;
+  keep_patrols_together?: boolean;
+  group_by_dietary?: boolean;
+}
+
+export interface EatingGroupEmailRequest {
+  eating_group_ids?: string[];
+  include_budget_info?: boolean;
+  include_dietary_info?: boolean;
+  custom_message?: string;
+}
+
+export const GRUBMASTER_REASONS = [
+  { value: "rank_requirement", label: "Rank Requirement" },
+  { value: "cooking_merit_badge", label: "Cooking Merit Badge" },
+  { value: "just_because", label: "Just Because - I Like to Cook!" },
+] as const;
+
+// Troop Types
+export interface TroopResponse {
+  id: string;
+  number: string;
+  charter_org?: string;
+  meeting_location?: string;
+  meeting_day?: string;
+  notes?: string;
+  treasurer_email?: string;
+  created_at: string;
+  updated_at: string;
+  patrols: PatrolResponse[];
+}
+
+export interface PatrolResponse {
+  id: string;
+  troop_id: string;
+  name: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }

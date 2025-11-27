@@ -107,6 +107,11 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   const [signupCloseDate, setSignupCloseDate] = useState<string>("");
   const [cancellationDeadline, setCancellationDeadline] = useState<string>("");
   const [icon, setIcon] = useState<string>("");
+  
+  // Food budget fields for grubmaster functionality
+  const [foodBudgetPerPerson, setFoodBudgetPerPerson] = useState<string>("");
+  const [mealCount, setMealCount] = useState<string>("4");
+  const [budgetType, setBudgetType] = useState<"total" | "per_meal">("total");
 
   // Load suggestions when moving to step 2
   useEffect(() => {
@@ -263,6 +268,10 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
         cancellation_deadline: cancellationDeadline
           ? `${cancellationDeadline}T23:59:59Z`
           : undefined,
+        // Food budget fields for grubmaster functionality
+        food_budget_per_person: foodBudgetPerPerson ? parseFloat(foodBudgetPerPerson) : undefined,
+        meal_count: mealCount ? parseInt(mealCount) : undefined,
+        budget_type: budgetType,
       };
 
       const newOuting = await OutingsService.createOutingApiOutingsPost(
@@ -361,6 +370,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
     setSignupCloseDate("");
     setCancellationDeadline("");
     setIcon("");
+    setFoodBudgetPerPerson("");
+    setMealCount("4");
+    setBudgetType("total");
     setSuggestions(null);
     setError(null);
     onClose();
@@ -1242,6 +1254,67 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                 </div>
               </div>
 
+              {/* Food Budget Section */}
+              <div className="mt-4 p-4 rounded-lg" style={{ backgroundColor: "var(--bg-tertiary)", border: "1px solid var(--border-light)" }}>
+                <h4 className="font-semibold text-primary mb-3">🍳 Food Budget (for Grubmasters)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block mb-1 font-semibold text-primary text-sm">
+                      Budget Per Person
+                    </label>
+                    <div className="flex items-center">
+                      <span className="mr-2">$</span>
+                      <input
+                        type="number"
+                        value={foodBudgetPerPerson}
+                        onChange={(e) => setFoodBudgetPerPerson(e.target.value)}
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0"
+                        className="form-input flex-1"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-semibold text-primary text-sm">
+                      Number of Meals
+                    </label>
+                    <input
+                      type="number"
+                      value={mealCount}
+                      onChange={(e) => setMealCount(e.target.value)}
+                      placeholder="4"
+                      min="1"
+                      className="form-input"
+                    />
+                    <small className="helper-text">
+                      Typically 4 for weekend (Sat B/L/D, Sun B)
+                    </small>
+                  </div>
+                  <div>
+                    <label className="block mb-1 font-semibold text-primary text-sm">
+                      Budget Type
+                    </label>
+                    <select
+                      value={budgetType}
+                      onChange={(e) => setBudgetType(e.target.value as "total" | "per_meal")}
+                      className="form-input"
+                    >
+                      <option value="total">Total per person</option>
+                      <option value="per_meal">Per meal (× meals)</option>
+                    </select>
+                  </div>
+                </div>
+                {foodBudgetPerPerson && (
+                  <p className="mt-3 text-sm" style={{ color: "var(--text-secondary)" }}>
+                    💰 Budget: ${parseFloat(foodBudgetPerPerson).toFixed(2)} per person
+                    {budgetType === "per_meal" && mealCount && (
+                      <> × {mealCount} meals = ${(parseFloat(foodBudgetPerPerson) * parseInt(mealCount)).toFixed(2)} total</>
+                    )}
+                  </p>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
                   <label className="block mb-1 font-semibold text-primary text-sm">
@@ -1441,6 +1514,14 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                 {cost && (
                   <p>
                     <strong>Cost:</strong> ${cost}
+                  </p>
+                )}
+                {foodBudgetPerPerson && (
+                  <p>
+                    <strong>Food Budget:</strong> ${parseFloat(foodBudgetPerPerson).toFixed(2)} per person
+                    {budgetType === "per_meal" && mealCount && (
+                      <> × {mealCount} meals = ${(parseFloat(foodBudgetPerPerson) * parseInt(mealCount)).toFixed(2)} total</>
+                    )}
                   </p>
                 )}
                 {signupCloseDate && (

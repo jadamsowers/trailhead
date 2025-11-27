@@ -286,6 +286,20 @@ export const TroopAdminPage: React.FC = () => {
                   </div>
                   <div>
                     <strong style={{ color: "var(--text-primary)" }}>
+                      Treasurer Email:
+                    </strong>{" "}
+                    <span style={{ color: "var(--text-secondary)" }}>
+                      {selectedTroop.treasurer_email ? (
+                        <a href={`mailto:${selectedTroop.treasurer_email}`} style={{ color: "var(--color-primary)" }}>
+                          {selectedTroop.treasurer_email}
+                        </a>
+                      ) : (
+                        <em>None</em>
+                      )}
+                    </span>
+                  </div>
+                  <div>
+                    <strong style={{ color: "var(--text-primary)" }}>
                       Notes:
                     </strong>{" "}
                     <span style={{ color: "var(--text-secondary)" }}>
@@ -435,6 +449,7 @@ const TroopForm: React.FC<TroopFormProps> = ({
     meeting_location: troop?.meeting_location || "",
     meeting_day: troop?.meeting_day || "",
     notes: troop?.notes || "",
+    treasurer_email: troop?.treasurer_email || "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -560,6 +575,34 @@ const TroopForm: React.FC<TroopFormProps> = ({
             value={form.meeting_day || ""}
             onChange={(e) => setForm({ ...form, meeting_day: e.target.value })}
           />
+        </div>
+        <div>
+          <label
+            className="block font-medium mb-2"
+            style={{ color: "var(--text-primary)" }}
+          >
+            Treasurer Email
+          </label>
+          <input
+            type="email"
+            className="w-full px-4 py-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: "var(--input-bg)",
+              border: "1px solid var(--border-light)",
+              color: "var(--text-primary)",
+            }}
+            value={form.treasurer_email || ""}
+            onChange={(e) =>
+              setForm({ ...form, treasurer_email: e.target.value })
+            }
+            placeholder="treasurer@example.com"
+          />
+          <p
+            className="mt-1 text-sm"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            Email for grubmasters to send food receipts for reimbursement
+          </p>
         </div>
         <div>
           <label
