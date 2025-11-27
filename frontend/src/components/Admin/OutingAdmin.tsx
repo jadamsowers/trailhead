@@ -49,7 +49,7 @@ const OutingAdmin: React.FC = () => {
   const [editingOutingId, setEditingOutingId] = useState<string | null>(null);
   const [editOuting, setEditOuting] = useState<OutingCreate | null>(null);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
-  
+
   // Grubmaster modal state
   const [showGrubmasterModal, setShowGrubmasterModal] = useState(false);
   const [grubmasterOuting, setGrubmasterOuting] = useState<Outing | null>(null);
@@ -261,22 +261,29 @@ const OutingAdmin: React.FC = () => {
   };
 
   const handleDeleteOuting = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this outing?")) {
-      return;
-    }
-    try {
-      setLoading(true);
-      setError(null);
-      await outingAPI.delete(id);
-      await loadOutings();
-    } catch (err) {
-      console.error("Error deleting outing:", err);
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to delete outing";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
+    // Use setTimeout to ensure the confirm dialog opens after event handlers complete
+    setTimeout(async () => {
+      if (
+        !window.confirm(
+          "Are you sure you want to delete this outing?\n\nThis action cannot be undone and only works for outings with no signups."
+        )
+      ) {
+        return;
+      }
+      try {
+        setLoading(true);
+        setError(null);
+        await outingAPI.delete(id);
+        await loadOutings();
+      } catch (err) {
+        console.error("Error deleting outing:", err);
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to delete outing";
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    }, 0);
   };
 
   const handleExportRosterPDF = async (
@@ -2008,6 +2015,7 @@ const OutingAdmin: React.FC = () => {
                             </button>
                             <button
                               onClick={(e) => {
+                                e.preventDefault();
                                 e.stopPropagation();
                                 handleDeleteOuting(outing.id);
                               }}
@@ -2294,7 +2302,7 @@ const OutingAdmin: React.FC = () => {
             setIsWizardOpen(false);
           }}
         />
-        
+
         {/* Grubmaster Admin Modal */}
         {showGrubmasterModal && grubmasterOuting && (
           <GrubmasterAdmin
