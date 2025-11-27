@@ -214,6 +214,7 @@ All FastAPI endpoints follow a consistent pattern to ensure maintainability and 
       )
   ```
 - **Admin Dependency**: Use `get_current_admin_user` dependency for admin-only endpoints instead of manual role checks
+- **Outing Admin Dependency**: Use `get_current_outing_admin_user` dependency for outing management endpoints (allows both `admin` and `outing-admin` roles)
 
 #### 3. Error Handling
 

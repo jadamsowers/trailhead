@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
-from app.api.deps import get_current_admin_user
+from app.api.deps import get_current_admin_user, get_current_outing_admin_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.outing import OutingCreate, OutingUpdate, OutingResponse, OutingListResponse, OutingUpdateResponse, OutingUpdateEmailDraft
@@ -51,11 +51,11 @@ async def get_all_outings(
 @router.post("", response_model=OutingResponse, status_code=status.HTTP_201_CREATED)
 async def create_outing(
     outing: OutingCreate,
-    current_user: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_outing_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Create a new outing (admin only).
+    Create a new outing (admin or outing-admin).
     """
     db_outing = await crud_outing.create_outing(db, outing)
     
@@ -84,11 +84,11 @@ async def get_outing(
 async def update_outing(
     outing_id: UUID,
     outing: OutingUpdate,
-    current_user: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_outing_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Update an outing (admin only).
+    Update an outing (admin or outing-admin).
     Ensures a proper before/after diff by cloning the original state before mutation.
     """
     # Get existing outing for diff
@@ -120,11 +120,11 @@ async def update_outing(
 @router.delete("/{outing_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_outing(
     outing_id: UUID,
-    current_user: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_outing_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Delete an outing (admin only).
+    Delete an outing (admin or outing-admin).
     Can only delete outings with no signups.
     """
     success = await crud_outing.delete_outing(db, outing_id)
@@ -139,11 +139,11 @@ async def delete_outing(
 @router.post("/{outing_id}/close-signups", response_model=OutingResponse)
 async def close_signups(
     outing_id: UUID,
-    current_user: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_outing_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Manually close signups for an outing (admin only).
+    Manually close signups for an outing (admin or outing-admin).
     """
     db_outing = await crud_outing.get_outing(db, outing_id)
     if not db_outing:
@@ -163,11 +163,11 @@ async def close_signups(
 @router.post("/{outing_id}/open-signups", response_model=OutingResponse)
 async def open_signups(
     outing_id: UUID,
-    current_user: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_outing_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Manually open signups for an outing (admin only).
+    Manually open signups for an outing (admin or outing-admin).
     This will override the automatic closure date if set.
     """
     db_outing = await crud_outing.get_outing(db, outing_id)
@@ -188,11 +188,11 @@ async def open_signups(
 @router.get("/{outing_id}/signups")
 async def get_outing_signups(
     outing_id: UUID,
-    current_user: User = Depends(get_current_admin_user),
+    current_user: User = Depends(get_current_outing_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Get all signups for a specific outing (admin only).
+    Get all signups for a specific outing (admin or outing-admin).
     """
     # Verify outing exists
     db_outing = await crud_outing.get_outing(db, outing_id)

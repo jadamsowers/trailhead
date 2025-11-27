@@ -126,16 +126,16 @@ async def sync_user_role(
     try:
         metadata = await clerk.get_user_metadata(str(current_user.id))
         public_metadata = metadata.get("public_metadata", {})
-        role = public_metadata.get("role", "user")
+        role = public_metadata.get("role", "participant")
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to fetch role from Clerk: {str(e)}"
         )
     
-    if role not in ["admin", "adult", "user"]:
-        # Default to user if invalid role found
-        role = "user"
+    if role not in ["admin", "outing-admin", "adult", "participant"]:
+        # Default to participant if invalid role found
+        role = "participant"
     
     current_user.role = role
     await db.commit()
@@ -183,10 +183,10 @@ async def update_user_role(
     Cannot demote the initial admin.
     """
     # Validate role
-    if request.role not in ["admin", "adult", "user"]:
+    if request.role not in ["admin", "outing-admin", "adult", "participant"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid role. Must be one of: admin, adult, user"
+            detail="Invalid role. Must be one of: admin, outing-admin, adult, participant"
         )
     
     # Get the target user

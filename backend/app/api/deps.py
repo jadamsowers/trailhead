@@ -48,7 +48,7 @@ async def get_current_user(
             else:
                 # Get metadata to check for role
                 metadata = await clerk.get_user_metadata(clerk_user_id)
-                role = metadata.get("public_metadata", {}).get("role", "user")
+                role = metadata.get("public_metadata", {}).get("role", "participant")
             
             user = User(
                 email=email,
@@ -102,6 +102,18 @@ async def get_current_admin_user(
 ) -> User:
     """Verify the current user is an admin"""
     if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not enough permissions"
+        )
+    return current_user
+
+
+async def get_current_outing_admin_user(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """Verify the current user is an admin or outing-admin"""
+    if current_user.role not in ["admin", "outing-admin"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not enough permissions"

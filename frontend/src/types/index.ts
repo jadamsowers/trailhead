@@ -220,7 +220,7 @@ export interface User {
   id: string;
   email: string;
   full_name: string;
-  role: "admin" | "user" | "adult";
+  role: "admin" | "outing-admin" | "participant" | "adult";
   is_active?: boolean;
   is_initial_admin?: boolean;
   initial_setup_complete?: boolean;

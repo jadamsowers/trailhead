@@ -76,12 +76,20 @@ CREATE INDEX idx_refresh_tokens_token ON refresh_tokens(token);
    - Create, edit, delete outings
    - View all signups
    - Export data
-   - Manage users (future)
+   - Manage users
+   - Manage troop settings
 
-2. **participant**: Public access (no authentication required)
+2. **outing-admin**: Outing management only
+   - Create, edit, delete outings
+   - View all signups for outings
+   - Close/open signups
+   - No access to user management or troop settings
+
+3. **adult** / **participant**: Standard user access
    - View available outings
-   - Submit signups
-   - View own signups (with signup ID)
+   - Submit signups for their family
+   - View own signups
+
 
 ## Backend Implementation
 

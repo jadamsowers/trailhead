@@ -342,8 +342,9 @@ const UserManagement: React.FC = () => {
                       }}
                     >
                       <option value="admin">Admin</option>
+                      <option value="outing-admin">Outing Admin</option>
                       <option value="adult">Adult</option>
-                      <option value="user">User</option>
+                      <option value="participant">Participant</option>
                     </select>
                   )}
                 </td>
@@ -432,12 +433,16 @@ const UserManagement: React.FC = () => {
                     backgroundColor:
                       user.role === "admin"
                         ? "var(--alert-error-bg)"
+                        : user.role === "outing-admin"
+                        ? "var(--badge-warning-bg)"
                         : user.role === "adult"
                         ? "var(--badge-info-bg)"
                         : "var(--bg-tertiary)",
                     color:
                       user.role === "admin"
                         ? "var(--alert-error-text)"
+                        : user.role === "outing-admin"
+                        ? "var(--badge-warning-text)"
                         : user.role === "adult"
                         ? "var(--badge-info-text)"
                         : "var(--text-secondary)",
@@ -477,10 +482,11 @@ const UserManagement: React.FC = () => {
                         updatingUserId === user.id ? "not-allowed" : "pointer",
                       opacity: updatingUserId === user.id ? 0.5 : 1,
                     }}
-                  >
+                    >
                     <option value="admin">Admin</option>
+                    <option value="outing-admin">Outing Admin</option>
                     <option value="adult">Adult</option>
-                    <option value="user">User</option>
+                    <option value="participant">Participant</option>
                   </select>
                 )}
               </div>
