@@ -61,9 +61,10 @@ class TestUtcNow:
 
     def test_returns_current_time(self):
         """Test that utc_now returns approximately current time"""
-        before = datetime.utcnow()
+        from datetime import timezone as tz
+        before = datetime.now(tz.utc).replace(tzinfo=None)
         result = utc_now()
-        after = datetime.utcnow()
+        after = datetime.now(tz.utc).replace(tzinfo=None)
         assert before <= result <= after
 
 
