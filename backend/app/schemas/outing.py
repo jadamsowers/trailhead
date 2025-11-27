@@ -31,6 +31,11 @@ class OutingBase(BaseModel):
     signups_closed: bool = Field(False, description="Manual signup closure flag")
     icon: Optional[str] = Field(None, max_length=50, description="Outing icon (Bootstrap icon name or emoji)")
     
+    # Food budget fields for grubmaster functionality
+    food_budget_per_person: Optional[Decimal] = Field(None, ge=0, description="Per-person food budget in dollars")
+    meal_count: Optional[int] = Field(None, ge=1, description="Number of meals for the outing")
+    budget_type: Optional[str] = Field('total', description="Budget type: 'total' (flat per person) or 'per_meal' (per person per meal)")
+    
     # Address fields with Place relationships
     outing_address: Optional[str] = Field(None, description="Full address of outing location")
     outing_place_id: Optional[UUID] = Field(None, description="Reference to saved place for outing location")
@@ -45,6 +50,14 @@ class OutingBase(BaseModel):
         """Validate capacity type is either 'fixed' or 'vehicle'"""
         if v not in ['fixed', 'vehicle']:
             raise ValueError("capacity_type must be either 'fixed' or 'vehicle'")
+        return v
+
+    @field_validator('budget_type')
+    @classmethod
+    def validate_budget_type(cls, v):
+        """Validate budget type is either 'total' or 'per_meal'"""
+        if v is not None and v not in ['total', 'per_meal']:
+            raise ValueError("budget_type must be either 'total' or 'per_meal'")
         return v
 
     @field_validator('drop_off_time', 'pickup_time', mode='before')
@@ -101,6 +114,11 @@ class OutingUpdate(BaseModel):
     cancellation_deadline: Optional[datetime] = Field(None, description="Date after which users cannot cancel")
     signups_closed: Optional[bool] = Field(None, description="Manual signup closure flag")
     icon: Optional[str] = Field(None, max_length=50, description="Outing icon (Bootstrap icon name or emoji)")
+    
+    # Food budget fields for grubmaster functionality
+    food_budget_per_person: Optional[Decimal] = Field(None, ge=0, description="Per-person food budget in dollars")
+    meal_count: Optional[int] = Field(None, ge=1, description="Number of meals for the outing")
+    budget_type: Optional[str] = Field(None, description="Budget type: 'total' or 'per_meal'")
     
     # Address fields with Place relationships
     outing_address: Optional[str] = Field(None, description="Full address of outing location")

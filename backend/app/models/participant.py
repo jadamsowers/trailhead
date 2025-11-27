@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey
+from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -15,11 +15,16 @@ class Participant(Base):
     signup_id = Column(UUID(as_uuid=True), ForeignKey("signups.id", ondelete="CASCADE"), nullable=False, index=True)
     family_member_id = Column(UUID(as_uuid=True), ForeignKey("family_members.id", ondelete="CASCADE"), nullable=False, index=True)
     
+    # Grubmaster request fields
+    grubmaster_interest = Column(Boolean, default=False, nullable=False)
+    grubmaster_reason = Column(String(50), nullable=True)  # rank_requirement, cooking_merit_badge, just_because
+    
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     # Relationships
     signup = relationship("Signup", back_populates="participants")
     family_member = relationship("FamilyMember", backref="participant_signups")
+    eating_group_membership = relationship("EatingGroupMember", back_populates="participant", uselist=False, cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Participant(id={self.id}, signup_id={self.signup_id}, family_member_id={self.family_member_id})>"

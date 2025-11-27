@@ -15,6 +15,7 @@ from app.models.packing_list import (
 )
 from app.models.troop import Troop, Patrol
 from app.models.change_log import ChangeLog
+from app.models.eating_group import EatingGroup, EatingGroupMember
 
 __all__ = [
     "User",
@@ -38,4 +39,6 @@ __all__ = [
     "Troop",
     "Patrol",
     "ChangeLog",
+    "EatingGroup",
+    "EatingGroupMember",
 ]

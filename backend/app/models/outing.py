@@ -37,6 +37,11 @@ class Outing(Base):
     icon = Column(String(50), nullable=True)  # Outing icon (Bootstrap icon name or emoji)
     restricted_troop_id = Column(UUID(as_uuid=True), ForeignKey("troops.id"), nullable=True, index=True)
     
+    # Food budget fields for grubmaster functionality
+    food_budget_per_person = Column(Numeric(10, 2), nullable=True)  # Per-person food budget
+    meal_count = Column(Integer, nullable=True)  # Number of meals (e.g., 4 for typical weekend)
+    budget_type = Column(String(20), default='total', nullable=True)  # 'total' or 'per_meal'
+    
     # Address fields with Place relationships
     outing_address = Column(Text, nullable=True)  # Full address of outing location
     outing_place_id = Column(UUID(as_uuid=True), ForeignKey("places.id"), nullable=True, index=True)
@@ -51,6 +56,7 @@ class Outing(Base):
     outing_merit_badges = relationship("OutingMeritBadge", back_populates="outing", cascade="all, delete-orphan")
     packing_lists = relationship("OutingPackingList", back_populates="outing", cascade="all, delete-orphan")
     restricted_troop = relationship("Troop", back_populates="restricted_outings")
+    eating_groups = relationship("EatingGroup", back_populates="outing", cascade="all, delete-orphan")
     
     # Place relationships
     outing_place = relationship("Place", foreign_keys=[outing_place_id], back_populates="outings_at_location")

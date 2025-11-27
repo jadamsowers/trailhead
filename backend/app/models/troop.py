@@ -17,6 +17,7 @@ class Troop(Base):
     meeting_location = Column(String(255), nullable=True)
     meeting_day = Column(String(20), nullable=True)  # e.g., 'Tuesday'
     notes = Column(Text, nullable=True)
+    treasurer_email = Column(String(255), nullable=True)  # Email for receipt submission
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 

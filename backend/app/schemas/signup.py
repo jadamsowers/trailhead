@@ -25,17 +25,26 @@ class FamilyContact(BaseModel):
     emergency_contact_phone: str = Field(..., min_length=1, max_length=50, description="Emergency contact phone")
 
 
+class GrubmasterRequestItem(BaseModel):
+    """Schema for grubmaster request per family member"""
+    family_member_id: UUID = Field(..., description="ID of the family member")
+    grubmaster_interest: bool = Field(False, description="Whether this scout wants to be a grubmaster")
+    grubmaster_reason: Optional[str] = Field(None, description="Reason: rank_requirement, cooking_merit_badge, just_because")
+
+
 class SignupCreate(BaseModel):
     """Schema for creating a signup with family member IDs"""
     outing_id: UUID = Field(..., description="ID of the outing to sign up for")
     family_contact: FamilyContact = Field(..., description="Family contact information")
     family_member_ids: list[UUID] = Field(..., min_length=1, description="List of family member IDs to sign up (at least one required)")
+    grubmaster_requests: Optional[list[GrubmasterRequestItem]] = Field(None, description="Grubmaster requests for scouts")
 
 
 class SignupUpdate(BaseModel):
     """Schema for updating a signup - can update contact info and/or participants"""
     family_contact: Optional[FamilyContact] = Field(None, description="Updated family contact information")
     family_member_ids: Optional[list[UUID]] = Field(None, min_length=1, description="Updated list of family member IDs (replaces existing participants)")
+    grubmaster_requests: Optional[list[GrubmasterRequestItem]] = Field(None, description="Updated grubmaster requests for scouts")
 
 
 class ParticipantResponse(BaseModel):
@@ -53,6 +62,8 @@ class ParticipantResponse(BaseModel):
     dietary_restrictions: list[str]
     allergies: list[str]
     medical_notes: Optional[str]
+    grubmaster_interest: bool = Field(False, description="Whether this participant requested to be a grubmaster")
+    grubmaster_reason: Optional[str] = Field(None, description="Reason for grubmaster interest")
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
