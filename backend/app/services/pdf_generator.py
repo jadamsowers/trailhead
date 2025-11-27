@@ -22,12 +22,13 @@ class PDFGenerator:
         self.dark_gray = colors.HexColor('#2E2E2E')
         self.light_gray = colors.HexColor('#F5F5F5')
         
+        # Main title (slightly tighter)
         self.styles.add(ParagraphStyle(
             name='Header1',
             parent=self.styles['Heading1'],
-            fontSize=28,
-            leading=34,
-            spaceAfter=20,
+            fontSize=26,  # was 28
+            leading=30,   # was 34
+            spaceAfter=12,  # was 20
             textColor=self.bsa_olive,
             alignment=TA_CENTER,
             fontName='Helvetica-Bold'
@@ -37,12 +38,12 @@ class PDFGenerator:
             name='SectionHeader',
             parent=self.styles['Heading2'],
             fontSize=14,
-            leading=18,
-            spaceBefore=15,
-            spaceAfter=10,
+            leading=16,  # slightly reduced
+            spaceBefore=12,  # was 15
+            spaceAfter=6,    # was 10
             textColor=colors.white,
             backColor=self.bsa_olive,
-            borderPadding=8,
+            borderPadding=6,  # was 8
             fontName='Helvetica-Bold',
             alignment=TA_CENTER
         ))
@@ -50,30 +51,30 @@ class PDFGenerator:
         self.styles.add(ParagraphStyle(
             name='CardTitle',
             parent=self.styles['Heading3'],
-            fontSize=12,
-            leading=14,
+            fontSize=11,   # was 12
+            leading=13,    # was 14
             textColor=self.bsa_olive,
-            spaceAfter=6,
+            spaceAfter=4,  # was 6
             fontName='Helvetica-Bold'
         ))
         
         self.styles.add(ParagraphStyle(
             name='Label',
             parent=self.styles['Normal'],
-            fontSize=9,
-            leading=11,
+            fontSize=8,    # was 9
+            leading=10,    # was 11
             textColor=colors.HexColor('#666666'),
             fontName='Helvetica-Bold',
-            spaceAfter=2
+            spaceAfter=1   # was 2
         ))
         
         self.styles.add(ParagraphStyle(
             name='Value',
             parent=self.styles['Normal'],
-            fontSize=10,
-            leading=13,
+            fontSize=9,     # was 10
+            leading=12,     # was 13
             textColor=colors.black,
-            spaceAfter=8
+            spaceAfter=4    # was 8
         ))
         
         self.styles.add(ParagraphStyle(
@@ -118,11 +119,11 @@ class PDFGenerator:
         
         # Title
         story.append(Paragraph(outing.name, self.styles['Header1']))
-        story.append(Spacer(1, 10))
+        story.append(Spacer(1, 6))  # was 10
         
         # 5Ws Section
         story.append(Paragraph("TRIP DETAILS", self.styles['SectionHeader']))
-        story.append(Spacer(1, 5))
+        story.append(Spacer(1, 3))  # was 5
         
         # Helper to create a card content
         def create_card_content(title, items):
@@ -180,12 +181,13 @@ class PDFGenerator:
 
         # Create sub-tables for the 2x2 grid
         def make_cell(content_list):
+            # Tighter padding for compact layout
             return Table([[c] for c in content_list], 
                         style=[
-                            ('LEFTPADDING', (0,0), (-1,-1), 10),
-                            ('RIGHTPADDING', (0,0), (-1,-1), 10),
-                            ('TOPPADDING', (0,0), (-1,-1), 10),
-                            ('BOTTOMPADDING', (0,0), (-1,-1), 10),
+                            ('LEFTPADDING', (0,0), (-1,-1), 6),
+                            ('RIGHTPADDING', (0,0), (-1,-1), 6),
+                            ('TOPPADDING', (0,0), (-1,-1), 6),
+                            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
                         ])
 
         # Row 1: WHO | WHEN
