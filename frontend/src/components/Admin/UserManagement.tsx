@@ -482,7 +482,7 @@ const UserManagement: React.FC = () => {
                         updatingUserId === user.id ? "not-allowed" : "pointer",
                       opacity: updatingUserId === user.id ? 0.5 : 1,
                     }}
-                    >
+                  >
                     <option value="admin">Admin</option>
                     <option value="outing-admin">Outing Admin</option>
                     <option value="adult">Adult</option>

@@ -189,7 +189,12 @@ export const useAuth = () => {
 
 // Convert Clerk-generated UserResponse to app's User type
 const normalizeUserResponse = (u: ClerkUserResponse): User => {
-  const allowedRoles: Array<User["role"]> = ["admin", "outing-admin", "adult", "participant"];
+  const allowedRoles: Array<User["role"]> = [
+    "admin",
+    "outing-admin",
+    "adult",
+    "participant",
+  ];
   const role = allowedRoles.includes(u.role as User["role"])
     ? (u.role as User["role"])
     : "participant";

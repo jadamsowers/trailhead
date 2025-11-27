@@ -20,7 +20,7 @@ sequenceDiagram
     participant Frontend
     participant Backend
     participant Database
-    
+
     User->>Frontend: Enter credentials
     Frontend->>Backend: POST /api/auth/login
     Backend->>Database: Verify credentials
@@ -37,6 +37,7 @@ sequenceDiagram
 ### New Tables
 
 #### users
+
 ```sql
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -54,6 +55,7 @@ CREATE INDEX idx_users_role ON users(role);
 ```
 
 #### refresh_tokens
+
 ```sql
 CREATE TABLE refresh_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -73,6 +75,7 @@ CREATE INDEX idx_refresh_tokens_token ON refresh_tokens(token);
 ### Role Definitions
 
 1. **admin**: Full access to all features
+
    - Create, edit, delete outings
    - View all signups
    - Export data
@@ -80,6 +83,7 @@ CREATE INDEX idx_refresh_tokens_token ON refresh_tokens(token);
    - Manage troop settings
 
 2. **outing-admin**: Outing management only
+
    - Create, edit, delete outings
    - View all signups for outings
    - Close/open signups
@@ -90,12 +94,12 @@ CREATE INDEX idx_refresh_tokens_token ON refresh_tokens(token);
    - Submit signups for their family
    - View own signups
 
-
 ## Backend Implementation
 
 ### 1. Security Configuration
 
 **File: backend/app/core/security.py**
+
 ```python
 from datetime import datetime, timedelta
 from typing import Optional
@@ -126,7 +130,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     to_encode.update({"exp": expire, "type": "access"})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
@@ -155,6 +159,7 @@ def decode_token(token: str) -> dict:
 ### 2. Authentication Dependencies
 
 **File: backend/app/api/deps.py**
+
 ```python
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -173,27 +178,27 @@ async def get_current_user(
     """Get the current authenticated user"""
     token = credentials.credentials
     payload = decode_token(token)
-    
+
     if payload.get("type") != "access":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token type"
         )
-    
+
     user_id = payload.get("sub")
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials"
         )
-    
+
     user = await get_user_by_id(db, user_id)
     if user is None or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or inactive"
         )
-    
+
     return user
 
 async def get_current_admin_user(
@@ -211,6 +216,7 @@ async def get_current_admin_user(
 ### 3. Authentication Endpoints
 
 **File: backend/app/api/endpoints/auth.py**
+
 ```python
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -236,26 +242,26 @@ async def login(
     Authenticate user and return access and refresh tokens
     """
     user = await get_user_by_email(db, login_data.email)
-    
+
     if not user or not verify_password(login_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
-    
+
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is inactive"
         )
-    
+
     # Create tokens
     access_token = create_access_token(data={"sub": str(user.id), "role": user.role})
     refresh_token = create_refresh_token(data={"sub": str(user.id)})
-    
+
     # Store refresh token in database
     await create_refresh_token_db(db, user.id, refresh_token)
-    
+
     # Set refresh token as HttpOnly cookie
     response.set_cookie(
         key="refresh_token",
@@ -265,7 +271,7 @@ async def login(
         samesite="lax",
         max_age=7 * 24 * 60 * 60  # 7 days
     )
-    
+
     return {
         "access_token": access_token,
         "token_type": "bearer",
@@ -286,15 +292,15 @@ async def refresh_token(
     Get a new access token using a refresh token
     """
     payload = decode_token(refresh_data.refresh_token)
-    
+
     if payload.get("type") != "refresh":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token type"
         )
-    
+
     user_id = payload.get("sub")
-    
+
     # Verify refresh token exists in database and is not revoked
     is_valid = await verify_refresh_token(db, refresh_data.refresh_token)
     if not is_valid:
@@ -302,11 +308,11 @@ async def refresh_token(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or revoked refresh token"
         )
-    
+
     # Create new access token
     user = await get_user_by_id(db, user_id)
     access_token = create_access_token(data={"sub": str(user.id), "role": user.role})
-    
+
     return {
         "access_token": access_token,
         "token_type": "bearer",
@@ -328,10 +334,10 @@ async def logout(
     Logout user by revoking refresh token
     """
     await revoke_refresh_token(db, refresh_token)
-    
+
     # Clear refresh token cookie
     response.delete_cookie(key="refresh_token")
-    
+
     return {"message": "Successfully logged out"}
 ```
 
@@ -340,6 +346,7 @@ async def logout(
 Update outing endpoints to require authentication:
 
 **File: backend/app/api/endpoints/outings.py**
+
 ```python
 from fastapi import APIRouter, Depends
 from app.api.deps import get_current_admin_user
@@ -401,9 +408,10 @@ async def get_available_outings(db: AsyncSession = Depends(get_db)):
 ### 1. Authentication Context
 
 **File: frontend/src/contexts/AuthContext.tsx**
+
 ```typescript
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authApi } from '../services/api';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { authApi } from "../services/api";
 
 interface User {
   id: string;
@@ -423,13 +431,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check for existing token on mount
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     if (token) {
       // Verify token and get user info
       verifyToken(token);
@@ -444,7 +454,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userData = await authApi.verifyToken(token);
       setUser(userData);
     } catch (error) {
-      localStorage.removeItem('access_token');
+      localStorage.removeItem("access_token");
     } finally {
       setLoading(false);
     }
@@ -452,17 +462,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     const response = await authApi.login(email, password);
-    localStorage.setItem('access_token', response.access_token);
+    localStorage.setItem("access_token", response.access_token);
     setUser(response.user);
   };
 
   const logout = async () => {
-    const refreshToken = localStorage.getItem('refresh_token');
+    const refreshToken = localStorage.getItem("refresh_token");
     if (refreshToken) {
       await authApi.logout(refreshToken);
     }
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
     setUser(null);
   };
 
@@ -473,7 +483,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         logout,
         isAuthenticated: !!user,
-        isAdmin: user?.role === 'admin',
+        isAdmin: user?.role === "admin",
         loading,
       }}
     >
@@ -485,7 +495,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };
@@ -494,10 +504,11 @@ export const useAuth = () => {
 ### 2. Protected Route Component
 
 **File: frontend/src/components/ProtectedRoute.tsx**
+
 ```typescript
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -529,27 +540,28 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 ### 3. Login Page
 
 **File: frontend/src/pages/LoginPage.tsx**
+
 ```typescript
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     try {
       await login(email, password);
-      navigate('/admin');
+      navigate("/admin");
     } catch (err) {
-      setError('Invalid email or password');
+      setError("Invalid email or password");
     }
   };
 
@@ -586,14 +598,15 @@ export const LoginPage: React.FC = () => {
 ### 4. Updated App Routes
 
 **File: frontend/src/App.tsx**
+
 ```typescript
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import AdminPage from './pages/AdminPage';
-import ParticipantPage from './pages/ParticipantPage';
-import LoginPage from './pages/LoginPage';
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import AdminPage from "./pages/AdminPage";
+import ParticipantPage from "./pages/ParticipantPage";
+import LoginPage from "./pages/LoginPage";
 
 const App: React.FC = () => {
   return (
@@ -623,22 +636,23 @@ export default App;
 ### 5. API Client with Token Interceptor
 
 **File: frontend/src/services/api.ts**
-```typescript
-import axios from 'axios';
 
-const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:8000/api';
+```typescript
+import axios from "axios";
+
+const API_BASE_URL = process.env.VITE_API_URL || "http://localhost:8000/api";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 // Request interceptor to add token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -657,21 +671,21 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshToken = localStorage.getItem("refresh_token");
         const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
           refresh_token: refreshToken,
         });
 
         const { access_token } = response.data;
-        localStorage.setItem('access_token', access_token);
+        localStorage.setItem("access_token", access_token);
 
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Refresh failed, redirect to login
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }
@@ -682,11 +696,11 @@ apiClient.interceptors.response.use(
 
 export const authApi = {
   login: (email: string, password: string) =>
-    apiClient.post('/auth/login', { email, password }),
+    apiClient.post("/auth/login", { email, password }),
   logout: (refreshToken: string) =>
-    apiClient.post('/auth/logout', { refresh_token: refreshToken }),
+    apiClient.post("/auth/logout", { refresh_token: refreshToken }),
   verifyToken: (token: string) =>
-    apiClient.get('/auth/verify', {
+    apiClient.get("/auth/verify", {
       headers: { Authorization: `Bearer ${token}` },
     }),
 };
@@ -699,6 +713,7 @@ export default apiClient;
 ### Database Seed Script
 
 **File: backend/scripts/create_admin.py**
+
 ```python
 import asyncio
 from app.db.session import AsyncSessionLocal
@@ -727,20 +742,24 @@ if __name__ == "__main__":
 ## Security Best Practices
 
 1. **Password Requirements**
+
    - Minimum 8 characters
    - Mix of uppercase, lowercase, numbers
    - Special characters recommended
 
 2. **Token Security**
+
    - Short-lived access tokens (15 minutes)
    - Refresh tokens stored in HttpOnly cookies
    - Token rotation on refresh
 
 3. **HTTPS Only**
+
    - All production traffic over HTTPS
    - Secure cookie flags enabled
 
 4. **Rate Limiting**
+
    - Login endpoint: 5 attempts per 15 minutes
    - API endpoints: 100 requests per minute
 
@@ -751,6 +770,7 @@ if __name__ == "__main__":
 ## Updated Dependencies
 
 ### Backend
+
 ```txt
 # Add to requirements.txt
 python-jose[cryptography]==3.3.0
@@ -759,6 +779,7 @@ python-multipart==0.0.6
 ```
 
 ### Frontend
+
 ```json
 {
   "dependencies": {
@@ -779,10 +800,12 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 ## Testing Authentication
 
 ### Test Admin Credentials
+
 - Email: soadmin@scouthacks.net
 - Password: changeme123 (change immediately in production)
 
 ### API Testing with curl
+
 ```bash
 # Login
 curl -X POST http://localhost:8000/api/auth/login \
@@ -792,3 +815,4 @@ curl -X POST http://localhost:8000/api/auth/login \
 # Use token
 curl -X GET http://localhost:8000/api/outings \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
