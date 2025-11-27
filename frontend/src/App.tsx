@@ -340,6 +340,9 @@ const Navigation: React.FC = () => {
                             borderRadius: "0.25rem",
                             width: "40px",
                             height: "40px",
+                            padding: "0",
+                            minWidth: "40px",
+                            minHeight: "40px",
                           },
                         },
                       }}
@@ -511,6 +514,9 @@ const Navigation: React.FC = () => {
                       borderRadius: "0.25rem",
                       width: "40px",
                       height: "40px",
+                      padding: "0",
+                      minWidth: "40px",
+                      minHeight: "40px",
                     },
                   },
                 }}
