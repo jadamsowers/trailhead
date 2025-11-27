@@ -319,3 +319,23 @@ code {
   font-feature-settings: "liga", "kern";
   text-rendering: optimizeLegibility;
 }
+
+/* Clerk UserButton - Force square shape */
+.cl-userButtonTrigger {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  min-height: 40px !important;
+  max-width: 40px !important;
+  max-height: 40px !important;
+  padding: 0 !important;
+  border-radius: 0.25rem !important;
+  aspect-ratio: 1 !important;
+}
+
+.cl-avatarBox {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 0.25rem !important;
+  aspect-ratio: 1 !important;
+}
