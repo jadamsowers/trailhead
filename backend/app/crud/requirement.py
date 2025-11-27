@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, any_
+from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from uuid import UUID
 
@@ -190,8 +191,15 @@ async def search_merit_badges_by_keywords(
 # ============================================================================
 
 async def get_outing_requirements(db: AsyncSession, outing_id: UUID) -> List[OutingRequirement]:
-    """Get all requirements for a specific outing (async)"""
-    result = await db.execute(select(OutingRequirement).where(OutingRequirement.outing_id == outing_id))
+    """Get all requirements for a specific outing (async)
+    Eager-load related requirement to avoid greenlet errors during response serialization.
+    """
+    stmt = (
+        select(OutingRequirement)
+        .options(selectinload(OutingRequirement.requirement))
+        .where(OutingRequirement.outing_id == outing_id)
+    )
+    result = await db.execute(stmt)
     return result.scalars().all()
 
 
@@ -201,12 +209,15 @@ async def get_outing_requirement(
     requirement_id: UUID
 ) -> Optional[OutingRequirement]:
     """Get a specific outing requirement (async)"""
-    result = await db.execute(
-        select(OutingRequirement).where(
+    stmt = (
+        select(OutingRequirement)
+        .options(selectinload(OutingRequirement.requirement))
+        .where(
             OutingRequirement.outing_id == outing_id,
             OutingRequirement.rank_requirement_id == requirement_id
         )
     )
+    result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
 
@@ -221,8 +232,10 @@ async def add_requirement_to_outing(
     await db.flush()
     await record_change(db, entity_type="outing_requirement", entity_id=db_outing_req.id, op_type="create")
     await db.commit()
-    await db.refresh(db_outing_req)
-    return db_outing_req
+    # Re-query with relationship eager-loaded to satisfy response schema
+    stmt = select(OutingRequirement).options(selectinload(OutingRequirement.requirement)).where(OutingRequirement.id == db_outing_req.id)
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none() or db_outing_req
 
 
 async def update_outing_requirement(
@@ -231,7 +244,11 @@ async def update_outing_requirement(
     requirement: OutingRequirementUpdate
 ) -> Optional[OutingRequirement]:
     """Update an outing requirement's notes (async)"""
-    result = await db.execute(select(OutingRequirement).where(OutingRequirement.id == outing_requirement_id))
+    result = await db.execute(
+        select(OutingRequirement)
+        .options(selectinload(OutingRequirement.requirement))
+        .where(OutingRequirement.id == outing_requirement_id)
+    )
     db_outing_req = result.scalar_one_or_none()
     if not db_outing_req:
         return None
@@ -241,8 +258,10 @@ async def update_outing_requirement(
     await db.flush()
     await record_change(db, entity_type="outing_requirement", entity_id=db_outing_req.id, op_type="update")
     await db.commit()
-    await db.refresh(db_outing_req)
-    return db_outing_req
+    # Return with relationship loaded
+    stmt = select(OutingRequirement).options(selectinload(OutingRequirement.requirement)).where(OutingRequirement.id == outing_requirement_id)
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
 
 
 async def remove_requirement_from_outing(
@@ -265,8 +284,15 @@ async def remove_requirement_from_outing(
 # ============================================================================
 
 async def get_outing_merit_badges(db: AsyncSession, outing_id: UUID) -> List[OutingMeritBadge]:
-    """Get all merit badges for a specific outing (async)"""
-    result = await db.execute(select(OutingMeritBadge).where(OutingMeritBadge.outing_id == outing_id))
+    """Get all merit badges for a specific outing (async)
+    Eager-load related merit_badge to avoid greenlet errors during response serialization.
+    """
+    stmt = (
+        select(OutingMeritBadge)
+        .options(selectinload(OutingMeritBadge.merit_badge))
+        .where(OutingMeritBadge.outing_id == outing_id)
+    )
+    result = await db.execute(stmt)
     return result.scalars().all()
 
 
@@ -276,12 +302,15 @@ async def get_outing_merit_badge(
     badge_id: UUID
 ) -> Optional[OutingMeritBadge]:
     """Get a specific outing merit badge (async)"""
-    result = await db.execute(
-        select(OutingMeritBadge).where(
+    stmt = (
+        select(OutingMeritBadge)
+        .options(selectinload(OutingMeritBadge.merit_badge))
+        .where(
             OutingMeritBadge.outing_id == outing_id,
             OutingMeritBadge.merit_badge_id == badge_id
         )
     )
+    result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
 
@@ -296,8 +325,10 @@ async def add_merit_badge_to_outing(
     await db.flush()
     await record_change(db, entity_type="outing_merit_badge", entity_id=db_outing_badge.id, op_type="create")
     await db.commit()
-    await db.refresh(db_outing_badge)
-    return db_outing_badge
+    # Re-query with relationship eager-loaded to satisfy response schema
+    stmt = select(OutingMeritBadge).options(selectinload(OutingMeritBadge.merit_badge)).where(OutingMeritBadge.id == db_outing_badge.id)
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none() or db_outing_badge
 
 
 async def update_outing_merit_badge(

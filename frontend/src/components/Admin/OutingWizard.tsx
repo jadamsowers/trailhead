@@ -27,8 +27,7 @@ interface OutingWizardProps {
 
 const steps = [
   "Basic Information",
-  "View Suggestions",
-  "Select Requirements",
+  "Requirements & Suggestions",
   "Packing List",
   "Configure Details",
   "Review & Create",
@@ -111,28 +110,29 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
 
   // Load suggestions when moving to step 2
   useEffect(() => {
-    if (activeStep === 1 && name) {
-      loadSuggestions();
+    if (activeStep === 1) {
+      if (name && !suggestions) {
+        loadSuggestions();
+      }
+      if (!allRequirements.length || !allMeritBadges.length) {
+        (async () => {
+          try {
+            setLoading(true);
+            const [reqs, badges] = await Promise.all([
+              requirementsAPI.getRankRequirements(),
+              requirementsAPI.getMeritBadges(),
+            ]);
+            setAllRequirements(reqs);
+            setAllMeritBadges(badges);
+          } catch (e) {
+            console.error("Failed loading catalogs", e);
+          } finally {
+            setLoading(false);
+          }
+        })();
+      }
     }
-    if (activeStep === 2 && !suggestions) {
-      // Load full catalogs for manual selection fallback
-      (async () => {
-        try {
-          setLoading(true);
-          const [reqs, badges] = await Promise.all([
-            requirementsAPI.getRankRequirements(),
-            requirementsAPI.getMeritBadges(),
-          ]);
-          setAllRequirements(reqs);
-          setAllMeritBadges(badges);
-        } catch (e) {
-          console.error("Failed loading catalogs", e);
-        } finally {
-          setLoading(false);
-        }
-      })();
-    }
-    if (activeStep === 3) {
+    if (activeStep === 2) {
       // Load packing list templates
       (async () => {
         try {
@@ -155,7 +155,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
       const closeDate = new Date(start);
       closeDate.setDate(closeDate.getDate() - 14); // 2 weeks before
       setSignupCloseDate(closeDate.toISOString().split("T")[0]);
-      
+
       // Default cancellation deadline to 1 week before
       const cancelDate = new Date(start);
       cancelDate.setDate(cancelDate.getDate() - 7);
@@ -620,379 +620,368 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
           <div className="mt-5">
             <p className="text-secondary mb-5">
               Based on your outing details, we've identified relevant rank
-              requirements and merit badges.
+              requirements and merit badges. Select the ones scouts can work on
+              during this outing.
             </p>
-
             {loading && (
               <div className="text-center py-10">
                 <div className="text-2xl">⏳</div>
-                <p>Loading suggestions...</p>
+                <p>Loading suggestions and catalogs...</p>
               </div>
             )}
-
             {error && (
               <div className="p-4 mb-5 rounded border border-[rgba(255,193,7,0.3)] bg-[rgba(255,193,7,0.1)]">
                 {error}
               </div>
             )}
-
-            {suggestions && !loading && (
-              <div className="grid grid-cols-2 gap-5">
-                <div className="p-4 rounded-lg border border-[rgba(var(--bsa-olive-rgb),0.2)] bg-[rgba(var(--bsa-olive-rgb),0.05)]">
-                  <h3 className="mt-0 flex items-center gap-2">
-                    🏆 Rank Requirements
-                  </h3>
-                  <p className="text-secondary text-sm">
-                    {suggestions.requirements.length} relevant requirements
-                    found
-                  </p>
-                  {suggestions.requirements.slice(0, 3).map((req) => (
-                    <div key={req.id} className="mt-2">
-                      <div className="font-bold text-sm">
-                        {req.rank} {req.requirement_number}
-                      </div>
-                      <div className="text-xs text-secondary">
-                        Match: {(req.match_score * 100).toFixed(0)}%
-                      </div>
-                    </div>
-                  ))}
-                  {suggestions.requirements.length > 3 && (
-                    <p className="text-xs text-secondary mt-2">
-                      +{suggestions.requirements.length - 3} more...
-                    </p>
-                  )}
-                </div>
-
-                <div className="p-4 rounded-lg border border-[rgba(0,150,0,0.2)] bg-[rgba(0,150,0,0.05)]">
-                  <h3 className="mt-0 flex items-center gap-2">
-                    🎖️ Merit Badges
-                  </h3>
-                  <p className="text-secondary text-sm">
-                    {suggestions.merit_badges.length} relevant badges found
-                  </p>
-                  {suggestions.merit_badges.slice(0, 3).map((badge, idx) => (
-                    <div key={badge.name || idx} className="mt-2">
-                      <div className="font-bold text-sm">
-                        {badge.name}
-                        {badge.eagle_required && (
-                          <span className="ml-2 text-xs">🦅</span>
+            {(suggestions ||
+              allRequirements.length > 0 ||
+              allMeritBadges.length > 0) &&
+              !loading && (
+                <div className="grid gap-8">
+                  {/* Suggestions summary */}
+                  {suggestions && (
+                    <div className="grid grid-cols-2 gap-5 mb-8">
+                      <div className="p-4 rounded-lg border border-[rgba(var(--bsa-olive-rgb),0.2)] bg-[rgba(var(--bsa-olive-rgb),0.05)]">
+                        <h3 className="mt-0 flex items-center gap-2">
+                          🏆 Suggested Rank Requirements
+                        </h3>
+                        <p className="text-secondary text-sm">
+                          {suggestions.requirements.length} relevant
+                          requirements found
+                        </p>
+                        {suggestions.requirements.slice(0, 3).map((req) => (
+                          <div key={req.id} className="mt-2">
+                            <div className="font-bold text-sm">
+                              {req.rank} {req.requirement_number}
+                            </div>
+                            <div className="text-xs text-secondary">
+                              Match: {(req.match_score * 100).toFixed(0)}%
+                            </div>
+                          </div>
+                        ))}
+                        {suggestions.requirements.length > 3 && (
+                          <p className="text-xs text-secondary mt-2">
+                            +{suggestions.requirements.length - 3} more...
+                          </p>
                         )}
                       </div>
-                      <div className="text-xs text-secondary">
-                        Match: {(badge.match_score * 100).toFixed(0)}%
+                      <div className="p-4 rounded-lg border border-[rgba(0,150,0,0.2)] bg-[rgba(0,150,0,0.05)]">
+                        <h3 className="mt-0 flex items-center gap-2">
+                          🎖️ Suggested Merit Badges
+                        </h3>
+                        <p className="text-secondary text-sm">
+                          {suggestions.merit_badges.length} relevant badges
+                          found
+                        </p>
+                        {suggestions.merit_badges
+                          .slice(0, 3)
+                          .map((badge, idx) => (
+                            <div key={badge.name || idx} className="mt-2">
+                              <div className="font-bold text-sm">
+                                {badge.name}
+                                {badge.eagle_required && (
+                                  <span className="ml-2 text-xs">🦅</span>
+                                )}
+                              </div>
+                              <div className="text-xs text-secondary">
+                                Match: {(badge.match_score * 100).toFixed(0)}%
+                              </div>
+                            </div>
+                          ))}
+                        {suggestions.merit_badges.length > 3 && (
+                          <p className="text-xs text-secondary mt-2">
+                            +{suggestions.merit_badges.length - 3} more...
+                          </p>
+                        )}
                       </div>
                     </div>
-                  ))}
-                  {suggestions.merit_badges.length > 3 && (
-                    <p className="text-xs text-secondary mt-2">
-                      +{suggestions.merit_badges.length - 3} more...
-                    </p>
                   )}
-                </div>
-              </div>
-            )}
-
-            {suggestions &&
-              suggestions.requirements.length === 0 &&
-              suggestions.merit_badges.length === 0 && (
-                <div className="p-4 rounded border border-[rgba(33,150,243,0.3)] bg-[rgba(33,150,243,0.1)]">
-                  No suggestions found. You can manually add requirements and
-                  merit badges after creating the outing.
+                  {/* Requirements selection */}
+                  <div>
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="m-0">🏆 Rank Requirements</h3>
+                      {(suggestions
+                        ? suggestions.requirements.length > 0
+                        : allRequirements.length > 0) && (
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const allReqs = suggestions
+                                ? suggestions.requirements.map((r) => r.id)
+                                : allRequirements.map((r) => r.id);
+                              setSelectedRequirements((prev) => {
+                                const newMap = new Map(prev);
+                                allReqs.forEach((id) => {
+                                  if (!newMap.has(id)) {
+                                    newMap.set(id, "");
+                                  }
+                                });
+                                return newMap;
+                              });
+                            }}
+                            className="text-xs px-3 py-1 rounded border border-bsa-olive text-bsa-olive hover:bg-[rgba(var(--bsa-olive-rgb),0.1)]"
+                          >
+                            Select All
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedRequirements(new Map())}
+                            className="text-xs px-3 py-1 rounded border border-card text-secondary hover:bg-tertiary"
+                          >
+                            Clear All
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {(
+                      suggestions
+                        ? suggestions.requirements.length === 0
+                        : allRequirements.length === 0
+                    ) ? (
+                      <p className="text-secondary">
+                        No requirements available
+                      </p>
+                    ) : (
+                      <div className="grid gap-4">
+                        {(suggestions
+                          ? suggestions.requirements.map((r) => ({
+                              id: r.id,
+                              rank: r.rank,
+                              requirement_number: r.requirement_number,
+                              requirement_text: r.description,
+                              category: "",
+                              match_score: r.match_score,
+                              matched_keywords: r.matched_keywords,
+                              isFlattened: true,
+                            }))
+                          : allRequirements.map((r) => ({
+                              id: r.id,
+                              rank: r.rank,
+                              requirement_number: r.requirement_number,
+                              requirement_text: r.requirement_text,
+                              category: r.category || "",
+                              match_score: 0,
+                              matched_keywords: [] as string[],
+                              isFlattened: false,
+                            }))
+                        ).map((reqObj) => {
+                          const id = reqObj.id;
+                          return (
+                            <div
+                              key={id}
+                              className={
+                                `p-4 rounded-lg border border-card ` +
+                                (selectedRequirements.has(id)
+                                  ? "bg-[rgba(var(--bsa-olive-rgb),0.05)]"
+                                  : "bg-tertiary")
+                              }
+                            >
+                              <label className="flex items-start gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedRequirements.has(id)}
+                                  onChange={() => {
+                                    setSelectedRequirements((prev) => {
+                                      const newMap = new Map(prev);
+                                      if (newMap.has(id)) {
+                                        newMap.delete(id);
+                                      } else {
+                                        newMap.set(id, "");
+                                      }
+                                      return newMap;
+                                    });
+                                  }}
+                                  className="mt-1"
+                                />
+                                <div className="flex-1">
+                                  <div className="font-bold mb-1">
+                                    {reqObj.rank} {reqObj.requirement_number}
+                                    {reqObj.category && ` - ${reqObj.category}`}
+                                    {suggestions && reqObj.match_score > 0 && (
+                                      <span className="ml-2 text-xs py-0.5 px-2 rounded-xl bg-[rgba(var(--bsa-olive-rgb),0.2)]">
+                                        {(reqObj.match_score * 100).toFixed(0)}%
+                                        match
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-sm text-secondary">
+                                    {reqObj.requirement_text}
+                                  </div>
+                                </div>
+                              </label>
+                              {selectedRequirements.has(id) && (
+                                <div className="mt-2 ml-7">
+                                  <input
+                                    type="text"
+                                    placeholder="Add specific details or instructions (optional)..."
+                                    value={selectedRequirements.get(id) || ""}
+                                    onChange={(e) =>
+                                      handleRequirementNotesChange(
+                                        id,
+                                        e.target.value
+                                      )
+                                    }
+                                    className="form-input"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  <div className="h-px bg-[var(--card-border)]" />
+                  <div>
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="m-0">🎖️ Merit Badges</h3>
+                      {(suggestions
+                        ? suggestions.merit_badges.length > 0
+                        : allMeritBadges.length > 0) && (
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const allBadges = suggestions
+                                ? suggestions.merit_badges.map((b) => b.name)
+                                : allMeritBadges.map((b) => b.id);
+                              setSelectedMeritBadges((prev) => {
+                                const newMap = new Map(prev);
+                                allBadges.forEach((id) => {
+                                  if (!newMap.has(id)) {
+                                    newMap.set(id, "");
+                                  }
+                                });
+                                return newMap;
+                              });
+                            }}
+                            className="text-xs px-3 py-1 rounded border border-bsa-olive text-bsa-olive hover:bg-[rgba(var(--bsa-olive-rgb),0.1)]"
+                          >
+                            Select All
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedMeritBadges(new Map())}
+                            className="text-xs px-3 py-1 rounded border border-card text-secondary hover:bg-tertiary"
+                          >
+                            Clear All
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    {(
+                      suggestions
+                        ? suggestions.merit_badges.length === 0
+                        : allMeritBadges.length === 0
+                    ) ? (
+                      <p className="text-secondary">
+                        No merit badges available
+                      </p>
+                    ) : (
+                      <div className="grid gap-4">
+                        {(suggestions
+                          ? suggestions.merit_badges.map((b) => ({
+                              id: b.name,
+                              name: b.name,
+                              description: b.description,
+                              eagle_required: b.eagle_required,
+                              match_score: b.match_score,
+                              matched_keywords: b.matched_keywords,
+                              isFlattened: true,
+                            }))
+                          : allMeritBadges.map((b) => ({
+                              id: b.id,
+                              name: b.name,
+                              description: b.description,
+                              eagle_required: b.eagle_required || false,
+                              match_score: 0,
+                              matched_keywords: [] as string[],
+                              isFlattened: false,
+                            }))
+                        ).map((badgeObj) => {
+                          const id = badgeObj.id;
+                          return (
+                            <div
+                              key={id}
+                              className={
+                                `p-4 rounded-lg border border-card ` +
+                                (selectedMeritBadges.has(id)
+                                  ? "bg-[rgba(0,150,0,0.05)]"
+                                  : "bg-tertiary")
+                              }
+                            >
+                              <label className="flex items-start gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedMeritBadges.has(id)}
+                                  onChange={() => {
+                                    setSelectedMeritBadges((prev) => {
+                                      const newMap = new Map(prev);
+                                      if (newMap.has(id)) {
+                                        newMap.delete(id);
+                                      } else {
+                                        newMap.set(id, "");
+                                      }
+                                      return newMap;
+                                    });
+                                  }}
+                                  className="mt-1"
+                                />
+                                <div className="flex-1">
+                                  <div className="font-bold mb-1">
+                                    {badgeObj.name}
+                                    {badgeObj.eagle_required && (
+                                      <span className="ml-2 text-xs">🦅</span>
+                                    )}
+                                    {suggestions &&
+                                      badgeObj.match_score > 0 && (
+                                        <span className="ml-2 text-xs py-0.5 px-2 rounded-xl bg-[rgba(0,150,0,0.2)]">
+                                          {(badgeObj.match_score * 100).toFixed(
+                                            0
+                                          )}
+                                          % match
+                                        </span>
+                                      )}
+                                  </div>
+                                  <div className="text-sm text-secondary">
+                                    {badgeObj.description}
+                                  </div>
+                                </div>
+                              </label>
+                              {selectedMeritBadges.has(id) && (
+                                <div className="mt-2 ml-7">
+                                  <input
+                                    type="text"
+                                    placeholder="Add specific details or instructions (optional)..."
+                                    value={selectedMeritBadges.get(id) || ""}
+                                    onChange={(e) =>
+                                      handleMeritBadgeNotesChange(
+                                        id,
+                                        e.target.value
+                                      )
+                                    }
+                                    className="form-input"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-            {!suggestions && !loading && (
-              <div className="p-4 rounded border border-[rgba(33,150,243,0.3)] bg-[rgba(33,150,243,0.1)]">
-                Suggestions unavailable. You can still choose from the full
-                catalog on the next step.
-              </div>
-            )}
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="mt-5">
-            <p className="text-secondary mb-5">
-              Select the rank requirements and merit badges that scouts can work
-              on during this outing.
-            </p>
-            {suggestions ||
-            allRequirements.length > 0 ||
-            allMeritBadges.length > 0 ? (
-              <div className="grid gap-8">
-                <div>
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="m-0">🏆 Rank Requirements</h3>
-                    {(suggestions
-                      ? suggestions.requirements.length > 0
-                      : allRequirements.length > 0) && (
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const allReqs = suggestions
-                              ? suggestions.requirements.map((r) => r.id)
-                              : allRequirements.map((r) => r.id);
-                            setSelectedRequirements((prev) => {
-                              const newMap = new Map(prev);
-                              allReqs.forEach((id) => {
-                                if (!newMap.has(id)) {
-                                  newMap.set(id, "");
-                                }
-                              });
-                              return newMap;
-                            });
-                          }}
-                          className="text-xs px-3 py-1 rounded border border-bsa-olive text-bsa-olive hover:bg-[rgba(var(--bsa-olive-rgb),0.1)]"
-                        >
-                          Select All
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedRequirements(new Map())}
-                          className="text-xs px-3 py-1 rounded border border-card text-secondary hover:bg-tertiary"
-                        >
-                          Clear All
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  {(
-                    suggestions
-                      ? suggestions.requirements.length === 0
-                      : allRequirements.length === 0
-                  ) ? (
-                    <p className="text-secondary">No requirements available</p>
-                  ) : (
-                    <div className="grid gap-4">
-                      {(suggestions
-                        ? suggestions.requirements.map((r) => ({
-                            id: r.id,
-                            rank: r.rank,
-                            requirement_number: r.requirement_number,
-                            requirement_text: r.description,
-                            category: "",
-                            match_score: r.match_score,
-                            matched_keywords: r.matched_keywords,
-                            isFlattened: true,
-                          }))
-                        : allRequirements.map((r) => ({
-                            id: r.id,
-                            rank: r.rank,
-                            requirement_number: r.requirement_number,
-                            requirement_text: r.requirement_text,
-                            category: r.category || "",
-                            match_score: 0,
-                            matched_keywords: [] as string[],
-                            isFlattened: false,
-                          }))
-                      ).map((reqObj) => {
-                        const id = reqObj.id;
-                        return (
-                          <div
-                            key={id}
-                            className={
-                              `p-4 rounded-lg border border-card ` +
-                              (selectedRequirements.has(id)
-                                ? "bg-[rgba(var(--bsa-olive-rgb),0.05)]"
-                                : "bg-tertiary")
-                            }
-                          >
-                            <label className="flex items-start gap-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={selectedRequirements.has(id)}
-                                onChange={() => {
-                                  setSelectedRequirements((prev) => {
-                                    const newMap = new Map(prev);
-                                    if (newMap.has(id)) {
-                                      newMap.delete(id);
-                                    } else {
-                                      newMap.set(id, "");
-                                    }
-                                    return newMap;
-                                  });
-                                }}
-                                className="mt-1"
-                              />
-                              <div className="flex-1">
-                                <div className="font-bold mb-1">
-                                  {reqObj.rank} {reqObj.requirement_number}
-                                  {reqObj.category && ` - ${reqObj.category}`}
-                                  {suggestions && reqObj.match_score > 0 && (
-                                    <span className="ml-2 text-xs py-0.5 px-2 rounded-xl bg-[rgba(var(--bsa-olive-rgb),0.2)]">
-                                      {(reqObj.match_score * 100).toFixed(0)}%
-                                      match
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-sm text-secondary">
-                                  {reqObj.requirement_text}
-                                </div>
-                              </div>
-                            </label>
-                            {selectedRequirements.has(id) && (
-                              <div className="mt-2 ml-7">
-                                <input
-                                  type="text"
-                                  placeholder="Add specific details or instructions (optional)..."
-                                  value={selectedRequirements.get(id) || ""}
-                                  onChange={(e) =>
-                                    handleRequirementNotesChange(
-                                      id,
-                                      e.target.value
-                                    )
-                                  }
-                                  className="form-input"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+            {!suggestions &&
+              !loading &&
+              allRequirements.length === 0 &&
+              allMeritBadges.length === 0 && (
+                <div className="text-secondary">
+                  No requirements or merit badges available.
                 </div>
-
-                <div className="h-px bg-[var(--card-border)]" />
-
-                <div>
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="m-0">🎖️ Merit Badges</h3>
-                    {(suggestions
-                      ? suggestions.merit_badges.length > 0
-                      : allMeritBadges.length > 0) && (
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const allBadges = suggestions
-                              ? suggestions.merit_badges.map((b) => b.name)
-                              : allMeritBadges.map((b) => b.id);
-                            setSelectedMeritBadges((prev) => {
-                              const newMap = new Map(prev);
-                              allBadges.forEach((id) => {
-                                if (!newMap.has(id)) {
-                                  newMap.set(id, "");
-                                }
-                              });
-                              return newMap;
-                            });
-                          }}
-                          className="text-xs px-3 py-1 rounded border border-bsa-olive text-bsa-olive hover:bg-[rgba(var(--bsa-olive-rgb),0.1)]"
-                        >
-                          Select All
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedMeritBadges(new Map())}
-                          className="text-xs px-3 py-1 rounded border border-card text-secondary hover:bg-tertiary"
-                        >
-                          Clear All
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  {(
-                    suggestions
-                      ? suggestions.merit_badges.length === 0
-                      : allMeritBadges.length === 0
-                  ) ? (
-                    <p className="text-secondary">No merit badges available</p>
-                  ) : (
-                    <div className="grid gap-4">
-                      {(suggestions
-                        ? suggestions.merit_badges.map((b) => ({
-                            id: b.name,
-                            name: b.name,
-                            description: b.description,
-                            eagle_required: b.eagle_required,
-                            match_score: b.match_score,
-                            matched_keywords: b.matched_keywords,
-                            isFlattened: true,
-                          }))
-                        : allMeritBadges.map((b) => ({
-                            id: b.id,
-                            name: b.name,
-                            description: b.description,
-                            eagle_required: b.eagle_required || false,
-                            match_score: 0,
-                            matched_keywords: [] as string[],
-                            isFlattened: false,
-                          }))
-                      ).map((badgeObj) => {
-                        const id = badgeObj.id;
-                        return (
-                          <div
-                            key={id}
-                            className={
-                              `p-4 rounded-lg border border-card ` +
-                              (selectedMeritBadges.has(id)
-                                ? "bg-[rgba(0,150,0,0.05)]"
-                                : "bg-tertiary")
-                            }
-                          >
-                            <label className="flex items-start gap-2 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={selectedMeritBadges.has(id)}
-                                onChange={() => {
-                                  setSelectedMeritBadges((prev) => {
-                                    const newMap = new Map(prev);
-                                    if (newMap.has(id)) {
-                                      newMap.delete(id);
-                                    } else {
-                                      newMap.set(id, "");
-                                    }
-                                    return newMap;
-                                  });
-                                }}
-                                className="mt-1"
-                              />
-                              <div className="flex-1">
-                                <div className="font-bold mb-1">
-                                  {badgeObj.name}
-                                  {badgeObj.eagle_required && (
-                                    <span className="ml-2 text-xs">🦅</span>
-                                  )}
-                                  {suggestions && badgeObj.match_score > 0 && (
-                                    <span className="ml-2 text-xs py-0.5 px-2 rounded-xl bg-[rgba(0,150,0,0.2)]">
-                                      {(badgeObj.match_score * 100).toFixed(0)}%
-                                      match
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-sm text-secondary">
-                                  {badgeObj.description}
-                                </div>
-                              </div>
-                            </label>
-                            {selectedMeritBadges.has(id) && (
-                              <div className="mt-2 ml-7">
-                                <input
-                                  type="text"
-                                  placeholder="Add specific details or instructions (optional)..."
-                                  value={selectedMeritBadges.get(id) || ""}
-                                  onChange={(e) =>
-                                    handleMeritBadgeNotesChange(
-                                      id,
-                                      e.target.value
-                                    )
-                                  }
-                                  className="form-input"
-                                />
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="text-secondary">Loading catalogs...</div>
-            )}
+              )}
           </div>
         );
 
