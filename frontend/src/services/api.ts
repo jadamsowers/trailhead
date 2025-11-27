@@ -1629,3 +1629,23 @@ export const packingListAPI = {
     }
   },
 };
+
+// Offline Data API
+export const offlineAPI = {
+  /**
+   * Get all offline data in a single request
+   * Returns user, outings, and rosters
+   */
+  async getBulkData(): Promise<{
+    user: User;
+    outings: Outing[];
+    rosters: Record<string, SignupResponse[]>;
+    last_updated: string;
+  }> {
+    const response = await fetch(`${getApiBase()}/offline/data`, {
+      headers: await getAuthHeaders(),
+    });
+    return handleResponse(response);
+  },
+};
+

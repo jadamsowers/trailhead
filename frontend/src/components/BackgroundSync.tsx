@@ -1,6 +1,6 @@
 import { useUser } from "@clerk/clerk-react";
 import { useEffect, useRef, useState } from "react";
-import { outingAPI, signupAPI, userAPI } from "../services/api";
+import { offlineAPI } from "../services/api";
 import { SyncToast } from "./Shared/SyncToast";
 import { User } from "../types";
 
@@ -31,10 +31,11 @@ export const BackgroundSync: React.FC = () => {
     const fetchUser = async () => {
       try {
         console.debug("BackgroundSync: Fetching user from backend");
-        const user = await userAPI.getCurrentUser();
-        setBackendUser(user);
+        // Use bulk data endpoint to get user info
+        const data = await offlineAPI.getBulkData();
+        setBackendUser(data.user);
         console.debug("BackgroundSync: Fetched user from backend", {
-          role: user.role,
+          role: data.user.role,
         });
       } catch (error) {
         console.error("BackgroundSync: Failed to fetch user", error);
@@ -70,27 +71,26 @@ export const BackgroundSync: React.FC = () => {
     const doSync = async () => {
       console.debug("BackgroundSync: Sync started");
       try {
-        // Always cache user object for offline admin detection
-        if (backendUser) {
-          localStorage.setItem("cached_user", JSON.stringify(backendUser));
-          console.debug("BackgroundSync: cached_user updated");
-        }
-        // 1. Sync all outings
-        const outings = await outingAPI.getAll();
-        localStorage.setItem(OUTINGS_CACHE_KEY, JSON.stringify(outings));
+        // Fetch all data in a single request
+        const data = await offlineAPI.getBulkData();
+        
+        // Cache user object for offline admin detection
+        localStorage.setItem("cached_user", JSON.stringify(data.user));
+        console.debug("BackgroundSync: cached_user updated");
+        
+        // Cache outings
+        localStorage.setItem(OUTINGS_CACHE_KEY, JSON.stringify(data.outings));
         console.debug("BackgroundSync: Outings synced");
 
-        // 2. Sync all rosters for each outing
-        await Promise.all(
-          outings.map(async (outing) => {
-            const roster = await signupAPI.getByOuting(outing.id);
-            localStorage.setItem(
-              `${ROSTER_CACHE_PREFIX}${outing.id}`,
-              JSON.stringify(roster)
-            );
-          })
-        );
+        // Cache rosters
+        for (const [outingId, roster] of Object.entries(data.rosters)) {
+          localStorage.setItem(
+            `${ROSTER_CACHE_PREFIX}${outingId}`,
+            JSON.stringify(roster)
+          );
+        }
         console.debug("BackgroundSync: Rosters synced");
+        
         setToastMsg("Outings and rosters synced");
       } catch (err) {
         setToastMsg("Sync failed");
@@ -101,7 +101,8 @@ export const BackgroundSync: React.FC = () => {
 
     // Force immediate sync on mount
     setTimeout(doSync, 0);
-    intervalRef.current = setInterval(doSync, 60 * 1000); // Every minute
+    // Sync every 5 minutes instead of every minute
+    intervalRef.current = setInterval(doSync, 5 * 60 * 1000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
@@ -109,3 +110,4 @@ export const BackgroundSync: React.FC = () => {
 
   return toastMsg ? <SyncToast message={toastMsg} /> : null;
 };
+

@@ -12,7 +12,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
-from app.api.endpoints import outings, signups, registration, family, clerk_auth, requirements, places, packing_lists, troops
+from app.api.endpoints import outings, signups, registration, family, clerk_auth, requirements, places, packing_lists, troops, offline
 from app.api import checkin
 
 # Configure logging
@@ -206,6 +206,7 @@ app.include_router(requirements.router, prefix=f"{settings.API_V1_STR}/requireme
 app.include_router(places.router, prefix=f"{settings.API_V1_STR}", tags=["places"])
 app.include_router(packing_lists.router, prefix=f"{settings.API_V1_STR}/packing-lists", tags=["packing-lists"])
 app.include_router(troops.router, prefix=f"{settings.API_V1_STR}", tags=["troops"])
+app.include_router(offline.router, prefix=f"{settings.API_V1_STR}/offline", tags=["offline"])
 
 # Health endpoint
 from app.api.endpoints import health
