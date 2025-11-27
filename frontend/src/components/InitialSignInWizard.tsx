@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { getApiBase } from "../utils/apiBase";
+import { isValidPhone } from "../utils/phone";
 
 interface TroopData {
   number: string;
@@ -39,6 +40,10 @@ const InitialSignInWizard: React.FC = () => {
   const [yptWarning, setYptWarning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    phone?: string;
+    emergencyContactPhone?: string;
+  }>({});
   const navigate = useNavigate();
   const { user } = useUser();
 
@@ -47,6 +52,12 @@ const InitialSignInWizard: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // Clear field-level errors as user edits
+    if (e.target.name === "phone") {
+      setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+    } else if (e.target.name === "emergencyContactPhone") {
+      setFieldErrors((prev) => ({ ...prev, emergencyContactPhone: undefined }));
+    }
   };
 
   const handleTroopChange = (
@@ -84,12 +95,37 @@ const InitialSignInWizard: React.FC = () => {
 
     try {
       if (step === 1) {
-        if (
-          !form.phone ||
-          !form.emergencyContactName ||
-          !form.emergencyContactPhone
-        ) {
+        const newFieldErrors: {
+          phone?: string;
+          emergencyContactPhone?: string;
+        } = {};
+        // Basic required checks
+        if (!form.phone) newFieldErrors.phone = "Phone number is required.";
+        if (!form.emergencyContactName)
           setError("Please fill out all required fields.");
+        if (!form.emergencyContactPhone)
+          newFieldErrors.emergencyContactPhone =
+            "Emergency contact phone is required.";
+
+        // Format/validity checks (allow common US/international formats)
+        if (form.phone && !isValidPhone(form.phone)) {
+          newFieldErrors.phone =
+            "Enter a valid phone number (e.g., 555-555-1234, (555) 555-1234, or +1 555 555 1234).";
+        }
+        if (
+          form.emergencyContactPhone &&
+          !isValidPhone(form.emergencyContactPhone)
+        ) {
+          newFieldErrors.emergencyContactPhone =
+            "Enter a valid emergency contact phone number.";
+        }
+
+        if (
+          Object.keys(newFieldErrors).length > 0 ||
+          !form.emergencyContactName
+        ) {
+          setFieldErrors(newFieldErrors);
+          if (!error) setError("Please fix the errors below and try again.");
           setLoading(false);
           return;
         }
@@ -208,7 +244,12 @@ const InitialSignInWizard: React.FC = () => {
               name="phone"
               type="tel"
               required
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+              inputMode="tel"
+              aria-invalid={!!fieldErrors.phone}
+              aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
+              className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 ${
+                fieldErrors.phone ? "border-[var(--alert-error-border)]" : ""
+              }`}
               style={{
                 background: "var(--input-bg)",
                 color: "var(--text-primary)",
@@ -216,6 +257,15 @@ const InitialSignInWizard: React.FC = () => {
               value={form.phone}
               onChange={handleChange}
             />
+            {fieldErrors.phone && (
+              <p
+                id="phone-error"
+                role="alert"
+                className="mt-1 text-sm text-[var(--alert-error-text)]"
+              >
+                {fieldErrors.phone}
+              </p>
+            )}
           </div>
           <div>
             <label
@@ -251,7 +301,18 @@ const InitialSignInWizard: React.FC = () => {
               name="emergencyContactPhone"
               type="tel"
               required
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+              inputMode="tel"
+              aria-invalid={!!fieldErrors.emergencyContactPhone}
+              aria-describedby={
+                fieldErrors.emergencyContactPhone
+                  ? "emergency-phone-error"
+                  : undefined
+              }
+              className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 ${
+                fieldErrors.emergencyContactPhone
+                  ? "border-[var(--alert-error-border)]"
+                  : ""
+              }`}
               style={{
                 background: "var(--input-bg)",
                 color: "var(--text-primary)",
@@ -259,6 +320,15 @@ const InitialSignInWizard: React.FC = () => {
               value={form.emergencyContactPhone}
               onChange={handleChange}
             />
+            {fieldErrors.emergencyContactPhone && (
+              <p
+                id="emergency-phone-error"
+                role="alert"
+                className="mt-1 text-sm text-[var(--alert-error-text)]"
+              >
+                {fieldErrors.emergencyContactPhone}
+              </p>
+            )}
           </div>
           <div>
             <label
@@ -285,7 +355,10 @@ const InitialSignInWizard: React.FC = () => {
               htmlFor="yptDate"
               style={{ color: "var(--text-primary)" }}
             >
-              <em>You will need a valid youth protection training certificate to attend outings. If you do not have one, please let us know.</em>
+              <em>
+                You will need a valid youth protection training certificate to
+                attend outings. If you do not have one, please let us know.
+              </em>
             </label>
             {yptWarning && (
               <div className="mt-2 text-yellow-700 bg-yellow-100 border-l-4 border-yellow-400 p-2 rounded">
