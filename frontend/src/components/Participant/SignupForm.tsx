@@ -274,7 +274,7 @@ const SignupForm: React.FC = () => {
         .filter((id) => grubmasterRequests[id]?.interest)
         .map((id) => ({
           family_member_id: id,
-          grubmaster_interest: true,
+          grubmaster_interest: grubmasterRequests[id]?.interest || false,
           grubmaster_reason: grubmasterRequests[id]?.reason,
         }));
 

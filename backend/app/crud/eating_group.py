@@ -273,6 +273,6 @@ async def get_grubmaster_requests(
         )
         .options(selectinload(Participant.eating_group_membership))
         .where(Signup.outing_id == outing_id)
-        .where(Participant.grubmaster_interest == True)
+        .where(Participant.grubmaster_interest.is_(True))
     )
     return list(result.scalars().all())
