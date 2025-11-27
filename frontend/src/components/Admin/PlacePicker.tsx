@@ -59,6 +59,22 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
     }
   }, [value.placeId]);
 
+  // Helper function to format saved place address into two-line format
+  const formatSavedPlaceAddress = (address: string): { line1: string; line2: string } => {
+    const lines = address.split("\n").map(l => l.trim()).filter(l => l);
+    if (lines.length >= 2) {
+      return { line1: lines[0], line2: lines.slice(1).join(", ") };
+    } else if (lines.length === 1) {
+      // Try to split on comma
+      const parts = lines[0].split(",").map(p => p.trim());
+      if (parts.length >= 2) {
+        return { line1: parts[0], line2: parts.slice(1).join(", ") };
+      }
+      return { line1: lines[0], line2: "" };
+    }
+    return { line1: address, line2: "" };
+  };
+
   // Helper function to format Nominatim address into two-line format
   const formatNominatimAddress = (result: NominatimResult): string => {
     const addr = result.address;
@@ -212,33 +228,6 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
     setCustomName(placeName);
   };
 
-  const handleSaveNominatimAsPlace = async (result: NominatimResult) => {
-    try {
-      const formattedAddress = formatNominatimAddress(result);
-      const placeName = customName.trim() || result.address.road || result.display_name.split(",")[0];
-
-      const newPlace = await placesAPI.createPlace({
-        name: placeName,
-        address: formattedAddress,
-      });
-
-      onChange({
-        name: newPlace.name,
-        address: newPlace.address,
-        placeId: newPlace.id,
-        place: undefined,
-      });
-      setShowDropdown(false);
-      setNominatimResults([]);
-      setSearchValue(newPlace.name);
-      setCustomAddress("");
-      setCustomName("");
-    } catch (error) {
-      console.error("Error saving Nominatim result as place:", error);
-      alert("Failed to save place. Please try again.");
-    }
-  };
-
   const handleSaveAsPlace = async () => {
     if (!customAddress.trim()) return;
     try {
@@ -274,25 +263,44 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
   // Helper to split Nominatim result into display parts
   const getNominatimDisplayParts = (result: NominatimResult) => {
     const addr = result.address;
-    const line1Parts: string[] = [];
-    const line2Parts: string[] = [];
+    
+    // Determine the title (name of the place)
+    // Priority: name > amenity > road > first part of display_name
+    const title = result.name || 
+                  addr.amenity || 
+                  addr.road || 
+                  result.display_name.split(",")[0];
+    
+    const addressLine1Parts: string[] = [];
+    const addressLine2Parts: string[] = [];
 
-    // Line 1: Street address
-    if (addr.house_number) line1Parts.push(addr.house_number);
-    if (addr.road) line1Parts.push(addr.road);
+    // Line 1: Street address (house number + road)
+    // Only show if we have a specific name/amenity (not just the road name as title)
+    if (title !== addr.road) {
+      if (addr.house_number) addressLine1Parts.push(addr.house_number);
+      if (addr.road) addressLine1Parts.push(addr.road);
+    }
 
     // Line 2: City, State ZIP
     const city = addr.city || addr.town || addr.village || "";
-    if (city) line2Parts.push(city);
+    if (city) addressLine2Parts.push(city);
     
     const stateParts: string[] = [];
     if (addr.state) stateParts.push(addr.state);
     if (addr.postcode) stateParts.push(addr.postcode);
-    if (stateParts.length > 0) line2Parts.push(stateParts.join(" "));
+    if (stateParts.length > 0) addressLine2Parts.push(stateParts.join(" "));
 
-    // Fallback if no structured address
-    const header = line1Parts.join(" ") || result.display_name.split(",")[0];
-    const subtext = line2Parts.join(", ");
+    // Build the subtext
+    const subtextLines: string[] = [];
+    if (addressLine1Parts.length > 0) {
+      subtextLines.push(addressLine1Parts.join(" "));
+    }
+    if (addressLine2Parts.length > 0) {
+      subtextLines.push(addressLine2Parts.join(", "));
+    }
+    
+    const header = title;
+    const subtext = subtextLines.join("\n");
     
     return { header, subtext };
   };
@@ -356,21 +364,21 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
           {showDropdown && (options.length > 0 || nominatimResults.length > 0) && (
             <div className="absolute top-full left-0 right-0 mt-0.5 max-h-52 overflow-y-auto z-10 bg-[var(--bg-tertiary)] border border-[var(--card-border)] rounded shadow-lg">
               {/* Saved places */}
-              {options.map((place) => (
-                <button
-                  type="button"
-                  key={place.id}
-                  onClick={() => handlePlaceSelect(place)}
-                  className="w-full text-left px-3 py-2 text-sm border-b border-[var(--card-border)] hover:bg-[rgba(var(--bsa-olive-rgb),0.1)] transition-colors"
-                >
-                  <div className="font-semibold">💾 {place.name}</div>
-                  <div className="text-[11px] text-[var(--text-secondary)]">
-                    {place.address}
-                  </div>
-                </button>
-              ))}
-              
-
+              {options.map((place) => {
+                const { line1, line2 } = formatSavedPlaceAddress(place.address);
+                return (
+                  <button
+                    type="button"
+                    key={place.id}
+                    onClick={() => handlePlaceSelect(place)}
+                    className="w-full text-left px-3 py-2 text-sm border-b border-[var(--card-border)] hover:bg-[rgba(var(--bsa-olive-rgb),0.1)] transition-colors"
+                  >
+                    <div className="font-semibold">💾 {place.name}</div>
+                    {line1 && <div className="text-[11px] text-[var(--text-secondary)]">{line1}</div>}
+                    {line2 && <div className="text-[11px] text-[var(--text-secondary)]">{line2}</div>}
+                  </button>
+                );
+              })}
 
               {/* Nominatim results */}
               {nominatimResults.map((result) => {
@@ -383,23 +391,28 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
                     className="w-full text-left px-3 py-2 text-sm border-b border-[var(--card-border)] hover:bg-[rgba(var(--bsa-olive-rgb),0.1)] transition-colors"
                   >
                     <div className="font-bold text-[var(--text-primary)]">🌍 {header}</div>
-                    <div className="text-[11px] text-[var(--text-secondary)]">
+                    <div className="text-[11px] text-[var(--text-secondary)] whitespace-pre-line">
                       {subtext}
                     </div>
                   </button>
                 );
               })}
               
-              {/* Option to save Nominatim result as new place */}
-              {nominatimResults.length > 0 && nominatimResults[0] && (
-                <button
-                  type="button"
-                  onClick={() => handleSaveNominatimAsPlace(nominatimResults[0])}
-                  className="w-full text-left px-3 py-2 text-sm bg-[var(--bsa-olive)] text-white hover:opacity-90 transition-colors font-semibold"
-                >
-                  💾 Save first result as reusable place
-                </button>
-              )}
+              {/* Manual entry option - always show at the end */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setCustomName(autoName || "");
+                  setCustomAddress("");
+                  setShowCustomInput(true);
+                  setShowDropdown(false);
+                }}
+                className="w-full text-left px-3 py-2 text-sm border-t-2 border-[var(--card-border)] bg-[var(--bg-secondary)] hover:bg-[rgba(var(--bsa-olive-rgb),0.1)] transition-colors"
+              >
+                <span className="text-[var(--bsa-olive)] font-semibold">➕ Add place manually</span>
+              </button>
             </div>
           )}
           {showDropdown && searchValue && options.length === 0 && nominatimResults.length === 0 && !loading && (

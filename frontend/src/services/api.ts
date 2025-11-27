@@ -27,6 +27,7 @@ export interface NominatimResult {
   display_name: string;
   lat: string;
   lon: string;
+  name?: string; // Optional name of the place
   address: {
     house_number?: string;
     road?: string;
@@ -36,6 +37,7 @@ export interface NominatimResult {
     state?: string;
     postcode?: string;
     country?: string;
+    amenity?: string; // e.g., "restaurant", "park", etc.
     [key: string]: string | undefined;
   };
 }
