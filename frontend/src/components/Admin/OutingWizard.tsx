@@ -54,8 +54,8 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   const [endDate, setEndDate] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
-  const [dropoffTime, setDropoffTime] = useState("");
-  const [pickupTime, setPickupTime] = useState("");
+  const [dropoffTime, setDropoffTime] = useState<string>("17:30");
+  const [pickupTime, setPickupTime] = useState<string>("11:30");
   const [isDayTrip, setIsDayTrip] = useState(false);
 
   // Address fields
@@ -107,11 +107,13 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   const [signupCloseDate, setSignupCloseDate] = useState<string>("");
   const [cancellationDeadline, setCancellationDeadline] = useState<string>("");
   const [icon, setIcon] = useState<string>("");
-  
+
   // Food budget fields for grubmaster functionality
-  const [foodBudgetPerPerson, setFoodBudgetPerPerson] = useState<string>("");
+  const [foodBudgetPerPerson, setFoodBudgetPerPerson] = useState<string>("8");
   const [mealCount, setMealCount] = useState<string>("4");
-  const [budgetType, setBudgetType] = useState<"total" | "per_meal">("total");
+  const [budgetType, setBudgetType] = useState<"total" | "per_meal">(
+    "per_meal"
+  );
 
   // Load suggestions when moving to step 2
   useEffect(() => {
@@ -260,16 +262,17 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
         pickup_place_id: pickupAddress.placeId,
         dropoff_address: dropoffAddress.address,
         dropoff_place_id: dropoffAddress.placeId,
-        drop_off_time: dropoffTime || undefined,
-        pickup_time: pickupTime || undefined,
+        drop_off_time: dropoffTime,
+        pickup_time: pickupTime,
         signups_close_at: signupCloseDate
           ? `${signupCloseDate}T23:59:59Z`
           : undefined,
         cancellation_deadline: cancellationDeadline
           ? `${cancellationDeadline}T23:59:59Z`
           : undefined,
-        // Food budget fields for grubmaster functionality
-        food_budget_per_person: foodBudgetPerPerson ? parseFloat(foodBudgetPerPerson) : undefined,
+        food_budget_per_person: foodBudgetPerPerson
+          ? Number(foodBudgetPerPerson)
+          : undefined,
         meal_count: mealCount ? parseInt(mealCount) : undefined,
         budget_type: budgetType,
       };
@@ -370,9 +373,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
     setSignupCloseDate("");
     setCancellationDeadline("");
     setIcon("");
-    setFoodBudgetPerPerson("");
+    setFoodBudgetPerPerson("8");
     setMealCount("4");
-    setBudgetType("total");
+    setBudgetType("per_meal");
     setSuggestions(null);
     setError(null);
     onClose();
@@ -997,7 +1000,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
           </div>
         );
 
-      case 3:
+      case 2:
         return (
           <div className="mt-5">
             <p className="text-secondary mb-5">
@@ -1173,7 +1176,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="mt-5">
             <p className="text-secondary mb-5">
@@ -1255,8 +1258,16 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
               </div>
 
               {/* Food Budget Section */}
-              <div className="mt-4 p-4 rounded-lg" style={{ backgroundColor: "var(--bg-tertiary)", border: "1px solid var(--border-light)" }}>
-                <h4 className="font-semibold text-primary mb-3">🍳 Food Budget (for Grubmasters)</h4>
+              <div
+                className="mt-4 p-4 rounded-lg"
+                style={{
+                  backgroundColor: "var(--bg-tertiary)",
+                  border: "1px solid var(--border-light)",
+                }}
+              >
+                <h4 className="font-semibold text-primary mb-3">
+                  🍳 Food Budget (for Grubmasters)
+                </h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block mb-1 font-semibold text-primary text-sm">
@@ -1297,7 +1308,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     </label>
                     <select
                       value={budgetType}
-                      onChange={(e) => setBudgetType(e.target.value as "total" | "per_meal")}
+                      onChange={(e) =>
+                        setBudgetType(e.target.value as "total" | "per_meal")
+                      }
                       className="form-input"
                     >
                       <option value="total">Total per person</option>
@@ -1306,10 +1319,21 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                   </div>
                 </div>
                 {foodBudgetPerPerson && (
-                  <p className="mt-3 text-sm" style={{ color: "var(--text-secondary)" }}>
-                    💰 Budget: ${parseFloat(foodBudgetPerPerson).toFixed(2)} per person
+                  <p
+                    className="mt-3 text-sm"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    💰 Budget: ${parseFloat(foodBudgetPerPerson).toFixed(2)} per
+                    person
                     {budgetType === "per_meal" && mealCount && (
-                      <> × {mealCount} meals = ${(parseFloat(foodBudgetPerPerson) * parseInt(mealCount)).toFixed(2)} total</>
+                      <>
+                        {" "}
+                        × {mealCount} meals = $
+                        {(
+                          parseFloat(foodBudgetPerPerson) * parseInt(mealCount)
+                        ).toFixed(2)}{" "}
+                        total
+                      </>
                     )}
                   </p>
                 )}
@@ -1349,7 +1373,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
           </div>
         );
 
-      case 5:
+      case 4:
         return (
           <div className="mt-5">
             <p className="text-secondary mb-5">
@@ -1518,9 +1542,17 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                 )}
                 {foodBudgetPerPerson && (
                   <p>
-                    <strong>Food Budget:</strong> ${parseFloat(foodBudgetPerPerson).toFixed(2)} per person
+                    <strong>Food Budget:</strong> $
+                    {parseFloat(foodBudgetPerPerson).toFixed(2)} per person
                     {budgetType === "per_meal" && mealCount && (
-                      <> × {mealCount} meals = ${(parseFloat(foodBudgetPerPerson) * parseInt(mealCount)).toFixed(2)} total</>
+                      <>
+                        {" "}
+                        × {mealCount} meals = $
+                        {(
+                          parseFloat(foodBudgetPerPerson) * parseInt(mealCount)
+                        ).toFixed(2)}{" "}
+                        total
+                      </>
                     )}
                   </p>
                 )}
