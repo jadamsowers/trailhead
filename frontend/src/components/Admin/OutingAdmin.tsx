@@ -2011,14 +2011,28 @@ const OutingAdmin: React.FC = () => {
                                 e.stopPropagation();
                                 handleDeleteOuting(outing.id);
                               }}
-                              disabled={loading}
+                              disabled={loading || outing.signup_count > 0}
                               className="w-full !py-2 !px-4"
                               style={{
-                                backgroundColor: "var(--btn-danger-bg)",
-                                color: "var(--btn-danger-text)",
-                                borderRadius: "44px",
-                                cursor: loading ? "not-allowed" : "pointer",
+                                backgroundColor:
+                                  outing.signup_count > 0
+                                    ? "var(--btn-disabled-bg)"
+                                    : "var(--btn-danger-bg)",
+                                color:
+                                  outing.signup_count > 0
+                                    ? "var(--btn-disabled-text)"
+                                    : "var(--btn-danger-text)",
+                                borderRadius: "4px",
+                                cursor:
+                                  loading || outing.signup_count > 0
+                                    ? "not-allowed"
+                                    : "pointer",
                               }}
+                              title={
+                                outing.signup_count > 0
+                                  ? "Cannot delete outing with existing signups"
+                                  : "Delete this outing"
+                              }
                             >
                               🗑️ Delete
                             </button>
