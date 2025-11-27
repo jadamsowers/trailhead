@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@clerk/clerk-react";
 import { getApiBase } from "../utils/apiBase";
-import { isValidPhone } from "../utils/phone";
+import {
+  formatPhoneNumber,
+  validatePhoneWithMessage,
+} from "../utils/phoneUtils";
 
 interface TroopData {
   number: string;
@@ -51,11 +54,20 @@ const InitialSignInWizard: React.FC = () => {
   const isAdmin = user?.publicMetadata?.role === "admin";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Apply phone formatting for phone fields
+    const formattedValue =
+      name === "phone" || name === "emergencyContactPhone"
+        ? formatPhoneNumber(value)
+        : value;
+
+    setForm({ ...form, [name]: formattedValue });
+
     // Clear field-level errors as user edits
-    if (e.target.name === "phone") {
+    if (name === "phone") {
       setFieldErrors((prev) => ({ ...prev, phone: undefined }));
-    } else if (e.target.name === "emergencyContactPhone") {
+    } else if (name === "emergencyContactPhone") {
       setFieldErrors((prev) => ({ ...prev, emergencyContactPhone: undefined }));
     }
   };
@@ -99,25 +111,25 @@ const InitialSignInWizard: React.FC = () => {
           phone?: string;
           emergencyContactPhone?: string;
         } = {};
-        // Basic required checks
-        if (!form.phone) newFieldErrors.phone = "Phone number is required.";
-        if (!form.emergencyContactName)
-          setError("Please fill out all required fields.");
-        if (!form.emergencyContactPhone)
-          newFieldErrors.emergencyContactPhone =
-            "Emergency contact phone is required.";
 
-        // Format/validity checks (allow common US/international formats)
-        if (form.phone && !isValidPhone(form.phone)) {
-          newFieldErrors.phone =
-            "Enter a valid phone number (e.g., 555-555-1234, (555) 555-1234, or +1 555 555 1234).";
+        // Validate phone number
+        const phoneError = validatePhoneWithMessage(form.phone, "Phone number");
+        if (phoneError) {
+          newFieldErrors.phone = phoneError;
         }
-        if (
-          form.emergencyContactPhone &&
-          !isValidPhone(form.emergencyContactPhone)
-        ) {
-          newFieldErrors.emergencyContactPhone =
-            "Enter a valid emergency contact phone number.";
+
+        // Validate emergency contact name
+        if (!form.emergencyContactName) {
+          setError("Please fill out all required fields.");
+        }
+
+        // Validate emergency contact phone
+        const emergencyPhoneError = validatePhoneWithMessage(
+          form.emergencyContactPhone,
+          "Emergency contact phone"
+        );
+        if (emergencyPhoneError) {
+          newFieldErrors.emergencyContactPhone = emergencyPhoneError;
         }
 
         if (
@@ -209,7 +221,15 @@ const InitialSignInWizard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 p-6 bg-white rounded shadow border border-gray-200">
+    <div
+      className="max-w-2xl mx-auto mt-10 p-6 rounded shadow"
+      style={{
+        backgroundColor: "var(--bg-primary)",
+        borderWidth: "1px",
+        borderStyle: "solid",
+        borderColor: "var(--border-light)",
+      }}
+    >
       <h2
         className="text-2xl font-bold mb-4"
         style={{ color: "var(--text-primary)" }}
@@ -218,7 +238,16 @@ const InitialSignInWizard: React.FC = () => {
       </h2>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+        <div
+          className="mb-4 p-3 rounded"
+          style={{
+            backgroundColor: "var(--alert-error-bg)",
+            borderWidth: "1px",
+            borderStyle: "solid",
+            borderColor: "var(--alert-error-border)",
+            color: "var(--alert-error-text)",
+          }}
+        >
           {error}
         </div>
       )}
@@ -237,7 +266,8 @@ const InitialSignInWizard: React.FC = () => {
               htmlFor="phone"
               style={{ color: "var(--text-primary)" }}
             >
-              Phone Number <span className="text-red-500">*</span>
+              Phone Number{" "}
+              <span style={{ color: "var(--alert-error-text)" }}>*</span>
             </label>
             <input
               id="phone"
@@ -245,18 +275,29 @@ const InitialSignInWizard: React.FC = () => {
               type="tel"
               required
               inputMode="tel"
+              placeholder="(555) 123-4567"
               aria-invalid={!!fieldErrors.phone}
               aria-describedby={fieldErrors.phone ? "phone-error" : undefined}
-              className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 ${
-                fieldErrors.phone ? "border-[var(--alert-error-border)]" : ""
-              }`}
+              className="w-full rounded px-3 py-2 focus:outline-none focus:ring"
               style={{
                 background: "var(--input-bg)",
                 color: "var(--text-primary)",
+                borderWidth: "1px",
+                borderStyle: "solid",
+                borderColor: fieldErrors.phone
+                  ? "var(--alert-error-border)"
+                  : "var(--border-light)",
+                outlineColor: "var(--btn-primary-bg)",
               }}
               value={form.phone}
               onChange={handleChange}
             />
+            <p
+              className="text-xs mt-1"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Format: (XXX) XXX-XXXX
+            </p>
             {fieldErrors.phone && (
               <p
                 id="phone-error"
@@ -273,16 +314,21 @@ const InitialSignInWizard: React.FC = () => {
               htmlFor="emergencyContactName"
               style={{ color: "var(--text-primary)" }}
             >
-              Emergency Contact Name <span className="text-red-500">*</span>
+              Emergency Contact Name{" "}
+              <span style={{ color: "var(--alert-error-text)" }}>*</span>
             </label>
             <input
               id="emergencyContactName"
               name="emergencyContactName"
               required
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+              className="w-full rounded px-3 py-2 focus:outline-none focus:ring"
               style={{
                 background: "var(--input-bg)",
                 color: "var(--text-primary)",
+                borderWidth: "1px",
+                borderStyle: "solid",
+                borderColor: "var(--border-light)",
+                outlineColor: "var(--btn-primary-bg)",
               }}
               value={form.emergencyContactName}
               onChange={handleChange}
@@ -294,7 +340,8 @@ const InitialSignInWizard: React.FC = () => {
               htmlFor="emergencyContactPhone"
               style={{ color: "var(--text-primary)" }}
             >
-              Emergency Contact Phone <span className="text-red-500">*</span>
+              Emergency Contact Phone{" "}
+              <span style={{ color: "var(--alert-error-text)" }}>*</span>
             </label>
             <input
               id="emergencyContactPhone"
@@ -302,24 +349,33 @@ const InitialSignInWizard: React.FC = () => {
               type="tel"
               required
               inputMode="tel"
+              placeholder="(555) 123-4567"
               aria-invalid={!!fieldErrors.emergencyContactPhone}
               aria-describedby={
                 fieldErrors.emergencyContactPhone
                   ? "emergency-phone-error"
                   : undefined
               }
-              className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 ${
-                fieldErrors.emergencyContactPhone
-                  ? "border-[var(--alert-error-border)]"
-                  : ""
-              }`}
+              className="w-full rounded px-3 py-2 focus:outline-none focus:ring"
               style={{
                 background: "var(--input-bg)",
                 color: "var(--text-primary)",
+                borderWidth: "1px",
+                borderStyle: "solid",
+                borderColor: fieldErrors.emergencyContactPhone
+                  ? "var(--alert-error-border)"
+                  : "var(--border-light)",
+                outlineColor: "var(--btn-primary-bg)",
               }}
               value={form.emergencyContactPhone}
               onChange={handleChange}
             />
+            <p
+              className="text-xs mt-1"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Format: (XXX) XXX-XXXX
+            </p>
             {fieldErrors.emergencyContactPhone && (
               <p
                 id="emergency-phone-error"
@@ -342,10 +398,14 @@ const InitialSignInWizard: React.FC = () => {
               id="yptDate"
               name="yptDate"
               type="date"
-              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+              className="w-full rounded px-3 py-2 focus:outline-none focus:ring"
               style={{
                 background: "var(--input-bg)",
                 color: "var(--text-primary)",
+                borderWidth: "1px",
+                borderStyle: "solid",
+                borderColor: "var(--border-light)",
+                outlineColor: "var(--btn-primary-bg)",
               }}
               value={form.yptDate}
               onChange={handleChange}
@@ -361,14 +421,24 @@ const InitialSignInWizard: React.FC = () => {
               </em>
             </label>
             {yptWarning && (
-              <div className="mt-2 text-yellow-700 bg-yellow-100 border-l-4 border-yellow-400 p-2 rounded">
+              <div
+                className="mt-2 p-2 rounded"
+                style={{
+                  backgroundColor: "var(--alert-warning-bg)",
+                  borderLeftWidth: "4px",
+                  borderLeftStyle: "solid",
+                  borderLeftColor: "var(--alert-warning-border)",
+                  color: "var(--alert-warning-text)",
+                }}
+              >
                 <strong>Warning:</strong> You must complete Youth Protection
                 Training (YPT) before attending outings. Visit{" "}
                 <a
                   href="https://my.scouting.org"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline text-blue-600"
+                  className="underline"
+                  style={{ color: "var(--link-color)" }}
                 >
                   my.scouting.org
                 </a>{" "}
@@ -423,7 +493,14 @@ const InitialSignInWizard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => removeTroop(index)}
-                    className="text-red-600 hover:text-red-800 text-sm"
+                    className="text-sm transition-colors"
+                    style={{ color: "var(--alert-error-text)" }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = "0.8";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = "1";
+                    }}
                   >
                     Remove
                   </button>
@@ -435,15 +512,20 @@ const InitialSignInWizard: React.FC = () => {
                   className="block text-sm font-medium mb-1"
                   style={{ color: "var(--text-primary)" }}
                 >
-                  Troop Number <span className="text-red-500">*</span>
+                  Troop Number{" "}
+                  <span style={{ color: "var(--alert-error-text)" }}>*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+                  className="w-full rounded px-3 py-2 focus:outline-none focus:ring"
                   style={{
                     background: "var(--input-bg)",
                     color: "var(--text-primary)",
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                    borderColor: "var(--border-light)",
+                    outlineColor: "var(--btn-primary-bg)",
                   }}
                   value={troop.number}
                   onChange={(e) =>
@@ -462,10 +544,14 @@ const InitialSignInWizard: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+                  className="w-full rounded px-3 py-2 focus:outline-none focus:ring"
                   style={{
                     background: "var(--input-bg)",
                     color: "var(--text-primary)",
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                    borderColor: "var(--border-light)",
+                    outlineColor: "var(--btn-primary-bg)",
                   }}
                   value={troop.charter_org}
                   onChange={(e) =>
@@ -484,10 +570,14 @@ const InitialSignInWizard: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+                  className="w-full rounded px-3 py-2 focus:outline-none focus:ring"
                   style={{
                     background: "var(--input-bg)",
                     color: "var(--text-primary)",
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                    borderColor: "var(--border-light)",
+                    outlineColor: "var(--btn-primary-bg)",
                   }}
                   value={troop.meeting_location}
                   onChange={(e) =>
@@ -506,10 +596,14 @@ const InitialSignInWizard: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+                  className="w-full rounded px-3 py-2 focus:outline-none focus:ring"
                   style={{
                     background: "var(--input-bg)",
                     color: "var(--text-primary)",
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                    borderColor: "var(--border-light)",
+                    outlineColor: "var(--btn-primary-bg)",
                   }}
                   value={troop.meeting_day}
                   onChange={(e) =>
