@@ -100,19 +100,7 @@ const InitialSignInWizard: React.FC = () => {
           setYptWarning(false);
         }
 
-        // Update user contact information
-        const response = await fetch(`${getApiBase()}/auth/me/contact`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to update contact information");
-        }
-
+        // Build contact payload
         const contactData = {
           phone: form.phone,
           emergency_contact_name: form.emergencyContactName,
@@ -120,17 +108,34 @@ const InitialSignInWizard: React.FC = () => {
           youth_protection_expiration: form.yptDate || null,
         };
 
-        const updateResponse = await fetch(`${getApiBase()}/auth/me/contact`, {
+        // Get Clerk token
+        const token = await window.Clerk?.session?.getToken();
+        if (!token) throw new Error("Not authenticated");
+
+        // Update user contact information via Clerk-backed endpoint
+        const updateResponse = await fetch(`${getApiBase()}/clerk/me/contact`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
-          credentials: "include",
           body: JSON.stringify(contactData),
         });
 
         if (!updateResponse.ok) {
           throw new Error("Failed to save contact information");
+        }
+
+        // Mark initial setup complete immediately after saving contact info
+        const completeResponse = await fetch(
+          `${getApiBase()}/clerk/me/initial-setup/complete`,
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        if (!completeResponse.ok) {
+          console.warn("Failed to mark initial setup complete");
         }
 
         if (isAdmin) {
@@ -142,12 +147,13 @@ const InitialSignInWizard: React.FC = () => {
         // Save troops and patrols
         for (const troop of troops) {
           if (troop.number) {
+            const token = await window.Clerk?.session?.getToken();
             const troopResponse = await fetch(`${getApiBase()}/troops`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
+                Authorization: token ? `Bearer ${token}` : "",
               },
-              credentials: "include",
               body: JSON.stringify(troop),
             });
 

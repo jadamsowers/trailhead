@@ -36,19 +36,23 @@ export const InitialSetupGuard: React.FC<{ children: React.ReactNode }> = ({
       }
 
       try {
-        // Check if user has completed initial setup by fetching their profile
-        const response = await fetch(`${getApiBase()}/auth/me`, {
-          credentials: "include",
+        // Get Clerk session token
+        const token = await window.Clerk?.session?.getToken();
+        if (!token) {
+          setChecking(false);
+          return;
+        }
+
+        // Check if user has completed initial setup by fetching their profile from Clerk-backed endpoint
+        const response = await fetch(`${getApiBase()}/clerk/me`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (response.ok) {
           const userData = await response.json();
 
-          // Check if user has phone and emergency contact set
-          const hasCompletedSetup =
-            userData.phone &&
-            userData.emergency_contact_name &&
-            userData.emergency_contact_phone;
+          // Use explicit DB flag to determine if initial setup is complete
+          const hasCompletedSetup = Boolean(userData.initial_setup_complete);
 
           if (!hasCompletedSetup) {
             setNeedsSetup(true);

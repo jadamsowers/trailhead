@@ -18,6 +18,7 @@ class User(Base):
     role = Column(String(50), nullable=False, default="admin", index=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_initial_admin = Column(Boolean, default=False, nullable=False)
+    initial_setup_complete = Column(Boolean, default=False, nullable=False)
     
     # Contact information (stored as defaults for signups)
     phone = Column(String(50), nullable=True)

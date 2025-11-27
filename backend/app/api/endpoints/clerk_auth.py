@@ -39,6 +39,7 @@ async def get_current_user_info(
         email=current_user.email,
         full_name=current_user.full_name,
         role=current_user.role,
+        initial_setup_complete=current_user.initial_setup_complete,
         phone=current_user.phone,
         emergency_contact_name=current_user.emergency_contact_name,
         emergency_contact_phone=current_user.emergency_contact_phone,
@@ -74,6 +75,33 @@ async def update_contact_info(
         email=current_user.email,
         full_name=current_user.full_name,
         role=current_user.role,
+        initial_setup_complete=current_user.initial_setup_complete,
+        phone=current_user.phone,
+        emergency_contact_name=current_user.emergency_contact_name,
+        emergency_contact_phone=current_user.emergency_contact_phone,
+        youth_protection_expiration=current_user.youth_protection_expiration
+    )
+
+
+@router.post("/me/initial-setup/complete", response_model=UserResponse)
+async def mark_initial_setup_complete(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Mark the current user's initial setup as complete.
+    """
+    if not current_user.initial_setup_complete:
+        current_user.initial_setup_complete = True
+        await db.commit()
+        await db.refresh(current_user)
+
+    return UserResponse(
+        id=current_user.id,
+        email=current_user.email,
+        full_name=current_user.full_name,
+        role=current_user.role,
+        initial_setup_complete=current_user.initial_setup_complete,
         phone=current_user.phone,
         emergency_contact_name=current_user.emergency_contact_name,
         emergency_contact_phone=current_user.emergency_contact_phone,
@@ -133,6 +161,7 @@ async def list_users(
             full_name=user.full_name,
             role=user.role,
             is_initial_admin=user.is_initial_admin,
+            initial_setup_complete=user.initial_setup_complete,
             phone=user.phone,
             emergency_contact_name=user.emergency_contact_name,
             emergency_contact_phone=user.emergency_contact_phone,
@@ -188,6 +217,7 @@ async def update_user_role(
         full_name=target_user.full_name,
         role=target_user.role,
         is_initial_admin=target_user.is_initial_admin,
+        initial_setup_complete=target_user.initial_setup_complete,
         phone=target_user.phone,
         emergency_contact_name=target_user.emergency_contact_name,
         emergency_contact_phone=target_user.emergency_contact_phone,

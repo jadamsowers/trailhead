@@ -199,6 +199,7 @@ const normalizeUserResponse = (u: ClerkUserResponse): User => {
     full_name: u.full_name,
     role,
     is_initial_admin: u.is_initial_admin,
+    initial_setup_complete: (u as any).initial_setup_complete ?? false,
     phone: u.phone ?? undefined,
     emergency_contact_name: u.emergency_contact_name ?? undefined,
     emergency_contact_phone: u.emergency_contact_phone ?? undefined,

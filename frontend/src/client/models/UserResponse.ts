@@ -6,13 +6,13 @@
  * Schema for user response
  */
 export type UserResponse = {
-    id: string;
-    email: string;
-    full_name: string;
-    role: string;
-    is_initial_admin?: boolean;
-    phone?: (string | null);
-    emergency_contact_name?: (string | null);
-    emergency_contact_phone?: (string | null);
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+  is_initial_admin?: boolean;
+  initial_setup_complete?: boolean;
+  phone?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
 };
-
