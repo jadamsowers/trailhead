@@ -15,7 +15,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-trailhead} -d ${POSTGRES_DB:-trailhead}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-trailhead} -d ${POSTGRES_DB:-trailhead}",
+        ]
       interval: ${HEALTHCHECK_INTERVAL:-5s}
       timeout: 5s
       retries: 5
@@ -55,7 +59,7 @@ services:
     volumes:
       - ${BACKEND_VOLUME_MOUNT:-./backend:/app}
       - ./backend/migrations:/app/migrations
-    command: ${BACKEND_COMMAND:-sh -c "echo 'Waiting for database...' && sleep 5 && echo 'Running Atlas migrations...' && atlas migrate apply --env sqlalchemy --url \"postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable\" && echo 'Initializing database...' && python -m app.db.init_db || echo 'Database already initialized' && echo 'Starting server...' && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"}
+    command: ${BACKEND_COMMAND:-sh -c "python wait-for-db.py && echo 'Running Atlas migrations...' && atlas migrate apply --env sqlalchemy --url \"postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable\" && echo 'Initializing database...' && python -m app.db.init_db || echo 'Database already initialized' && echo 'Starting server...' && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"}
     networks:
       - trailhead-network
     healthcheck:
@@ -100,7 +104,15 @@ services:
     networks:
       - trailhead-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3

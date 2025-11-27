@@ -5,7 +5,7 @@ import sys
 import asyncpg
 from app.core.config import settings
 
-async def wait_for_db(max_retries=30, retry_interval=2):
+async def wait_for_db(max_retries=60, retry_interval=10):
     """Wait for database to be ready."""
     for attempt in range(1, max_retries + 1):
         try:
@@ -17,7 +17,7 @@ async def wait_for_db(max_retries=30, retry_interval=2):
                 user=settings.POSTGRES_USER,
                 password=settings.POSTGRES_PASSWORD,
                 database=settings.POSTGRES_DB,
-                timeout=5
+                timeout=10
             )
             await conn.close()
             print("✅ Database is ready!")

@@ -25,6 +25,11 @@ else:
         pool_pre_ping=True,
         pool_size=10,
         max_overflow=20,
+        pool_recycle=3600,  # Recycle connections after 1 hour
+        connect_args={
+            "timeout": 30,  # Connection timeout in seconds
+            "command_timeout": 30,  # Command timeout in seconds
+        },
     )
 
 # Create async session factory
