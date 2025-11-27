@@ -129,16 +129,101 @@ class TestGetCurrentUser:
 class TestGetCurrentAdminUser:
     """Test admin user dependency"""
     
-    async def test_get_current_admin_user_success(self, test_user):
+    async def test_get_current_admin_user_success(self):
         """Test getting admin user when user is admin"""
-        user = await deps.get_current_admin_user(test_user)
+        # Create a mock admin user without database
+        admin_user = User(
+            email="admin@test.com",
+            full_name="Admin User",
+            role="admin",
+            is_active=True,
+            hashed_password=""
+        )
         
-        assert user == test_user
+        user = await deps.get_current_admin_user(admin_user)
+        
+        assert user == admin_user
         assert user.role == "admin"
     
-    async def test_get_current_admin_user_not_admin(self, test_regular_user):
+    async def test_get_current_admin_user_not_admin(self):
         """Test getting admin user when user is not admin"""
+        # Create a mock regular user without database
+        regular_user = User(
+            email="user@test.com",
+            full_name="Regular User",
+            role="user",
+            is_active=True,
+            hashed_password=""
+        )
+        
         with pytest.raises(HTTPException) as exc_info:
-            await deps.get_current_admin_user(test_regular_user)
+            await deps.get_current_admin_user(regular_user)
+        
+        assert exc_info.value.status_code == 403
+        assert "Not enough permissions" in str(exc_info.value.detail)
+
+
+@pytest.mark.asyncio
+class TestGetCurrentOutingAdminUser:
+    """Test outing admin user dependency"""
+    
+    async def test_get_current_outing_admin_user_admin(self):
+        """Test getting outing admin when user is admin"""
+        admin_user = User(
+            email="admin@test.com",
+            full_name="Admin User",
+            role="admin",
+            is_active=True,
+            hashed_password=""
+        )
+        
+        user = await deps.get_current_outing_admin_user(admin_user)
+        
+        assert user == admin_user
+        assert user.role == "admin"
+    
+    async def test_get_current_outing_admin_user_outing_admin(self):
+        """Test getting outing admin when user is outing-admin"""
+        outing_admin = User(
+            email="outingadmin@test.com",
+            full_name="Outing Admin",
+            role="outing-admin",
+            is_active=True,
+            hashed_password=""
+        )
+        
+        user = await deps.get_current_outing_admin_user(outing_admin)
+        
+        assert user == outing_admin
+        assert user.role == "outing-admin"
+    
+    async def test_get_current_outing_admin_user_not_admin(self):
+        """Test getting outing admin when user is not admin or outing-admin"""
+        regular_user = User(
+            email="user@test.com",
+            full_name="Regular User",
+            role="user",
+            is_active=True,
+            hashed_password=""
+        )
+        
+        with pytest.raises(HTTPException) as exc_info:
+            await deps.get_current_outing_admin_user(regular_user)
+        
+        assert exc_info.value.status_code == 403
+        assert "Not enough permissions" in str(exc_info.value.detail)
+    
+    async def test_get_current_outing_admin_user_participant_role(self):
+        """Test getting outing admin when user has participant role"""
+        participant = User(
+            email="participant@test.com",
+            full_name="Participant User",
+            role="participant",
+            is_active=True,
+            hashed_password=""
+        )
+        
+        with pytest.raises(HTTPException) as exc_info:
+            await deps.get_current_outing_admin_user(participant)
         
         assert exc_info.value.status_code == 403
