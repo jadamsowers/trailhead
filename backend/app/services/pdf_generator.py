@@ -1,4 +1,5 @@
 import io
+import os
 import qrcode
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
@@ -6,6 +7,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from typing import List, Optional
 from datetime import datetime
 
@@ -16,6 +19,7 @@ from app.models.packing_list import OutingPackingList
 class PDFGenerator:
     def __init__(self):
         self.styles = getSampleStyleSheet()
+        self._register_merriweather_fonts()
         
         # Colors
         self.bsa_olive = colors.HexColor('#6F784B')
@@ -31,7 +35,7 @@ class PDFGenerator:
             spaceAfter=12,  # was 20
             textColor=self.bsa_olive,
             alignment=TA_CENTER,
-            fontName='Helvetica-Bold'
+            fontName='Merriweather-Bold' if self._merriweather_available else 'Helvetica-Bold'
         ))
         
         self.styles.add(ParagraphStyle(
@@ -44,7 +48,7 @@ class PDFGenerator:
             textColor=colors.white,
             backColor=self.bsa_olive,
             borderPadding=6,  # was 8
-            fontName='Helvetica-Bold',
+            fontName='Merriweather-Bold' if self._merriweather_available else 'Helvetica-Bold',
             alignment=TA_CENTER
         ))
         
@@ -55,7 +59,7 @@ class PDFGenerator:
             leading=13,    # was 14
             textColor=self.bsa_olive,
             spaceAfter=4,  # was 6
-            fontName='Helvetica-Bold'
+            fontName='Merriweather-Bold' if self._merriweather_available else 'Helvetica-Bold'
         ))
         
         self.styles.add(ParagraphStyle(
@@ -85,6 +89,49 @@ class PDFGenerator:
             spaceAfter=4,
             textColor=self.dark_gray
         ))
+
+    def _register_merriweather_fonts(self) -> None:
+        """Attempt to register Merriweather fonts. Falls back if not present."""
+        self._merriweather_available = False
+        try:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            repo_root = os.path.abspath(os.path.join(base_dir, '..', '..', '..'))
+            # Expected font locations (add more if needed)
+            candidate_dirs = [
+                os.path.join(repo_root, 'backend', 'app', 'assets', 'fonts'),
+                os.path.join(repo_root, 'assets', 'fonts'),
+            ]
+            regular_name = 'Merriweather-Regular.ttf'
+            bold_name = 'Merriweather-Bold.ttf'
+            regular_path = None
+            bold_path = None
+            for d in candidate_dirs:
+                if not os.path.isdir(d):
+                    continue
+                r = os.path.join(d, regular_name)
+                b = os.path.join(d, bold_name)
+                if os.path.exists(r) and os.path.exists(b):
+                    regular_path, bold_path = r, b
+                    break
+            if regular_path and bold_path:
+                pdfmetrics.registerFont(TTFont('Merriweather', regular_path))
+                pdfmetrics.registerFont(TTFont('Merriweather-Bold', bold_path))
+                self._merriweather_available = True
+        except Exception:
+            # Do not fail PDF generation if fonts cannot be registered
+            self._merriweather_available = False
+
+    def _get_trip_icon(self) -> Optional[Image]:
+        """Locate and return the trip icon image if available."""
+        try:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            repo_root = os.path.abspath(os.path.join(base_dir, '..', '..', '..'))
+            icon_path = os.path.join(repo_root, 'frontend', 'public', 'icon', 'icon-small-bordered.png')
+            if os.path.exists(icon_path):
+                return Image(icon_path, width=0.45*inch, height=0.45*inch)
+        except Exception:
+            return None
+        return None
 
     def _generate_qr_code(self, data: str) -> io.BytesIO:
         """Generate a QR code image stream"""
@@ -117,8 +164,25 @@ class PDFGenerator:
         
         story = []
         
-        # Title
-        story.append(Paragraph(outing.name, self.styles['Header1']))
+        # Title with icon
+        title_para = Paragraph(outing.name, self.styles['Header1'])
+        icon_img = self._get_trip_icon()
+        if icon_img:
+            title_table = Table(
+                [[icon_img, title_para]],
+                colWidths=[0.55*inch, 6.95*inch]
+            )
+            title_table.setStyle(TableStyle([
+                ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('LEFTPADDING', (0,0), (-1,-1), 0),
+                ('RIGHTPADDING', (0,0), (-1,-1), 0),
+                ('TOPPADDING', (0,0), (-1,-1), 0),
+                ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+            ]))
+            story.append(title_table)
+        else:
+            story.append(title_para)
         story.append(Spacer(1, 6))  # was 10
         
         # 5Ws Section
@@ -140,10 +204,27 @@ class PDFGenerator:
             return content
 
         # WHO
+        # Participants line: scouts and leaders from troop(s) [troop numbers]
+        troop_numbers = set()
+        try:
+            if getattr(outing, 'signups', None):
+                for s in outing.signups:
+                    for p in getattr(s, 'participants', []):
+                        # Try explicit text troop_number first
+                        tn = getattr(p, 'troop_number', None)
+                        if not tn and getattr(p, 'family_member', None) and getattr(p.family_member, 'troop', None):
+                            tn = getattr(p.family_member.troop, 'number', None)
+                        if tn:
+                            troop_numbers.add(str(tn))
+        except Exception:
+            pass
+
+        troop_list = ", ".join(sorted(troop_numbers, key=lambda x: (not x.isdigit(), int(x) if x.isdigit() else x))) if troop_numbers else None
+        participants_value = f"scouts and leaders from troop(s) {troop_list}" if troop_list else "scouts and leaders"
+
         who_items = [
-            ("Outing Lead:", f"{outing.outing_lead_name or 'TBD'}"),
-            ("Contact:", f"{outing.outing_lead_phone or 'No phone'}"),
-            ("Participants:", "All Scouts and Leaders")
+            ("Outing Lead:", f"{outing.outing_lead_name or 'TBD'} ({outing.outing_lead_phone or 'No phone'})"),
+            ("Participants:", participants_value),
         ]
         
         # WHAT
@@ -156,10 +237,22 @@ class PDFGenerator:
         end_date = outing.end_date.strftime("%B %d, %Y") if outing.end_date else start_date
         date_str = f"{start_date} - {end_date}" if start_date != end_date else start_date
         
+        # Derive locations for drop-off and pick-up
+        loc_name = outing.location
+        if getattr(outing, 'outing_place', None):
+            try:
+                if outing.outing_place and outing.outing_place.name:
+                    loc_name = outing.outing_place.name
+            except Exception:
+                pass
+        drop_loc = getattr(outing, 'drop_off_location', None) or loc_name or 'TBD'
+        pick_loc = getattr(outing, 'pickup_location', None) or loc_name or 'TBD'
+        drop_time = outing.drop_off_time.strftime("%I:%M %p") if getattr(outing, 'drop_off_time', None) else "TBD"
+        pick_time = outing.pickup_time.strftime("%I:%M %p") if getattr(outing, 'pickup_time', None) else "TBD"
         when_items = [
             ("Dates:", date_str),
-            ("Drop-off:", outing.drop_off_time.strftime("%I:%M %p") if outing.drop_off_time else "TBD"),
-            ("Pick-up:", outing.pickup_time.strftime("%I:%M %p") if outing.pickup_time else "TBD")
+            ("Drop-off:", f"{drop_time}, {drop_loc}"),
+            ("Pick-up:", f"{pick_time}, {pick_loc}")
         ]
         
         # WHY

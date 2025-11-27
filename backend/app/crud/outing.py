@@ -41,6 +41,8 @@ async def get_outing_with_details(db: AsyncSession, outing_id: UUID) -> Optional
     result = await db.execute(
         select(Outing)
         .options(
+            # Needed for participants' troop numbers on PDF
+            selectinload(Outing.signups).selectinload(Signup.participants).selectinload(Participant.family_member),
             selectinload(Outing.outing_requirements).selectinload(OutingRequirement.requirement),
             selectinload(Outing.outing_merit_badges).selectinload(OutingMeritBadge.merit_badge),
             selectinload(Outing.packing_lists).selectinload(OutingPackingList.items),
