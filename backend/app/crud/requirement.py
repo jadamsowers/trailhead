@@ -4,6 +4,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from app.models.requirement import RankRequirement, MeritBadge, OutingRequirement, OutingMeritBadge
+from app.services.change_log import record_change, compute_payload_hash
 from app.models.outing import Outing
 from app.schemas.requirement import (
     RankRequirementCreate,
@@ -50,6 +51,8 @@ async def create_rank_requirement(db: AsyncSession, requirement: RankRequirement
     db_requirement = RankRequirement(**requirement.model_dump())
     db.add(db_requirement)
     await db.flush()
+    payload_hash = compute_payload_hash(db_requirement, ["rank", "title", "category"]) 
+    await record_change(db, entity_type="rank_requirement", entity_id=db_requirement.id, op_type="create", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_requirement)
     return db_requirement
@@ -67,6 +70,9 @@ async def update_rank_requirement(
     update_data = requirement.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_requirement, field, value)
+    await db.flush()
+    payload_hash = compute_payload_hash(db_requirement, ["rank", "title", "category"]) 
+    await record_change(db, entity_type="rank_requirement", entity_id=db_requirement.id, op_type="update", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_requirement)
     return db_requirement
@@ -77,6 +83,7 @@ async def delete_rank_requirement(db: AsyncSession, requirement_id: UUID) -> boo
     db_requirement = await get_rank_requirement(db, requirement_id)
     if not db_requirement:
         return False
+    await record_change(db, entity_type="rank_requirement", entity_id=db_requirement.id, op_type="delete")
     await db.delete(db_requirement)
     await db.commit()
     return True
@@ -127,6 +134,8 @@ async def create_merit_badge(db: AsyncSession, badge: MeritBadgeCreate) -> Merit
     db_badge = MeritBadge(**badge.model_dump())
     db.add(db_badge)
     await db.flush()
+    payload_hash = compute_payload_hash(db_badge, ["name", "is_eagle_required"]) 
+    await record_change(db, entity_type="merit_badge", entity_id=db_badge.id, op_type="create", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_badge)
     return db_badge
@@ -144,6 +153,9 @@ async def update_merit_badge(
     update_data = badge.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_badge, field, value)
+    await db.flush()
+    payload_hash = compute_payload_hash(db_badge, ["name", "is_eagle_required"]) 
+    await record_change(db, entity_type="merit_badge", entity_id=db_badge.id, op_type="update", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_badge)
     return db_badge
@@ -154,6 +166,7 @@ async def delete_merit_badge(db: AsyncSession, badge_id: UUID) -> bool:
     db_badge = await get_merit_badge(db, badge_id)
     if not db_badge:
         return False
+    await record_change(db, entity_type="merit_badge", entity_id=db_badge.id, op_type="delete")
     await db.delete(db_badge)
     await db.commit()
     return True
@@ -206,6 +219,7 @@ async def add_requirement_to_outing(
     db_outing_req = OutingRequirement(outing_id=outing_id, **requirement.model_dump())
     db.add(db_outing_req)
     await db.flush()
+    await record_change(db, entity_type="outing_requirement", entity_id=db_outing_req.id, op_type="create")
     await db.commit()
     await db.refresh(db_outing_req)
     return db_outing_req
@@ -224,6 +238,8 @@ async def update_outing_requirement(
     update_data = requirement.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_outing_req, field, value)
+    await db.flush()
+    await record_change(db, entity_type="outing_requirement", entity_id=db_outing_req.id, op_type="update")
     await db.commit()
     await db.refresh(db_outing_req)
     return db_outing_req
@@ -238,6 +254,7 @@ async def remove_requirement_from_outing(
     db_outing_req = result.scalar_one_or_none()
     if not db_outing_req:
         return False
+    await record_change(db, entity_type="outing_requirement", entity_id=db_outing_req.id, op_type="delete")
     await db.delete(db_outing_req)
     await db.commit()
     return True
@@ -277,6 +294,7 @@ async def add_merit_badge_to_outing(
     db_outing_badge = OutingMeritBadge(outing_id=outing_id, **badge.model_dump())
     db.add(db_outing_badge)
     await db.flush()
+    await record_change(db, entity_type="outing_merit_badge", entity_id=db_outing_badge.id, op_type="create")
     await db.commit()
     await db.refresh(db_outing_badge)
     return db_outing_badge
@@ -295,6 +313,8 @@ async def update_outing_merit_badge(
     update_data = badge.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(db_outing_badge, field, value)
+    await db.flush()
+    await record_change(db, entity_type="outing_merit_badge", entity_id=db_outing_badge.id, op_type="update")
     await db.commit()
     await db.refresh(db_outing_badge)
     return db_outing_badge
@@ -309,6 +329,7 @@ async def remove_merit_badge_from_outing(
     db_outing_badge = result.scalar_one_or_none()
     if not db_outing_badge:
         return False
+    await record_change(db, entity_type="outing_merit_badge", entity_id=db_outing_badge.id, op_type="delete")
     await db.delete(db_outing_badge)
     await db.commit()
     return True

@@ -9,6 +9,7 @@ from app.models.signup import Signup
 from app.models.participant import Participant
 from app.models.family import FamilyMember
 from app.schemas.outing import OutingCreate, OutingUpdate
+from app.services.change_log import record_change, compute_payload_hash
 
 
 async def get_outing(db: AsyncSession, outing_id: UUID) -> Optional[Outing]:
@@ -103,11 +104,12 @@ async def create_outing(db: AsyncSession, outing: OutingCreate) -> Outing:
         
     db_outing = Outing(**outing_data)
     db.add(db_outing)
-    await db.flush()
-    # Persist the new outing and refresh relationships for callers
+    await db.flush()  # Obtain ID
+    # Record change before commit so version aligns with entity state
+    payload_hash = compute_payload_hash(db_outing, ["name", "outing_date", "location", "updated_at"])  # lightweight fields
+    await record_change(db, entity_type="outing", entity_id=db_outing.id, op_type="create", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_outing)
-    # Ensure relationships are available for serialization
     await db.refresh(db_outing, ['signups', 'outing_place', 'pickup_place', 'dropoff_place'])
     return db_outing
 
@@ -129,7 +131,8 @@ async def update_outing(db: AsyncSession, outing_id: UUID, outing: OutingUpdate)
         setattr(db_outing, key, value)
 
     await db.flush()
-    # Persist updates and refresh relationships for callers
+    payload_hash = compute_payload_hash(db_outing, ["name", "outing_date", "location", "updated_at"])  # lightweight fields
+    await record_change(db, entity_type="outing", entity_id=db_outing.id, op_type="update", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_outing)
     await db.refresh(db_outing, ['signups', 'outing_place', 'pickup_place', 'dropoff_place'])
@@ -145,6 +148,8 @@ async def delete_outing(db: AsyncSession, outing_id: UUID) -> bool:
     if db_outing.signups:
         return False  # Cannot delete outing with signups
     
+    # Record delete event prior to removal
+    await record_change(db, entity_type="outing", entity_id=db_outing.id, op_type="delete")
     await db.delete(db_outing)
     await db.commit()
     return True

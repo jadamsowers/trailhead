@@ -5,6 +5,7 @@ from uuid import UUID
 
 from app.models.place import Place
 from app.schemas.place import PlaceCreate, PlaceUpdate
+from app.services.change_log import record_change, compute_payload_hash
 
 
 async def get_place(db: AsyncSession, place_id: UUID) -> Optional[Place]:
@@ -48,6 +49,8 @@ async def create_place(db: AsyncSession, place: PlaceCreate) -> Place:
     )
     db.add(db_place)
     await db.flush()  # Flush to get the ID before commit
+    payload_hash = compute_payload_hash(db_place, ["name", "address", "google_maps_url"]) 
+    await record_change(db, entity_type="place", entity_id=db_place.id, op_type="create", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_place)
     return db_place
@@ -69,6 +72,9 @@ async def update_place(db: AsyncSession, place_id: UUID, place: PlaceUpdate) -> 
     for field, value in update_data.items():
         setattr(db_place, field, value)
     
+    await db.flush()
+    payload_hash = compute_payload_hash(db_place, ["name", "address", "google_maps_url"]) 
+    await record_change(db, entity_type="place", entity_id=db_place.id, op_type="update", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_place)
     return db_place
@@ -80,6 +86,7 @@ async def delete_place(db: AsyncSession, place_id: UUID) -> bool:
     if not db_place:
         return False
     
+    await record_change(db, entity_type="place", entity_id=db_place.id, op_type="delete")
     await db.delete(db_place)
     await db.commit()
     return True

@@ -1,10 +1,10 @@
-"""
-Offline data endpoints for bulk data synchronization
-"""
-from fastapi import APIRouter, Depends, HTTPException, status
+"""Offline data endpoints for bulk & incremental data synchronization."""
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime
-from typing import Dict, List
+from sqlalchemy import select
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
+from uuid import UUID
 
 from app.db.session import get_db
 from app.api.deps import get_current_user
@@ -14,6 +14,9 @@ from app.crud import signup as crud_signup
 from app.schemas.outing import OutingResponse
 from app.schemas.signup import SignupResponse, ParticipantResponse
 from app.schemas.auth import UserResponse
+from app.schemas.change_log import ChangeLogDeltaResponse, ChangeLogEntry
+from app.models.change_log import ChangeLog
+from app.services.change_log import get_deltas
 
 router = APIRouter()
 
@@ -100,3 +103,69 @@ async def get_bulk_offline_data(
         "rosters": rosters,
         "last_updated": datetime.utcnow().isoformat()
     }
+
+
+@router.get("/deltas", response_model=ChangeLogDeltaResponse)
+async def get_change_deltas(
+    since: Optional[str] = Query(None, description="ISO8601 timestamp; ignored if cursor provided"),
+    cursor: Optional[str] = Query(None, description="UUID cursor of last item received"),
+    limit: int = Query(200, ge=1, le=500, description="Max change log entries"),
+    entity_types: Optional[str] = Query(None, description="Comma-separated list of entity types to restrict (admin only)"),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Incremental change log entries with keyset pagination & basic permission scoping.
+
+    Non-admin users receive only public entity types (outing, place); admin receives all.
+    """
+    cursor_uuid: Optional[UUID] = None
+    if cursor:
+        try:
+            cursor_uuid = UUID(cursor)
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid cursor UUID")
+
+    since_dt: Optional[datetime] = None
+    if since and not cursor_uuid:
+        try:
+            since_dt = datetime.fromisoformat(since.replace("Z", ""))
+        except ValueError:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid 'since' timestamp format")
+    elif not cursor_uuid:
+        since_dt = datetime.utcnow() - timedelta(hours=24)
+
+    # Determine allowed types
+    requested_types = None
+    if entity_types and current_user.role == "admin":
+        requested_types = {t.strip() for t in entity_types.split(',') if t.strip()}
+
+    if current_user.role != "admin":
+        # Non-admin: restrict fixed public list
+        requested_types = {"outing", "place"}
+
+    rows_all = await get_deltas(db, since=since_dt, cursor_id=cursor_uuid, limit=limit + 1, entity_types=requested_types)
+
+    has_more = len(rows_all) > limit
+    page_rows = rows_all[:limit]
+    next_cursor = str(page_rows[-1].id) if has_more else None
+    latest_ts = page_rows[-1].created_at if page_rows else datetime.utcnow()
+
+    items = [
+        ChangeLogEntry(
+            id=row.id,
+            entity_type=row.entity_type,
+            entity_id=row.entity_id,
+            op_type=row.op_type,
+            version=row.version,
+            payload_hash=row.payload_hash,
+            created_at=row.created_at,
+        )
+        for row in page_rows
+    ]
+
+    return ChangeLogDeltaResponse(
+        items=items,
+        has_more=has_more,
+        next_cursor=next_cursor,
+        latest_timestamp=latest_ts,
+    )

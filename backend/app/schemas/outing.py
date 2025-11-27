@@ -47,6 +47,14 @@ class OutingBase(BaseModel):
             raise ValueError("capacity_type must be either 'fixed' or 'vehicle'")
         return v
 
+    @field_validator('drop_off_time', 'pickup_time', mode='before')
+    @classmethod
+    def validate_time_fields(cls, v):
+        """Convert empty strings to None for time fields"""
+        if v == "":
+            return None
+        return v
+
     @field_validator('end_date')
     @classmethod
     def validate_end_date(cls, v, info):
@@ -101,6 +109,14 @@ class OutingUpdate(BaseModel):
     pickup_place_id: Optional[UUID] = Field(None, description="Reference to saved place for pickup")
     dropoff_address: Optional[str] = Field(None, description="Full address for drop-off location")
     dropoff_place_id: Optional[UUID] = Field(None, description="Reference to saved place for drop-off")
+
+    @field_validator('drop_off_time', 'pickup_time', mode='before')
+    @classmethod
+    def validate_time_fields(cls, v):
+        """Convert empty strings to None for time fields"""
+        if v == "":
+            return None
+        return v
 
 
 class OutingResponse(OutingBase):

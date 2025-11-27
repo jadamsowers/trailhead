@@ -8,6 +8,7 @@ from app.models.family import FamilyMember, FamilyMemberDietaryPreference, Famil
 from app.models.participant import Participant
 from app.models.signup import Signup
 from app.schemas.family import FamilyMemberCreate, FamilyMemberUpdate
+from app.services.change_log import record_change, compute_payload_hash
 
 
 async def get_family_members_for_user(db: AsyncSession, user_id: UUID) -> List[FamilyMember]:
@@ -50,6 +51,8 @@ async def create_family_member(db: AsyncSession, user_id: UUID, member_data: Fam
     )
     db.add(member)
     await db.flush()
+    payload_hash = compute_payload_hash(member, ["name", "member_type", "troop_number", "patrol_name"]) 
+    await record_change(db, entity_type="family_member", entity_id=member.id, op_type="create", payload_hash=payload_hash)
 
     for pref in member_data.dietary_preferences:
         dietary_pref = FamilyMemberDietaryPreference(
@@ -123,6 +126,9 @@ async def update_family_member(db: AsyncSession, member_id: UUID, user_id: UUID,
             )
             db.add(allergy)
 
+    await db.flush()
+    payload_hash = compute_payload_hash(member, ["name", "member_type", "troop_number", "patrol_name"]) 
+    await record_change(db, entity_type="family_member", entity_id=member.id, op_type="update", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(member)
 
@@ -152,6 +158,7 @@ async def delete_family_member(db: AsyncSession, member_id: UUID, user_id: UUID)
     )
     signup_ids = participant_signups_result.scalars().all()
 
+    await record_change(db, entity_type="family_member", entity_id=member.id, op_type="delete")
     await db.delete(member)
     await db.flush()
 

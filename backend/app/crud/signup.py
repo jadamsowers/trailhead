@@ -8,6 +8,7 @@ from app.models.signup import Signup
 from app.models.participant import Participant
 from app.models.family import FamilyMember
 from app.schemas.signup import SignupCreate, SignupUpdate
+from app.services.change_log import record_change, compute_payload_hash
 
 
 async def get_signup(db: AsyncSession, signup_id: UUID) -> Optional[Signup]:
@@ -71,6 +72,9 @@ async def create_signup(db: AsyncSession, signup: SignupCreate) -> Signup:
     )
     db.add(db_signup)
     await db.flush()
+    # Record signup creation
+    payload_hash = compute_payload_hash(db_signup, ["outing_id", "family_contact_email", "family_contact_name"]) 
+    await record_change(db, entity_type="signup", entity_id=db_signup.id, op_type="create", payload_hash=payload_hash)
     
     # Create participant records linking to family members
     for family_member in family_members:
@@ -81,6 +85,8 @@ async def create_signup(db: AsyncSession, signup: SignupCreate) -> Signup:
         db.add(db_participant)
     
     await db.flush()
+    payload_hash = compute_payload_hash(db_signup, ["outing_id", "family_contact_email", "family_contact_name"]) 
+    await record_change(db, entity_type="signup", entity_id=db_signup.id, op_type="update", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_signup)
 
@@ -141,6 +147,8 @@ async def update_signup(db: AsyncSession, signup_id: UUID, signup_update: Signup
             db.add(db_participant)
     
     await db.flush()
+    payload_hash = compute_payload_hash(db_signup, ["outing_id", "family_contact_email", "family_contact_name"]) 
+    await record_change(db, entity_type="signup", entity_id=db_signup.id, op_type="update", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_signup)
 
@@ -168,6 +176,7 @@ async def delete_signup(db: AsyncSession, signup_id: UUID) -> bool:
     if not db_signup:
         return False
     
+    await record_change(db, entity_type="signup", entity_id=db_signup.id, op_type="delete")
     await db.delete(db_signup)
     await db.commit()
     return True

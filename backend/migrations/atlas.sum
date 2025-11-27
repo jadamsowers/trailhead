@@ -1,4 +1,4 @@
-h1:78Sl074S6rtLNCIQDfX+bbmrK4VDQsaENszMwBoJAHE=
+h1:hRqHJognGcPAm0s9OiDZ8nSxVFbin1Ge5KbbWABLh7E=
 20251124000001_initial.sql h1:yNcdKslq6H+4pFl6p5HFvNpaOqccXPZVzbjf9ykutL8=
 20251124000002_add_checkins_table.sql h1:oW9pKwu7SNaerWm5B1NtMWy3a8UUNk6GB9h0Efl53DU=
 20251124000003_add_outing_icon.sql h1:OFIamhOlr0wIDdVnw1QNi6djxtzpW9OUDzSmfGNLtUQ=
@@ -18,3 +18,5 @@ h1:78Sl074S6rtLNCIQDfX+bbmrK4VDQsaENszMwBoJAHE=
 20251126160000_add_user_initial_setup_flag.sql h1:pOKgkAX4HtTIS79YvJ1BOo9ikb042VqPBqLjpbwpH2s=
 20251126235919_add_outing_admin_role.sql h1:AbIE6Qo7LRb81i2ghQOEjZJDGjkX01YkpCN/buMFObE=
 20251127000446_rename_user_role_to_participant.sql h1:zf+B442dH2VSIUQXbJezf54EVBi6cwizGkizq+5rnbw=
+20251127001000_add_change_log_table.sql h1:OD0DbIMIfu7H2Rh/2cAcEIo7sAwJ4CUk7GbEGrW6pHU=
+20251127001500_add_change_log_table.sql h1:8lx3XqoNdTn7xMpdez4Sh7KtlLhwhRUXttj6ymueuBU=

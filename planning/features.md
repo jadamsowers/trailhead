@@ -1,48 +1,5 @@
 # New Features
 
-## Check-in Mode
-
-Outing leaders can check in participants before departure
-
-- [x] Create mobile-friendly check-in interface (Frontend complete!)
-- [x] Implement offline mode with cached check-in list (Future enhancement)
-- [x] Capture who checked in for camping night tracking (Backend complete)
-- [x] Add export functionality for check-in data (Backend CSV export complete)
-
-## Outing Configuration
-
-Enhancements to outing setup and management
-
-- [x] Add drop-off time and location fields
-- [x] Add pickup time and location fields
-- [x] Add cost field for outing
-- [x] Add suggested gear list functionality
-  - [x] ability to select from pre-defined gear lists (backpacking, truck camping, cold weather) and also add in trip-specific needs
-  - [x] Backend API supports creating packing lists from templates
-  - [x] Can add custom items to outing-specific packing lists
-- [x] Add icon selection (emoji or Bootstrap icon)
-- [x] Generate QR code for outing
-  - [x] QR code links to specific outing URL
-- [x] Add ability to close signups
-  - [x] Date-based automatic closure option (signups_close_at field)
-  - [x] Manual close signups button (close-signups and open-signups endpoints)
-  - [x] Signup enforcement in create_signup endpoint
-- [x] Ability to draft an email whenever a change is made to the trip
-  - [x] API returns email draft with changed fields on outing update
-  - [x] Subject auto-generated "Update: <Outing Name> details changed"
-  - [x] Body lists old → new values with friendly labels
-
-## Outing Wizard
-
-- [x] create list of common requirements (Scout/Tenderfoot/Second Class/First Class) that can be completed on trips
-  - [x] suggest requirements based on outing type and keywords
-  - [x] the interface should list the specific requirement numbers
-  - [x] the interface should have a broad selection of merit badge availability and enumerate several keywords on each
-  - [x] the interface should indicate if a merit badge is eagle required
-  - [x] the wizard should have a 'select all' option when requirements and merit badges are found
-- [x] suggest common merit badges based on outing type and keywords (e.g. First Aid, Cooking, Camping, Hiking, etc.)
-- [x] need to have the option for capacity: based on seats or based on a number of people
-
 ## Signup Configuration
 
 Enhancements to family profile and requests
@@ -58,19 +15,11 @@ Enhancements to family profile and requests
 
 This should really happen when the first admin logs in.
 
-- [ ] Add troop management interface (ability to add troop numbers, chartering orgs, and meeting locations)
-- [ ] Add troop configuration interface
 - [ ] Add option to restrict signup by troop for outings
 - [ ] Families choose troop from dropdown when setting up members
-- [ ] Ability to add patrols to troop
 - [ ] Ability to import troop rosters with patrols
   - [ ] Can update troop roster as troop or patrols change
-- [ ] When parents are setting up family members, suggest linking to existing scouts from roster
-
-## User Management
-
-- [ ] Ability to see registered users
-- [ ] Ability to promote to admin role
+  - [ ] When parents are setting up family members, suggest linking to existing scouts from roster
 
 ## Family Management
 

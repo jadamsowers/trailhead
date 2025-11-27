@@ -6,6 +6,7 @@ from uuid import UUID
 
 from app.models.troop import Troop, Patrol
 from app.schemas.troop import TroopCreate, TroopUpdate, PatrolCreate, PatrolUpdate
+from app.services.change_log import record_change, compute_payload_hash
 
 
 # ==== Troops CRUD ====
@@ -40,6 +41,9 @@ async def create_troop(db: AsyncSession, troop_in: TroopCreate) -> Troop:
         notes=troop_in.notes,
     )
     db.add(troop)
+    await db.flush()
+    payload_hash = compute_payload_hash(troop, ["number", "charter_org", "meeting_day"]) 
+    await record_change(db, entity_type="troop", entity_id=troop.id, op_type="create", payload_hash=payload_hash)
     await db.commit()
     # Re-query with patrols eagerly loaded to avoid lazy-loading in response serialization
     result = await db.execute(
@@ -55,6 +59,9 @@ async def update_troop(db: AsyncSession, troop_id: UUID, troop_in: TroopUpdate) 
     update_data = troop_in.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(troop, field, value)
+    await db.flush()
+    payload_hash = compute_payload_hash(troop, ["number", "charter_org", "meeting_day"]) 
+    await record_change(db, entity_type="troop", entity_id=troop.id, op_type="update", payload_hash=payload_hash)
     await db.commit()
     # Re-query to ensure patrols are eagerly loaded
     result = await db.execute(
@@ -67,6 +74,7 @@ async def delete_troop(db: AsyncSession, troop_id: UUID) -> bool:
     troop = await get_troop(db, troop_id)
     if not troop:
         return False
+    await record_change(db, entity_type="troop", entity_id=troop.id, op_type="delete")
     await db.delete(troop)
     await db.commit()
     return True
@@ -102,6 +110,9 @@ async def create_patrol(db: AsyncSession, patrol_in: PatrolCreate) -> Patrol:
         is_active=patrol_in.is_active,
     )
     db.add(patrol)
+    await db.flush()
+    payload_hash = compute_payload_hash(patrol, ["troop_id", "name", "is_active"]) 
+    await record_change(db, entity_type="patrol", entity_id=patrol.id, op_type="create", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(patrol)
     return patrol
@@ -114,6 +125,9 @@ async def update_patrol(db: AsyncSession, patrol_id: UUID, patrol_in: PatrolUpda
     update_data = patrol_in.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(patrol, field, value)
+    await db.flush()
+    payload_hash = compute_payload_hash(patrol, ["troop_id", "name", "is_active"]) 
+    await record_change(db, entity_type="patrol", entity_id=patrol.id, op_type="update", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(patrol)
     return patrol
@@ -123,6 +137,7 @@ async def delete_patrol(db: AsyncSession, patrol_id: UUID) -> bool:
     patrol = await get_patrol(db, patrol_id)
     if not patrol:
         return False
+    await record_change(db, entity_type="patrol", entity_id=patrol.id, op_type="delete")
     await db.delete(patrol)
     await db.commit()
     return True

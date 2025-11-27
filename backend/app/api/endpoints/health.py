@@ -30,14 +30,31 @@ async def health_check():
             migration_result = await session.execute(text('SELECT version FROM "atlas_schema_revisions"."atlas_schema_revisions" ORDER BY executed_at DESC LIMIT 1'))
             latest_migration = migration_result.scalar()
             # Compare with latest migration in atlas.sum
+            # Compare with latest migration in atlas.sum
             import os
-            atlas_sum_path = "migrations/atlas.sum" if os.path.exists("migrations/atlas.sum") else "/app/migrations/atlas.sum"
-            with open(atlas_sum_path) as f:
-                lines = [l for l in f if l.strip() and l.strip()[0] != 'h']
-                if lines:
-                    last_line = lines[-1]
-                    file_version = last_line.split()[0]
-                    migrations_up_to_date = (latest_migration and file_version.startswith(str(latest_migration)))
+            from pathlib import Path
+            
+            # Find migrations directory relative to this file
+            # health.py is in app/api/endpoints/
+            # migrations is in backend/migrations/ (sibling of app)
+            base_dir = Path(__file__).resolve().parent.parent.parent.parent
+            atlas_sum_path = base_dir / "migrations" / "atlas.sum"
+            
+            # Fallback for Docker container structure if different
+            if not atlas_sum_path.exists():
+                atlas_sum_path = Path("/app/migrations/atlas.sum")
+
+            if atlas_sum_path.exists():
+                with open(atlas_sum_path) as f:
+                    lines = [l for l in f if l.strip() and l.strip()[0] != 'h']
+                    if lines:
+                        last_line = lines[-1]
+                        file_version = last_line.split()[0]
+                        migrations_up_to_date = (latest_migration and file_version.startswith(str(latest_migration)))
+                        if not migrations_up_to_date:
+                            print(f"Migration mismatch: DB={latest_migration}, File={file_version}")
+            else:
+                print(f"atlas.sum not found at {atlas_sum_path}")
     except SQLAlchemyError as e:
         db_status = "error"
         error = str(e)

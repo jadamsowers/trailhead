@@ -6,6 +6,7 @@ from uuid import UUID
 
 from app.models.participant import Participant
 from app.models.family import FamilyMember
+from app.services.change_log import record_change, compute_payload_hash
 
 
 async def get_participant(db: AsyncSession, participant_id: UUID) -> Optional[Participant]:
@@ -76,6 +77,8 @@ async def create_participant(
     )
     db.add(db_participant)
     await db.flush()
+    payload_hash = compute_payload_hash(db_participant, ["signup_id", "family_member_id"]) 
+    await record_change(db, entity_type="participant", entity_id=db_participant.id, op_type="create", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_participant)
     
@@ -101,6 +104,7 @@ async def delete_participant(db: AsyncSession, participant_id: UUID) -> bool:
     if not db_participant:
         return False
     
+    await record_change(db, entity_type="participant", entity_id=db_participant.id, op_type="delete")
     await db.delete(db_participant)
     await db.commit()
     return True

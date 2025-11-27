@@ -14,6 +14,7 @@ from app.models.packing_list import (
     OutingPackingListItem,
 )
 from app.models.troop import Troop, Patrol
+from app.models.change_log import ChangeLog
 
 __all__ = [
     "User",
@@ -36,4 +37,5 @@ __all__ = [
     "OutingPackingListItem",
     "Troop",
     "Patrol",
+    "ChangeLog",
 ]
