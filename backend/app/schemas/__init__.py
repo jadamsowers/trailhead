@@ -1,5 +1,5 @@
 from app.schemas.outing import OutingCreate, OutingUpdate, OutingResponse, OutingListResponse
-from app.schemas.signup import SignupCreate, SignupResponse
+from app.schemas.signup import SignupCreate, SignupResponse, GrubmasterRequestItem
 from app.schemas.auth import LoginRequest, TokenResponse, RefreshRequest, UserResponse
 from app.schemas.family import (
     FamilyMemberCreate,
@@ -12,6 +12,19 @@ from app.schemas.family import (
     AllergyCreate,
     AllergyResponse,
 )
+from app.schemas.eating_group import (
+    EatingGroupCreate,
+    EatingGroupUpdate,
+    EatingGroupResponse,
+    EatingGroupListResponse,
+    EatingGroupMemberCreate,
+    EatingGroupMemberResponse,
+    GrubmasterSummaryResponse,
+    GrubmasterSummaryParticipant,
+    MoveParticipantRequest,
+    AutoAssignRequest,
+    EatingGroupEmailRequest,
+)
 
 __all__ = [
     "OutingCreate",
@@ -20,6 +33,7 @@ __all__ = [
     "OutingListResponse",
     "SignupCreate",
     "SignupResponse",
+    "GrubmasterRequestItem",
     "ParticipantCreate",
     "LoginRequest",
     "TokenResponse",
@@ -34,4 +48,15 @@ __all__ = [
     "DietaryPreferenceResponse",
     "AllergyCreate",
     "AllergyResponse",
+    "EatingGroupCreate",
+    "EatingGroupUpdate",
+    "EatingGroupResponse",
+    "EatingGroupListResponse",
+    "EatingGroupMemberCreate",
+    "EatingGroupMemberResponse",
+    "GrubmasterSummaryResponse",
+    "GrubmasterSummaryParticipant",
+    "MoveParticipantRequest",
+    "AutoAssignRequest",
+    "EatingGroupEmailRequest",
 ]

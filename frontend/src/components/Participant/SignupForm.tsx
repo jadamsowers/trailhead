@@ -38,6 +38,10 @@ const SignupForm: React.FC = () => {
   const [selectedFamilyMemberIds, setSelectedFamilyMemberIds] = useState<
     string[]
   >([]);
+  // Grubmaster request state - tracks which scouts want to be grubmasters
+  const [grubmasterRequests, setGrubmasterRequests] = useState<{
+    [memberId: string]: { interest: boolean; reason?: string };
+  }>({});
   // Legacy participant editing state replaced by family member selection flow
   const [showFamilySelection, setShowFamilySelection] = useState<boolean>(true);
 
@@ -265,6 +269,15 @@ const SignupForm: React.FC = () => {
       setLoading(true);
       setError(null);
 
+      // Build grubmaster requests array for scouts who have interest
+      const grubmasterRequestsArray = selectedFamilyMemberIds
+        .filter((id) => grubmasterRequests[id]?.interest)
+        .map((id) => ({
+          family_member_id: id,
+          grubmaster_interest: grubmasterRequests[id]?.interest || false,
+          grubmaster_reason: grubmasterRequests[id]?.reason,
+        }));
+
       // Send family member IDs directly to the API
       const signupData = {
         outing_id: formData.outing_id,
@@ -275,6 +288,10 @@ const SignupForm: React.FC = () => {
           emergency_contact_phone: formData.emergency_contact_phone,
         },
         family_member_ids: selectedFamilyMemberIds,
+        grubmaster_requests:
+          grubmasterRequestsArray.length > 0
+            ? grubmasterRequestsArray
+            : undefined,
       };
 
       const response = await signupAPI.create(signupData);
@@ -313,6 +330,7 @@ const SignupForm: React.FC = () => {
         setExpandedOutingId("");
         setSuccess(false);
         setSelectedFamilyMemberIds([]);
+        setGrubmasterRequests({});
         setShowFamilySelection(true);
       }, 3000);
     } catch (err) {
@@ -1351,6 +1369,110 @@ const SignupForm: React.FC = () => {
                                                   <strong>Troop:</strong>{" "}
                                                   {member.troop_number}
                                                 </p>
+                                              )}
+                                              {/* Grubmaster Request Section */}
+                                              {isSelected && (
+                                                <div
+                                                  onClick={(e) =>
+                                                    e.stopPropagation()
+                                                  }
+                                                  style={{
+                                                    marginTop: "12px",
+                                                    paddingTop: "12px",
+                                                    borderTop:
+                                                      "1px solid #ddd",
+                                                  }}
+                                                >
+                                                  <label
+                                                    style={{
+                                                      display: "flex",
+                                                      alignItems: "center",
+                                                      gap: "8px",
+                                                      cursor: "pointer",
+                                                      fontSize: "14px",
+                                                    }}
+                                                  >
+                                                    <input
+                                                      type="checkbox"
+                                                      checked={
+                                                        grubmasterRequests[
+                                                          member.id
+                                                        ]?.interest || false
+                                                      }
+                                                      onChange={(e) => {
+                                                        setGrubmasterRequests(
+                                                          (prev) => ({
+                                                            ...prev,
+                                                            [member.id]: {
+                                                              ...prev[
+                                                                member.id
+                                                              ],
+                                                              interest:
+                                                                e.target
+                                                                  .checked,
+                                                            },
+                                                          })
+                                                        );
+                                                      }}
+                                                      style={{
+                                                        width: "16px",
+                                                        height: "16px",
+                                                      }}
+                                                    />
+                                                    <span>
+                                                      🍳 Volunteer as
+                                                      Grubmaster
+                                                    </span>
+                                                  </label>
+                                                  {grubmasterRequests[member.id]
+                                                    ?.interest && (
+                                                    <select
+                                                      value={
+                                                        grubmasterRequests[
+                                                          member.id
+                                                        ]?.reason || ""
+                                                      }
+                                                      onChange={(e) => {
+                                                        setGrubmasterRequests(
+                                                          (prev) => ({
+                                                            ...prev,
+                                                            [member.id]: {
+                                                              ...prev[
+                                                                member.id
+                                                              ],
+                                                              reason:
+                                                                e.target.value,
+                                                            },
+                                                          })
+                                                        );
+                                                      }}
+                                                      style={{
+                                                        marginTop: "8px",
+                                                        padding: "6px 10px",
+                                                        borderRadius: "4px",
+                                                        border:
+                                                          "1px solid #ddd",
+                                                        fontSize: "13px",
+                                                        width: "100%",
+                                                      }}
+                                                    >
+                                                      <option value="">
+                                                        Why do you want to be
+                                                        grubmaster?
+                                                      </option>
+                                                      <option value="rank_requirement">
+                                                        Rank Requirement
+                                                      </option>
+                                                      <option value="cooking_merit_badge">
+                                                        Cooking Merit Badge
+                                                      </option>
+                                                      <option value="just_because">
+                                                        Just Because - I Like
+                                                        to Cook!
+                                                      </option>
+                                                    </select>
+                                                  )}
+                                                </div>
                                               )}
                                             </div>
                                           );

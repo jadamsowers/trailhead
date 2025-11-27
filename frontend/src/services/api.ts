@@ -1193,12 +1193,14 @@ export interface TroopCreate {
   meeting_location?: string | null;
   meeting_day?: string | null;
   notes?: string | null;
+  treasurer_email?: string | null;
 }
 export interface TroopUpdate {
   charter_org?: string | null;
   meeting_location?: string | null;
   meeting_day?: string | null;
   notes?: string | null;
+  treasurer_email?: string | null;
 }
 export interface PatrolCreate {
   troop_id: string;
@@ -1224,6 +1226,7 @@ export interface TroopResponse {
   meeting_location?: string | null;
   meeting_day?: string | null;
   notes?: string | null;
+  treasurer_email?: string | null;
   created_at: string;
   updated_at: string;
   patrols: PatrolResponse[];
@@ -1645,6 +1648,191 @@ export const offlineAPI = {
     const response = await fetch(`${getApiBase()}/offline/data`, {
       headers: await getAuthHeaders(),
     });
+    return handleResponse(response);
+  },
+};
+
+// Grubmaster API
+import type {
+  EatingGroup,
+  EatingGroupCreate,
+  EatingGroupUpdate,
+  GrubmasterSummaryResponse,
+  MoveParticipantRequest,
+  AutoAssignRequest,
+  EatingGroupEmailRequest,
+} from "../types";
+
+export const grubmasterAPI = {
+  /**
+   * Get grubmaster summary for an outing
+   */
+  async getSummary(outingId: string): Promise<GrubmasterSummaryResponse> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/grubmaster`,
+      {
+        headers: await getAuthHeaders(),
+      }
+    );
+    return handleResponse<GrubmasterSummaryResponse>(response);
+  },
+
+  /**
+   * Get all eating groups for an outing
+   */
+  async getEatingGroups(
+    outingId: string
+  ): Promise<{ eating_groups: EatingGroup[]; total: number }> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/eating-groups`,
+      {
+        headers: await getAuthHeaders(),
+      }
+    );
+    return handleResponse<{ eating_groups: EatingGroup[]; total: number }>(
+      response
+    );
+  },
+
+  /**
+   * Create a new eating group
+   */
+  async createEatingGroup(
+    outingId: string,
+    data: EatingGroupCreate
+  ): Promise<EatingGroup> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/eating-groups`,
+      {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      }
+    );
+    return handleResponse<EatingGroup>(response);
+  },
+
+  /**
+   * Update an eating group
+   */
+  async updateEatingGroup(
+    outingId: string,
+    eatingGroupId: string,
+    data: EatingGroupUpdate
+  ): Promise<EatingGroup> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/eating-groups/${eatingGroupId}`,
+      {
+        method: "PUT",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      }
+    );
+    return handleResponse<EatingGroup>(response);
+  },
+
+  /**
+   * Delete an eating group
+   */
+  async deleteEatingGroup(
+    outingId: string,
+    eatingGroupId: string
+  ): Promise<void> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/eating-groups/${eatingGroupId}`,
+      {
+        method: "DELETE",
+        headers: await getAuthHeaders(),
+      }
+    );
+    if (!response.ok) {
+      throw new APIError(response.status, "Failed to delete eating group");
+    }
+  },
+
+  /**
+   * Move a participant to a different eating group
+   */
+  async moveParticipant(
+    outingId: string,
+    request: MoveParticipantRequest
+  ): Promise<{ message: string }> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/move-participant`,
+      {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(request),
+      }
+    );
+    return handleResponse<{ message: string }>(response);
+  },
+
+  /**
+   * Set or unset a participant as grubmaster
+   */
+  async setGrubmaster(
+    outingId: string,
+    participantId: string,
+    isGrubmaster: boolean
+  ): Promise<{ message: string }> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/set-grubmaster?participant_id=${participantId}&is_grubmaster=${isGrubmaster}`,
+      {
+        method: "POST",
+        headers: await getAuthHeaders(),
+      }
+    );
+    return handleResponse<{ message: string }>(response);
+  },
+
+  /**
+   * Auto-assign participants to eating groups
+   */
+  async autoAssign(
+    outingId: string,
+    request: AutoAssignRequest
+  ): Promise<{ eating_groups: EatingGroup[]; total: number }> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/auto-assign`,
+      {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(request),
+      }
+    );
+    return handleResponse<{ eating_groups: EatingGroup[]; total: number }>(
+      response
+    );
+  },
+
+  /**
+   * Generate email content for eating groups
+   */
+  async sendEatingGroupEmails(
+    outingId: string,
+    request: EatingGroupEmailRequest
+  ): Promise<{
+    message: string;
+    outing_name: string;
+    groups: Array<{
+      eating_group_id: string;
+      eating_group_name: string;
+      grubmaster_emails: string[];
+      subject: string;
+      body: string;
+      member_count: number;
+    }>;
+    treasurer_email?: string;
+  }> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/send-eating-group-emails`,
+      {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(request),
+      }
+    );
     return handleResponse(response);
   },
 };

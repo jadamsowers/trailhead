@@ -12,6 +12,7 @@ import { outingAPI, pdfAPI, signupAPI } from "../../services/api";
 import { formatPhoneNumber } from "../../utils/phoneUtils";
 import OutingQRCode from "./OutingQRCode";
 import OutingWizard from "./OutingWizard.tsx";
+import GrubmasterAdmin from "./GrubmasterAdmin";
 
 const OutingAdmin: React.FC = () => {
   // Helper function to format date, omitting year if it's the current year
@@ -48,6 +49,10 @@ const OutingAdmin: React.FC = () => {
   const [editingOutingId, setEditingOutingId] = useState<string | null>(null);
   const [editOuting, setEditOuting] = useState<OutingCreate | null>(null);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
+  
+  // Grubmaster modal state
+  const [showGrubmasterModal, setShowGrubmasterModal] = useState(false);
+  const [grubmasterOuting, setGrubmasterOuting] = useState<Outing | null>(null);
 
   // Email functionality state
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -1877,6 +1882,37 @@ const OutingAdmin: React.FC = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
+                                setGrubmasterOuting(outing);
+                                setShowGrubmasterModal(true);
+                              }}
+                              disabled={loading || outing.signup_count === 0}
+                              className="w-full !py-2 !px-4"
+                              style={{
+                                backgroundColor:
+                                  outing.signup_count === 0
+                                    ? "var(--btn-disabled-bg)"
+                                    : "var(--btn-secondary-bg)",
+                                color:
+                                  outing.signup_count === 0
+                                    ? "var(--btn-disabled-text)"
+                                    : "var(--btn-secondary-text)",
+                                borderRadius: "4px",
+                                cursor:
+                                  loading || outing.signup_count === 0
+                                    ? "not-allowed"
+                                    : "pointer",
+                              }}
+                              title={
+                                outing.signup_count === 0
+                                  ? "No participants to assign"
+                                  : "Manage grubmaster assignments and eating groups"
+                              }
+                            >
+                              🍳 Grubmasters
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 handleExportRosterPDF(outing.id, outing.name);
                               }}
                               disabled={loading || outing.signup_count === 0}
@@ -2244,6 +2280,18 @@ const OutingAdmin: React.FC = () => {
             setIsWizardOpen(false);
           }}
         />
+        
+        {/* Grubmaster Admin Modal */}
+        {showGrubmasterModal && grubmasterOuting && (
+          <GrubmasterAdmin
+            outingId={grubmasterOuting.id}
+            outingName={grubmasterOuting.name}
+            onClose={() => {
+              setShowGrubmasterModal(false);
+              setGrubmasterOuting(null);
+            }}
+          />
+        )}
       </div>
     </div>
   );

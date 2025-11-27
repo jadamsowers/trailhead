@@ -63,6 +63,12 @@ async def create_signup(db: AsyncSession, signup: SignupCreate) -> Signup:
             raise ValueError(f"Family member with ID {family_member_id} not found")
         family_members.append(family_member)
     
+    # Create grubmaster request lookup
+    grubmaster_lookup = {}
+    if signup.grubmaster_requests:
+        for request in signup.grubmaster_requests:
+            grubmaster_lookup[request.family_member_id] = request
+    
     # Create signup
     db_signup = Signup(
         outing_id=signup.outing_id,
@@ -78,9 +84,12 @@ async def create_signup(db: AsyncSession, signup: SignupCreate) -> Signup:
     
     # Create participant records linking to family members
     for family_member in family_members:
+        grubmaster_request = grubmaster_lookup.get(family_member.id)
         db_participant = Participant(
             signup_id=db_signup.id,
-            family_member_id=family_member.id
+            family_member_id=family_member.id,
+            grubmaster_interest=grubmaster_request.grubmaster_interest if grubmaster_request else False,
+            grubmaster_reason=grubmaster_request.grubmaster_reason if grubmaster_request else None,
         )
         db.add(db_participant)
     
@@ -133,6 +142,12 @@ async def update_signup(db: AsyncSession, signup_id: UUID, signup_update: Signup
                 raise ValueError(f"Family member with ID {family_member_id} not found")
             family_members.append(family_member)
         
+        # Create grubmaster request lookup
+        grubmaster_lookup = {}
+        if signup_update.grubmaster_requests:
+            for request in signup_update.grubmaster_requests:
+                grubmaster_lookup[request.family_member_id] = request
+        
         # Delete existing participants
         for participant in db_signup.participants:
             await db.delete(participant)
@@ -140,11 +155,22 @@ async def update_signup(db: AsyncSession, signup_id: UUID, signup_update: Signup
         
         # Create new participant records
         for family_member in family_members:
+            grubmaster_request = grubmaster_lookup.get(family_member.id)
             db_participant = Participant(
                 signup_id=db_signup.id,
-                family_member_id=family_member.id
+                family_member_id=family_member.id,
+                grubmaster_interest=grubmaster_request.grubmaster_interest if grubmaster_request else False,
+                grubmaster_reason=grubmaster_request.grubmaster_reason if grubmaster_request else None,
             )
             db.add(db_participant)
+    elif signup_update.grubmaster_requests:
+        # Update grubmaster requests for existing participants
+        grubmaster_lookup = {r.family_member_id: r for r in signup_update.grubmaster_requests}
+        for participant in db_signup.participants:
+            if participant.family_member_id in grubmaster_lookup:
+                request = grubmaster_lookup[participant.family_member_id]
+                participant.grubmaster_interest = request.grubmaster_interest
+                participant.grubmaster_reason = request.grubmaster_reason
     
     await db.flush()
     payload_hash = compute_payload_hash(db_signup, ["outing_id", "family_contact_email", "family_contact_name"]) 

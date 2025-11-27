@@ -10,6 +10,7 @@ class TroopBase(BaseModel):
     meeting_location: Optional[str] = Field(None, max_length=255, description="Usual meeting location")
     meeting_day: Optional[str] = Field(None, max_length=20, description="Regular meeting day (e.g., Tuesday)")
     notes: Optional[str] = Field(None, description="Administrative notes")
+    treasurer_email: Optional[str] = Field(None, max_length=255, description="Treasurer email for receipt submission")
 
 
 class TroopCreate(TroopBase):
@@ -22,6 +23,7 @@ class TroopUpdate(BaseModel):
     meeting_location: Optional[str] = Field(None, max_length=255)
     meeting_day: Optional[str] = Field(None, max_length=20)
     notes: Optional[str] = None
+    treasurer_email: Optional[str] = Field(None, max_length=255)
 
 
 class PatrolBase(BaseModel):
