@@ -791,7 +791,7 @@ const App: React.FC = () => {
                     style={{
                       color: "var(--text-on-primary)",
                       opacity: 0.9,
-                      fontFamily: '"EB Garamond", Georgia, serif',
+                      fontFamily: '"Merriweather", Georgia, serif',
                     }}
                   >
                     <a

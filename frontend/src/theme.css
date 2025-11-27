@@ -274,7 +274,7 @@
     sans-serif;
   --font-family-mono: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
-  --font-heading: "EB Garamond", "Georgia", "Times New Roman", serif;
+  --font-heading: "Merriweather", "Georgia", "Times New Roman", serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
     sans-serif;
   --font-size-xs: 0.75rem; /* 12px */
@@ -515,7 +515,7 @@
     sans-serif;
   --font-family-mono: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
-  --font-heading: "EB Garamond", "Georgia", "Times New Roman", serif;
+  --font-heading: "Merriweather", "Georgia", "Times New Roman", serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
     sans-serif;
 }
