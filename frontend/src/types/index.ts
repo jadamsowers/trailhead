@@ -315,6 +315,7 @@ export interface FamilyMemberSummary {
   name: string;
   member_type: "adult" | "scout";
   troop_number?: string;
+  troop_id?: string | null;
   age?: number;
   vehicle_capacity?: number;
   has_youth_protection?: boolean;

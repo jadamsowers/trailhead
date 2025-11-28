@@ -92,6 +92,10 @@ export type OutingResponse = {
      */
     icon?: (string | null);
     /**
+     * List of troop IDs allowed to sign up
+     */
+    allowed_troop_ids?: Array<string>;
+    /**
      * Per-person food budget in dollars
      */
     food_budget_per_person?: (string | null);
@@ -169,10 +173,5 @@ export type OutingResponse = {
     outing_place?: (PlaceResponse | null);
     pickup_place?: (PlaceResponse | null);
     dropoff_place?: (PlaceResponse | null);
-    /**
-     * List of troop IDs allowed to sign up
-     */
-    allowed_troop_ids?: Array<string>;
 };
-
 

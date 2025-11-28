@@ -299,15 +299,21 @@ const SignupWizard: React.FC = () => {
         setError("Please select at least one participant");
         return;
       }
-      
+
       // Validate all selected scouts are from the same troop
-      const selectedScouts = familyMembers.filter(m => selectedScoutIds.includes(m.id));
-      const troops = new Set(selectedScouts.map(s => s.troop_id).filter(Boolean));
+      const selectedScouts = familyMembers.filter((m) =>
+        selectedScoutIds.includes(m.id)
+      );
+      const troops = new Set(
+        selectedScouts.map((s) => s.troop_id).filter(Boolean)
+      );
       if (troops.size > 1) {
-        setError("All scouts must be from the same troop. Please select only scouts from one troop.");
+        setError(
+          "All scouts must be from the same troop. Please select only scouts from one troop."
+        );
         return;
       }
-      
+
       setCurrentStep("review");
     }
   };
@@ -882,27 +888,42 @@ const SignupWizard: React.FC = () => {
                                   signup.family_contact_phone,
                               });
                               // Pre-select current participants
-                                                      const participantFamilyMemberIds = signup.participants
-                                                        .map((p) => {
-                                                          // Match by name; fallback to classification by age if needed
-                                                          const fm = familyMembers.find((f) => f.name === p.name);
-                                                          return fm?.id;
-                                                        })
-                                                        .filter(Boolean) as string[];
+                              const participantFamilyMemberIds =
+                                signup.participants
+                                  .map((p) => {
+                                    // Match by name; fallback to classification by age if needed
+                                    const fm = familyMembers.find(
+                                      (f) => f.name === p.name
+                                    );
+                                    return fm?.id;
+                                  })
+                                  .filter(Boolean) as string[];
 
-                                                      const adults = participantFamilyMemberIds.filter((id) => {
-                                                        const fm = familyMembers.find((f) => f.id === id);
-                                                        if (!fm) return false;
-                                                        // Re-infer type from DOB to ensure consistency
-                                                        const age = calculateAge(fm.date_of_birth || undefined);
-                                                        return age !== null && age >= 18;
-                                                      });
-                                                      const scouts = participantFamilyMemberIds.filter((id) => {
-                                                        const fm = familyMembers.find((f) => f.id === id);
-                                                        if (!fm) return false;
-                                                        const age = calculateAge(fm.date_of_birth || undefined);
-                                                        return age !== null && age < 18;
-                                                      });
+                              const adults = participantFamilyMemberIds.filter(
+                                (id) => {
+                                  const fm = familyMembers.find(
+                                    (f) => f.id === id
+                                  );
+                                  if (!fm) return false;
+                                  // Re-infer type from DOB to ensure consistency
+                                  const age = calculateAge(
+                                    fm.date_of_birth || undefined
+                                  );
+                                  return age !== null && age >= 18;
+                                }
+                              );
+                              const scouts = participantFamilyMemberIds.filter(
+                                (id) => {
+                                  const fm = familyMembers.find(
+                                    (f) => f.id === id
+                                  );
+                                  if (!fm) return false;
+                                  const age = calculateAge(
+                                    fm.date_of_birth || undefined
+                                  );
+                                  return age !== null && age < 18;
+                                }
+                              );
 
                               setSelectedAdultIds(adults);
                               setSelectedScoutIds(scouts);
@@ -1938,25 +1959,32 @@ ${
                 <>
                   {(() => {
                     // Check if all selected scouts are from the same troop
-                    const selectedScouts = familyMembers.filter(m => selectedScoutIds.includes(m.id));
-                    const troops = new Set(selectedScouts.map(s => s.troop_id).filter(Boolean));
+                    const selectedScouts = familyMembers.filter((m) =>
+                      selectedScoutIds.includes(m.id)
+                    );
+                    const troops = new Set(
+                      selectedScouts.map((s) => s.troop_id).filter(Boolean)
+                    );
                     const hasMixedTroops = troops.size > 1;
-                    
-                    return hasMixedTroops && (
-                      <div
-                        className="mb-5 p-4 rounded-lg border"
-                        style={{
-                          backgroundColor: "var(--alert-error-bg)",
-                          borderColor: "var(--alert-error-border)",
-                        }}
-                      >
-                        <p
-                          className="m-0 font-bold"
-                          style={{ color: "var(--alert-error-text)" }}
+
+                    return (
+                      hasMixedTroops && (
+                        <div
+                          className="mb-5 p-4 rounded-lg border"
+                          style={{
+                            backgroundColor: "var(--alert-error-bg)",
+                            borderColor: "var(--alert-error-border)",
+                          }}
                         >
-                          ⚠️ All scouts must be from the same troop. Please select only scouts from one troop.
-                        </p>
-                      </div>
+                          <p
+                            className="m-0 font-bold"
+                            style={{ color: "var(--alert-error-text)" }}
+                          >
+                            ⚠️ All scouts must be from the same troop. Please
+                            select only scouts from one troop.
+                          </p>
+                        </div>
+                      )
                     );
                   })()}
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
@@ -1968,17 +1996,27 @@ ${
                       .map((member) => {
                         const isSelected = selectedScoutIds.includes(member.id);
                         const availableSeats = calculateAvailableSeats();
-                        
+
                         // Check if we can select this scout based on troop restrictions
-                        const selectedScouts = familyMembers.filter(m => selectedScoutIds.includes(m.id) && m.id !== member.id);
-                        const existingTroopId = selectedScouts.length > 0 ? selectedScouts[0].troop_id : null;
-                        const isDifferentTroop = existingTroopId && member.troop_id && member.troop_id !== existingTroopId;
-                        
-                        const canSelect = !isDifferentTroop && (
-                          selectedOuting?.capacity_type !== "vehicle" ||
-                          availableSeats > 0 ||
-                          isSelected
+                        const selectedScouts = familyMembers.filter(
+                          (m) =>
+                            selectedScoutIds.includes(m.id) &&
+                            m.id !== member.id
                         );
+                        const existingTroopId =
+                          selectedScouts.length > 0
+                            ? selectedScouts[0].troop_id
+                            : null;
+                        const isDifferentTroop =
+                          existingTroopId &&
+                          member.troop_id &&
+                          member.troop_id !== existingTroopId;
+
+                        const canSelect =
+                          !isDifferentTroop &&
+                          (selectedOuting?.capacity_type !== "vehicle" ||
+                            availableSeats > 0 ||
+                            isSelected);
 
                         return (
                           <div
@@ -1991,97 +2029,100 @@ ${
                                   : [...prev, member.id]
                               )
                             }
-                          onKeyDown={(e) => {
-                            if (
-                              (e.key === "Enter" || e.key === " ") &&
-                              canSelect
-                            ) {
-                              e.preventDefault();
-                              setSelectedScoutIds((prev) =>
-                                prev.includes(member.id)
-                                  ? prev.filter((id) => id !== member.id)
-                                  : [...prev, member.id]
-                              );
+                            onKeyDown={(e) => {
+                              if (
+                                (e.key === "Enter" || e.key === " ") &&
+                                canSelect
+                              ) {
+                                e.preventDefault();
+                                setSelectedScoutIds((prev) =>
+                                  prev.includes(member.id)
+                                    ? prev.filter((id) => id !== member.id)
+                                    : [...prev, member.id]
+                                );
+                              }
+                            }}
+                            role="checkbox"
+                            aria-checked={isSelected}
+                            aria-disabled={!canSelect}
+                            tabIndex={canSelect ? 0 : -1}
+                            className="p-5 rounded-lg border cursor-pointer relative transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            style={{
+                              borderWidth: isSelected ? "3px" : "1px",
+                              borderColor: isSelected
+                                ? "var(--border-success)"
+                                : "var(--border-light)",
+                              backgroundColor: isSelected
+                                ? "var(--card-success-bg)"
+                                : !canSelect
+                                ? "var(--bg-tertiary)"
+                                : "var(--card-bg)",
+                              opacity: !canSelect ? 0.7 : 1,
+                              cursor: canSelect ? "pointer" : "not-allowed",
+                              boxShadow: isSelected
+                                ? "var(--card-hover-shadow)"
+                                : "none",
+                              transform: isSelected
+                                ? "scale(1.02)"
+                                : "scale(1)",
+                            }}
+                            onMouseEnter={(e) =>
+                              !isSelected &&
+                              canSelect &&
+                              ((e.currentTarget.style.borderColor =
+                                "var(--color-primary)"),
+                              (e.currentTarget.style.boxShadow =
+                                "var(--card-hover-shadow)"),
+                              (e.currentTarget.style.transform =
+                                "translateY(-2px)"))
                             }
-                          }}
-                          role="checkbox"
-                          aria-checked={isSelected}
-                          aria-disabled={!canSelect}
-                          tabIndex={canSelect ? 0 : -1}
-                          className="p-5 rounded-lg border cursor-pointer relative transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                          style={{
-                            borderWidth: isSelected ? "3px" : "1px",
-                            borderColor: isSelected
-                              ? "var(--border-success)"
-                              : "var(--border-light)",
-                            backgroundColor: isSelected
-                              ? "var(--card-success-bg)"
-                              : !canSelect
-                              ? "var(--bg-tertiary)"
-                              : "var(--card-bg)",
-                            opacity: !canSelect ? 0.7 : 1,
-                            cursor: canSelect ? "pointer" : "not-allowed",
-                            boxShadow: isSelected
-                              ? "var(--card-hover-shadow)"
-                              : "none",
-                            transform: isSelected ? "scale(1.02)" : "scale(1)",
-                          }}
-                          onMouseEnter={(e) =>
-                            !isSelected &&
-                            canSelect &&
-                            ((e.currentTarget.style.borderColor =
-                              "var(--color-primary)"),
-                            (e.currentTarget.style.boxShadow =
-                              "var(--card-hover-shadow)"),
-                            (e.currentTarget.style.transform =
-                              "translateY(-2px)"))
-                          }
-                          onMouseLeave={(e) =>
-                            !isSelected &&
-                            canSelect &&
-                            ((e.currentTarget.style.borderColor =
-                              "var(--border-light)"),
-                            (e.currentTarget.style.boxShadow = "none"),
-                            (e.currentTarget.style.transform = "translateY(0)"))
-                          }
-                        >
-                          {isSelected && (
-                            <div
-                              className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-lg font-bold shadow-sm"
-                              style={{
-                                backgroundColor: "var(--color-success)",
-                                color: "white",
-                              }}
-                            >
-                              ✓
-                            </div>
-                          )}
-                          <h3
-                            className="m-0 mb-2 font-bold text-lg"
-                            style={{ color: "var(--text-primary)" }}
+                            onMouseLeave={(e) =>
+                              !isSelected &&
+                              canSelect &&
+                              ((e.currentTarget.style.borderColor =
+                                "var(--border-light)"),
+                              (e.currentTarget.style.boxShadow = "none"),
+                              (e.currentTarget.style.transform =
+                                "translateY(0)"))
+                            }
                           >
-                            {member.name}
-                          </h3>
-                          {member.troop_number && (
-                            <p
-                              className="my-1"
-                              style={{ color: "var(--text-secondary)" }}
+                            {isSelected && (
+                              <div
+                                className="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-lg font-bold shadow-sm"
+                                style={{
+                                  backgroundColor: "var(--color-success)",
+                                  color: "white",
+                                }}
+                              >
+                                ✓
+                              </div>
+                            )}
+                            <h3
+                              className="m-0 mb-2 font-bold text-lg"
+                              style={{ color: "var(--text-primary)" }}
                             >
-                              Troop {member.troop_number}
-                            </p>
-                          )}
-                          {!canSelect && (
-                            <p
-                              className="mt-2 text-sm font-bold"
-                              style={{ color: "var(--color-error)" }}
-                            >
-                              No seats available
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
+                              {member.name}
+                            </h3>
+                            {member.troop_number && (
+                              <p
+                                className="my-1"
+                                style={{ color: "var(--text-secondary)" }}
+                              >
+                                Troop {member.troop_number}
+                              </p>
+                            )}
+                            {!canSelect && (
+                              <p
+                                className="mt-2 text-sm font-bold"
+                                style={{ color: "var(--color-error)" }}
+                              >
+                                No seats available
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
                 </>
               )}
             </div>
