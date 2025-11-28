@@ -139,6 +139,41 @@ class OutingMeritBadgeResponse(BaseModel):
 
 
 # ============================================================================
+# Participant Progress Schemas
+# ============================================================================
+
+class ParticipantProgressBase(BaseModel):
+    """Base schema for participant progress"""
+    rank_requirement_id: UUID = Field(..., description="ID of the rank requirement")
+    outing_id: Optional[UUID] = Field(None, description="ID of the outing where this was completed")
+    completed: bool = Field(False, description="Whether the requirement is completed")
+    notes: Optional[str] = Field(None, description="Notes about completion")
+
+
+class ParticipantProgressCreate(ParticipantProgressBase):
+    """Schema for recording participant progress"""
+    pass
+
+
+class ParticipantProgressUpdate(BaseModel):
+    """Schema for updating participant progress"""
+    completed: Optional[bool] = None
+    notes: Optional[str] = None
+    outing_id: Optional[UUID] = None
+
+
+class ParticipantProgressResponse(ParticipantProgressBase):
+    """Schema for participant progress response"""
+    id: UUID
+    family_member_id: UUID
+    created_at: datetime
+    updated_at: datetime
+    requirement: Optional[RankRequirementResponse] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ============================================================================
 # Suggestion Schemas
 # ============================================================================
 

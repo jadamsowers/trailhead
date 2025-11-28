@@ -111,7 +111,7 @@ class TestOutingRequirements:
         # Update notes
         update_payload = {"notes": "Updated notes"}
         response = await client.put(
-            f"/api/requirements/outing-requirements/{outing_req.id}",
+            f"/api/requirements/outings/requirements/{outing_req.id}",
             headers=auth_headers,
             json=update_payload
         )
@@ -128,7 +128,7 @@ class TestOutingRequirements:
         update_payload = {"notes": "Test"}
         
         response = await client.put(
-            f"/api/requirements/outing-requirements/{fake_id}",
+            f"/api/requirements/outings/requirements/{fake_id}",
             headers=auth_headers,
             json=update_payload
         )
@@ -154,7 +154,7 @@ class TestOutingRequirements:
         
         # Remove it
         response = await client.delete(
-            f"/api/requirements/outing-requirements/{outing_req.id}",
+            f"/api/requirements/outings/requirements/{outing_req.id}",
             headers=auth_headers
         )
         
@@ -167,7 +167,7 @@ class TestOutingRequirements:
         fake_id = uuid4()
         
         response = await client.delete(
-            f"/api/requirements/outing-requirements/{fake_id}",
+            f"/api/requirements/outings/requirements/{fake_id}",
             headers=auth_headers
         )
         
@@ -271,7 +271,7 @@ class TestOutingMeritBadges:
         # Update notes
         update_payload = {"notes": "Updated notes"}
         response = await client.put(
-            f"/api/requirements/outing-merit-badges/{outing_badge.id}",
+            f"/api/requirements/outings/merit-badges/{outing_badge.id}",
             headers=auth_headers,
             json=update_payload
         )
@@ -288,7 +288,7 @@ class TestOutingMeritBadges:
         update_payload = {"notes": "Test"}
         
         response = await client.put(
-            f"/api/requirements/outing-merit-badges/{fake_id}",
+            f"/api/requirements/outings/merit-badges/{fake_id}",
             headers=auth_headers,
             json=update_payload
         )
@@ -314,7 +314,7 @@ class TestOutingMeritBadges:
         
         # Remove it
         response = await client.delete(
-            f"/api/requirements/outing-merit-badges/{outing_badge.id}",
+            f"/api/requirements/outings/merit-badges/{outing_badge.id}",
             headers=auth_headers
         )
         
@@ -327,7 +327,7 @@ class TestOutingMeritBadges:
         fake_id = uuid4()
         
         response = await client.delete(
-            f"/api/requirements/outing-merit-badges/{fake_id}",
+            f"/api/requirements/outings/merit-badges/{fake_id}",
             headers=auth_headers
         )
         

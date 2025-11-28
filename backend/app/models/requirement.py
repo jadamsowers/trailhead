@@ -22,6 +22,7 @@ class RankRequirement(Base):
 
     # Relationships
     outing_requirements = relationship("OutingRequirement", back_populates="requirement", cascade="all, delete-orphan")
+    participant_progress = relationship("ParticipantProgress", back_populates="requirement", cascade="all, delete-orphan")
 
     def __repr__(self):
         # Use __dict__.get to avoid triggering SQLAlchemy loader on expired/detached instances
@@ -92,3 +93,28 @@ class OutingMeritBadge(Base):
         outing_id_val = self.__dict__.get('outing_id')
         mb_id_val = self.__dict__.get('merit_badge_id')
         return f"<OutingMeritBadge(id={id_val}, outing_id={outing_id_val}, merit_badge_id={mb_id_val})>"
+
+
+class ParticipantProgress(Base):
+    """Model for tracking participant progress on requirements"""
+    __tablename__ = "participant_progress"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    family_member_id = Column(UUID(as_uuid=True), ForeignKey("family_members.id", ondelete="CASCADE"), nullable=False, index=True)
+    rank_requirement_id = Column(UUID(as_uuid=True), ForeignKey("rank_requirements.id", ondelete="CASCADE"), nullable=False, index=True)
+    outing_id = Column(UUID(as_uuid=True), ForeignKey("outings.id", ondelete="SET NULL"), nullable=True, index=True)
+    completed = Column(Boolean, default=False, nullable=False)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    family_member = relationship("FamilyMember", backref="progress")
+    requirement = relationship("RankRequirement", back_populates="participant_progress")
+    outing = relationship("Outing")
+
+    def __repr__(self):
+        id_val = self.__dict__.get('id')
+        member_id_val = self.__dict__.get('family_member_id')
+        req_id_val = self.__dict__.get('rank_requirement_id')
+        return f"<ParticipantProgress(id={id_val}, member_id={member_id_val}, requirement_id={req_id_val})>"

@@ -7,6 +7,7 @@ from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.crud import requirement as crud_requirement
 from app.crud import outing as crud_outing
+from app.crud import family as crud_family
 from app.schemas.requirement import (
     RankRequirementCreate,
     RankRequirementUpdate,
@@ -20,7 +21,11 @@ from app.schemas.requirement import (
     OutingMeritBadgeCreate,
     OutingMeritBadgeUpdate,
     OutingMeritBadgeResponse,
+    OutingMeritBadgeResponse,
     OutingSuggestions,
+    ParticipantProgressCreate,
+    ParticipantProgressUpdate,
+    ParticipantProgressResponse,
 )
 from app.utils.suggestions import get_outing_suggestions
 
@@ -240,6 +245,22 @@ async def add_requirement_to_outing(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admins can add requirements to outings"
         )
+    # Verify outing exists
+    outing = await crud_outing.get_outing(db, outing_id)
+    if not outing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Outing not found"
+        )
+
+    # Verify requirement exists
+    req = await crud_requirement.get_rank_requirement(db, requirement.rank_requirement_id)
+    if not req:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Rank requirement not found"
+        )
+
     existing = await crud_requirement.get_outing_requirement(
         db, outing_id, requirement.rank_requirement_id
     )
@@ -320,6 +341,22 @@ async def add_merit_badge_to_outing(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admins can add merit badges to outings"
         )
+    # Verify outing exists
+    outing = await crud_outing.get_outing(db, outing_id)
+    if not outing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Outing not found"
+        )
+
+    # Verify merit badge exists
+    mb = await crud_requirement.get_merit_badge(db, badge.merit_badge_id)
+    if not mb:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Merit badge not found"
+        )
+
     existing = await crud_requirement.get_outing_merit_badge(
         db, outing_id, badge.merit_badge_id
     )
@@ -370,6 +407,104 @@ async def remove_merit_badge_from_outing(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Outing merit badge not found"
+        )
+
+
+# ============================================================================
+# Participant Progress Endpoints
+# ============================================================================
+
+@router.get("/participants/{family_member_id}/progress", response_model=List[ParticipantProgressResponse])
+async def list_participant_progress(
+    family_member_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get all progress records for a participant (async)"""
+    return await crud_requirement.get_participant_progress_list(db, family_member_id)
+
+
+@router.post("/participants/{family_member_id}/progress", response_model=ParticipantProgressResponse, status_code=status.HTTP_201_CREATED)
+async def record_participant_progress(
+    family_member_id: UUID,
+    progress: ParticipantProgressCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Record progress for a participant (admin only, async)"""
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can record participant progress"
+        )
+    
+    # Verify participant exists
+    participant = await crud_family.get_family_member(db, family_member_id)
+    if not participant:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Participant not found"
+        )
+
+    # Verify requirement exists
+    req = await crud_requirement.get_rank_requirement(db, progress.rank_requirement_id)
+    if not req:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Rank requirement not found"
+        )
+        
+    # Verify outing exists if provided
+    if progress.outing_id:
+        outing = await crud_outing.get_outing(db, progress.outing_id)
+        if not outing:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Outing not found"
+            )
+
+    return await crud_requirement.create_participant_progress(db, family_member_id, progress)
+
+
+@router.put("/progress/{progress_id}", response_model=ParticipantProgressResponse)
+async def update_participant_progress(
+    progress_id: UUID,
+    progress: ParticipantProgressUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Update a participant progress record (admin only, async)"""
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can update participant progress"
+        )
+    updated = await crud_requirement.update_participant_progress(db, progress_id, progress)
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Progress record not found"
+        )
+    return updated
+
+
+@router.delete("/progress/{progress_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_participant_progress(
+    progress_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a participant progress record (admin only, async)"""
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can delete participant progress"
+        )
+    success = await crud_requirement.delete_participant_progress(db, progress_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Progress record not found"
         )
 
 

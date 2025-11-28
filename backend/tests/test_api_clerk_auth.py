@@ -238,7 +238,7 @@ class TestSyncUserRole:
             app.dependency_overrides.clear()
 
     async def test_sync_user_role_default(self, client: AsyncClient, test_user, mocker):
-        """Test syncing user role defaults to user if invalid/missing"""
+        """Test syncing user role defaults to participant if invalid/missing"""
         from app.main import app
         
         async def override_get_current_user():
@@ -261,8 +261,8 @@ class TestSyncUserRole:
             )
             
             assert response.status_code == 200
-            assert response.json()["role"] == "user"
-            assert test_user.role == "user"
+            assert response.json()["role"] == "participant"
+            assert test_user.role == "participant"
         finally:
             app.dependency_overrides.clear()
 

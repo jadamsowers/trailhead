@@ -102,9 +102,10 @@ class TestFamilyMemberSummary:
     ):
         """Test age calculation in summary"""
         from app.models.family import FamilyMember
+        from dateutil.relativedelta import relativedelta
         
-        # Create member with known birth date
-        birth_date = date.today() - timedelta(days=365*15)  # 15 years old
+        # Create member with known birth date - exactly 15 years ago
+        birth_date = date.today() - relativedelta(years=15)
         member = FamilyMember(
             id=uuid4(),
             user_id=test_user.id,
@@ -172,7 +173,7 @@ class TestFamilyMemberCRUD:
             "member_type": "scout",
             "gender": "male",
             "dietary_preferences": ["vegetarian", "no_pork"],
-            "allergies": ["peanuts"]
+            "allergies": [{"allergy": "peanuts"}]
         }
         
         response = await client.post(

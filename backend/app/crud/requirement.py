@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from uuid import UUID
 
-from app.models.requirement import RankRequirement, MeritBadge, OutingRequirement, OutingMeritBadge
+from app.models.requirement import RankRequirement, MeritBadge, OutingRequirement, OutingMeritBadge, ParticipantProgress
 from app.services.change_log import record_change, compute_payload_hash
 from app.models.outing import Outing
 from app.schemas.requirement import (
@@ -16,6 +16,8 @@ from app.schemas.requirement import (
     OutingRequirementUpdate,
     OutingMeritBadgeCreate,
     OutingMeritBadgeUpdate,
+    ParticipantProgressCreate,
+    ParticipantProgressUpdate,
 )
 
 
@@ -362,5 +364,91 @@ async def remove_merit_badge_from_outing(
         return False
     await record_change(db, entity_type="outing_merit_badge", entity_id=db_outing_badge.id, op_type="delete")
     await db.delete(db_outing_badge)
+    await db.commit()
+    return True
+
+
+# ============================================================================
+# Participant Progress CRUD
+# ============================================================================
+
+async def get_participant_progress_list(
+    db: AsyncSession,
+    family_member_id: UUID
+) -> List[ParticipantProgress]:
+    """Get all progress records for a participant (async)"""
+    stmt = (
+        select(ParticipantProgress)
+        .options(selectinload(ParticipantProgress.requirement))
+        .where(ParticipantProgress.family_member_id == family_member_id)
+    )
+    result = await db.execute(stmt)
+    return result.scalars().all()
+
+
+async def get_participant_progress(
+    db: AsyncSession,
+    progress_id: UUID
+) -> Optional[ParticipantProgress]:
+    """Get a specific progress record (async)"""
+    stmt = (
+        select(ParticipantProgress)
+        .options(selectinload(ParticipantProgress.requirement))
+        .where(ParticipantProgress.id == progress_id)
+    )
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def create_participant_progress(
+    db: AsyncSession,
+    family_member_id: UUID,
+    progress: ParticipantProgressCreate
+) -> ParticipantProgress:
+    """Create a new progress record (async)"""
+    db_progress = ParticipantProgress(family_member_id=family_member_id, **progress.model_dump())
+    db.add(db_progress)
+    await db.flush()
+    await record_change(db, entity_type="participant_progress", entity_id=db_progress.id, op_type="create")
+    await db.commit()
+    # Re-query with relationship eager-loaded
+    stmt = select(ParticipantProgress).options(selectinload(ParticipantProgress.requirement)).where(ParticipantProgress.id == db_progress.id)
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none() or db_progress
+
+
+async def update_participant_progress(
+    db: AsyncSession,
+    progress_id: UUID,
+    progress: ParticipantProgressUpdate
+) -> Optional[ParticipantProgress]:
+    """Update a progress record (async)"""
+    result = await db.execute(select(ParticipantProgress).where(ParticipantProgress.id == progress_id))
+    db_progress = result.scalar_one_or_none()
+    if not db_progress:
+        return None
+    update_data = progress.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_progress, field, value)
+    await db.flush()
+    await record_change(db, entity_type="participant_progress", entity_id=db_progress.id, op_type="update")
+    await db.commit()
+    # Return with relationship loaded
+    stmt = select(ParticipantProgress).options(selectinload(ParticipantProgress.requirement)).where(ParticipantProgress.id == progress_id)
+    result = await db.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def delete_participant_progress(
+    db: AsyncSession,
+    progress_id: UUID
+) -> bool:
+    """Delete a progress record (async)"""
+    result = await db.execute(select(ParticipantProgress).where(ParticipantProgress.id == progress_id))
+    db_progress = result.scalar_one_or_none()
+    if not db_progress:
+        return False
+    await record_change(db, entity_type="participant_progress", entity_id=db_progress.id, op_type="delete")
+    await db.delete(db_progress)
     await db.commit()
     return True
