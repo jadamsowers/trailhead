@@ -1,72 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { SignIn, useUser } from '@clerk/clerk-react';
+import React, { useEffect } from 'react';
+import { useUser, SignIn } from '@stackframe/stack';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTheme } from '../utils/themeManager';
 
 const LoginPage: React.FC = () => {
-    const { isSignedIn } = useUser();
+    const user = useUser();
+    const isSignedIn = !!user;
     const navigate = useNavigate();
-    const { effectiveTheme } = useTheme();
-    const [clerkAppearance, setClerkAppearance] = useState<any>({});
-
-    // Update Clerk appearance whenever theme changes
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        const root = document.documentElement;
-        const styles = getComputedStyle(root);
-
-        // Helper to get CSS variable value
-        const getCSSVar = (varName: string) => styles.getPropertyValue(varName).trim();
-
-        console.log('🎨 Clerk appearance updating for theme:', effectiveTheme);
-
-        const newAppearance = {
-            variables: {
-                colorPrimary: getCSSVar('--color-primary'),
-                colorBackground: getCSSVar('--bg-primary'),
-                colorInputBackground: getCSSVar('--input-bg'),
-                colorInputText: getCSSVar('--input-text'),
-                colorText: getCSSVar('--text-primary'),
-                colorTextSecondary: getCSSVar('--text-secondary'),
-                colorDanger: getCSSVar('--color-error'),
-                borderRadius: '0.5rem', // Less rounded
-            },
-            elements: {
-                card: {
-                    border: `1px solid ${getCSSVar('--border-light')}`,
-                    boxShadow: 'none', // Remove shadow for static look
-                },
-                formButtonPrimary: {
-                    backgroundColor: getCSSVar('--btn-primary-bg'),
-                    color: getCSSVar('--btn-primary-text'),
-                    borderRadius: '0.5rem',
-                    boxShadow: 'none',
-                    transition: 'none',
-                    '&:hover': {
-                        backgroundColor: getCSSVar('--btn-primary-hover'),
-                    },
-                },
-                socialButtonsBlockButton: {
-                    backgroundColor: effectiveTheme === 'dark' ? '#303731' : '#F7F5F2',
-                    color: effectiveTheme === 'dark' ? '#EFE9E3' : '#0C160E',
-                    border: `1px solid ${getCSSVar('--border-medium')}`,
-                    borderRadius: '0.5rem',
-                    boxShadow: 'none',
-                    transition: 'none',
-                    '&:hover': {
-                        backgroundColor: effectiveTheme === 'dark' ? '#3A4139' : '#EFE9E3',
-                    },
-                },
-                socialButtonsBlockButtonText: {
-                    color: effectiveTheme === 'dark' ? '#EFE9E3' : '#0C160E',
-                    fontWeight: '600',
-                },
-            },
-        };
-
-        setClerkAppearance(newAppearance);
-    }, [effectiveTheme]);
 
     useEffect(() => {
         // Redirect to family setup if user is signed in
@@ -98,12 +37,7 @@ const LoginPage: React.FC = () => {
                 </p>
 
                 <div className="flex justify-center">
-                    <SignIn
-                        key={effectiveTheme} // Force re-render when theme changes
-                        afterSignInUrl="/family-setup"
-                        signUpUrl="/sign-up"
-                        appearance={clerkAppearance}
-                    />
+                    <SignIn />
                 </div>
             </div>
 
@@ -147,8 +81,8 @@ const LoginPage: React.FC = () => {
                     border: '1px solid var(--alert-info-border)',
                 }}
             >
-                <strong>ℹ️ About Clerk Authentication:</strong><br />
-                Clerk provides secure, modern authentication with built-in user management. Your credentials are never stored in this application.
+                <strong>ℹ️ About Stack Auth:</strong><br />
+                Stack Auth provides secure, open-source authentication with built-in user management. Your credentials are never stored in this application.
             </div>
         </div>
     );

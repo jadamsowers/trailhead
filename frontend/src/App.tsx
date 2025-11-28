@@ -283,7 +283,7 @@ const Navigation: React.FC = () => {
 
           {/* Desktop Menu */}
           <div className="hidden lg:flex lg:items-center">
-            <SignedIn>
+            {isSignedIn ? (
               <div className="flex items-center w-full gap-4">
                 {/* Left side navigation */}
                 <div className="flex items-center gap-4">
@@ -326,31 +326,11 @@ const Navigation: React.FC = () => {
                   )}
                   <div className="flex items-center gap-3 pl-4 border-l-2 border-white/20 h-10">
                     <ThemeToggleCompact />
-                    <UserButton
-                      afterSignOutUrl="/"
-                      appearance={{
-                        elements: {
-                          avatarBox: {
-                            borderRadius: "0.25rem",
-                            width: "40px",
-                            height: "40px",
-                          },
-                          userButtonTrigger: {
-                            borderRadius: "0.25rem",
-                            width: "40px",
-                            height: "40px",
-                            padding: "0",
-                            minWidth: "40px",
-                            minHeight: "40px",
-                          },
-                        },
-                      }}
-                    />
+                    <UserButton />
                   </div>
                 </div>
               </div>
-            </SignedIn>
-            <SignedOut>
+            ) : (
               <div className="flex items-center gap-6">
                 <ThemeToggleCompact />
                 <Link
@@ -361,7 +341,7 @@ const Navigation: React.FC = () => {
                   Sign In
                 </Link>
               </div>
-            </SignedOut>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -420,7 +400,8 @@ const Navigation: React.FC = () => {
         role="menu"
       >
         <div className="flex flex-col">
-          <SignedIn>
+          {isSignedIn ? (
+            <>
             <Link
               to="/outings"
               onClick={() => setMobileMenuOpen(false)}
@@ -500,37 +481,19 @@ const Navigation: React.FC = () => {
               <ThemeToggleCompact />
             </div>
             <div className="px-6 py-4 flex items-center gap-3 hover:bg-white/5 transition-colors">
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    avatarBox: {
-                      borderRadius: "0.25rem",
-                      width: "40px",
-                      height: "40px",
-                    },
-                    userButtonTrigger: {
-                      borderRadius: "0.25rem",
-                      width: "40px",
-                      height: "40px",
-                      padding: "0",
-                      minWidth: "40px",
-                      minHeight: "40px",
-                    },
-                  },
-                }}
-              />
+              <UserButton />
               <span
                 style={{
                   color: "var(--text-on-primary)",
                   fontSize: "0.875rem",
                 }}
               >
-                {user?.primaryEmailAddress?.emailAddress}
+                {user?.primaryEmail}
               </span>
             </div>
-          </SignedIn>
-          <SignedOut>
+            </>
+          ) : (
+            <>
             <div className="px-6 py-4 flex items-center justify-between border-b border-white/10 hover:bg-white/5 transition-colors">
               <span
                 style={{
@@ -553,7 +516,8 @@ const Navigation: React.FC = () => {
             >
               Sign In
             </Link>
-          </SignedOut>
+            </>
+          )}
         </div>
       </div>
     </nav>
@@ -614,27 +578,46 @@ const App: React.FC = () => {
   }, []);
 
   // If offline, show appropriate content
-  // AdminPage needs ClerkProvider even offline, so we wrap everything
+  // AdminPage needs StackProvider even offline, so we wrap everything
   if (isOffline) {
     console.log("🔴 OFFLINE MODE - Rendering offline UI");
     console.log("   isAdmin:", isAdmin, "cachedUser:", cachedUser);
     return (
-      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-        <Router>
-          <Routes>
-            <Route
-              path="/admin"
-              element={
-                cachedUser && isAdmin ? (
+      <StackProvider app={stackClientApp}>
+        <StackTheme>
+          <Router>
+            <Routes>
+              <Route
+                path="/admin"
+                element={
+                  cachedUser && isAdmin ? (
+                    <>
+                      {console.log("✅ Showing AdminPage for cached admin")}
+                      <AdminPage />
+                    </>
+                  ) : (
+                    <>
+                      {console.log(
+                        "❌ Showing OfflineMessage (not admin or no cached user)"
+                      )}
+                      <OfflineMessage
+                        isAdmin={isAdmin}
+                        onAdminClick={() => {
+                          console.log(
+                            "🔘 Admin button clicked, navigating to /admin"
+                          );
+                          window.location.href = "/admin";
+                        }}
+                      />
+                    </>
+                  )
+                }
+              />
+              <Route
+                path="*"
+                element={
                   <>
-                    {console.log("✅ Showing AdminPage for cached admin")}
-                    <AdminPage />
-                  </>
-                ) : (
-                  <>
-                    {console.log(
-                      "❌ Showing OfflineMessage (not admin or no cached user)"
-                    )}
+                    {console.log("📍 Catch-all route - showing OfflineMessage")}
                     <OfflineMessage
                       isAdmin={isAdmin}
                       onAdminClick={() => {
@@ -645,192 +628,192 @@ const App: React.FC = () => {
                       }}
                     />
                   </>
-                )
-              }
-            />
-            <Route
-              path="*"
-              element={
-                <>
-                  {console.log("📍 Catch-all route - showing OfflineMessage")}
-                  <OfflineMessage
-                    isAdmin={isAdmin}
-                    onAdminClick={() => {
-                      console.log(
-                        "🔘 Admin button clicked, navigating to /admin"
-                      );
-                      window.location.href = "/admin";
-                    }}
-                  />
-                </>
-              }
-            />
-          </Routes>
-        </Router>
-      </ClerkProvider>
+                }
+              />
+            </Routes>
+          </Router>
+        </StackTheme>
+      </StackProvider>
     );
   }
 
   console.log("🟢 ONLINE MODE - Rendering normal app");
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-      <BackendHealthCheck>
-        <Router>
-          <div className="min-h-screen relative flex flex-col">
-            <TopoBackground />
-            {/* Navigation Bar */}
-            <Navigation />
-            {/* Background Sync (global) */}
-            <BackgroundSync />
-            {/* Main Content */}
-            <main className="flex-grow w-full">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route
-                  path="/sign-up"
-                  element={
-                    <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-5">
-                      <div className="glass-panel p-8 rounded-xl w-full max-w-md">
-                        <SignUp
-                          afterSignUpUrl="/initial-setup"
-                          signInUrl="/login"
-                        />
+    <StackProvider app={stackClientApp}>
+      <StackTheme>
+        <BackendHealthCheck>
+          <Router>
+            <div className="min-h-screen relative flex flex-col">
+              <TopoBackground />
+              {/* Navigation Bar */}
+              <Navigation />
+              {/* Background Sync (global) */}
+              <BackgroundSync />
+              {/* Main Content */}
+              <main className="flex-grow w-full">
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/handler/*" element={<StackHandlerRoute />} />
+                  <Route
+                    path="/sign-up"
+                    element={
+                      <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-5">
+                        <div className="glass-panel p-8 rounded-xl w-full max-w-md">
+                          <StackHandler app={stackClientApp} fullPage />
+                        </div>
                       </div>
+                    }
+                  />
+                  <Route path="/admin-setup" element={<AdminSetupPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
+                  <Route
+                    path="/initial-setup"
+                    element={
+                      <RequireAuth>
+                        <InitialSignInWizard />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/family-setup"
+                    element={
+                      <RequireAuth>
+                        <InitialSetupGuard>
+                          <FamilySetupPage />
+                        </InitialSetupGuard>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <RequireAuth>
+                        <InitialSetupGuard>
+                          <ProfilePage />
+                        </InitialSetupGuard>
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/outings"
+                    element={
+                      <InitialSetupGuard>
+                        <OutingsPage />
+                      </InitialSetupGuard>
+                    }
+                  />
+                  <Route
+                    path="/check-in/:outingId"
+                    element={
+                      <RequireAuth>
+                        <InitialSetupGuard>
+                          <CheckInPage />
+                        </InitialSetupGuard>
+                      </RequireAuth>
+                    }
+                  />
+                </Routes>
+              </main>
+              {/* Footer */}
+              <footer
+                className="py-10 sm:py-16 mt-auto border-t border-white/15"
+                style={{
+                  backgroundColor: "var(--color-primary)",
+                  color: "var(--text-on-primary)",
+                }}
+              >
+                <div className="max-w-6xl mx-auto px-6 sm:px-8">
+                  <div className="flex flex-col items-center gap-8 text-center">
+                    {/* Logo and Title */}
+                    <div className="flex items-center gap-5">
+                      <img
+                        src="/icon/icon-large-bordered.png"
+                        alt="Trailhead Logo"
+                        className="h-14 w-14 sm:h-20 sm:w-20"
+                      />
+                      <h2
+                        className="font-heading font-extrabold text-4xl sm:text-5xl tracking-tight leading-none"
+                        style={{
+                          color: "var(--text-on-primary)",
+                          letterSpacing: "-0.02em",
+                        }}
+                      >
+                        Trailhead
+                      </h2>
                     </div>
-                  }
-                />
-                <Route path="/admin-setup" element={<AdminSetupPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route
-                  path="/initial-setup"
-                  element={
-                    <SignedIn>
-                      <InitialSignInWizard />
-                    </SignedIn>
-                  }
-                />
-                <Route
-                  path="/family-setup"
-                  element={
-                    <SignedIn>
-                      <InitialSetupGuard>
-                        <FamilySetupPage />
-                      </InitialSetupGuard>
-                    </SignedIn>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <SignedIn>
-                      <InitialSetupGuard>
-                        <ProfilePage />
-                      </InitialSetupGuard>
-                    </SignedIn>
-                  }
-                />
-                <Route
-                  path="/outings"
-                  element={
-                    <InitialSetupGuard>
-                      <OutingsPage />
-                    </InitialSetupGuard>
-                  }
-                />
-                <Route
-                  path="/check-in/:outingId"
-                  element={
-                    <SignedIn>
-                      <InitialSetupGuard>
-                        <CheckInPage />
-                      </InitialSetupGuard>
-                    </SignedIn>
-                  }
-                />
-              </Routes>
-            </main>
-            {/* Footer */}
-            <footer
-              className="py-10 sm:py-16 mt-auto border-t border-white/15"
-              style={{
-                backgroundColor: "var(--color-primary)",
-                color: "var(--text-on-primary)",
-              }}
-            >
-              <div className="max-w-6xl mx-auto px-6 sm:px-8">
-                <div className="flex flex-col items-center gap-8 text-center">
-                  {/* Logo and Title */}
-                  <div className="flex items-center gap-5">
-                    <img
-                      src="/icon/icon-large-bordered.png"
-                      alt="Trailhead Logo"
-                      className="h-14 w-14 sm:h-20 sm:w-20"
-                    />
-                    <h2
-                      className="font-heading font-extrabold text-4xl sm:text-5xl tracking-tight leading-none"
+
+                    {/* Tagline */}
+                    <p
+                      className="italic text-xl sm:text-2xl font-light max-w-2xl leading-relaxed"
                       style={{
                         color: "var(--text-on-primary)",
-                        letterSpacing: "-0.02em",
+                        opacity: 0.95,
+                        fontFamily: "Georgia, serif",
                       }}
                     >
-                      Trailhead
-                    </h2>
-                  </div>
+                      Putting the 'outing' back in 'Scouting'
+                    </p>
 
-                  {/* Tagline */}
-                  <p
-                    className="italic text-xl sm:text-2xl font-light max-w-2xl leading-relaxed"
-                    style={{
-                      color: "var(--text-on-primary)",
-                      opacity: 0.95,
-                      fontFamily: "Georgia, serif",
-                    }}
-                  >
-                    Putting the 'outing' back in 'Scouting'
-                  </p>
-
-                  {/* Credits */}
-                  <div
-                    className="italic text-base sm:text-lg font-light leading-relaxed tracking-wide"
-                    style={{
-                      color: "var(--text-on-primary)",
-                      opacity: 0.9,
-                      fontFamily: '"Merriweather", Georgia, serif',
-                    }}
-                  >
-                    <a
-                      href="https://github.com/jadamsowers/trailhead"
-                      className="hover:underline transition-all duration-200 hover:opacity-100 hover:scale-105 inline-block font-semibold"
-                      style={{ color: "var(--text-on-primary)" }}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    {/* Credits */}
+                    <div
+                      className="italic text-base sm:text-lg font-light leading-relaxed tracking-wide"
+                      style={{
+                        color: "var(--text-on-primary)",
+                        opacity: 0.9,
+                        fontFamily: '"Merriweather", Georgia, serif',
+                      }}
                     >
-                      Vibe-coded
-                    </a>{" "}
-                    with
-                    <span className="mx-2 text-xl">⚜️</span>
-                    <span className="mx-1 text-xl">❤️</span>
-                    <span className="mx-2 text-xl">🤖</span>
-                    <span className="font-normal">by </span>
-                    <a
-                      href="https://scouthacks.net/"
-                      className="hover:underline transition-all duration-200 hover:opacity-100 hover:scale-105 inline-block font-bold"
-                      style={{ color: "var(--text-on-primary)" }}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Adam Sowers
-                    </a>
+                      <a
+                        href="https://github.com/jadamsowers/trailhead"
+                        className="hover:underline transition-all duration-200 hover:opacity-100 hover:scale-105 inline-block font-semibold"
+                        style={{ color: "var(--text-on-primary)" }}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Vibe-coded
+                      </a>{" "}
+                      with
+                      <span className="mx-2 text-xl">⚜️</span>
+                      <span className="mx-1 text-xl">❤️</span>
+                      <span className="mx-2 text-xl">🤖</span>
+                      <span className="font-normal">by </span>
+                      <a
+                        href="https://scouthacks.net/"
+                        className="hover:underline transition-all duration-200 hover:opacity-100 hover:scale-105 inline-block font-bold"
+                        style={{ color: "var(--text-on-primary)" }}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Adam Sowers
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </footer>
-          </div>
-        </Router>
-      </BackendHealthCheck>
-    </ClerkProvider>
+              </footer>
+            </div>
+          </Router>
+        </BackendHealthCheck>
+      </StackTheme>
+    </StackProvider>
   );
+};
+
+// Helper component for Stack Auth handler routes
+const StackHandlerRoute: React.FC = () => {
+  const location = useLocation();
+  return <StackHandler app={stackClientApp} location={location.pathname} fullPage />;
+};
+
+// Helper component to require authentication
+const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const user = useUser();
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
 };
 
 export default App;

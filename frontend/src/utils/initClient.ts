@@ -1,4 +1,5 @@
 import { OpenAPI } from "../client";
+import { stackClientApp } from "../stack/client";
 
 /**
  * Initialize the generated API client with configuration
@@ -13,42 +14,37 @@ export const initApiClient = () => {
   const normalizedRoot = raw.replace(/\/api\/?$/i, "");
   OpenAPI.BASE = normalizedRoot;
 
-  // Set token retrieval logic
+  // Set token retrieval logic using Stack Auth
   OpenAPI.TOKEN = async () => {
-    // Wait for Clerk to load
-    let retries = 0;
-    const maxRetries = 20; // Increased from 10 to match getAuthHeaders
-    while (!window.Clerk && retries < maxRetries) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      retries++;
-    }
+    try {
+      // Get the current user from Stack Auth
+      const user = stackClientApp.useUser?.();
+      
+      if (!user) {
+        console.warn("⚠️ No Stack Auth user found - user may not be signed in yet");
+        throw new Error(
+          "You must be signed in to access this feature. Please sign in and try again."
+        );
+      }
 
-    if (!window.Clerk) {
-      console.error("❌ Clerk is not loaded after retries");
-      throw new Error(
-        "Authentication system not initialized. Please refresh the page."
+      // Get the access token from Stack Auth
+      const token = await stackClientApp.getAccessToken?.();
+      
+      if (!token) {
+        console.error("❌ Failed to get Stack Auth access token");
+        throw new Error(
+          "Failed to get authentication token. Please sign out and sign in again."
+        );
+      }
+
+      console.log(
+        "✅ Using Stack Auth access token (first 20 chars):",
+        token.substring(0, 20) + "..."
       );
+      return token;
+    } catch (error) {
+      console.error("❌ Authentication error in TOKEN retrieval:", error);
+      throw error;
     }
-
-    if (!window.Clerk.session) {
-      console.warn("⚠️ No Clerk session found - user may not be signed in yet");
-      throw new Error(
-        "You must be signed in to access this feature. Please sign in and try again."
-      );
-    }
-
-    const token = await window.Clerk.session.getToken();
-    if (!token) {
-      console.error("❌ Failed to get Clerk session token");
-      throw new Error(
-        "Failed to get authentication token. Please sign out and sign in again."
-      );
-    }
-
-    console.log(
-      "✅ Using Clerk session token (first 20 chars):",
-      token.substring(0, 20) + "..."
-    );
-    return token;
   };
 };

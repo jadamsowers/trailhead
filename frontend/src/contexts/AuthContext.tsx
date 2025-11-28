@@ -5,9 +5,10 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { useUser as useStackUser } from "@stackframe/stack";
 import { oauthAPI, authAPI } from "../services/api";
-import { ClerkAuthService } from "../client/services/ClerkAuthService";
-import type { UserResponse as ClerkUserResponse } from "../client/models/UserResponse";
+import { stackClientApp } from "../stack/client";
+import type { UserResponse as AuthUserResponse } from "../client/models/UserResponse";
 import { User } from "../types";
 
 interface AuthContextType {
@@ -32,33 +33,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for OAuth callback
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
-    const state = urlParams.get("state");
-    const accessToken = urlParams.get("access_token");
-    const refreshToken = urlParams.get("refresh_token");
-
-    if (code && state) {
-      // OAuth callback - exchange code for tokens
-      handleOAuthCallback(code, state);
-    } else if (accessToken && refreshToken) {
-      // Direct token in URL (from backend redirect)
-      handleOAuthTokens(accessToken, refreshToken);
-    } else {
-      // Check for existing token
-      const token = localStorage.getItem("access_token");
-      if (token && navigator.onLine) {
-        verifyToken(token);
-      } else {
-        // If offline, try to load cached user
-        const cachedUser = localStorage.getItem("cached_user");
-        if (cachedUser) {
-          setUser(JSON.parse(cachedUser));
+    // Check for existing token or session
+    const checkAuth = async () => {
+      try {
+        const token = await stackClientApp.getAccessToken?.();
+        if (token) {
+          await verifyToken(token);
+        } else {
+          // If no token, try to load cached user
+          const cachedUser = localStorage.getItem("cached_user");
+          if (cachedUser) {
+            setUser(JSON.parse(cachedUser));
+          }
+          setLoading(false);
         }
+      } catch (error) {
+        console.error("Auth check failed:", error);
         setLoading(false);
       }
-    }
+    };
+
+    checkAuth();
   }, []);
 
   // Always cache user object when it changes
@@ -74,55 +69,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const verifyToken = async (_token: string) => {
     try {
-      // Prefer Clerk-authenticated endpoint; token param may be legacy
-      const userData = await ClerkAuthService.getCurrentUserInfoApiClerkMeGet();
+      // Fetch user from backend using Stack Auth authenticated endpoint
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${_token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to verify token");
+      }
+      
+      const userData = await response.json();
       const normalized = normalizeUserResponse(userData);
       setUser(normalized);
       localStorage.setItem("cached_user", JSON.stringify(normalized));
     } catch (error) {
-      console.error("Token verification via Clerk failed:", error);
+      console.error("Token verification via Stack Auth failed:", error);
       setLoading(false);
     } finally {
       setLoading(false);
     }
   };
-
-  const handleOAuthCallback = async (code: string, state: string) => {
-    if (!oauthAPI.verifyState(state)) {
-      console.error("Invalid state parameter");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const redirectUri = `${window.location.origin}${window.location.pathname}`;
-      const response = await oauthAPI.exchangeCode(code, redirectUri);
-      handleOAuthTokens(response.access_token, response.refresh_token || "");
-    } catch (error) {
-      console.error("OAuth callback failed:", error);
-      setLoading(false);
-    }
-  };
-
-  const handleOAuthTokens = async (
-    accessToken: string,
-    refreshToken: string
-  ) => {
-    // Store tokens if provided, but Clerk session is the source of truth
-    if (accessToken) localStorage.setItem("access_token", accessToken);
-    if (refreshToken) localStorage.setItem("refresh_token", refreshToken);
-
-    const userData = await ClerkAuthService.getCurrentUserInfoApiClerkMeGet();
-    const normalized = normalizeUserResponse(userData);
-    setUser(normalized);
-    localStorage.setItem("cached_user", JSON.stringify(normalized));
-    setLoading(false);
-
-    // Clean up URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-  };
-
-  // Clerk handles token lifecycle; no explicit refresh method needed here
 
   const login = async (email: string, password: string) => {
     // Legacy login for admin accounts
@@ -138,22 +106,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const loginWithOAuth = () => {
-    // Open Clerk sign-in instead of legacy OAuth redirect
-    if (window.Clerk && typeof window.Clerk.openSignIn === "function") {
-      window.Clerk.openSignIn();
-    } else {
-      console.error("Clerk sign-in UI not available.");
-    }
+    // Open Stack Auth sign-in
+    window.location.href = "/handler/sign-in";
   };
 
   const logout = async () => {
-    const refreshToken = localStorage.getItem("refresh_token");
-    if (refreshToken) {
-      try {
-        await oauthAPI.logout(refreshToken);
-      } catch (error) {
-        console.error("Logout error:", error);
-      }
+    try {
+      await stackClientApp.signOut?.();
+    } catch (error) {
+      console.error("Logout error:", error);
     }
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
@@ -187,8 +148,8 @@ export const useAuth = () => {
   return context;
 };
 
-// Convert Clerk-generated UserResponse to app's User type
-const normalizeUserResponse = (u: ClerkUserResponse): User => {
+// Convert user response to app's User type
+const normalizeUserResponse = (u: AuthUserResponse): User => {
   const allowedRoles: Array<User["role"]> = [
     "admin",
     "outing-admin",
@@ -213,3 +174,4 @@ const normalizeUserResponse = (u: ClerkUserResponse): User => {
       : undefined,
   };
 };
+
