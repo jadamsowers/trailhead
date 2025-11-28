@@ -13,9 +13,9 @@ const FamilySetupPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Only check family members after Clerk is loaded AND user is signed in
+    // Only check family members after Stack Auth is loaded AND user is signed in
     if (isLoaded && isSignedIn) {
-      // Add a small delay to ensure Clerk session is fully initialized
+      // Add a small delay to ensure Stack Auth session is fully initialized
       const timer = setTimeout(() => {
         checkFamilyMembers();
       }, 100);

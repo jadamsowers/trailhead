@@ -7,7 +7,7 @@ const OAuthCallbackPage: React.FC = () => {
     const { isSignedIn, isLoaded } = useUser();
 
     useEffect(() => {
-        // Clerk handles OAuth callbacks automatically
+        // Stack Auth handles OAuth callbacks automatically
         // Once loaded, redirect to appropriate page
         if (isLoaded) {
             if (isSignedIn) {

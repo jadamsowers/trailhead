@@ -15,7 +15,7 @@ import {
 const SignupForm: React.FC = () => {
   const { user, isSignedIn } = useUser();
   const isAuthenticated = isSignedIn;
-  const isParent = true; // All Clerk users are parents by default
+  const isParent = true; // All Stack Auth users are parents by default
   const [outings, setOutings] = useState<Outing[]>([]);
   const [mySignups, setMySignups] = useState<SignupResponse[]>([]);
   const [mySignupOutingIds, setMySignupOutingIds] = useState<Set<string>>(

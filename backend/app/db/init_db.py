@@ -2,7 +2,7 @@
 Database initialization script.
 
 This script verifies database connectivity and displays the configured admin email.
-With Clerk authentication, admin users are automatically created when they first sign in
+With Stack Auth authentication, admin users are automatically created when they first sign in
 with the configured INITIAL_ADMIN_EMAIL.
 
 Usage:
@@ -34,14 +34,14 @@ async def init_db() -> None:
         print("\n" + "="*60)
         print("✓ Database connection successful!")
         print("="*60)
-        print("\nClerk-Based Authentication Configuration:")
+        print("\nStack Auth Authentication Configuration:")
         print(f"  Initial Admin Email: {settings.INITIAL_ADMIN_EMAIL}")
         print("\nℹ️  Admin Setup Instructions:")
-        print("  1. Create a Clerk account at https://dashboard.clerk.com")
+        print("  1. Create a Stack Auth account at the Stack Auth dashboard")
         print("  2. Sign up with the email: " + settings.INITIAL_ADMIN_EMAIL)
         print("  3. On first sign-in, you will automatically be granted admin role")
-        print("\n⚠️  IMPORTANT: Keep your Clerk account secure!")
-        print("  - Enable two-factor authentication in Clerk dashboard")
+        print("\n⚠️  IMPORTANT: Keep your Stack Auth account secure!")
+        print("  - Enable two-factor authentication in Stack Auth dashboard")
         print("  - Use a strong, unique password")
         print("="*60 + "\n")
         # Attempt to import default packing list templates (no-op if already present)

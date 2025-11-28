@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@stackframe/stack";
+import { stackClientApp } from "../stack/client";
 import { getApiBase } from "../utils/apiBase";
 import {
   formatPhoneNumber,
@@ -156,11 +157,11 @@ const InitialSignInWizard: React.FC = () => {
           youth_protection_expiration: form.yptDate || null,
         };
 
-        // Get Clerk token
-        const token = await window.Clerk?.session?.getToken();
+        // Get Stack Auth token
+        const token = await stackClientApp.getAccessToken();
         if (!token) throw new Error("Not authenticated");
 
-        // Update user contact information via Clerk-backed endpoint
+        // Update user contact information via Stack Auth-backed endpoint
         const updateResponse = await fetch(`${getApiBase()}/auth/me/contact`, {
           method: "PATCH",
           headers: {
@@ -195,7 +196,7 @@ const InitialSignInWizard: React.FC = () => {
         // Save troops and patrols
         for (const troop of troops) {
           if (troop.number) {
-            const token = await window.Clerk?.session?.getToken();
+            const token = await stackClientApp.getAccessToken();
             const troopResponse = await fetch(`${getApiBase()}/troops`, {
               method: "POST",
               headers: {

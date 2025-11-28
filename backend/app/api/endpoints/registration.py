@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, EmailStr, Field
 
 from app.db.session import get_db
-from app.core.clerk import get_clerk_client
+from app.core.stackauth import get_stackauth_client
 from app.models.user import User
 from sqlalchemy import select
 
@@ -36,11 +36,11 @@ async def register_parent(
     Register a new adult account.
     
     Note: This endpoint is deprecated. User registration should be handled
-    through Clerk's sign-up flow. Users are automatically created in the
-    local database when they first authenticate via Clerk.
+    through Stack Auth's sign-up flow. Users are automatically created in the
+    local database when they first authenticate via Stack Auth.
     """
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Registration is handled through Clerk. Please use the Clerk sign-up flow."
+        detail="Registration is handled through Stack Auth. Please use the Clerk sign-up flow."
     )
 

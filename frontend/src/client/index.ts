@@ -95,7 +95,6 @@ export type { UserResponse } from './models/UserResponse';
 export type { ValidationError } from './models/ValidationError';
 
 export { CheckInService } from './services/CheckInService';
-export { ClerkAuthService } from './services/ClerkAuthService';
 export { DefaultService } from './services/DefaultService';
 export { FamilyManagementService } from './services/FamilyManagementService';
 export { GrubmasterService } from './services/GrubmasterService';

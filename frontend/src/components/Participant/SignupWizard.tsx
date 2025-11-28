@@ -176,7 +176,7 @@ const SignupWizard: React.FC = () => {
       });
     } catch (err) {
       console.error("Failed to load user contact info:", err);
-      // Fallback to email from Clerk
+      // Fallback to email from Stack Auth
       if (user?.primaryEmailAddress?.emailAddress) {
         setContactInfo((prev) => ({
           ...prev,

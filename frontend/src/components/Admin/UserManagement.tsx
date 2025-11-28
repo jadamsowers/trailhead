@@ -16,7 +16,7 @@ const UserManagement: React.FC = () => {
       "Content-Type": "application/json",
     };
 
-    // Try to get Clerk session token first
+    // Try to get Stack Auth session token first
     try {
       const token = await getToken();
       if (token) {
@@ -24,7 +24,7 @@ const UserManagement: React.FC = () => {
         return headers;
       }
     } catch (error) {
-      console.warn("Failed to get Clerk token:", error);
+      console.warn("Failed to get Stack Auth token:", error);
     }
 
     // Fall back to localStorage token for legacy admin accounts

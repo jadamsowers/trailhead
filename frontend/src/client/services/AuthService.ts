@@ -16,7 +16,7 @@ export class AuthService {
      * @returns UserResponse Successful Response
      * @throws ApiError
      */
-    public static getCurrentUserInfoApiClerkMeGet(): CancelablePromise<UserResponse> {
+    public static getCurrentUserInfoApiAuthMeGet(): CancelablePromise<UserResponse> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/auth/me',
@@ -30,7 +30,7 @@ export class AuthService {
      * @returns UserResponse Successful Response
      * @throws ApiError
      */
-    public static updateContactInfoApiClerkMeContactPatch(
+    public static updateContactInfoApiAuthMeContactPatch(
         requestBody: UserContactUpdate,
     ): CancelablePromise<UserResponse> {
         return __request(OpenAPI, {
@@ -49,7 +49,7 @@ export class AuthService {
      * @returns UserResponse Successful Response
      * @throws ApiError
      */
-    public static markInitialSetupCompleteApiClerkMeInitialSetupCompletePost(): CancelablePromise<UserResponse> {
+    public static markInitialSetupCompleteApiAuthMeInitialSetupCompletePost(): CancelablePromise<UserResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/auth/me/initial-setup/complete',
@@ -57,13 +57,13 @@ export class AuthService {
     }
     /**
      * Sync User Role
-     * Sync user role from Clerk metadata to local database.
-     * This endpoint fetches the role directly from Clerk to ensure security.
+     * Sync user role from Stack Auth metadata to local database.
+     * This endpoint fetches the role directly from Stack Auth to ensure security.
      * Rate limit: 10 requests per minute per IP.
      * @returns any Successful Response
      * @throws ApiError
      */
-    public static syncUserRoleApiClerkSyncRolePost(): CancelablePromise<any> {
+    public static syncUserRoleApiAuthSyncRolePost(): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/auth/sync-role',
@@ -75,7 +75,7 @@ export class AuthService {
      * @returns UserResponse Successful Response
      * @throws ApiError
      */
-    public static listUsersApiClerkUsersGet(): CancelablePromise<Array<UserResponse>> {
+    public static listUsersApiAuthUsersGet(): CancelablePromise<Array<UserResponse>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/auth/users',
@@ -90,7 +90,7 @@ export class AuthService {
      * @returns UserResponse Successful Response
      * @throws ApiError
      */
-    public static updateUserRoleApiClerkUsersUserIdRolePatch(
+    public static updateUserRoleApiAuthUsersUserIdRolePatch(
         userId: string,
         requestBody: UpdateUserRoleRequest,
     ): CancelablePromise<UserResponse> {
