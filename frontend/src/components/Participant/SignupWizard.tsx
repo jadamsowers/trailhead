@@ -16,6 +16,7 @@ import {
   invalidateFamilyData,
 } from "../../hooks/useSWR";
 import { RequirementsService } from "../../client/services/RequirementsService";
+import { calculateAge } from "../../utils/ageInference";
 import type { OutingRequirementResponse } from "../../client/models/OutingRequirementResponse";
 import type { OutingMeritBadgeResponse } from "../../client/models/OutingMeritBadgeResponse";
 
@@ -872,33 +873,27 @@ const SignupWizard: React.FC = () => {
                                   signup.family_contact_phone,
                               });
                               // Pre-select current participants
-                              const participantFamilyMemberIds =
-                                signup.participants
-                                  .map((p) => {
-                                    // Find the family member ID from the participant
-                                    const fm = familyMembers.find(
-                                      (f) => f.name === p.name
-                                    );
-                                    return fm?.id;
-                                  })
-                                  .filter(Boolean) as string[];
+                                                      const participantFamilyMemberIds = signup.participants
+                                                        .map((p) => {
+                                                          // Match by name; fallback to classification by age if needed
+                                                          const fm = familyMembers.find((f) => f.name === p.name);
+                                                          return fm?.id;
+                                                        })
+                                                        .filter(Boolean) as string[];
 
-                              const adults = participantFamilyMemberIds.filter(
-                                (id) => {
-                                  const fm = familyMembers.find(
-                                    (f) => f.id === id
-                                  );
-                                  return fm?.member_type === "adult";
-                                }
-                              );
-                              const scouts = participantFamilyMemberIds.filter(
-                                (id) => {
-                                  const fm = familyMembers.find(
-                                    (f) => f.id === id
-                                  );
-                                  return fm?.member_type === "scout";
-                                }
-                              );
+                                                      const adults = participantFamilyMemberIds.filter((id) => {
+                                                        const fm = familyMembers.find((f) => f.id === id);
+                                                        if (!fm) return false;
+                                                        // Re-infer type from DOB to ensure consistency
+                                                        const age = calculateAge(fm.date_of_birth || undefined);
+                                                        return age !== null && age >= 18;
+                                                      });
+                                                      const scouts = participantFamilyMemberIds.filter((id) => {
+                                                        const fm = familyMembers.find((f) => f.id === id);
+                                                        if (!fm) return false;
+                                                        const age = calculateAge(fm.date_of_birth || undefined);
+                                                        return age !== null && age < 18;
+                                                      });
 
                               setSelectedAdultIds(adults);
                               setSelectedScoutIds(scouts);
@@ -1740,7 +1735,11 @@ ${
               ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
                   {familyMembers
-                    .filter((m) => m.member_type === "adult")
+                    .filter((m) => {
+                      // Re-infer adult classification by DOB for consistency
+                      const age = calculateAge(m.date_of_birth || undefined);
+                      return age !== null && age >= 18;
+                    })
                     .map((member) => {
                       const isSelected = selectedAdultIds.includes(member.id);
                       const isExpired =
@@ -1929,7 +1928,10 @@ ${
               ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
                   {familyMembers
-                    .filter((m) => m.member_type === "scout")
+                    .filter((m) => {
+                      const age = calculateAge(m.date_of_birth || undefined);
+                      return age !== null && age < 18;
+                    })
                     .map((member) => {
                       const isSelected = selectedScoutIds.includes(member.id);
                       const availableSeats = calculateAvailableSeats();

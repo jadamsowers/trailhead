@@ -4,16 +4,14 @@
 
 Enhancements to family profile and requests
 
-- [ ] Add grubmaster request functionality
-  - [ ] trip admin approves grubmasters
+- [x] Add grubmaster request functionality
+  - [x] trip admin approves grubmasters
 - [ ] Add gear request functionality
 - [x] Store emergency contact information and phone number with account
   - [x] If the user updates during signup, update the account
   - [x] Created Profile page for users to view and edit contact information
 
 ## Troop Management
-
-This should really happen when the first admin logs in.
 
 - [ ] Add option to restrict signup by troop for outings
 - [ ] Families choose troop from dropdown when setting up members
@@ -27,6 +25,13 @@ This should really happen when the first admin logs in.
 - [ ] should be able to see each others' signups (if other user allows it)
 - [ ] should have ability to link family accounts (need some mutual acceptance)
 - [ ] there should also be some way for e.g. divorced couples to both have their own accounts, but manage shared scouts signups to prevent duplication
+
+## Tenting manager
+
+- [ ] ensures that scouts are within two years of each other when tenting
+- [ ] prevents scouts with different sexes from tenting together
+- [ ] prefers scouts in the same patrol to tent together
+- [ ] keeps it to 2-3 scouts per tent (2 preferred, 3 if needed due to odd number of scouts)
 
 ## Accessibility Improvements
 

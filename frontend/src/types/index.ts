@@ -319,6 +319,8 @@ export interface FamilyMemberSummary {
   vehicle_capacity?: number;
   has_youth_protection?: boolean;
   youth_protection_expired?: boolean;
+  // Adding DOB so client can re-infer member type consistently across components
+  date_of_birth?: string;
 }
 
 export interface FamilyMemberListResponse {
