@@ -213,7 +213,14 @@ export const PlacePicker: React.FC<PlacePickerProps> = ({
 
   const handleNominatimSelect = (result: NominatimResult) => {
     const formattedAddress = formatNominatimAddress(result);
-    const placeName = result.address.road || result.display_name.split(",")[0];
+    const addr = result.address;
+    
+    // Use the same title logic as getNominatimDisplayParts
+    // Priority: name > amenity > road > first part of display_name
+    const placeName = result.name || 
+                      addr.amenity || 
+                      addr.road || 
+                      result.display_name.split(",")[0];
     
     setSearchValue(placeName);
     setShowDropdown(false);
