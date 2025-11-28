@@ -1,7 +1,4 @@
-// Get Clerk publishable key from environment
-const CLERK_PUBLISHABLE_KEY =
-  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ||
-  "pk_test_your_clerk_publishable_key_here";
+// Stack Auth configuration
 import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -12,13 +9,13 @@ import {
   useLocation,
 } from "react-router-dom";
 import {
-  ClerkProvider,
-  SignedIn,
-  SignedOut,
-  UserButton,
+  StackProvider,
+  StackTheme,
+  StackHandler,
   useUser,
-  SignUp,
-} from "@clerk/clerk-react";
+  UserButton,
+} from "@stackframe/stack";
+import { stackClientApp } from "./stack/client";
 import BackendHealthCheck from "./components/Shared/BackendHealthCheck";
 import { BackgroundSync } from "./components/BackgroundSync";
 import { ThemeToggleCompact } from "./components/Shared/ThemeToggle";
@@ -111,7 +108,8 @@ const OfflineMessage: React.FC<OfflineMessageProps> = ({
 );
 
 const HomePage: React.FC = () => {
-  const { isSignedIn } = useUser();
+  const user = useUser();
+  const isSignedIn = !!user;
 
   // Redirect signed-in users to family setup or outings
   if (isSignedIn) {
@@ -198,7 +196,8 @@ const HomePage: React.FC = () => {
 };
 
 const Navigation: React.FC = () => {
-  const { user, isLoaded, isSignedIn } = useUser();
+  const user = useUser();
+  const isSignedIn = !!user;
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [backendUser, setBackendUser] = useState<User | null>(null);
@@ -207,10 +206,10 @@ const Navigation: React.FC = () => {
   useEffect(() => {
     const fetchUserRole = async () => {
       try {
-        // Wait for Clerk to be fully loaded and user to be signed in
-        if (!isLoaded || !isSignedIn) {
+        // Wait for Stack Auth to be fully loaded and user to be signed in
+        if (!isSignedIn) {
           console.log(
-            "⏳ Navigation: Waiting for Clerk to load and user to sign in"
+            "⏳ Navigation: Waiting for Stack Auth to load and user to sign in"
           );
           return;
         }
@@ -225,7 +224,7 @@ const Navigation: React.FC = () => {
     };
 
     fetchUserRole();
-  }, [user, isLoaded, isSignedIn]);
+  }, [user, isSignedIn]);
 
   const isAdmin = backendUser?.role === "admin";
   const isActive = (path: string) => location.pathname === path;
