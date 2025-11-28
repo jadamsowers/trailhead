@@ -20,7 +20,7 @@ async def test_mark_initial_setup_complete_endpoint(client: AsyncClient, test_us
 
     try:
         response = await client.post(
-            "/api/clerk/me/initial-setup/complete",
+            "/api/auth/me/initial-setup/complete",
             headers={"Authorization": "Bearer mock_token"},
         )
         assert response.status_code == 200
