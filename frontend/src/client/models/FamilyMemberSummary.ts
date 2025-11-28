@@ -10,6 +10,7 @@ export type FamilyMemberSummary = {
     name: string;
     member_type: string;
     troop_number?: (string | null);
+    troop_id?: (string | null);
     age?: (number | null);
     vehicle_capacity?: (number | null);
     has_youth_protection?: (boolean | null);

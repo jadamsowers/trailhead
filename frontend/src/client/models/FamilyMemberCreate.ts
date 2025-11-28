@@ -28,6 +28,14 @@ export type FamilyMemberCreate = {
      */
     patrol_name?: (string | null);
     /**
+     * Relational troop ID (preferred over troop_number)
+     */
+    troop_id?: (string | null);
+    /**
+     * Relational patrol ID (preferred over patrol_name)
+     */
+    patrol_id?: (string | null);
+    /**
      * Youth protection training status (for adults)
      */
     has_youth_protection?: boolean;

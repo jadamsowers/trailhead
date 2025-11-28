@@ -12,6 +12,9 @@ import type { OutingRequirementCreate } from '../models/OutingRequirementCreate'
 import type { OutingRequirementResponse } from '../models/OutingRequirementResponse';
 import type { OutingRequirementUpdate } from '../models/OutingRequirementUpdate';
 import type { OutingSuggestions } from '../models/OutingSuggestions';
+import type { ParticipantProgressCreate } from '../models/ParticipantProgressCreate';
+import type { ParticipantProgressResponse } from '../models/ParticipantProgressResponse';
+import type { ParticipantProgressUpdate } from '../models/ParticipantProgressUpdate';
 import type { PreviewSuggestionsRequest } from '../models/PreviewSuggestionsRequest';
 import type { RankRequirementCreate } from '../models/RankRequirementCreate';
 import type { RankRequirementResponse } from '../models/RankRequirementResponse';
@@ -426,6 +429,98 @@ export class RequirementsService {
             url: '/api/requirements/outings/merit-badges/{outing_badge_id}',
             path: {
                 'outing_badge_id': outingBadgeId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * List Participant Progress
+     * Get all progress records for a participant (async)
+     * @param familyMemberId
+     * @returns ParticipantProgressResponse Successful Response
+     * @throws ApiError
+     */
+    public static listParticipantProgressApiRequirementsParticipantsFamilyMemberIdProgressGet(
+        familyMemberId: string,
+    ): CancelablePromise<Array<ParticipantProgressResponse>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/requirements/participants/{family_member_id}/progress',
+            path: {
+                'family_member_id': familyMemberId,
+            },
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Record Participant Progress
+     * Record progress for a participant (admin only, async)
+     * @param familyMemberId
+     * @param requestBody
+     * @returns ParticipantProgressResponse Successful Response
+     * @throws ApiError
+     */
+    public static recordParticipantProgressApiRequirementsParticipantsFamilyMemberIdProgressPost(
+        familyMemberId: string,
+        requestBody: ParticipantProgressCreate,
+    ): CancelablePromise<ParticipantProgressResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/requirements/participants/{family_member_id}/progress',
+            path: {
+                'family_member_id': familyMemberId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Update Participant Progress
+     * Update a participant progress record (admin only, async)
+     * @param progressId
+     * @param requestBody
+     * @returns ParticipantProgressResponse Successful Response
+     * @throws ApiError
+     */
+    public static updateParticipantProgressApiRequirementsProgressProgressIdPut(
+        progressId: string,
+        requestBody: ParticipantProgressUpdate,
+    ): CancelablePromise<ParticipantProgressResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/requirements/progress/{progress_id}',
+            path: {
+                'progress_id': progressId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: `Validation Error`,
+            },
+        });
+    }
+    /**
+     * Delete Participant Progress
+     * Delete a participant progress record (admin only, async)
+     * @param progressId
+     * @returns void
+     * @throws ApiError
+     */
+    public static deleteParticipantProgressApiRequirementsProgressProgressIdDelete(
+        progressId: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/requirements/progress/{progress_id}',
+            path: {
+                'progress_id': progressId,
             },
             errors: {
                 422: `Validation Error`,

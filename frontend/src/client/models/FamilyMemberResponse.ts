@@ -28,6 +28,8 @@ export type FamilyMemberResponse = {
      * Patrol name (for scouts)
      */
     patrol_name?: (string | null);
+    troop_id?: (string | null);
+    patrol_id?: (string | null);
     /**
      * Youth protection training status (for adults)
      */

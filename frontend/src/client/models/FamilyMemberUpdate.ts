@@ -11,6 +11,8 @@ export type FamilyMemberUpdate = {
     date_of_birth?: (string | null);
     troop_number?: (string | null);
     patrol_name?: (string | null);
+    troop_id?: (string | null);
+    patrol_id?: (string | null);
     has_youth_protection?: (boolean | null);
     youth_protection_expiration?: (string | null);
     vehicle_capacity?: (number | null);

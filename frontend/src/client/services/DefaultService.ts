@@ -18,28 +18,4 @@ export class DefaultService {
             url: '/',
         });
     }
-    /**
-     * Health Check
-     * Health check endpoint - returns healthy status
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static healthCheckApiHealthGet(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/health',
-        });
-    }
-    /**
-     * Readiness Check
-     * Readiness check endpoint - verifies service is ready to accept requests
-     * @returns any Successful Response
-     * @throws ApiError
-     */
-    public static readinessCheckApiReadyGet(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/ready',
-        });
-    }
 }

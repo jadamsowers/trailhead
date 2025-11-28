@@ -79,6 +79,10 @@ export type OutingUpdate = {
      */
     signups_close_at?: (string | null);
     /**
+     * Date after which users cannot cancel
+     */
+    cancellation_deadline?: (string | null);
+    /**
      * Manual signup closure flag
      */
     signups_closed?: (boolean | null);
@@ -86,6 +90,18 @@ export type OutingUpdate = {
      * Outing icon (Bootstrap icon name or emoji)
      */
     icon?: (string | null);
+    /**
+     * Per-person food budget in dollars
+     */
+    food_budget_per_person?: (number | string | null);
+    /**
+     * Number of meals for the outing
+     */
+    meal_count?: (number | null);
+    /**
+     * Budget type: 'total' or 'per_meal'
+     */
+    budget_type?: (string | null);
     /**
      * Full address of outing location
      */

@@ -48,6 +48,10 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   const [allRequirements, setAllRequirements] = useState<RankRequirement[]>([]);
   const [allMeritBadges, setAllMeritBadges] = useState<MeritBadge[]>([]);
 
+  // Manual selection visibility
+  const [showManualRequirements, setShowManualRequirements] = useState(false);
+  const [showManualBadges, setShowManualBadges] = useState(false);
+
   // Step 1: Basic Info
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -847,6 +851,99 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                         })}
                       </div>
                     )}
+
+                    {/* Manual Selection for Requirements Not in Suggestions */}
+                    {suggestions && allRequirements.length > 0 && (
+                      <div className="mt-6">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setShowManualRequirements(!showManualRequirements)
+                          }
+                          className="flex items-center gap-2 text-sm font-semibold text-bsa-olive hover:underline"
+                        >
+                          {showManualRequirements ? "▼" : "▶"}
+                          Browse All Requirements (Manual Selection)
+                        </button>
+                        {showManualRequirements && (
+                          <div className="mt-4 p-4 rounded-lg border border-card bg-[rgba(var(--bsa-olive-rgb),0.03)]">
+                            <p className="text-sm text-secondary mb-3">
+                              Select additional requirements not suggested by
+                              the AI
+                            </p>
+                            <div className="grid gap-3 max-h-96 overflow-y-auto">
+                              {allRequirements
+                                .filter((req) => {
+                                  // Exclude requirements already in suggestions
+                                  return !suggestions.requirements.some(
+                                    (suggestedReq) => suggestedReq.id === req.id
+                                  );
+                                })
+                                .map((req) => (
+                                  <div
+                                    key={req.id}
+                                    className={
+                                      `p-3 rounded border border-card ` +
+                                      (selectedRequirements.has(req.id)
+                                        ? "bg-[rgba(var(--bsa-olive-rgb),0.1)]"
+                                        : "bg-primary")
+                                    }
+                                  >
+                                    <label className="flex items-start gap-2 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedRequirements.has(
+                                          req.id
+                                        )}
+                                        onChange={() => {
+                                          setSelectedRequirements((prev) => {
+                                            const newMap = new Map(prev);
+                                            if (newMap.has(req.id)) {
+                                              newMap.delete(req.id);
+                                            } else {
+                                              newMap.set(req.id, "");
+                                            }
+                                            return newMap;
+                                          });
+                                        }}
+                                        className="mt-0.5"
+                                      />
+                                      <div className="flex-1">
+                                        <div className="font-semibold text-sm">
+                                          {req.rank} {req.requirement_number}
+                                          {req.category && ` - ${req.category}`}
+                                        </div>
+                                        <div className="text-xs text-secondary mt-0.5">
+                                          {req.requirement_text}
+                                        </div>
+                                      </div>
+                                    </label>
+                                    {selectedRequirements.has(req.id) && (
+                                      <div className="mt-2 ml-6">
+                                        <input
+                                          type="text"
+                                          placeholder="Add specific details..."
+                                          value={
+                                            selectedRequirements.get(req.id) ||
+                                            ""
+                                          }
+                                          onChange={(e) =>
+                                            handleRequirementNotesChange(
+                                              req.id,
+                                              e.target.value
+                                            )
+                                          }
+                                          className="form-input text-sm"
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="h-px bg-[var(--card-border)]" />
                   <div>
@@ -984,6 +1081,102 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                             </div>
                           );
                         })}
+                      </div>
+                    )}
+
+                    {/* Manual Selection for Merit Badges Not in Suggestions */}
+                    {suggestions && allMeritBadges.length > 0 && (
+                      <div className="mt-6">
+                        <button
+                          type="button"
+                          onClick={() => setShowManualBadges(!showManualBadges)}
+                          className="flex items-center gap-2 text-sm font-semibold text-bsa-olive hover:underline"
+                        >
+                          {showManualBadges ? "▼" : "▶"}
+                          Browse All Merit Badges (Manual Selection)
+                        </button>
+                        {showManualBadges && (
+                          <div className="mt-4 p-4 rounded-lg border border-card bg-[rgba(0,150,0,0.03)]">
+                            <p className="text-sm text-secondary mb-3">
+                              Select additional merit badges not suggested by
+                              the AI
+                            </p>
+                            <div className="grid gap-3 max-h-96 overflow-y-auto">
+                              {allMeritBadges
+                                .filter((badge) => {
+                                  // Exclude badges already in suggestions
+                                  return !suggestions.merit_badges.some(
+                                    (suggestedBadge) =>
+                                      suggestedBadge.name === badge.id
+                                  );
+                                })
+                                .map((badge) => (
+                                  <div
+                                    key={badge.id}
+                                    className={
+                                      `p-3 rounded border border-card ` +
+                                      (selectedMeritBadges.has(badge.id)
+                                        ? "bg-[rgba(0,150,0,0.1)]"
+                                        : "bg-primary")
+                                    }
+                                  >
+                                    <label className="flex items-start gap-2 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={selectedMeritBadges.has(
+                                          badge.id
+                                        )}
+                                        onChange={() => {
+                                          setSelectedMeritBadges((prev) => {
+                                            const newMap = new Map(prev);
+                                            if (newMap.has(badge.id)) {
+                                              newMap.delete(badge.id);
+                                            } else {
+                                              newMap.set(badge.id, "");
+                                            }
+                                            return newMap;
+                                          });
+                                        }}
+                                        className="mt-0.5"
+                                      />
+                                      <div className="flex-1">
+                                        <div className="font-semibold text-sm">
+                                          {badge.name}
+                                          {badge.eagle_required && (
+                                            <span className="ml-2 text-xs">
+                                              🦅
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div className="text-xs text-secondary mt-0.5">
+                                          {badge.description}
+                                        </div>
+                                      </div>
+                                    </label>
+                                    {selectedMeritBadges.has(badge.id) && (
+                                      <div className="mt-2 ml-6">
+                                        <input
+                                          type="text"
+                                          placeholder="Add specific details..."
+                                          value={
+                                            selectedMeritBadges.get(badge.id) ||
+                                            ""
+                                          }
+                                          onChange={(e) =>
+                                            handleMeritBadgeNotesChange(
+                                              badge.id,
+                                              e.target.value
+                                            )
+                                          }
+                                          className="form-input text-sm"
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

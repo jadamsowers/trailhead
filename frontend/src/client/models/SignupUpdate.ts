@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { FamilyContact } from './FamilyContact';
+import type { GrubmasterRequestItem } from './GrubmasterRequestItem';
 /**
  * Schema for updating a signup - can update contact info and/or participants
  */
@@ -15,5 +16,9 @@ export type SignupUpdate = {
      * Updated list of family member IDs (replaces existing participants)
      */
     family_member_ids?: (Array<string> | null);
+    /**
+     * Updated grubmaster requests for scouts
+     */
+    grubmaster_requests?: (Array<GrubmasterRequestItem> | null);
 };
 

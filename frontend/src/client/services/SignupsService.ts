@@ -15,6 +15,7 @@ export class SignupsService {
     /**
      * Create Signup
      * Create a new signup for an outing using family member IDs.
+     * Rate limit: 5 signups per minute per IP.
      *
      * Scouting America Requirements enforced:
      * - Minimum 2 adults required per outing

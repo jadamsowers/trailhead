@@ -12,6 +12,7 @@ export class ClerkAuthService {
     /**
      * Get Current User Info
      * Get current authenticated user information including contact details.
+     * Rate limit: 30 requests per minute per IP.
      * @returns UserResponse Successful Response
      * @throws ApiError
      */
@@ -43,9 +44,22 @@ export class ClerkAuthService {
         });
     }
     /**
+     * Mark Initial Setup Complete
+     * Mark the current user's initial setup as complete.
+     * @returns UserResponse Successful Response
+     * @throws ApiError
+     */
+    public static markInitialSetupCompleteApiClerkMeInitialSetupCompletePost(): CancelablePromise<UserResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/clerk/me/initial-setup/complete',
+        });
+    }
+    /**
      * Sync User Role
      * Sync user role from Clerk metadata to local database.
      * This endpoint fetches the role directly from Clerk to ensure security.
+     * Rate limit: 10 requests per minute per IP.
      * @returns any Successful Response
      * @throws ApiError
      */

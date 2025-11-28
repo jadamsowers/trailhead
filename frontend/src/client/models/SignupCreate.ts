@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { FamilyContact } from './FamilyContact';
+import type { GrubmasterRequestItem } from './GrubmasterRequestItem';
 /**
  * Schema for creating a signup with family member IDs
  */
@@ -19,5 +20,9 @@ export type SignupCreate = {
      * List of family member IDs to sign up (at least one required)
      */
     family_member_ids: Array<string>;
+    /**
+     * Grubmaster requests for scouts
+     */
+    grubmaster_requests?: (Array<GrubmasterRequestItem> | null);
 };
 

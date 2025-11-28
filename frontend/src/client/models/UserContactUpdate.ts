@@ -18,5 +18,9 @@ export type UserContactUpdate = {
      * Emergency contact phone
      */
     emergency_contact_phone?: (string | null);
+    /**
+     * Youth protection expiration date
+     */
+    youth_protection_expiration?: (string | null);
 };
 

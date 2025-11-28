@@ -19,6 +19,14 @@ export type ParticipantResponse = {
     dietary_restrictions: Array<string>;
     allergies: Array<string>;
     medical_notes: (string | null);
+    /**
+     * Whether this participant requested to be a grubmaster
+     */
+    grubmaster_interest?: boolean;
+    /**
+     * Reason for grubmaster interest
+     */
+    grubmaster_reason?: (string | null);
     created_at: string;
 };
 

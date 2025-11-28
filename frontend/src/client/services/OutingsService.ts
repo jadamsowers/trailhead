@@ -51,7 +51,7 @@ export class OutingsService {
     }
     /**
      * Create Outing
-     * Create a new outing (admin only).
+     * Create a new outing (admin or outing-admin).
      * @param requestBody
      * @returns OutingResponse Successful Response
      * @throws ApiError
@@ -92,7 +92,8 @@ export class OutingsService {
     }
     /**
      * Update Outing
-     * Update an outing (admin only).
+     * Update an outing (admin or outing-admin).
+     * Ensures a proper before/after diff by cloning the original state before mutation.
      * @param outingId
      * @param requestBody
      * @returns OutingUpdateResponse Successful Response
@@ -117,7 +118,7 @@ export class OutingsService {
     }
     /**
      * Delete Outing
-     * Delete an outing (admin only).
+     * Delete an outing (admin or outing-admin).
      * Can only delete outings with no signups.
      * @param outingId
      * @returns void
@@ -139,7 +140,7 @@ export class OutingsService {
     }
     /**
      * Close Signups
-     * Manually close signups for an outing (admin only).
+     * Manually close signups for an outing (admin or outing-admin).
      * @param outingId
      * @returns OutingResponse Successful Response
      * @throws ApiError
@@ -160,7 +161,7 @@ export class OutingsService {
     }
     /**
      * Open Signups
-     * Manually open signups for an outing (admin only).
+     * Manually open signups for an outing (admin or outing-admin).
      * This will override the automatic closure date if set.
      * @param outingId
      * @returns OutingResponse Successful Response
@@ -182,7 +183,7 @@ export class OutingsService {
     }
     /**
      * Get Outing Signups
-     * Get all signups for a specific outing (admin only).
+     * Get all signups for a specific outing (admin or outing-admin).
      * @param outingId
      * @returns any Successful Response
      * @throws ApiError
