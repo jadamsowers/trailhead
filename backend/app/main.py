@@ -12,7 +12,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
-from app.api.endpoints import outings, signups, registration, family, clerk_auth, requirements, places, packing_lists, troops, offline, grubmaster, tenting
+from app.api.endpoints import outings, signups, registration, family, stackauth, requirements, places, packing_lists, troops, offline, grubmaster, tenting
 from app.api import checkin
 
 # Configure logging
@@ -109,15 +109,15 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     
     # Content Security Policy
-    # Allow self and Clerk domains for authentication
+    # Allow self and Stack Auth domains for authentication
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev https://challenges.cloudflare.com; "
+        "script-src 'self' 'unsafe-inline' https://*.stack-auth.com; "
         "style-src 'self' 'unsafe-inline'; "
         "img-src 'self' data: https:; "
         "font-src 'self' data:; "
-        "connect-src 'self' https://*.clerk.accounts.dev https://api.clerk.com; "
-        "frame-src 'self' https://*.clerk.accounts.dev;"
+        "connect-src 'self' https://*.stack-auth.com; "
+        "frame-src 'self' https://*.stack-auth.com;"
     )
     
     # HTTPS enforcement (HSTS) - only in production
@@ -198,7 +198,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 # Routers
 app.include_router(outings.router, prefix=f"{settings.API_V1_STR}/outings", tags=["outings"])
 app.include_router(signups.router, prefix=f"{settings.API_V1_STR}/signups", tags=["signups"])
-app.include_router(clerk_auth.router, prefix=f"{settings.API_V1_STR}/clerk", tags=["clerk-auth"])
+app.include_router(stackauth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(registration.router, prefix=f"{settings.API_V1_STR}/register", tags=["registration"])
 app.include_router(family.router, prefix=f"{settings.API_V1_STR}/family", tags=["family-management"])
 app.include_router(checkin.router, prefix=f"{settings.API_V1_STR}/outings", tags=["check-in"])
@@ -229,7 +229,7 @@ async def root():
         },
         "endpoints": {
             "health": f"{settings.API_V1_STR}/health",
-            "clerk": f"{settings.API_V1_STR}/clerk",
+            "auth": f"{settings.API_V1_STR}/auth",
             "outings": f"{settings.API_V1_STR}/outings",
             "signups": f"{settings.API_V1_STR}/signups",
             "family": f"{settings.API_V1_STR}/family"

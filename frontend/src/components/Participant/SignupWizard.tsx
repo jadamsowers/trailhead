@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@stackframe/stack";
 import { Outing } from "../../types";
 import { OutingIconDisplay } from "../OutingIconDisplay";
 import { signupAPI, userAPI, APIError } from "../../services/api";
@@ -176,7 +176,7 @@ const SignupWizard: React.FC = () => {
       });
     } catch (err) {
       console.error("Failed to load user contact info:", err);
-      // Fallback to email from Clerk
+      // Fallback to email from Stack Auth
       if (user?.primaryEmailAddress?.emailAddress) {
         setContactInfo((prev) => ({
           ...prev,

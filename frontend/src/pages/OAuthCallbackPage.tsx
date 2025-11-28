@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useUser } from "@stackframe/stack";
 
 const OAuthCallbackPage: React.FC = () => {
     const navigate = useNavigate();
     const { isSignedIn, isLoaded } = useUser();
 
     useEffect(() => {
-        // Clerk handles OAuth callbacks automatically
+        // Stack Auth handles OAuth callbacks automatically
         // Once loaded, redirect to appropriate page
         if (isLoaded) {
             if (isSignedIn) {

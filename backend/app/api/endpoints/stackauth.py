@@ -1,5 +1,5 @@
 """
-Clerk authentication endpoints
+Stack Auth authentication endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,7 +10,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from app.db.session import get_db
-from app.core.clerk import get_clerk_client
+from app.core.stackauth import get_stackauth_client
 from app.schemas.auth import UserResponse, UserContactUpdate
 from app.api.deps import get_current_user, get_current_admin_user
 from app.models.user import User
@@ -66,10 +66,10 @@ async def update_contact_info(
         current_user.emergency_contact_phone = contact_update.emergency_contact_phone
     if contact_update.youth_protection_expiration is not None:
         current_user.youth_protection_expiration = contact_update.youth_protection_expiration
-    
+
     await db.commit()
     await db.refresh(current_user)
-    
+
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
@@ -117,29 +117,29 @@ async def sync_user_role(
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Sync user role from Clerk metadata to local database.
-    This endpoint fetches the role directly from Clerk to ensure security.
+    Sync user role from Stack Auth metadata to local database.
+    This endpoint fetches the role directly from Stack Auth to ensure security.
     Rate limit: 10 requests per minute per IP.
     """
-    # Fetch user metadata from Clerk
-    clerk = get_clerk_client()
+    # Fetch user metadata from Stack Auth
+    stackauth = get_stackauth_client()
     try:
-        metadata = await clerk.get_user_metadata(str(current_user.id))
+        metadata = await stackauth.get_user_metadata(str(current_user.id))
         public_metadata = metadata.get("public_metadata", {})
         role = public_metadata.get("role", "participant")
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch role from Clerk: {str(e)}"
+            detail=f"Failed to fetch role from Stack Auth: {str(e)}"
         )
-    
+
     if role not in ["admin", "outing-admin", "adult", "participant"]:
         # Default to participant if invalid role found
         role = "participant"
-    
+
     current_user.role = role
     await db.commit()
-    
+
     return {"message": "Role synced successfully", "role": role}
 
 
@@ -153,7 +153,7 @@ async def list_users(
     """
     result = await db.execute(select(User).order_by(User.created_at))
     users = result.scalars().all()
-    
+
     return [
         UserResponse(
             id=user.id,
@@ -188,29 +188,29 @@ async def update_user_role(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid role. Must be one of: admin, outing-admin, adult, participant"
         )
-    
+
     # Get the target user
     result = await db.execute(select(User).where(User.id == user_id))
     target_user = result.scalar_one_or_none()
-    
+
     if not target_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    
+
     # Prevent demotion of initial admin
     if target_user.is_initial_admin and request.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot demote the initial admin user"
         )
-    
+
     # Update the role
     target_user.role = request.role
     await db.commit()
     await db.refresh(target_user)
-    
+
     return UserResponse(
         id=target_user.id,
         email=target_user.email,

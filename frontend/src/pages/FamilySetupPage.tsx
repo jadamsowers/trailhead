@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@stackframe/stack";
 import { FamilyManagement } from "../components/Adult/FamilyManagement";
 import { familyAPI } from "../services/api";
 
 const FamilySetupPage: React.FC = () => {
-  const { user, isLoaded, isSignedIn } = useUser();
+  const stackUser = useUser();
+  const user = stackUser;
+  const isSignedIn = !!stackUser;
   const navigate = useNavigate();
   const [hasFamilyMembers, setHasFamilyMembers] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Only check family members after Clerk is loaded AND user is signed in
+    // Only check family members after Stack Auth is loaded AND user is signed in
     if (isLoaded && isSignedIn) {
-      // Add a small delay to ensure Clerk session is fully initialized
+      // Add a small delay to ensure Stack Auth session is fully initialized
       const timer = setTimeout(() => {
         checkFamilyMembers();
       }, 100);

@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@stackframe/stack";
 import { useEffect, useRef, useState } from "react";
 import { offlineAPI } from "../services/api";
 import { SyncToast } from "./Shared/SyncToast";
@@ -16,9 +16,9 @@ export const BackgroundSync: React.FC = () => {
 
   // Fetch user from backend to get role
   useEffect(() => {
-    // Wait for Clerk to be fully loaded
+    // Wait for Stack Auth to be fully loaded
     if (!isLoaded) {
-      console.debug("BackgroundSync: Waiting for Clerk to load");
+      console.debug("BackgroundSync: Waiting for Stack Auth to load");
       return;
     }
 

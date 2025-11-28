@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@stackframe/stack";
+import { stackClientApp } from "../stack/client";
 import { getApiBase } from "../utils/apiBase";
 
 /**
@@ -12,7 +13,8 @@ import { getApiBase } from "../utils/apiBase";
 export const InitialSetupGuard: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user, isLoaded } = useUser();
+  const stackUser = useUser();
+  const user = stackUser;
   const navigate = useNavigate();
   const location = useLocation();
   const [checking, setChecking] = useState(true);
@@ -36,15 +38,15 @@ export const InitialSetupGuard: React.FC<{ children: React.ReactNode }> = ({
       }
 
       try {
-        // Get Clerk session token
-        const token = await window.Clerk?.session?.getToken();
+        // Get Stack Auth session token
+        const token = await stackClientApp.getAccessToken();
         if (!token) {
           setChecking(false);
           return;
         }
 
-        // Check if user has completed initial setup by fetching their profile from Clerk-backed endpoint
-        const response = await fetch(`${getApiBase()}/clerk/me`, {
+        // Check if user has completed initial setup by fetching their profile from Stack Auth-backed endpoint
+        const response = await fetch(`${getApiBase()}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

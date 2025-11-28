@@ -26,13 +26,16 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    # Initial Admin User (Clerk-based)
-    # When a Clerk user with this email signs in, they will automatically be granted admin role
+    # Initial Admin User
+    # When a user with this email signs in, they will automatically be granted admin role
     INITIAL_ADMIN_EMAIL: str = "soadmin@scouthacks.net"
-    
-    # Clerk Configuration
-    CLERK_SECRET_KEY: str = "sk_test_your_clerk_secret_key_here"
-    CLERK_PUBLISHABLE_KEY: str = "pk_test_your_clerk_publishable_key_here"
+
+    # Stack Auth Configuration
+    STACK_PROJECT_ID: str = "your_stack_project_id"
+    STACK_PUBLISHABLE_CLIENT_KEY: str = "your_stack_publishable_client_key"
+    STACK_SECRET_SERVER_KEY: str = "your_stack_secret_server_key"
+    # URL of the Stack Auth server (self-hosted or managed)
+    STACK_API_URL: str = "http://stackauth:8102"
     
     # Frontend URL
     FRONTEND_URL: str = "http://localhost:3000"

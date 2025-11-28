@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../../contexts/AuthContext";
 import { User } from "../../types";
 import { getApiBase } from "../../utils/apiBase";
 
@@ -16,7 +16,7 @@ const UserManagement: React.FC = () => {
       "Content-Type": "application/json",
     };
 
-    // Try to get Clerk session token first
+    // Try to get Stack Auth session token first
     try {
       const token = await getToken();
       if (token) {
@@ -24,7 +24,7 @@ const UserManagement: React.FC = () => {
         return headers;
       }
     } catch (error) {
-      console.warn("Failed to get Clerk token:", error);
+      console.warn("Failed to get Stack Auth token:", error);
     }
 
     // Fall back to localStorage token for legacy admin accounts
@@ -44,7 +44,7 @@ const UserManagement: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${getApiBase()}/clerk/users`, {
+      const response = await fetch(`${getApiBase()}/auth/users`, {
         headers: await getAuthHeaders(),
       });
 
@@ -67,7 +67,7 @@ const UserManagement: React.FC = () => {
       setUpdatingUserId(userId);
       setError(null);
       const response = await fetch(
-        `${getApiBase()}/clerk/users/${userId}/role`,
+        `${getApiBase()}/auth/users/${userId}/role`,
         {
           method: "PATCH",
           headers: await getAuthHeaders(),

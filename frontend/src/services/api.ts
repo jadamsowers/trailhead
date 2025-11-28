@@ -60,13 +60,7 @@ import {
 } from "../types";
 
 import { getApiBase } from "../utils/apiBase";
-
-// Extend Window interface for Clerk
-declare global {
-  interface Window {
-    Clerk?: any;
-  }
-}
+import { stackClientApp } from "../stack/client";
 
 // API base is computed from the generated OpenAPI.BASE via `getApiBase()`.
 // We compute it lazily using the helper so that init order (initApiClient())
@@ -207,50 +201,25 @@ async function handleResponse<T>(response: Response): Promise<T> {
   }
 }
 
-// Helper function to get auth headers with Clerk token
+// Helper function to get auth headers with Stack Auth token
 async function getAuthHeaders(): Promise<HeadersInit> {
   const headers: HeadersInit = {
     "Content-Type": "application/json",
   };
 
   try {
-    // Wait for Clerk to be loaded with retry logic
-    let retries = 0;
-    const maxRetries = 20; // Increased from 10 to allow more time
-    while (!window.Clerk && retries < maxRetries) {
-      console.log(
-        `⏳ Waiting for Clerk to load... (attempt ${retries + 1}/${maxRetries})`
-      );
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      retries++;
-    }
-
-    if (!window.Clerk) {
-      console.error("❌ Clerk is not loaded after retries");
-      throw new Error(
-        "Authentication system not initialized. Please refresh the page."
-      );
-    }
-
-    // Check if user is signed in
-    if (!window.Clerk.session) {
-      console.warn("⚠️ No Clerk session found - user may not be signed in yet");
+    // Get the access token from Stack Auth
+    const token = await stackClientApp.getAccessToken();
+    
+    if (!token) {
+      console.warn("⚠️ No Stack Auth token found - user may not be signed in yet");
       throw new Error(
         "You must be signed in to access this feature. Please sign in and try again."
       );
     }
 
-    // Get the session token from Clerk
-    const token = await window.Clerk.session.getToken();
-    if (!token) {
-      console.error("❌ Failed to get Clerk session token");
-      throw new Error(
-        "Failed to get authentication token. Please sign out and sign in again."
-      );
-    }
-
     console.log(
-      "✅ Using Clerk session token (first 20 chars):",
+      "✅ Using Stack Auth access token (first 20 chars):",
       token.substring(0, 20) + "..."
     );
     headers["Authorization"] = `Bearer ${token}`;
@@ -482,12 +451,8 @@ export const oauthAPI = {
    * Initiate OAuth flow
    */
   initiateLogin(_redirectUri: string, _state?: string): void {
-    // Use Clerk's sign-in flow instead of legacy OAuth endpoints
-    if (window.Clerk && typeof window.Clerk.openSignIn === "function") {
-      window.Clerk.openSignIn();
-      return;
-    }
-    console.error("Clerk sign-in UI not available.");
+    // Use Stack Auth's sign-in flow - redirect to handler
+    window.location.href = "/handler/sign-in";
   },
 
   /**
@@ -498,10 +463,10 @@ export const oauthAPI = {
     _redirectUri: string
   ): Promise<TokenResponse> {
     // Legacy OAuth code exchange is no longer supported.
-    // Authentication is handled by Clerk on the client.
+    // Authentication is handled by Stack Auth on the client.
     throw new APIError(
       501,
-      "OAuth code exchange not supported; use Clerk login."
+      "OAuth code exchange not supported; use Stack Auth login."
     );
   },
 
@@ -509,36 +474,31 @@ export const oauthAPI = {
    * Refresh access token
    */
   async refreshToken(_refreshToken: string): Promise<TokenResponse> {
-    // Obtain a fresh session token from Clerk
-    if (window.Clerk?.session) {
-      const token = await window.Clerk.session.getToken();
-      if (token) {
-        return {
-          access_token: token,
-          refresh_token: "",
-          token_type: "bearer",
-        };
-      }
+    // Obtain a fresh session token from Stack Auth
+    const token = await stackClientApp.getAccessToken();
+    if (token) {
+      return {
+        access_token: token,
+        refresh_token: "",
+        token_type: "bearer",
+      };
     }
-    throw new APIError(401, "Unable to refresh token via Clerk session");
+    throw new APIError(401, "Unable to refresh token via Stack Auth session");
   },
 
   /**
    * Logout user
    */
   async logout(_refreshToken: string): Promise<void> {
-    // Sign out via Clerk and clear local tokens
-    if (window.Clerk && typeof window.Clerk.signOut === "function") {
-      await window.Clerk.signOut();
-      return;
-    }
+    // Sign out via Stack Auth
+    await stackClientApp.signOut();
   },
 
   /**
    * Get current user info
    */
   async getCurrentUser(token: string): Promise<User> {
-    const response = await fetch(`${getApiBase()}/clerk/me`, {
+    const response = await fetch(`${getApiBase()}/auth/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -794,13 +754,13 @@ export const familyAPI = {
   },
 };
 
-// User API (Clerk-based)
+// User API (Stack Auth-based)
 export const userAPI = {
   /**
    * Get current user information including contact details
    */
   async getCurrentUser(): Promise<User> {
-    const response = await fetch(`${getApiBase()}/clerk/me`, {
+    const response = await fetch(`${getApiBase()}/auth/me`, {
       headers: await getAuthHeaders(),
     });
     return handleResponse<User>(response);
@@ -814,7 +774,7 @@ export const userAPI = {
     emergency_contact_name?: string;
     emergency_contact_phone?: string;
   }): Promise<User> {
-    const response = await fetch(`${getApiBase()}/clerk/me/contact`, {
+    const response = await fetch(`${getApiBase()}/auth/me/contact`, {
       method: "PATCH",
       headers: await getAuthHeaders(),
       body: JSON.stringify(contactInfo),

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { SignedIn, SignedOut, useUser } from "@clerk/clerk-react";
+import { useNavigate, Link } from "react-router-dom";
+import { useUser } from "@stackframe/stack";
 import SignupWizard from "../components/Participant/SignupWizard";
 import { familyAPI } from "../services/api";
 
 // Removed OUTINGS_CACHE_KEY (offline caching handled elsewhere)
 
 const OutingsPage: React.FC = () => {
-  const { user, isLoaded } = useUser();
+  const user = useUser();
+  const isSignedIn = !!user;
   const navigate = useNavigate();
   const [checkingFamily, setCheckingFamily] = useState(true);
   const [hasFamilyMembers, setHasFamilyMembers] = useState(false);
@@ -16,7 +17,7 @@ const OutingsPage: React.FC = () => {
     let mounted = true;
 
     const checkFamilyMembers = async () => {
-      if (!isLoaded || !user) return;
+      if (!isSignedIn) return;
       try {
         const data = await familyAPI.getSummary();
         if (!mounted) return;
@@ -32,11 +33,11 @@ const OutingsPage: React.FC = () => {
     return () => {
       mounted = false;
     };
-  }, [isLoaded, user]);
+  }, [isSignedIn, user]);
 
   // Outings fetching removed
 
-  if (!isLoaded || checkingFamily) {
+  if (checkingFamily && isSignedIn) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
@@ -51,7 +52,8 @@ const OutingsPage: React.FC = () => {
 
   return (
     <div className="w-full">
-      <SignedIn>
+      {isSignedIn ? (
+        <>
         {hasFamilyMembers ? (
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* SignupWizard manages its own data; remove unused outings prop */}
@@ -90,8 +92,8 @@ const OutingsPage: React.FC = () => {
             </div>
           </div>
         )}
-      </SignedIn>
-      <SignedOut>
+        </>
+      ) : (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[60vh] flex items-center justify-center">
           <div className="max-w-md w-full glass-card p-10 text-center">
             <h1
@@ -119,7 +121,7 @@ const OutingsPage: React.FC = () => {
             </button>
           </div>
         </div>
-      </SignedOut>
+      )}
     </div>
   );
 };

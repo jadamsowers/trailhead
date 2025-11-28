@@ -40,15 +40,15 @@ class TestGetCurrentUser:
         token = create_access_token({"sub": test_user.email})
         credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
         
-        # Mock Clerk client
-        with patch('app.api.deps.get_clerk_client') as mock_clerk:
+        # Mock Stack Auth client
+        with patch('app.api.deps.get_stackauth_client') as mock_stackauth:
             mock_client = AsyncMock()
-            mock_client.verify_token.return_value = {"user_id": "clerk_test_id"}
+            mock_client.verify_token.return_value = {"user_id": "stackauth_test_id"}
             mock_client.get_user.return_value = {
                 "email": test_user.email,
                 "full_name": test_user.full_name
             }
-            mock_clerk.return_value = mock_client
+            mock_stackauth.return_value = mock_client
             
             user = await deps.get_current_user(credentials, db_session)
             
@@ -59,10 +59,10 @@ class TestGetCurrentUser:
         """Test getting current user with invalid token"""
         credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="invalid_token")
         
-        with patch('app.api.deps.get_clerk_client') as mock_clerk:
+        with patch('app.api.deps.get_stackauth_client') as mock_stackauth:
             mock_client = AsyncMock()
             mock_client.verify_token.side_effect = Exception("Invalid token")
-            mock_clerk.return_value = mock_client
+            mock_stackauth.return_value = mock_client
             
             with pytest.raises(HTTPException) as exc_info:
                 await deps.get_current_user(credentials, db_session)
@@ -77,15 +77,15 @@ class TestGetCurrentUser:
         token = create_access_token({"sub": "newuser@test.com"})
         credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
         
-        with patch('app.api.deps.get_clerk_client') as mock_clerk:
+        with patch('app.api.deps.get_stackauth_client') as mock_stackauth:
             mock_client = AsyncMock()
-            mock_client.verify_token.return_value = {"user_id": "clerk_new_user"}
+            mock_client.verify_token.return_value = {"user_id": "stackauth_new_user"}
             mock_client.get_user.return_value = {
                 "email": "newuser@test.com",
                 "full_name": "New User"
             }
             mock_client.get_user_metadata.return_value = {"public_metadata": {}}
-            mock_clerk.return_value = mock_client
+            mock_stackauth.return_value = mock_client
             
             user = await deps.get_current_user(credentials, db_session)
             
@@ -110,14 +110,14 @@ class TestGetCurrentUser:
         token = create_access_token({"sub": inactive_user.email})
         credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
         
-        with patch('app.api.deps.get_clerk_client') as mock_clerk:
+        with patch('app.api.deps.get_stackauth_client') as mock_stackauth:
             mock_client = AsyncMock()
-            mock_client.verify_token.return_value = {"user_id": "clerk_inactive"}
+            mock_client.verify_token.return_value = {"user_id": "stackauth_inactive"}
             mock_client.get_user.return_value = {
                 "email": inactive_user.email,
                 "full_name": inactive_user.full_name
             }
-            mock_clerk.return_value = mock_client
+            mock_stackauth.return_value = mock_client
             
             with pytest.raises(HTTPException) as exc_info:
                 await deps.get_current_user(credentials, db_session)

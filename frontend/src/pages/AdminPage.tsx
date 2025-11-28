@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@stackframe/stack";
 import OutingAdmin from "../components/Admin/OutingAdmin";
 import UserManagement from "../components/Admin/UserManagement";
 import TroopAdminTab from "../components/Admin/TroopAdminTab";
