@@ -1839,3 +1839,156 @@ export const grubmasterAPI = {
   },
 };
 
+// Tenting API
+import type {
+  TentingGroup,
+  TentingGroupCreate,
+  TentingGroupUpdate,
+  TentingSummaryResponse,
+  MoveTentingParticipantRequest,
+  AutoAssignTentingRequest,
+  TentingValidationIssue,
+} from "../types";
+
+export const tentingAPI = {
+  /**
+   * Get tenting summary for an outing
+   */
+  async getSummary(outingId: string): Promise<TentingSummaryResponse> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/tenting`,
+      {
+        headers: await getAuthHeaders(),
+      }
+    );
+    return handleResponse<TentingSummaryResponse>(response);
+  },
+
+  /**
+   * Validate all tenting assignments for an outing
+   */
+  async validateTenting(
+    outingId: string,
+    maxAgeDifference: number = 2
+  ): Promise<TentingValidationIssue[]> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/tenting/validate?max_age_difference=${maxAgeDifference}`,
+      {
+        headers: await getAuthHeaders(),
+      }
+    );
+    return handleResponse<TentingValidationIssue[]>(response);
+  },
+
+  /**
+   * Get all tenting groups for an outing
+   */
+  async getTentingGroups(
+    outingId: string
+  ): Promise<{ tenting_groups: TentingGroup[]; total: number }> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/tenting-groups`,
+      {
+        headers: await getAuthHeaders(),
+      }
+    );
+    return handleResponse<{ tenting_groups: TentingGroup[]; total: number }>(
+      response
+    );
+  },
+
+  /**
+   * Create a new tenting group
+   */
+  async createTentingGroup(
+    outingId: string,
+    data: TentingGroupCreate
+  ): Promise<TentingGroup> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/tenting-groups`,
+      {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      }
+    );
+    return handleResponse<TentingGroup>(response);
+  },
+
+  /**
+   * Update a tenting group
+   */
+  async updateTentingGroup(
+    outingId: string,
+    tentingGroupId: string,
+    data: TentingGroupUpdate
+  ): Promise<TentingGroup> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/tenting-groups/${tentingGroupId}`,
+      {
+        method: "PUT",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      }
+    );
+    return handleResponse<TentingGroup>(response);
+  },
+
+  /**
+   * Delete a tenting group
+   */
+  async deleteTentingGroup(
+    outingId: string,
+    tentingGroupId: string
+  ): Promise<void> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/tenting-groups/${tentingGroupId}`,
+      {
+        method: "DELETE",
+        headers: await getAuthHeaders(),
+      }
+    );
+    if (!response.ok) {
+      throw new APIError(response.status, "Failed to delete tenting group");
+    }
+  },
+
+  /**
+   * Move a participant to a different tenting group
+   */
+  async moveParticipant(
+    outingId: string,
+    request: MoveTentingParticipantRequest
+  ): Promise<{ message: string }> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/move-tenting-participant`,
+      {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(request),
+      }
+    );
+    return handleResponse<{ message: string }>(response);
+  },
+
+  /**
+   * Auto-assign scouts to tenting groups
+   */
+  async autoAssign(
+    outingId: string,
+    request: AutoAssignTentingRequest
+  ): Promise<{ tenting_groups: TentingGroup[]; total: number }> {
+    const response = await fetch(
+      `${getApiBase()}/outings/${outingId}/auto-assign-tenting`,
+      {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(request),
+      }
+    );
+    return handleResponse<{ tenting_groups: TentingGroup[]; total: number }>(
+      response
+    );
+  },
+};
+

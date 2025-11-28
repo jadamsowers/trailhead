@@ -57,6 +57,7 @@ class Outing(Base):
     packing_lists = relationship("OutingPackingList", back_populates="outing", cascade="all, delete-orphan")
     restricted_troop = relationship("Troop", back_populates="restricted_outings")
     eating_groups = relationship("EatingGroup", back_populates="outing", cascade="all, delete-orphan")
+    tenting_groups = relationship("TentingGroup", back_populates="outing", cascade="all, delete-orphan")
     
     # Place relationships
     outing_place = relationship("Place", foreign_keys=[outing_place_id], back_populates="outings_at_location")

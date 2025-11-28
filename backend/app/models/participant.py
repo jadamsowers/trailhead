@@ -25,6 +25,7 @@ class Participant(Base):
     signup = relationship("Signup", back_populates="participants")
     family_member = relationship("FamilyMember", backref="participant_signups")
     eating_group_membership = relationship("EatingGroupMember", back_populates="participant", uselist=False, cascade="all, delete-orphan")
+    tenting_group_membership = relationship("TentingGroupMember", back_populates="participant", uselist=False, cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Participant(id={self.id}, signup_id={self.signup_id}, family_member_id={self.family_member_id})>"
