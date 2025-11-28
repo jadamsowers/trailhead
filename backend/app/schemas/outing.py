@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, field_validator, ConfigDict
 from datetime import date, datetime, time
 from uuid import UUID
-from typing import Optional
+from typing import Optional, List
 from decimal import Decimal
 
 from app.schemas.place import PlaceResponse  # Safe import (place does not import outing)
@@ -30,6 +30,7 @@ class OutingBase(BaseModel):
     cancellation_deadline: Optional[datetime] = Field(None, description="Date after which users cannot cancel")
     signups_closed: bool = Field(False, description="Manual signup closure flag")
     icon: Optional[str] = Field(None, max_length=50, description="Outing icon (Bootstrap icon name or emoji)")
+    allowed_troop_ids: List[UUID] = Field(default_factory=list, description="List of troop IDs allowed to sign up (empty list = all troops allowed)")
     
     # Food budget fields for grubmaster functionality
     food_budget_per_person: Optional[Decimal] = Field(None, ge=0, description="Per-person food budget in dollars")
@@ -89,6 +90,15 @@ class OutingCreate(OutingBase):
         if 'is_overnight' in info.data and info.data['is_overnight'] and v is None:
             raise ValueError('end_date is required for overnight outings')
         return v
+    
+    @field_validator('allowed_troop_ids')
+    @classmethod
+    def validate_allowed_troops(cls, v):
+        """Ensure at least one troop is selected"""
+        if v is not None and isinstance(v, list) and len(v) == 0:
+            # Empty list is allowed (means all troops), but None should default to empty list
+            pass
+        return v if v is not None else []
 
 
 class OutingUpdate(BaseModel):
@@ -156,6 +166,9 @@ class OutingResponse(OutingBase):
     outing_place: Optional['PlaceResponse'] = None
     pickup_place: Optional['PlaceResponse'] = None
     dropoff_place: Optional['PlaceResponse'] = None
+    
+    # Override allowed_troop_ids to be computed from relationship
+    allowed_troop_ids: List[UUID] = Field(default_factory=list, description="List of troop IDs allowed to sign up")
 
     model_config = ConfigDict(from_attributes=True)
 

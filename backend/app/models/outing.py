@@ -1,10 +1,18 @@
-from sqlalchemy import Column, String, Integer, Boolean, Date, Text, DateTime, Time, Numeric, ForeignKey
+from sqlalchemy import Column, String, Integer, Boolean, Date, Text, DateTime, Time, Numeric, ForeignKey, Table
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
 from datetime import datetime, timezone
 
 from app.db.base import Base
+
+# Association table for many-to-many relationship between outings and troops
+outing_troops = Table(
+    'outing_troops',
+    Base.metadata,
+    Column('outing_id', UUID(as_uuid=True), ForeignKey('outings.id', ondelete='CASCADE'), primary_key=True),
+    Column('troop_id', UUID(as_uuid=True), ForeignKey('troops.id', ondelete='CASCADE'), primary_key=True)
+)
 
 
 class Outing(Base):
@@ -56,6 +64,7 @@ class Outing(Base):
     outing_merit_badges = relationship("OutingMeritBadge", back_populates="outing", cascade="all, delete-orphan")
     packing_lists = relationship("OutingPackingList", back_populates="outing", cascade="all, delete-orphan")
     restricted_troop = relationship("Troop", back_populates="restricted_outings")
+    allowed_troops = relationship("Troop", secondary=outing_troops, back_populates="allowed_outings")
     eating_groups = relationship("EatingGroup", back_populates="outing", cascade="all, delete-orphan")
     tenting_groups = relationship("TentingGroup", back_populates="outing", cascade="all, delete-orphan")
     

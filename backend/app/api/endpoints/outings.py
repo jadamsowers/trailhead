@@ -23,8 +23,12 @@ async def get_available_outings(
     """
     outings = await crud_outing.get_available_outings(db)
     
-    # Convert to response format with computed fields
-    outing_responses = [OutingResponse.model_validate(outing) for outing in outings]
+    # Convert to response format with computed fields and allowed_troop_ids
+    outing_responses = []
+    for outing in outings:
+        outing_dict = {k: getattr(outing, k) for k in OutingResponse.model_fields.keys() if hasattr(outing, k)}
+        outing_dict['allowed_troop_ids'] = [troop.id for troop in outing.allowed_troops]
+        outing_responses.append(OutingResponse.model_validate(outing_dict))
     
     return OutingListResponse(outings=outing_responses, total=len(outing_responses))
 
@@ -42,8 +46,12 @@ async def get_all_outings(
     outings = await crud_outing.get_outings(db, skip=skip, limit=limit)
     total = await crud_outing.get_outing_count(db)
     
-    # Convert to response format with computed fields
-    outing_responses = [OutingResponse.model_validate(outing) for outing in outings]
+    # Convert to response format with computed fields and allowed_troop_ids
+    outing_responses = []
+    for outing in outings:
+        outing_dict = {k: getattr(outing, k) for k in OutingResponse.model_fields.keys() if hasattr(outing, k)}
+        outing_dict['allowed_troop_ids'] = [troop.id for troop in outing.allowed_troops]
+        outing_responses.append(OutingResponse.model_validate(outing_dict))
     
     return OutingListResponse(outings=outing_responses, total=total)
 
@@ -59,7 +67,11 @@ async def create_outing(
     """
     db_outing = await crud_outing.create_outing(db, outing)
     
-    return OutingResponse.model_validate(db_outing)
+    # Build response with allowed_troop_ids from relationship
+    outing_dict = {k: getattr(db_outing, k) for k in OutingResponse.model_fields.keys() if hasattr(db_outing, k)}
+    outing_dict['allowed_troop_ids'] = [troop.id for troop in db_outing.allowed_troops]
+    
+    return OutingResponse.model_validate(outing_dict)
 
 
 @router.get("/{outing_id}", response_model=OutingResponse)
@@ -77,7 +89,11 @@ async def get_outing(
             detail="Outing not found"
         )
     
-    return OutingResponse.model_validate(db_outing)
+    # Build response with allowed_troop_ids from relationship
+    outing_dict = {k: getattr(db_outing, k) for k in OutingResponse.model_fields.keys() if hasattr(db_outing, k)}
+    outing_dict['allowed_troop_ids'] = [troop.id for troop in db_outing.allowed_troops]
+    
+    return OutingResponse.model_validate(outing_dict)
 
 
 @router.put("/{outing_id}", response_model=OutingUpdateResponse)

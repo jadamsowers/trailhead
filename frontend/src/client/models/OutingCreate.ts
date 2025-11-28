@@ -126,5 +126,10 @@ export type OutingCreate = {
      * Reference to saved place for drop-off
      */
     dropoff_place_id?: (string | null);
+    /**
+     * List of troop IDs allowed to sign up (empty list = all troops allowed)
+     */
+    allowed_troop_ids?: Array<string>;
 };
+
 

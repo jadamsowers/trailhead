@@ -21,7 +21,8 @@ async def get_outing(db: AsyncSession, outing_id: UUID) -> Optional[Outing]:
             # Eager-load place relationships to avoid async lazy-load during serialization
             selectinload(Outing.outing_place),
             selectinload(Outing.pickup_place),
-            selectinload(Outing.dropoff_place)
+            selectinload(Outing.dropoff_place),
+            selectinload(Outing.allowed_troops)
         )
         .where(Outing.id == outing_id)
     )
@@ -48,7 +49,8 @@ async def get_outing_with_details(db: AsyncSession, outing_id: UUID) -> Optional
             selectinload(Outing.packing_lists).selectinload(OutingPackingList.items),
             selectinload(Outing.outing_place),
             selectinload(Outing.pickup_place),
-            selectinload(Outing.dropoff_place)
+            selectinload(Outing.dropoff_place),
+            selectinload(Outing.allowed_troops)
         )
         .where(Outing.id == outing_id)
     )
@@ -64,7 +66,8 @@ async def get_outings(db: AsyncSession, skip: int = 0, limit: int = 100) -> list
             # Eager-load place relationships so responses can access them without additional IO
             selectinload(Outing.outing_place),
             selectinload(Outing.pickup_place),
-            selectinload(Outing.dropoff_place)
+            selectinload(Outing.dropoff_place),
+            selectinload(Outing.allowed_troops)
         )
         .offset(skip)
         .limit(limit)
@@ -81,7 +84,8 @@ async def get_available_outings(db: AsyncSession) -> list[Outing]:
             selectinload(Outing.signups).selectinload(Signup.participants).selectinload(Participant.family_member),
             selectinload(Outing.outing_place),
             selectinload(Outing.pickup_place),
-            selectinload(Outing.dropoff_place)
+            selectinload(Outing.dropoff_place),
+            selectinload(Outing.allowed_troops)
         )
         .order_by(Outing.outing_date.asc())
     )
@@ -94,7 +98,12 @@ from datetime import timezone
 
 async def create_outing(db: AsyncSession, outing: OutingCreate) -> Outing:
     """Create a new outing"""
+    from app.models.troop import Troop
+    
     outing_data = outing.model_dump()
+    
+    # Extract allowed_troop_ids for separate handling
+    allowed_troop_ids = outing_data.pop('allowed_troop_ids', [])
     
     # Ensure signups_close_at is naive UTC if present
     if outing_data.get('signups_close_at') and outing_data['signups_close_at'].tzinfo is not None:
@@ -107,23 +116,37 @@ async def create_outing(db: AsyncSession, outing: OutingCreate) -> Outing:
     db_outing = Outing(**outing_data)
     db.add(db_outing)
     await db.flush()  # Obtain ID
+    
+    # Add allowed troops if specified
+    if allowed_troop_ids:
+        for troop_id in allowed_troop_ids:
+            troop_result = await db.execute(select(Troop).where(Troop.id == troop_id))
+            troop = troop_result.scalar_one_or_none()
+            if troop:
+                db_outing.allowed_troops.append(troop)
+    
     # Record change before commit so version aligns with entity state
     payload_hash = compute_payload_hash(db_outing, ["name", "outing_date", "location", "updated_at"])  # lightweight fields
     await record_change(db, entity_type="outing", entity_id=db_outing.id, op_type="create", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_outing)
-    await db.refresh(db_outing, ['signups', 'outing_place', 'pickup_place', 'dropoff_place'])
+    await db.refresh(db_outing, ['signups', 'outing_place', 'pickup_place', 'dropoff_place', 'allowed_troops'])
     return db_outing
 
 
 async def update_outing(db: AsyncSession, outing_id: UUID, outing: OutingUpdate) -> Optional[Outing]:
     """Update an existing outing"""
+    from app.models.troop import Troop
+    
     db_outing = await get_outing(db, outing_id)
     if not db_outing:
         return None
     
     # Only update fields that were explicitly provided (exclude_unset=True)
     update_data = outing.model_dump(exclude_unset=True)
+    
+    # Extract allowed_troop_ids for separate handling if present
+    allowed_troop_ids = update_data.pop('allowed_troop_ids', None)
 
     # Ensure datetime fields are naive UTC if present
     for field in ['signups_close_at', 'cancellation_deadline']:
@@ -131,13 +154,23 @@ async def update_outing(db: AsyncSession, outing_id: UUID, outing: OutingUpdate)
             update_data[field] = update_data[field].astimezone(timezone.utc).replace(tzinfo=None)
     for key, value in update_data.items():
         setattr(db_outing, key, value)
+    
+    # Update allowed troops if specified
+    if allowed_troop_ids is not None:
+        # Clear existing and add new ones
+        db_outing.allowed_troops.clear()
+        for troop_id in allowed_troop_ids:
+            troop_result = await db.execute(select(Troop).where(Troop.id == troop_id))
+            troop = troop_result.scalar_one_or_none()
+            if troop:
+                db_outing.allowed_troops.append(troop)
 
     await db.flush()
     payload_hash = compute_payload_hash(db_outing, ["name", "outing_date", "location", "updated_at"])  # lightweight fields
     await record_change(db, entity_type="outing", entity_id=db_outing.id, op_type="update", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_outing)
-    await db.refresh(db_outing, ['signups', 'outing_place', 'pickup_place', 'dropoff_place'])
+    await db.refresh(db_outing, ['signups', 'outing_place', 'pickup_place', 'dropoff_place', 'allowed_troops'])
     return db_outing
 
 

@@ -6,6 +6,12 @@ from datetime import datetime
 
 from app.db.base import Base
 
+# Import the association table (will be defined in outing.py)
+# We import it here to avoid circular import issues
+def get_outing_troops_table():
+    from app.models.outing import outing_troops
+    return outing_troops
+
 
 class Troop(Base):
     """Troop model representing a scouting unit"""
@@ -25,6 +31,7 @@ class Troop(Base):
     patrols = relationship("Patrol", back_populates="troop", cascade="all, delete-orphan")
     family_members = relationship("FamilyMember", back_populates="troop")
     restricted_outings = relationship("Outing", back_populates="restricted_troop")
+    allowed_outings = relationship("Outing", secondary="outing_troops", back_populates="allowed_troops")
 
     def __repr__(self):
         return f"<Troop(id={self.id}, number={self.number})>"

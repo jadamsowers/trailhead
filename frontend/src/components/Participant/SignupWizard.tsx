@@ -299,6 +299,15 @@ const SignupWizard: React.FC = () => {
         setError("Please select at least one participant");
         return;
       }
+      
+      // Validate all selected scouts are from the same troop
+      const selectedScouts = familyMembers.filter(m => selectedScoutIds.includes(m.id));
+      const troops = new Set(selectedScouts.map(s => s.troop_id).filter(Boolean));
+      if (troops.size > 1) {
+        setError("All scouts must be from the same troop. Please select only scouts from one troop.");
+        return;
+      }
+      
       setCurrentStep("review");
     }
   };
@@ -1926,31 +1935,62 @@ ${
                   </a>
                 </p>
               ) : (
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
-                  {familyMembers
-                    .filter((m) => {
-                      const age = calculateAge(m.date_of_birth || undefined);
-                      return age !== null && age < 18;
-                    })
-                    .map((member) => {
-                      const isSelected = selectedScoutIds.includes(member.id);
-                      const availableSeats = calculateAvailableSeats();
-                      const canSelect =
-                        selectedOuting?.capacity_type !== "vehicle" ||
-                        availableSeats > 0 ||
-                        isSelected;
+                <>
+                  {(() => {
+                    // Check if all selected scouts are from the same troop
+                    const selectedScouts = familyMembers.filter(m => selectedScoutIds.includes(m.id));
+                    const troops = new Set(selectedScouts.map(s => s.troop_id).filter(Boolean));
+                    const hasMixedTroops = troops.size > 1;
+                    
+                    return hasMixedTroops && (
+                      <div
+                        className="mb-5 p-4 rounded-lg border"
+                        style={{
+                          backgroundColor: "var(--alert-error-bg)",
+                          borderColor: "var(--alert-error-border)",
+                        }}
+                      >
+                        <p
+                          className="m-0 font-bold"
+                          style={{ color: "var(--alert-error-text)" }}
+                        >
+                          ⚠️ All scouts must be from the same troop. Please select only scouts from one troop.
+                        </p>
+                      </div>
+                    );
+                  })()}
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
+                    {familyMembers
+                      .filter((m) => {
+                        const age = calculateAge(m.date_of_birth || undefined);
+                        return age !== null && age < 18;
+                      })
+                      .map((member) => {
+                        const isSelected = selectedScoutIds.includes(member.id);
+                        const availableSeats = calculateAvailableSeats();
+                        
+                        // Check if we can select this scout based on troop restrictions
+                        const selectedScouts = familyMembers.filter(m => selectedScoutIds.includes(m.id) && m.id !== member.id);
+                        const existingTroopId = selectedScouts.length > 0 ? selectedScouts[0].troop_id : null;
+                        const isDifferentTroop = existingTroopId && member.troop_id && member.troop_id !== existingTroopId;
+                        
+                        const canSelect = !isDifferentTroop && (
+                          selectedOuting?.capacity_type !== "vehicle" ||
+                          availableSeats > 0 ||
+                          isSelected
+                        );
 
-                      return (
-                        <div
-                          key={member.id}
-                          onClick={() =>
-                            canSelect &&
-                            setSelectedScoutIds((prev) =>
-                              prev.includes(member.id)
-                                ? prev.filter((id) => id !== member.id)
-                                : [...prev, member.id]
-                            )
-                          }
+                        return (
+                          <div
+                            key={member.id}
+                            onClick={() =>
+                              canSelect &&
+                              setSelectedScoutIds((prev) =>
+                                prev.includes(member.id)
+                                  ? prev.filter((id) => id !== member.id)
+                                  : [...prev, member.id]
+                              )
+                            }
                           onKeyDown={(e) => {
                             if (
                               (e.key === "Enter" || e.key === " ") &&

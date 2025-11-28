@@ -62,13 +62,16 @@ async def create_signup(
             detail="Outing not found"
         )
 
-    # Enforce troop restriction if outing is locked to a troop
+    # Enforce troop restriction if outing is locked to a troop (legacy single-troop restriction)
     if db_outing.restricted_troop_id:
         from app.models.troop import Troop
         troop_result = await db.execute(select(Troop).where(Troop.id == db_outing.restricted_troop_id))
         restricted_troop = troop_result.scalar_one_or_none()
         if not restricted_troop:
             raise HTTPException(status_code=400, detail="Restricted troop not found for outing")
+    
+    # Check allowed troops (new multi-troop restriction)
+    allowed_troop_ids = {troop.id for troop in db_outing.allowed_troops}
     
     # Check if signups are closed
     if db_outing.are_signups_closed:
@@ -97,7 +100,7 @@ async def create_signup(
                 detail=f"You do not have permission to sign up family member {family_member.name}"
             )
             
-        # Troop restriction validation (accept either relational or legacy textual match)
+        # Troop restriction validation (legacy single-troop restriction)
         if db_outing.restricted_troop_id:
             # Prefer relational troop_id match, fallback to troop_number match
             if not (
@@ -107,6 +110,22 @@ async def create_signup(
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Family member '{family_member.name}' is not part of restricted troop {restricted_troop.number}."
+                )
+        
+        # New multi-troop validation: Check if scout's troop is allowed (only for scouts with troop_id)
+        if family_member.member_type == 'scout' and family_member.troop_id and allowed_troop_ids:
+            if family_member.troop_id not in allowed_troop_ids:
+                # Get troop numbers for error message
+                from app.models.troop import Troop
+                allowed_troops_result = await db.execute(
+                    select(Troop).where(Troop.id.in_(allowed_troop_ids))
+                )
+                allowed_troops = allowed_troops_result.scalars().all()
+                allowed_numbers = ", ".join([t.number for t in allowed_troops])
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Scout '{family_member.name}' cannot sign up for this outing. "
+                           f"This outing is only open to troops: {allowed_numbers}."
                 )
 
         family_members.append(family_member)

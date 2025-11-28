@@ -118,7 +118,28 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
   const [budgetType, setBudgetType] = useState<"total" | "per_meal">(
     "per_meal"
   );
+  
+  // Troop selection
+  const [troops, setTroops] = useState<Array<{ id: string; number: string }>>([]);
+  const [selectedTroopIds, setSelectedTroopIds] = useState<Set<string>>(new Set());
 
+  // Load troops on wizard open
+  useEffect(() => {
+    if (open && troops.length === 0) {
+      (async () => {
+        try {
+          const { troopAPI } = await import("../../services/api");
+          const allTroops = await troopAPI.getAll();
+          setTroops(allTroops.map((t: any) => ({ id: t.id, number: t.number })));
+          // Default to all troops selected
+          setSelectedTroopIds(new Set(allTroops.map((t: any) => t.id)));
+        } catch (e) {
+          console.error("Failed loading troops", e);
+        }
+      })();
+    }
+  }, [open, troops.length]);
+  
   // Load suggestions when moving to step 2
   useEffect(() => {
     if (activeStep === 1) {
@@ -281,6 +302,7 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
           : undefined,
         meal_count: mealCount ? parseInt(mealCount) : undefined,
         budget_type: budgetType,
+        allowed_troop_ids: Array.from(selectedTroopIds),
       };
 
       const newOuting = await OutingsService.createOutingApiOutingsPost(
@@ -414,6 +436,10 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
         return false;
       }
       return true;
+    }
+    // Validate step 3 (Configure Details) - ensure at least one troop selected
+    if (activeStep === 3) {
+      return selectedTroopIds.size > 0;
     }
     return true;
   };
@@ -1592,6 +1618,61 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                     Last day for users to self-cancel
                   </small>
                 </div>
+              </div>
+
+              {/* Troop Selection */}
+              <div
+                className="mt-4 p-4 rounded-lg"
+                style={{
+                  backgroundColor: "var(--bg-tertiary)",
+                  border: "1px solid var(--border-light)",
+                }}
+              >
+                <h4 className="font-semibold text-primary mb-2">
+                  🏕️ Troop Selection
+                </h4>
+                <p className="text-sm text-secondary mb-3">
+                  Select which troops are allowed to sign up for this outing. At least one troop must be selected.
+                </p>
+                {troops.length === 0 ? (
+                  <p className="text-sm text-secondary">Loading troops...</p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    {troops.map((troop) => (
+                      <label
+                        key={troop.id}
+                        className="flex items-center gap-2 p-2 rounded cursor-pointer hover:bg-opacity-80"
+                        style={{
+                          backgroundColor: selectedTroopIds.has(troop.id)
+                            ? "rgba(var(--bsa-olive-rgb), 0.1)"
+                            : "transparent",
+                          border: "1px solid var(--border-light)",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedTroopIds.has(troop.id)}
+                          onChange={(e) => {
+                            const newSet = new Set(selectedTroopIds);
+                            if (e.target.checked) {
+                              newSet.add(troop.id);
+                            } else {
+                              newSet.delete(troop.id);
+                            }
+                            setSelectedTroopIds(newSet);
+                          }}
+                          className="cursor-pointer"
+                        />
+                        <span className="text-sm font-medium">Troop {troop.number}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                {selectedTroopIds.size === 0 && (
+                  <p className="text-sm mt-2" style={{ color: "var(--color-error)" }}>
+                    ⚠️ At least one troop must be selected
+                  </p>
+                )}
               </div>
             </div>
           </div>
