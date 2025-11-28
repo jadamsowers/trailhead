@@ -626,6 +626,81 @@ export const GRUBMASTER_REASONS = [
   { value: "just_because", label: "Just Because - I Like to Cook!" },
 ] as const;
 
+// Tenting Types
+export interface TentingGroupMember {
+  id: string;
+  participant_id: string;
+  created_at: string;
+  participant_name?: string;
+  age?: number;
+  gender?: string;
+  patrol_name?: string;
+}
+
+export interface TentingGroup {
+  id: string;
+  outing_id: string;
+  name: string;
+  notes?: string;
+  members: TentingGroupMember[];
+  member_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TentingGroupCreate {
+  outing_id: string;
+  name: string;
+  notes?: string;
+  member_ids?: string[];
+}
+
+export interface TentingGroupUpdate {
+  name?: string;
+  notes?: string;
+}
+
+export interface TentingSummaryParticipant {
+  participant_id: string;
+  name: string;
+  age?: number;
+  gender?: string;
+  patrol_name?: string;
+  troop_number?: string;
+  is_adult: boolean;
+  tenting_group_id?: string;
+  tenting_group_name?: string;
+}
+
+export interface TentingSummaryResponse {
+  outing_id: string;
+  outing_name: string;
+  participants: TentingSummaryParticipant[];
+  tenting_groups: TentingGroup[];
+  unassigned_count: number;
+  scout_count: number;
+}
+
+export interface MoveTentingParticipantRequest {
+  participant_id: string;
+  target_tenting_group_id?: string;
+}
+
+export interface TentingValidationIssue {
+  tenting_group_id: string;
+  tenting_group_name: string;
+  issue_type: string;
+  message: string;
+  severity: string;
+}
+
+export interface AutoAssignTentingRequest {
+  tent_size_min?: number;
+  tent_size_max?: number;
+  keep_patrols_together?: boolean;
+  max_age_difference?: number;
+}
+
 // Troop Types
 export interface TroopResponse {
   id: string;

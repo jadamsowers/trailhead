@@ -13,6 +13,7 @@ import { formatPhoneNumber } from "../../utils/phoneUtils";
 import OutingQRCode from "./OutingQRCode";
 import OutingWizard from "./OutingWizard.tsx";
 import GrubmasterAdmin from "./GrubmasterAdmin";
+import TentingAdmin from "./TentingAdmin";
 
 const OutingAdmin: React.FC = () => {
   // Helper function to format date, omitting year if it's the current year
@@ -68,6 +69,10 @@ const OutingAdmin: React.FC = () => {
   // Grubmaster modal state
   const [showGrubmasterModal, setShowGrubmasterModal] = useState(false);
   const [grubmasterOuting, setGrubmasterOuting] = useState<Outing | null>(null);
+
+  // Tenting modal state
+  const [showTentingModal, setShowTentingModal] = useState(false);
+  const [tentingOuting, setTentingOuting] = useState<Outing | null>(null);
 
   // Email functionality state
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -1935,6 +1940,39 @@ const OutingAdmin: React.FC = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
+                                setTentingOuting(outing);
+                                setShowTentingModal(true);
+                              }}
+                              disabled={loading || outing.signup_count === 0 || !outing.is_overnight}
+                              className="w-full !py-2 !px-4"
+                              style={{
+                                backgroundColor:
+                                  outing.signup_count === 0 || !outing.is_overnight
+                                    ? "var(--btn-disabled-bg)"
+                                    : "var(--btn-secondary-bg)",
+                                color:
+                                  outing.signup_count === 0 || !outing.is_overnight
+                                    ? "var(--btn-disabled-text)"
+                                    : "var(--btn-secondary-text)",
+                                borderRadius: "4px",
+                                cursor:
+                                  loading || outing.signup_count === 0 || !outing.is_overnight
+                                    ? "not-allowed"
+                                    : "pointer",
+                              }}
+                              title={
+                                !outing.is_overnight
+                                  ? "Only available for overnight outings"
+                                  : outing.signup_count === 0
+                                  ? "No participants to assign"
+                                  : "Manage tenting assignments for scouts"
+                              }
+                            >
+                              ⛺ Tenting
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 handleExportRosterPDF(outing.id, outing.name);
                               }}
                               disabled={loading || outing.signup_count === 0}
@@ -2326,6 +2364,18 @@ const OutingAdmin: React.FC = () => {
             onClose={() => {
               setShowGrubmasterModal(false);
               setGrubmasterOuting(null);
+            }}
+          />
+        )}
+
+        {/* Tenting Admin Modal */}
+        {showTentingModal && tentingOuting && (
+          <TentingAdmin
+            outingId={tentingOuting.id}
+            outingName={tentingOuting.name}
+            onClose={() => {
+              setShowTentingModal(false);
+              setTentingOuting(null);
             }}
           />
         )}
