@@ -35,6 +35,21 @@ const OutingAdmin: React.FC = () => {
     }
   };
 
+  // Helper function to format time from HH:MM:SS to 12-hour format with AM/PM
+  const formatTime = (timeString: string): string => {
+    if (!timeString) return "";
+
+    // Parse time string (HH:MM:SS or HH:MM)
+    const [hours, minutes] = timeString.split(":").map(Number);
+
+    // Convert to 12-hour format
+    const period = hours >= 12 ? "PM" : "AM";
+    const displayHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+    const displayMinutes = minutes.toString().padStart(2, "0");
+
+    return `${displayHours}:${displayMinutes} ${period}`;
+  };
+
   const [outings, setOutings] = useState<Outing[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1677,7 +1692,7 @@ const OutingAdmin: React.FC = () => {
                                       >
                                         <strong>Drop-off:</strong>{" "}
                                         {outing.drop_off_time &&
-                                          `${outing.drop_off_time}`}
+                                          formatTime(outing.drop_off_time)}
                                         {outing.drop_off_time &&
                                           outing.drop_off_location &&
                                           " at "}
@@ -1694,7 +1709,7 @@ const OutingAdmin: React.FC = () => {
                                       >
                                         <strong>Pickup:</strong>{" "}
                                         {outing.pickup_time &&
-                                          `${outing.pickup_time}`}
+                                          formatTime(outing.pickup_time)}
                                         {outing.pickup_time &&
                                           outing.pickup_location &&
                                           " at "}
