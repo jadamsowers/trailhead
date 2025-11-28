@@ -45,18 +45,31 @@ Optional environment variables for initial admin user:
 - `INITIAL_ADMIN_EMAIL` - Email for initial admin user (default: `soadmin@scouthacks.net`)
 - `INITIAL_ADMIN_PASSWORD` - Password for initial admin user (if not set, a random password will be generated)
 
-### 2. Start Database
+### 2. Start Database and Backend
 
-Ensure PostgreSQL is running via Docker Compose:
+The backend automatically runs migrations on startup via Docker Compose:
 
 ```bash
 cd /path/to/trailhead
-docker compose up -d postgres
+docker compose up -d
 ```
 
-### 3. Apply Migrations
+The startup process (`backend/start.sh`) automatically:
 
-Run all pending migrations:
+1. Waits for the database to be ready
+2. Applies all pending Atlas migrations
+3. Initializes the database with seed data
+4. Starts the FastAPI server
+
+**On first run**, the script will:
+
+- Create the `atlas_schema_revisions` table in the `public` schema
+- Apply all migrations in order
+- Create the initial admin user
+
+### 3. Manual Migration Apply (Optional)
+
+If you need to apply migrations manually (e.g., for development):
 
 ```bash
 cd backend
@@ -70,14 +83,7 @@ This will:
 3. Apply unapplied migrations in order
 4. Track applied migrations in the `atlas_schema_revisions` table
 
-### 4. Seed Initial Data
-
-Create the default admin user:
-
-```bash
-cd backend
-python -m app.db.init_db
-```
+**Note**: The Atlas configuration (`atlas.hcl`) is set to use the `public` schema for the revisions table to avoid schema qualification issues.
 
 **Admin User Configuration:**
 
@@ -371,6 +377,38 @@ If multiple developers create migrations with overlapping version numbers:
 2. Rename conflicting migration to next sequential number (e.g., `v010`)
 3. Re-run `atlas migrate hash --env sqlalchemy`
 4. Coordinate via version control to avoid overlaps
+
+### "relation atlas_schema_revisions.atlas_schema_revisions does not exist"
+
+This error occurs on a fresh database when Atlas tries to query its tracking table before it's created. **This is automatically handled by the startup script** (`backend/start.sh`).
+
+If you encounter this manually:
+
+1. **Verify Atlas configuration** includes schema settings:
+
+   ```hcl
+   env "sqlalchemy" {
+     src = "file://schema.sql"
+     dev = "docker://postgres/15/dev?search_path=public"
+     migration {
+       dir = "file://migrations"
+       revisions_schema = "public"
+     }
+   }
+   ```
+
+2. **Run status first** to initialize the tracking table:
+
+   ```bash
+   atlas migrate status --env sqlalchemy --url "postgresql://user:pass@host:5432/db?sslmode=disable"
+   ```
+
+3. **Then apply migrations**:
+   ```bash
+   atlas migrate apply --env sqlalchemy --url "postgresql://user:pass@host:5432/db?sslmode=disable"
+   ```
+
+The `revisions_schema = "public"` setting ensures Atlas creates the `atlas_schema_revisions` table in the correct schema.
 
 ## Production Deployment
 
