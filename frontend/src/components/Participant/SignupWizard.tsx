@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@stackframe/stack";
 import { Outing } from "../../types";
 import { OutingIconDisplay } from "../OutingIconDisplay";
 import { signupAPI, userAPI, APIError } from "../../services/api";

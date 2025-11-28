@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useUser } from "@stackframe/stack";
 
 const OAuthCallbackPage: React.FC = () => {
     const navigate = useNavigate();

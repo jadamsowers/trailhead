@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@stackframe/stack";
 import { useEffect, useRef, useState } from "react";
 import { offlineAPI } from "../services/api";
 import { SyncToast } from "./Shared/SyncToast";

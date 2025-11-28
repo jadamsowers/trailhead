@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "../../contexts/AuthContext";
 import { User } from "../../types";
 import { getApiBase } from "../../utils/apiBase";
 
@@ -44,7 +44,7 @@ const UserManagement: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${getApiBase()}/clerk/users`, {
+      const response = await fetch(`${getApiBase()}/auth/users`, {
         headers: await getAuthHeaders(),
       });
 
@@ -67,7 +67,7 @@ const UserManagement: React.FC = () => {
       setUpdatingUserId(userId);
       setError(null);
       const response = await fetch(
-        `${getApiBase()}/clerk/users/${userId}/role`,
+        `${getApiBase()}/auth/users/${userId}/role`,
         {
           method: "PATCH",
           headers: await getAuthHeaders(),

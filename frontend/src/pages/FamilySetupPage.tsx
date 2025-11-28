@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "@stackframe/stack";
 import { FamilyManagement } from "../components/Adult/FamilyManagement";
 import { familyAPI } from "../services/api";
 
 const FamilySetupPage: React.FC = () => {
-  const { user, isLoaded, isSignedIn } = useUser();
+  const stackUser = useUser();
+  const user = stackUser;
+  const isSignedIn = !!stackUser;
   const navigate = useNavigate();
   const [hasFamilyMembers, setHasFamilyMembers] = useState(false);
   const [loading, setLoading] = useState(true);
