@@ -209,7 +209,7 @@ async function getAuthHeaders(): Promise<HeadersInit> {
 
   try {
     // Get the access token from Stack Auth
-    const token = await stackClientApp.getAccessToken?.();
+    const token = await stackClientApp.getAccessToken();
     
     if (!token) {
       console.warn("⚠️ No Stack Auth token found - user may not be signed in yet");
@@ -475,7 +475,7 @@ export const oauthAPI = {
    */
   async refreshToken(_refreshToken: string): Promise<TokenResponse> {
     // Obtain a fresh session token from Stack Auth
-    const token = await stackClientApp.getAccessToken?.();
+    const token = await stackClientApp.getAccessToken();
     if (token) {
       return {
         access_token: token,
@@ -491,7 +491,7 @@ export const oauthAPI = {
    */
   async logout(_refreshToken: string): Promise<void> {
     // Sign out via Stack Auth
-    await stackClientApp.signOut?.();
+    await stackClientApp.signOut();
   },
 
   /**

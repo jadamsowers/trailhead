@@ -17,23 +17,13 @@ export const initApiClient = () => {
   // Set token retrieval logic using Stack Auth
   OpenAPI.TOKEN = async () => {
     try {
-      // Get the current user from Stack Auth
-      const user = stackClientApp.useUser?.();
-      
-      if (!user) {
-        console.warn("⚠️ No Stack Auth user found - user may not be signed in yet");
-        throw new Error(
-          "You must be signed in to access this feature. Please sign in and try again."
-        );
-      }
-
       // Get the access token from Stack Auth
-      const token = await stackClientApp.getAccessToken?.();
+      const token = await stackClientApp.getAccessToken();
       
       if (!token) {
-        console.error("❌ Failed to get Stack Auth access token");
+        console.warn("⚠️ No Stack Auth token found - user may not be signed in yet");
         throw new Error(
-          "Failed to get authentication token. Please sign out and sign in again."
+          "You must be signed in to access this feature. Please sign in and try again."
         );
       }
 

@@ -36,10 +36,6 @@ class Settings(BaseSettings):
     STACK_SECRET_SERVER_KEY: str = "your_stack_secret_server_key"
     # URL of the Stack Auth server (self-hosted or managed)
     STACK_API_URL: str = "http://stackauth:8102"
-
-    # Legacy Clerk Configuration (kept for migration, will be removed)
-    CLERK_SECRET_KEY: str = "sk_test_your_clerk_secret_key_here"
-    CLERK_PUBLISHABLE_KEY: str = "pk_test_your_clerk_publishable_key_here"
     
     # Frontend URL
     FRONTEND_URL: str = "http://localhost:3000"

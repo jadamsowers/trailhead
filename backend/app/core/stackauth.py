@@ -14,6 +14,21 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 
+def _parse_display_name(display_name: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+    """Parse display name into first and last name components."""
+    if not display_name:
+        return None, None
+    parts = display_name.strip().split(" ", 1)
+    first_name = parts[0] if parts else None
+    last_name = parts[1] if len(parts) > 1 else None
+    return first_name, last_name
+
+
+class StackAuthConfigurationError(Exception):
+    """Raised when Stack Auth is not properly configured."""
+    pass
+
+
 class StackAuthClient:
     """Stack Auth client wrapper for authentication operations"""
 
@@ -22,6 +37,31 @@ class StackAuthClient:
         self.secret_server_key = settings.STACK_SECRET_SERVER_KEY
         self.api_url = settings.STACK_API_URL
         self._jwks_client: Optional[PyJWKClient] = None
+        
+        # Validate configuration on initialization
+        self._validate_configuration()
+
+    def _validate_configuration(self) -> None:
+        """Validate Stack Auth configuration at startup."""
+        if not self.project_id or self.project_id == "your_stack_project_id":
+            logger.warning("Stack Auth project ID not configured. Please set STACK_PROJECT_ID in backend/.env")
+        
+        if not self.secret_server_key or self.secret_server_key == "your_stack_secret_server_key":
+            logger.warning("Stack Auth secret server key not configured. Please set STACK_SECRET_SERVER_KEY in backend/.env")
+
+    def _check_configuration(self) -> None:
+        """Check if Stack Auth is properly configured, raise HTTP error if not."""
+        if not self.project_id or self.project_id == "your_stack_project_id":
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Authentication service not configured"
+            )
+        
+        if not self.secret_server_key or self.secret_server_key == "your_stack_secret_server_key":
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Authentication service not configured"
+            )
 
     @property
     def jwks_url(self) -> str:
@@ -50,17 +90,7 @@ class StackAuthClient:
         """
         try:
             # Check configuration
-            if not self.project_id or self.project_id == "your_stack_project_id":
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Stack Auth project ID not configured. Please set STACK_PROJECT_ID in backend/.env"
-                )
-
-            if not self.secret_server_key or self.secret_server_key == "your_stack_secret_server_key":
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Stack Auth secret server key not configured. Please set STACK_SECRET_SERVER_KEY in backend/.env"
-                )
+            self._check_configuration()
 
             # Get signing key from JWKS
             signing_key = self.jwks_client.get_signing_key_from_jwt(token)
@@ -140,12 +170,15 @@ class StackAuthClient:
                             email = channel.get("value")
                             break
 
+                # Parse display name into first/last name
+                first_name, last_name = _parse_display_name(user_data.get("display_name"))
+
                 return {
                     "id": user_data.get("id"),
                     "email": email,
                     "display_name": user_data.get("display_name"),
-                    "first_name": user_data.get("display_name", "").split(" ")[0] if user_data.get("display_name") else None,
-                    "last_name": " ".join(user_data.get("display_name", "").split(" ")[1:]) if user_data.get("display_name") and " " in user_data.get("display_name", "") else None,
+                    "first_name": first_name,
+                    "last_name": last_name,
                     "full_name": user_data.get("display_name") or email,
                     "profile_image_url": user_data.get("profile_image_url"),
                     "created_at": user_data.get("signed_up_at_millis"),
