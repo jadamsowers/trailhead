@@ -275,7 +275,9 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
           ? `${cancellationDeadline}T23:59:59Z`
           : undefined,
         food_budget_per_person: foodBudgetPerPerson
-          ? Number(foodBudgetPerPerson)
+          ? budgetType === "per_meal" && mealCount
+            ? Number(foodBudgetPerPerson) * parseInt(mealCount)
+            : Number(foodBudgetPerPerson)
           : undefined,
         meal_count: mealCount ? parseInt(mealCount) : undefined,
         budget_type: budgetType,
@@ -878,6 +880,35 @@ export const OutingWizard: React.FC<OutingWizardProps> = ({
                                   return !suggestions.requirements.some(
                                     (suggestedReq) => suggestedReq.id === req.id
                                   );
+                                })
+                                .sort((a, b) => {
+                                  // Define rank order
+                                  const rankOrder: { [key: string]: number } = {
+                                    "Scout": 1,
+                                    "Tenderfoot": 2,
+                                    "Second Class": 3,
+                                    "First Class": 4,
+                                  };
+                                  
+                                  // First sort by rank
+                                  const rankA = rankOrder[a.rank] || 999;
+                                  const rankB = rankOrder[b.rank] || 999;
+                                  
+                                  if (rankA !== rankB) {
+                                    return rankA - rankB;
+                                  }
+                                  
+                                  // Then sort by requirement number
+                                  // Extract numeric part for proper sorting (e.g., "1a" -> 1, "10" -> 10)
+                                  const numA = parseFloat(a.requirement_number) || 0;
+                                  const numB = parseFloat(b.requirement_number) || 0;
+                                  
+                                  if (numA !== numB) {
+                                    return numA - numB;
+                                  }
+                                  
+                                  // If numeric parts are equal, sort alphabetically by full requirement number
+                                  return a.requirement_number.localeCompare(b.requirement_number);
                                 })
                                 .map((req) => (
                                   <div
