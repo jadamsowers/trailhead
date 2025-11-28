@@ -110,7 +110,7 @@ def _validate_tenting_group(tenting_group: TentingGroup, max_age_diff: int = 2) 
             tenting_group_id=tenting_group.id,
             tenting_group_name=tenting_group.name,
             issue_type="group_size",
-            message=f"Tent has only {len(member_data)} scout (minimum is 2)",
+            message=f"Tent has only {len(member_data)} scout{'s' if len(member_data) != 1 else ''} (minimum is 2)",
             severity="warning"
         ))
     
@@ -534,12 +534,20 @@ async def auto_assign_tenting_groups(
                     if abs(scout_age - base_age) > request.max_age_difference:
                         continue
                 
-                # Prefer same patrol
+                # Prefer same patrol, but allow different patrol members if needed to fill tent
                 if request.keep_patrols_together and scout['patrol'] != base_patrol:
-                    # Only add non-patrol members if we need to fill the tent
-                    if len(tent_scouts) < request.tent_size_min:
-                        remaining_scouts.remove(scout)
-                        tent_scouts.append(scout)
+                    # Only add non-patrol members if we need to fill the tent to minimum size
+                    # or if we can't find any same-patrol members
+                    if len(tent_scouts) < request.tent_size_max:
+                        # Try to fill with patrol members first, then others
+                        same_patrol_available = any(
+                            s['patrol'] == base_patrol 
+                            for s in remaining_scouts 
+                            if s != scout
+                        )
+                        if not same_patrol_available or len(tent_scouts) < request.tent_size_min:
+                            remaining_scouts.remove(scout)
+                            tent_scouts.append(scout)
                 else:
                     remaining_scouts.remove(scout)
                     tent_scouts.append(scout)
@@ -566,15 +574,13 @@ async def auto_assign_tenting_groups(
             })
     
     # Create the tenting groups
-    created_groups = []
     for tent_data in tents_to_create:
         tenting_group_in = TentingGroupCreate(
             outing_id=outing_id,
             name=tent_data['name'],
             member_ids=[s['id'] for s in tent_data['members']]
         )
-        tenting_group = await crud_tenting_group.create_tenting_group(db, tenting_group_in)
-        created_groups.append(tenting_group)
+        await crud_tenting_group.create_tenting_group(db, tenting_group_in)
     
     # Return all groups (including previously existing ones)
     all_groups = await crud_tenting_group.get_tenting_groups_by_outing(db, outing_id)
