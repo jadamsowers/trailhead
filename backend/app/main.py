@@ -12,7 +12,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
-from app.api.endpoints import outings, signups, registration, family, clerk_auth, requirements, places, packing_lists, troops, offline, grubmaster
+from app.api.endpoints import outings, signups, registration, family, clerk_auth, requirements, places, packing_lists, troops, offline, grubmaster, tenting
 from app.api import checkin
 
 # Configure logging
@@ -208,6 +208,7 @@ app.include_router(packing_lists.router, prefix=f"{settings.API_V1_STR}/packing-
 app.include_router(troops.router, prefix=f"{settings.API_V1_STR}", tags=["troops"])
 app.include_router(offline.router, prefix=f"{settings.API_V1_STR}/offline", tags=["offline"])
 app.include_router(grubmaster.router, prefix=f"{settings.API_V1_STR}/outings", tags=["grubmaster"])
+app.include_router(tenting.router, prefix=f"{settings.API_V1_STR}/outings", tags=["tenting"])
 
 # Health endpoint
 from app.api.endpoints import health
