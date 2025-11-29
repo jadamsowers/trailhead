@@ -9,7 +9,6 @@ A comprehensive web application for managing scout troop outings, signups, and p
 - Docker and Docker Compose
 - Node.js 18+ (for local development)
 - Python 3.11+ (for local development)
-- Clerk account (free at [clerk.com](https://clerk.com))
 
 ### Setup
 
@@ -19,42 +18,45 @@ A comprehensive web application for managing scout troop outings, signups, and p
    cd trailhead
    ```
 
-2. **Get Clerk API Keys**
-   - Sign up at [clerk.com](https://clerk.com)
-   - Create a new application
-   - Copy your API keys from the dashboard
-
-3. **Configure environment variables**
+2. **Run the bootstrap script**
    ```bash
-   # Copy example files
-   cp .env.example .env
-   cp frontend/.env.example frontend/.env.development
-   
-   # Edit .env and add your Clerk keys
-   CLERK_SECRET_KEY=sk_test_your_key_here
-   CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
-   
-   # Edit frontend/.env.development
-   VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_key_here
+   ./bootstrap.sh
    ```
+   
+   The script will:
+   - Start all services including Authentik (authentication)
+   - Generate secure passwords and secrets
+   - Create all necessary configuration files
+   - Display instructions for completing setup
 
-4. **Start with Docker Compose**
+3. **Configure Authentik**
+   
+   After services start, access Authentik admin at http://localhost:9000 and:
+   - Login with the bootstrap credentials (shown in terminal)
+   - Create an OAuth2/OpenID Provider named "trailhead"
+   - Create an Application using that provider
+   - Copy Client ID and Secret to your .env files
+   
+   See [AUTHENTIK_SETUP.md](AUTHENTIK_SETUP.md) for detailed instructions.
+
+4. **Start the frontend (development)**
    ```bash
-   docker-compose up -d
+   cd frontend && npm install && npm start
    ```
 
 5. **Access the application**
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
    - API Docs: http://localhost:8000/docs
+   - Authentik Admin: http://localhost:9000
 
 ## 📚 Documentation
 
 - [Quick Start Guide](QUICK_START.md) - Get started quickly
-- [Clerk Migration Guide](CLERK_MIGRATION_GUIDE.md) - Complete guide for Clerk authentication setup
+- [Authentik Setup Guide](AUTHENTIK_SETUP.md) - Complete guide for Authentik authentication setup
 - [HTTPS Setup Guide](HTTPS_SETUP.md) - Production HTTPS configuration with SSL certificates
 - [Architecture](ARCHITECTURE.md) - System architecture and design
-- [API Documentation](backend/API_DOCUMENTATION.md) - Backend API reference
+- [API Documentation](../backend/API_DOCUMENTATION.md) - Backend API reference
 - [Deployment Guide](DEPLOYMENT.md) - Production deployment instructions
 
 ## ✨ Features
@@ -85,34 +87,37 @@ A comprehensive web application for managing scout troop outings, signups, and p
 
 ## 🔐 Authentication
 
-This project uses **Clerk** for authentication, providing:
-- Modern, secure authentication
+This project uses **Authentik** for authentication, providing:
+- Modern, secure OAuth2/OIDC authentication
+- Self-hosted identity provider
 - Built-in user management
-- Social login support
-- Beautiful pre-built UI components
-- No infrastructure to manage
+- Social login support (configurable)
+- Group-based role management
+- No external dependencies
 
-See [CLERK_MIGRATION_GUIDE.md](CLERK_MIGRATION_GUIDE.md) for detailed setup instructions.
+See [AUTHENTIK_SETUP.md](AUTHENTIK_SETUP.md) for detailed setup instructions.
 
 ## 🛠️ Technology Stack
 
 ### Frontend
 - React 18 with TypeScript
 - React Router for navigation
-- Clerk React for authentication
+- react-oidc-context for authentication
 - Vite for build tooling
+- Tailwind CSS for styling
 
 ### Backend
 - FastAPI (Python)
 - PostgreSQL database
 - SQLAlchemy ORM
 - Atlas for migrations
-- Clerk Backend API for auth
+- JWT token verification via Authentik
 
 ### Infrastructure
 - Docker & Docker Compose
+- Authentik (self-hosted authentication)
+- Redis (for Authentik)
 - Nginx (production)
-- Apache (alternative deployment)
 
 ## 📦 Project Structure
 
@@ -129,6 +134,7 @@ trailhead/
 │   └── tests/           # Backend tests
 ├── frontend/            # React frontend
 │   ├── src/
+│   │   ├── auth/        # Authentik OIDC client
 │   │   ├── components/  # React components
 │   │   ├── pages/       # Page components
 │   │   ├── services/    # API services
@@ -232,10 +238,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 📞 Support
 
 For issues and questions:
-- Check the [documentation](CLERK_MIGRATION_GUIDE.md)
+- Check the [documentation](AUTHENTIK_SETUP.md)
 - Open an issue on GitHub
 - Contact via [scouthacks.net](https://scouthacks.net)
 
 ---
 
-**Note**: This project uses Clerk for modern, secure authentication. See [CLERK_MIGRATION_GUIDE.md](CLERK_MIGRATION_GUIDE.md) for setup details.
+**Note**: This project uses Authentik for modern, secure authentication. See [AUTHENTIK_SETUP.md](AUTHENTIK_SETUP.md) for setup details.

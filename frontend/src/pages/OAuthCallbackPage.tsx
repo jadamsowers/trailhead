@@ -1,23 +1,23 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from "@stackframe/stack";
+import { useAuth } from 'react-oidc-context';
 
 const OAuthCallbackPage: React.FC = () => {
     const navigate = useNavigate();
-    const { isSignedIn, isLoaded } = useUser();
+    const auth = useAuth();
 
     useEffect(() => {
-        // Stack Auth handles OAuth callbacks automatically
-        // Once loaded, redirect to appropriate page
-        if (isLoaded) {
-            if (isSignedIn) {
+        // react-oidc-context handles the callback automatically
+        // Once authentication is complete, redirect to appropriate page
+        if (!auth.isLoading) {
+            if (auth.isAuthenticated) {
                 navigate('/family-setup', { replace: true });
-            } else {
-                // If authentication failed, redirect to login
+            } else if (auth.error) {
+                console.error('Authentication error:', auth.error);
                 navigate('/login', { replace: true });
             }
         }
-    }, [isSignedIn, isLoaded, navigate]);
+    }, [auth.isAuthenticated, auth.isLoading, auth.error, navigate]);
 
     return (
         <div style={{
@@ -33,10 +33,12 @@ const OAuthCallbackPage: React.FC = () => {
             }}>
                 <h2>Completing login...</h2>
                 <p>Please wait while we complete your authentication.</p>
+                {auth.error && (
+                    <p style={{ color: 'red' }}>Error: {auth.error.message}</p>
+                )}
             </div>
         </div>
     );
 };
 
 export default OAuthCallbackPage;
-

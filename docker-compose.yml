@@ -26,40 +26,86 @@ services:
     networks:
       - trailhead-network
 
-  # Stack Auth Server (self-hosted authentication)
-  stackauth:
-    image: stackauth/server:latest
-    container_name: trailhead-stackauth
+  # Redis for Authentik
+  redis:
+    image: docker.io/library/redis:alpine
+    container_name: trailhead-redis
     restart: ${RESTART_POLICY:-no}
+    command: --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+    volumes:
+      - redis_data:/data
+    networks:
+      - trailhead-network
+
+  # Authentik Server (self-hosted authentication)
+  authentik-server:
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12}
+    container_name: trailhead-authentik-server
+    restart: ${RESTART_POLICY:-no}
+    command: server
     environment:
-      # Database connection for Stack Auth
-      STACK_DATABASE_CONNECTION_STRING: postgresql://${STACKAUTH_DB_USER:-stackauth}:${STACKAUTH_DB_PASSWORD:-stackauth}@postgres:5432/${STACKAUTH_DB_NAME:-stackauth}
-      STACK_DIRECT_DATABASE_CONNECTION_STRING: postgresql://${STACKAUTH_DB_USER:-stackauth}:${STACKAUTH_DB_PASSWORD:-stackauth}@postgres:5432/${STACKAUTH_DB_NAME:-stackauth}
-      # Server secret (must be 32 bytes, base64url encoded)
-      STACK_SERVER_SECRET: ${STACK_SERVER_SECRET:-your-generated-secret-key-here-32bytes}
-      # URLs
-      NEXT_PUBLIC_STACK_API_URL: ${STACK_API_URL:-http://localhost:8102}
-      NEXT_PUBLIC_STACK_DASHBOARD_URL: ${STACK_DASHBOARD_URL:-http://localhost:8101}
-      # Email configuration (optional for dev)
-      STACK_EMAIL_HOST: ${STACK_EMAIL_HOST:-}
-      STACK_EMAIL_PORT: ${STACK_EMAIL_PORT:-}
-      STACK_EMAIL_USERNAME: ${STACK_EMAIL_USERNAME:-}
-      STACK_EMAIL_PASSWORD: ${STACK_EMAIL_PASSWORD:-}
-      STACK_EMAIL_SENDER: ${STACK_EMAIL_SENDER:-}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-your-generated-authentik-secret-key-here}
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_DB_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_DB_NAME:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD:-authentik}
+      # Bootstrap admin user - only applied on first startup
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD:-}
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL:-}
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:-}
+    volumes:
+      - ./data/authentik/media:/media
+      - ./data/authentik/custom-templates:/templates
     ports:
-      - "8101:8101"  # Dashboard
-      - "8102:8102"  # API
+      - "${AUTHENTIK_PORT:-9000}:9000"
+      - "${AUTHENTIK_PORT_HTTPS:-9443}:9443"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     networks:
       - trailhead-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8102/api/v1/"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9000/-/health/live/"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 60s
+
+  # Authentik Worker
+  authentik-worker:
+    image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12}
+    container_name: trailhead-authentik-worker
+    restart: ${RESTART_POLICY:-no}
+    command: worker
+    environment:
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-your-generated-authentik-secret-key-here}
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_DB_USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_DB_NAME:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD:-authentik}
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/authentik/media:/media
+      - ./data/authentik/certs:/certs
+      - ./data/authentik/custom-templates:/templates
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - trailhead-network
 
   # Backend API
   backend:
@@ -81,11 +127,10 @@ services:
       DEBUG: ${DEBUG:-true}
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://localhost:3000,http://localhost:8000}
       INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-admin@example.com}
-      # Stack Auth Configuration
-      STACK_PROJECT_ID: ${STACK_PROJECT_ID:-}
-      STACK_PUBLISHABLE_CLIENT_KEY: ${STACK_PUBLISHABLE_CLIENT_KEY:-}
-      STACK_SECRET_SERVER_KEY: ${STACK_SECRET_SERVER_KEY:-}
-      STACK_API_URL: ${STACK_API_URL:-http://stackauth:8102}
+      # Authentik Configuration
+      AUTHENTIK_URL: ${AUTHENTIK_URL:-http://authentik-server:9000}
+      AUTHENTIK_CLIENT_ID: ${AUTHENTIK_CLIENT_ID:-}
+      AUTHENTIK_CLIENT_SECRET: ${AUTHENTIK_CLIENT_SECRET:-}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     ports:
       # Only expose port in development mode (BACKEND_PORT will be empty in production)
@@ -93,7 +138,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      stackauth:
+      authentik-server:
         condition: service_healthy
     volumes:
       - ${BACKEND_VOLUME_MOUNT:-./backend:/app}
@@ -115,9 +160,8 @@ services:
       dockerfile: Dockerfile.prod
       args:
         VITE_API_URL: ${VITE_API_URL:-/api}
-        VITE_STACK_PROJECT_ID: ${STACK_PROJECT_ID}
-        VITE_STACK_PUBLISHABLE_CLIENT_KEY: ${STACK_PUBLISHABLE_CLIENT_KEY}
-        VITE_STACK_API_URL: ${STACK_API_URL:-http://localhost:8102}
+        VITE_AUTHENTIK_URL: ${AUTHENTIK_EXTERNAL_URL:-http://localhost:9000}
+        VITE_AUTHENTIK_CLIENT_ID: ${AUTHENTIK_CLIENT_ID:-}
     container_name: trailhead-frontend
     restart: unless-stopped
     profiles: ["production"]
@@ -160,6 +204,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  redis_data:
     driver: local
 
 networks:

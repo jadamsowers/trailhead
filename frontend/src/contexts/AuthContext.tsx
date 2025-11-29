@@ -5,9 +5,9 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { useUser as useStackUser } from "@stackframe/stack";
+import { useAuth as useOidcAuth } from "react-oidc-context";
+import { getAccessToken } from "../auth/client";
 import { oauthAPI, authAPI } from "../services/api";
-import { stackClientApp } from "../stack/client";
 import type { UserResponse as AuthUserResponse } from "../client/models/UserResponse";
 import { User } from "../types";
 
@@ -31,12 +31,13 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const oidcAuth = useOidcAuth();
 
   useEffect(() => {
     // Check for existing token or session
     const checkAuth = async () => {
       try {
-        const token = await stackClientApp.getAccessToken?.();
+        const token = await getAccessToken();
         if (token) {
           await verifyToken(token);
         } else {
@@ -54,7 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     checkAuth();
-  }, []);
+  }, [oidcAuth.user]);
 
   // Always cache user object when it changes
   useEffect(() => {
@@ -69,7 +70,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const verifyToken = async (_token: string) => {
     try {
-      // Fetch user from backend using Stack Auth authenticated endpoint
+      // Fetch user from backend using Authentik authenticated endpoint
       const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/auth/me`, {
         headers: {
           Authorization: `Bearer ${_token}`,
@@ -85,7 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(normalized);
       localStorage.setItem("cached_user", JSON.stringify(normalized));
     } catch (error) {
-      console.error("Token verification via Stack Auth failed:", error);
+      console.error("Token verification via Authentik failed:", error);
       setLoading(false);
     } finally {
       setLoading(false);
@@ -106,13 +107,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const loginWithOAuth = () => {
-    // Open Stack Auth sign-in
-    window.location.href = "/handler/sign-in";
+    // Open Authentik sign-in
+    oidcAuth.signinRedirect();
   };
 
   const logout = async () => {
     try {
-      await stackClientApp.signOut?.();
+      await oidcAuth.signoutRedirect();
     } catch (error) {
       console.error("Logout error:", error);
     }

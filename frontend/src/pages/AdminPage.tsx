@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import { useUser } from "@stackframe/stack";
+import { useAuth } from "react-oidc-context";
 import OutingAdmin from "../components/Admin/OutingAdmin";
 import UserManagement from "../components/Admin/UserManagement";
 import TroopAdminTab from "../components/Admin/TroopAdminTab";
 import DevDataSeeder from "../components/Admin/DevDataSeeder";
 
 const AdminPage: React.FC = () => {
-  const { isLoaded } = useUser();
+  const auth = useAuth();
+  const isLoaded = !auth.isLoading;
   const [activeTab, setActiveTab] = useState<"outings" | "users" | "troops">(
     "outings"
   );

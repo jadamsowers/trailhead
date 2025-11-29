@@ -60,7 +60,7 @@ import {
 } from "../types";
 
 import { getApiBase } from "../utils/apiBase";
-import { stackClientApp } from "../stack/client";
+import { getAccessToken, signOut } from "../auth/client";
 
 // API base is computed from the generated OpenAPI.BASE via `getApiBase()`.
 // We compute it lazily using the helper so that init order (initApiClient())
@@ -208,18 +208,18 @@ async function getAuthHeaders(): Promise<HeadersInit> {
   };
 
   try {
-    // Get the access token from Stack Auth
-    const token = await stackClientApp.getAccessToken();
+    // Get the access token from Authentik
+    const token = await getAccessToken();
     
     if (!token) {
-      console.warn("⚠️ No Stack Auth token found - user may not be signed in yet");
+      console.warn("⚠️ No Authentik token found - user may not be signed in yet");
       throw new Error(
         "You must be signed in to access this feature. Please sign in and try again."
       );
     }
 
     console.log(
-      "✅ Using Stack Auth access token (first 20 chars):",
+      "✅ Using Authentik access token (first 20 chars):",
       token.substring(0, 20) + "..."
     );
     headers["Authorization"] = `Bearer ${token}`;
@@ -474,8 +474,8 @@ export const oauthAPI = {
    * Refresh access token
    */
   async refreshToken(_refreshToken: string): Promise<TokenResponse> {
-    // Obtain a fresh session token from Stack Auth
-    const token = await stackClientApp.getAccessToken();
+    // Obtain a fresh session token from Authentik
+    const token = await getAccessToken();
     if (token) {
       return {
         access_token: token,
@@ -483,15 +483,15 @@ export const oauthAPI = {
         token_type: "bearer",
       };
     }
-    throw new APIError(401, "Unable to refresh token via Stack Auth session");
+    throw new APIError(401, "Unable to refresh token via Authentik session");
   },
 
   /**
    * Logout user
    */
   async logout(_refreshToken: string): Promise<void> {
-    // Sign out via Stack Auth
-    await stackClientApp.signOut();
+    // Sign out via Authentik
+    await signOut();
   },
 
   /**

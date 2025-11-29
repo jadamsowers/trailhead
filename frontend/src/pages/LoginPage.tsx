@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
-import { useUser, SignIn } from '@stackframe/stack';
+import { useAuth } from 'react-oidc-context';
 import { Link, useNavigate } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {
-    const user = useUser();
-    const isSignedIn = !!user;
+    const auth = useAuth();
+    const isSignedIn = auth.isAuthenticated;
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -13,6 +13,10 @@ const LoginPage: React.FC = () => {
             navigate('/family-setup');
         }
     }, [isSignedIn, navigate]);
+
+    const handleSignIn = () => {
+        auth.signinRedirect();
+    };
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-200px)] flex items-center justify-center flex-col gap-8">
@@ -37,7 +41,16 @@ const LoginPage: React.FC = () => {
                 </p>
 
                 <div className="flex justify-center">
-                    <SignIn />
+                    <button
+                        onClick={handleSignIn}
+                        className="px-8 py-4 rounded-lg text-lg font-bold transition-all hover:-translate-y-1"
+                        style={{
+                            backgroundColor: 'var(--btn-primary-bg)',
+                            color: 'var(--btn-primary-text)',
+                        }}
+                    >
+                        Sign In with Authentik
+                    </button>
                 </div>
             </div>
 
@@ -81,8 +94,8 @@ const LoginPage: React.FC = () => {
                     border: '1px solid var(--alert-info-border)',
                 }}
             >
-                <strong>ℹ️ About Stack Auth:</strong><br />
-                Stack Auth provides secure, open-source authentication with built-in user management. Your credentials are never stored in this application.
+                <strong>ℹ️ About Authentik:</strong><br />
+                Authentik provides secure, open-source authentication with built-in user management. Your credentials are never stored in this application.
             </div>
         </div>
     );

@@ -30,12 +30,10 @@ class Settings(BaseSettings):
     # When a user with this email signs in, they will automatically be granted admin role
     INITIAL_ADMIN_EMAIL: str = "soadmin@scouthacks.net"
 
-    # Stack Auth Configuration
-    STACK_PROJECT_ID: str = "your_stack_project_id"
-    STACK_PUBLISHABLE_CLIENT_KEY: str = "your_stack_publishable_client_key"
-    STACK_SECRET_SERVER_KEY: str = "your_stack_secret_server_key"
-    # URL of the Stack Auth server (self-hosted or managed)
-    STACK_API_URL: str = "http://stackauth:8102"
+    # Authentik Configuration
+    AUTHENTIK_URL: str = "http://authentik-server:9000"
+    AUTHENTIK_CLIENT_ID: str = ""
+    AUTHENTIK_CLIENT_SECRET: str = ""
     
     # Frontend URL
     FRONTEND_URL: str = "http://localhost:3000"

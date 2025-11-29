@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useUser } from "@stackframe/stack";
+import { useAuth } from "react-oidc-context";
 import SignupWizard from "../components/Participant/SignupWizard";
 import { familyAPI } from "../services/api";
 
 // Removed OUTINGS_CACHE_KEY (offline caching handled elsewhere)
 
 const OutingsPage: React.FC = () => {
-  const user = useUser();
-  const isSignedIn = !!user;
+  const auth = useAuth();
+  const user = auth.user;
+  const isSignedIn = auth.isAuthenticated;
   const navigate = useNavigate();
   const [checkingFamily, setCheckingFamily] = useState(true);
   const [hasFamilyMembers, setHasFamilyMembers] = useState(false);

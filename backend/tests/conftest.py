@@ -22,9 +22,8 @@ def load_credentials():
         "database": "testdb",
         "port": "5432",
         "secret_key": "test_secret_key_for_testing_only_do_not_use_in_production",
-        "stack_project_id": "test_stack_project_id",
-        "stack_publishable_client_key": "test_stack_publishable_client_key",
-        "stack_secret_server_key": "test_stack_secret_server_key",
+        "authentik_client_id": "test_authentik_client_id",
+        "authentik_client_secret": "test_authentik_client_secret",
     }
     
     if credentials_file.exists():
@@ -41,12 +40,10 @@ def load_credentials():
                     creds["port"] = line.split(":", 1)[1].strip()
                 elif line.startswith("Secret Key:"):
                     creds["secret_key"] = line.split(":", 1)[1].strip()
-                elif line.startswith("Stack Auth Project ID:"):
-                    creds["stack_project_id"] = line.split(":", 1)[1].strip()
-                elif line.startswith("Stack Auth Publishable Key:"):
-                    creds["stack_publishable_client_key"] = line.split(":", 1)[1].strip()
-                elif line.startswith("Stack Auth Secret Key:"):
-                    creds["stack_secret_server_key"] = line.split(":", 1)[1].strip()
+                elif line.startswith("Authentik Client ID:"):
+                    creds["authentik_client_id"] = line.split(":", 1)[1].strip()
+                elif line.startswith("Authentik Client Secret:"):
+                    creds["authentik_client_secret"] = line.split(":", 1)[1].strip()
     
     return creds
 
@@ -62,10 +59,9 @@ os.environ["POSTGRES_PASSWORD"] = creds["password"]
 os.environ["POSTGRES_DB"] = creds["database"] + "_test"  # Add _test suffix
 os.environ["POSTGRES_PORT"] = creds["port"]
 os.environ["SECRET_KEY"] = creds["secret_key"]
-os.environ["STACK_PROJECT_ID"] = creds["stack_project_id"]
-os.environ["STACK_PUBLISHABLE_CLIENT_KEY"] = creds["stack_publishable_client_key"]
-os.environ["STACK_SECRET_SERVER_KEY"] = creds["stack_secret_server_key"]
-os.environ["STACK_API_URL"] = "http://localhost:8102"
+os.environ["AUTHENTIK_URL"] = "http://localhost:9000"
+os.environ["AUTHENTIK_CLIENT_ID"] = creds["authentik_client_id"]
+os.environ["AUTHENTIK_CLIENT_SECRET"] = creds["authentik_client_secret"]
 os.environ["BACKEND_CORS_ORIGINS"] = "http://localhost:3000"
 os.environ["TESTING"] = "1"
 
@@ -298,7 +294,7 @@ async def test_regular_user(db_session: AsyncSession) -> User:
 async def test_user_token(test_user: User) -> str:
     """Create a test JWT token for the test user"""
     return create_access_token(
-        data={"sub": str(test_user.id), "role": test_user.role, "iss": "https://test.stack-auth.com"}
+        data={"sub": str(test_user.id), "role": test_user.role, "iss": "https://test.authentik.local"}
     )
 
 
@@ -306,7 +302,7 @@ async def test_user_token(test_user: User) -> str:
 async def test_regular_user_token(test_regular_user: User) -> str:
     """Create a test JWT token for the regular user"""
     return create_access_token(
-        data={"sub": str(test_regular_user.id), "role": test_regular_user.role, "iss": "https://test.stack-auth.com"}
+        data={"sub": str(test_regular_user.id), "role": test_regular_user.role, "iss": "https://test.authentik.local"}
     )
 
 
