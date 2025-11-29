@@ -1,5 +1,5 @@
 import { OpenAPI } from "../client";
-import { stackClientApp } from "../stack/client";
+import { getAccessToken } from "../auth/client";
 
 /**
  * Initialize the generated API client with configuration
@@ -14,21 +14,21 @@ export const initApiClient = () => {
   const normalizedRoot = raw.replace(/\/api\/?$/i, "");
   OpenAPI.BASE = normalizedRoot;
 
-  // Set token retrieval logic using Stack Auth
+  // Set token retrieval logic using Authentik OIDC
   OpenAPI.TOKEN = async () => {
     try {
-      // Get the access token from Stack Auth
-      const token = await stackClientApp.getAccessToken();
+      // Get the access token from Authentik
+      const token = await getAccessToken();
       
       if (!token) {
-        console.warn("⚠️ No Stack Auth token found - user may not be signed in yet");
+        console.warn("⚠️ No Authentik token found - user may not be signed in yet");
         throw new Error(
           "You must be signed in to access this feature. Please sign in and try again."
         );
       }
 
       console.log(
-        "✅ Using Stack Auth access token (first 20 chars):",
+        "✅ Using Authentik access token (first 20 chars):",
         token.substring(0, 20) + "..."
       );
       return token;

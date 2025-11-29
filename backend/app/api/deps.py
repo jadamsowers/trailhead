@@ -3,7 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.core.stackauth import get_stackauth_client
+from app.core.authentik import get_authentik_client
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import User
@@ -16,18 +16,20 @@ async def get_current_user(
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """
-    Get the current authenticated user from Stack Auth session token.
+    Get the current authenticated user from Authentik OIDC token.
     """
     token = credentials.credentials
 
     try:
-        stackauth = get_stackauth_client()
-        token_data = await stackauth.verify_token(token)
-        stackauth_user_id = token_data["user_id"]
+        authentik = get_authentik_client()
+        token_data = await authentik.verify_token(token)
+        authentik_user_id = token_data["user_id"]
+        email = token_data.get("email")
 
-        # Get user info from Stack Auth
-        stackauth_user = await stackauth.get_user(stackauth_user_id)
-        email = stackauth_user.get("email")
+        if not email:
+            # Try to get email from userinfo endpoint
+            user_info = await authentik.get_user_info(token)
+            email = user_info.get("email")
 
         if not email:
             raise HTTPException(
@@ -35,28 +37,30 @@ async def get_current_user(
                 detail="Email not found in token"
             )
 
+        # Get groups for role determination
+        groups = token_data.get("groups", [])
+
         # Find or create user in our database
         result = await db.execute(select(User).where(User.email == email))
         user = result.scalar_one_or_none()
 
         if user is None:
-            # Create user from Stack Auth info
+            # Create user from Authentik info
             # Check if this is the initial admin email
             is_initial_admin = email.lower() == settings.INITIAL_ADMIN_EMAIL.lower()
             if is_initial_admin:
                 role = "admin"
             else:
-                # Get metadata to check for role
-                metadata = await stackauth.get_user_metadata(stackauth_user_id)
-                role = metadata.get("public_metadata", {}).get("role", "participant")
+                # Get role from Authentik groups
+                role = authentik.get_role_from_groups(groups)
 
             user = User(
                 email=email,
-                full_name=stackauth_user.get("full_name") or email,
+                full_name=token_data.get("name") or email,
                 role=role,
                 is_active=True,
                 is_initial_admin=is_initial_admin,
-                hashed_password=""  # No password needed for Stack Auth users
+                hashed_password=""  # No password needed for Authentik users
             )
             db.add(user)
             try:
@@ -75,6 +79,13 @@ async def get_current_user(
                 user.role = "admin"
                 await db.commit()
                 await db.refresh(user)
+            # Update role from Authentik groups if user is not initial admin
+            elif not user.is_initial_admin:
+                new_role = authentik.get_role_from_groups(groups)
+                if user.role != new_role and new_role == "admin":
+                    user.role = new_role
+                    await db.commit()
+                    await db.refresh(user)
 
         if not user.is_active:
             raise HTTPException(

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from "@stackframe/stack";
+import { useAuth } from "react-oidc-context";
 import { FamilyManagement } from '../components/Adult/FamilyManagement';
 import OutingList from '../components/Shared/OutingList';
 import { outingAPI } from '../services/api';
 import { Outing } from '../types';
 
 export const AdultPage: React.FC = () => {
-    const user = useUser();
+    const auth = useAuth();
+    const user = auth.user;
     const [activeTab, setActiveTab] = useState<'outings' | 'family'>('outings');
     const [outings, setOutings] = useState<Outing[]>([]);
     const [loading, setLoading] = useState(true);

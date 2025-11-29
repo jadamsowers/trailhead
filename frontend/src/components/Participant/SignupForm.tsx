@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useUser } from "@stackframe/stack";
+import { useAuth } from "react-oidc-context";
 import {
   Outing,
   SignupFormData,
@@ -13,9 +13,11 @@ import {
 } from "../../utils/phoneUtils";
 
 const SignupForm: React.FC = () => {
-  const { user, isSignedIn } = useUser();
+  const auth = useAuth();
+  const user = auth.user;
+  const isSignedIn = auth.isAuthenticated;
   const isAuthenticated = isSignedIn;
-  const isParent = true; // All Stack Auth users are parents by default
+  const isParent = true; // All Authentik users are parents by default
   const [outings, setOutings] = useState<Outing[]>([]);
   const [mySignups, setMySignups] = useState<SignupResponse[]>([]);
   const [mySignupOutingIds, setMySignupOutingIds] = useState<Set<string>>(

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@stackframe/stack";
-import { stackClientApp } from "../stack/client";
+import { useAuth } from "react-oidc-context";
 import { getApiBase } from "../utils/apiBase";
 import {
   formatPhoneNumber,
@@ -49,10 +48,11 @@ const InitialSignInWizard: React.FC = () => {
     emergencyContactPhone?: string;
   }>({});
   const navigate = useNavigate();
-  const user = useUser();
+  const auth = useAuth();
+  const user = auth.user;
 
-  // Check if user is admin
-  const isAdmin = user?.publicMetadata?.role === "admin";
+  // Check if user is admin - will be verified server-side
+  const isAdmin = false; // Default to false, admin status is determined server-side
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -157,11 +157,11 @@ const InitialSignInWizard: React.FC = () => {
           youth_protection_expiration: form.yptDate || null,
         };
 
-        // Get Stack Auth token
-        const token = await stackClientApp.getAccessToken();
+        // Get access token
+        const token = user?.access_token;
         if (!token) throw new Error("Not authenticated");
 
-        // Update user contact information via Stack Auth-backed endpoint
+        // Update user contact information via Authentik-backed endpoint
         const updateResponse = await fetch(`${getApiBase()}/auth/me/contact`, {
           method: "PATCH",
           headers: {
@@ -196,7 +196,7 @@ const InitialSignInWizard: React.FC = () => {
         // Save troops and patrols
         for (const troop of troops) {
           if (troop.number) {
-            const token = await stackClientApp.getAccessToken();
+            const token = user?.access_token;
             const troopResponse = await fetch(`${getApiBase()}/troops`, {
               method: "POST",
               headers: {

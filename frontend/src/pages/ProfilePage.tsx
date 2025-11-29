@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from "@stackframe/stack";
+import { useAuth } from "react-oidc-context";
 import { userAPI } from '../services/api';
 import type { User } from '../types';
 
 const ProfilePage: React.FC = () => {
-    const stackUser = useUser();
+    const auth = useAuth();
+    const authUser = auth.user;
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -163,7 +164,7 @@ const ProfilePage: React.FC = () => {
                             Name
                         </label>
                         <div className="text-base" style={{ color: 'var(--text-primary)' }}>
-                            {user?.full_name || stackUser?.displayName || 'Not set'}
+                            {user?.full_name || authUser?.profile?.name || 'Not set'}
                         </div>
                     </div>
                     <div>
@@ -171,7 +172,7 @@ const ProfilePage: React.FC = () => {
                             Email
                         </label>
                         <div className="text-base" style={{ color: 'var(--text-primary)' }}>
-                            {user?.email || stackUser?.primaryEmail || 'Not set'}
+                            {user?.email || authUser?.profile?.email || 'Not set'}
                         </div>
                     </div>
                     <div>

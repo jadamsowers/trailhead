@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useUser } from "@stackframe/stack";
+import { useAuth } from "react-oidc-context";
 import { checkInAPI } from '../services/api';
 import { CheckInSummary, CheckInParticipant } from '../types';
 
 const CheckInPage: React.FC = () => {
     const { outingId } = useParams<{ outingId: string }>();
     const navigate = useNavigate();
-    const user = useUser();
+    const auth = useAuth();
+    const user = auth.user;
     const [summary, setSummary] = useState<CheckInSummary | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
