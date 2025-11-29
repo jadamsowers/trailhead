@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "react-oidc-context";
+import { getAccessToken } from "../auth/client";
 import { getApiBase } from "../utils/apiBase";
 
 /**
@@ -39,7 +40,7 @@ export const InitialSetupGuard: React.FC<{ children: React.ReactNode }> = ({
 
       try {
         // Get access token
-        const token = user?.access_token;
+        const token = await getAccessToken();
         if (!token) {
           setChecking(false);
           return;

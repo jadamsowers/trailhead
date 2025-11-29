@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "react-oidc-context";
+import { getAccessToken } from "../auth/client";
 import { getApiBase } from "../utils/apiBase";
 import {
   formatPhoneNumber,
@@ -158,7 +159,7 @@ const InitialSignInWizard: React.FC = () => {
         };
 
         // Get access token
-        const token = user?.access_token;
+        const token = await getAccessToken();
         if (!token) throw new Error("Not authenticated");
 
         // Update user contact information via Authentik-backed endpoint
@@ -196,7 +197,7 @@ const InitialSignInWizard: React.FC = () => {
         // Save troops and patrols
         for (const troop of troops) {
           if (troop.number) {
-            const token = user?.access_token;
+            const token = await getAccessToken();
             const troopResponse = await fetch(`${getApiBase()}/troops`, {
               method: "POST",
               headers: {

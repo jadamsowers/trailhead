@@ -6,6 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 import { useAuth as useOidcAuth } from "react-oidc-context";
+import { getAccessToken } from "../auth/client";
 import { oauthAPI, authAPI } from "../services/api";
 import type { UserResponse as AuthUserResponse } from "../client/models/UserResponse";
 import { User } from "../types";
@@ -36,7 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Check for existing token or session
     const checkAuth = async () => {
       try {
-        const token = oidcAuth.user?.access_token;
+        const token = await getAccessToken();
         if (token) {
           await verifyToken(token);
         } else {
