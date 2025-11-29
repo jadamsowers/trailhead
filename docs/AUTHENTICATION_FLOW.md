@@ -2,23 +2,23 @@
 
 ## Overview
 
-The authentication system uses Clerk for modern OAuth/OIDC authentication, with a separate one-time admin setup process for initial configuration.
+The authentication system uses Authentik for modern OAuth/OIDC authentication, with a separate one-time admin setup process for initial configuration.
 
 ## User Flows
 
 ### 1. Regular Users (Parents/Participants)
-- **Login Method**: OAuth via Clerk
+- **Login Method**: OAuth via Authentik
 - **Flow**:
-  1. Navigate to [`/login`](frontend/src/pages/LoginPage.tsx)
-  2. Click "Sign in with Clerk"
-  3. Complete Clerk authentication
+  1. Navigate to [`/login`](../frontend/src/pages/LoginPage.tsx)
+  2. Click "Sign in with Authentik"
+  3. Complete Authentik authentication
   4. After successful authentication, redirected back to the application
 
 ### 2. Initial Admin Setup (One-Time)
 - **Purpose**: Create the first administrator account
 - **Availability**: Only accessible when no admin users exist
 - **Flow**:
-  1. Navigate to [`/admin-setup`](frontend/src/pages/AdminSetupPage.tsx)
+  1. Navigate to [`/admin-setup`](../frontend/src/pages/AdminSetupPage.tsx)
   2. Fill in admin details (email, password, full name)
   3. Submit to create admin account
   4. Redirected to login page
@@ -31,15 +31,15 @@ The authentication system uses Clerk for modern OAuth/OIDC authentication, with 
 
 ## Pages
 
-### Login Page ([`/login`](frontend/src/pages/LoginPage.tsx))
-- **Primary Action**: Clerk OAuth login
+### Login Page ([`/login`](../frontend/src/pages/LoginPage.tsx))
+- **Primary Action**: Authentik OAuth login
 - **Secondary Action**: Link to admin setup (for first-time setup)
 - **Features**:
   - Clean, OAuth-focused interface
   - Success message display (after admin setup)
   - Information about OAuth security
 
-### Admin Setup Page ([`/admin-setup`](frontend/src/pages/AdminSetupPage.tsx))
+### Admin Setup Page ([`/admin-setup`](../frontend/src/pages/AdminSetupPage.tsx))
 - **Access Control**: Automatically checks if admin already exists
 - **Features**:
   - Form validation (password length, confirmation match)
@@ -49,7 +49,7 @@ The authentication system uses Clerk for modern OAuth/OIDC authentication, with 
 
 ## API Endpoints
 
-### Backend Endpoints ([`backend/app/api/endpoints/auth.py`](backend/app/api/endpoints/auth.py))
+### Backend Endpoints ([`backend/app/api/endpoints/auth.py`](../backend/app/api/endpoints/auth.py))
 
 #### `GET /api/auth/setup-status`
 - **Purpose**: Check if initial admin setup is complete
@@ -78,9 +78,9 @@ The authentication system uses Clerk for modern OAuth/OIDC authentication, with 
 - **Usage**: Maintained for admin access
 - **Note**: Not exposed on main login page
 
-## Frontend API Integration ([`frontend/src/services/api.ts`](frontend/src/services/api.ts))
+## Frontend API Integration ([`frontend/src/services/api.ts`](../frontend/src/services/api.ts))
 
-### New Methods in `authAPI`
+### Methods in `authAPI`
 ```typescript
 // Check if admin setup is complete
 async checkSetupStatus(): Promise<{ setup_complete: boolean }>
@@ -95,7 +95,7 @@ async setupAdmin(data: {
 
 ## Security Considerations
 
-1. **OAuth First**: Regular users must use OAuth via Clerk, providing better security
+1. **OAuth First**: Regular users must use OAuth via Authentik, providing better security
 2. **One-Time Setup**: Admin setup endpoint is self-disabling after first use
 3. **Password Requirements**: Minimum 8 characters for admin passwords
 4. **No Exposed Credentials**: OAuth users never have passwords stored in the app
@@ -105,18 +105,18 @@ async setupAdmin(data: {
 
 ### For Existing Deployments
 1. Existing admin accounts continue to work with password login
-2. New users should be directed to Clerk OAuth registration
+2. New users should be directed to Authentik OAuth registration
 3. Admin setup page only accessible if no admins exist
 
 ### For New Deployments
-1. First visit [`/admin-setup`](frontend/src/pages/AdminSetupPage.tsx) to create initial admin
-2. Admin logs in via Clerk OAuth or legacy password method
-3. All other users use Clerk OAuth exclusively
+1. First visit [`/admin-setup`](../frontend/src/pages/AdminSetupPage.tsx) to create initial admin
+2. Admin logs in via Authentik OAuth or legacy password method
+3. All other users use Authentik OAuth exclusively
 
 ## Benefits
 
 1. **Simplified UX**: Single OAuth button for most users
-2. **Better Security**: Clerk OAuth provides industry-standard authentication
+2. **Better Security**: Authentik OAuth provides industry-standard authentication
 3. **Clear Setup Process**: Dedicated page for initial configuration
 4. **Reduced Attack Surface**: Password login not exposed on main page
 5. **Flexible**: Maintains backward compatibility with existing admin accounts
@@ -132,10 +132,10 @@ async setupAdmin(data: {
 
 ### Test OAuth Login
 1. Navigate to `/login`
-2. Click "Sign in with Clerk"
-3. Complete Clerk authentication
+2. Click "Sign in with Authentik"
+3. Complete Authentik authentication
 4. Verify successful login and redirect
 
 ### Test Admin Access
 1. Admin can access `/admin` routes
-2. Regular OAuth users cannot access admin routes (unless granted admin role in Clerk)
+2. Regular OAuth users cannot access admin routes (unless granted admin role)

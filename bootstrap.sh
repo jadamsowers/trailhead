@@ -348,7 +348,7 @@ fi
 # If email not loaded from file, ask user
 if [ -z "$INITIAL_ADMIN_EMAIL" ]; then
     print_question "Enter the admin email address:"
-    echo "  This email will automatically get admin role when signing in via Stack Auth"
+    echo "  This email will automatically get admin role when signing in via Authentik"
     echo "  Or press Enter to use default (soadmin@scouthacks.net)"
     echo ""
     
@@ -383,7 +383,7 @@ EOF
 fi
 
 print_info "Admin email set to: $INITIAL_ADMIN_EMAIL"
-print_info "This user will be granted admin role on first Stack Auth sign-in"
+print_info "This user will be granted admin role on first Authentik sign-in"
 echo ""
 
 # CORS configuration
@@ -400,52 +400,57 @@ else
 fi
 echo ""
 
-# Stack Auth configuration
-print_header "Stack Auth Configuration"
-print_info "Stack Auth provides open-source, self-hosted authentication."
-print_info "A Stack Auth server will run in its own Docker container."
+# Authentik configuration
+print_header "Authentik Configuration"
+print_info "Authentik provides open-source, self-hosted authentication."
+print_info "An Authentik server will run in its own Docker container."
 echo ""
 
-# Generate Stack Auth server secret if not set
+# Generate Authentik secret key if not set
 if [ "$USE_DEFAULTS" = true ]; then
-    STACK_SERVER_SECRET=$(openssl rand -base64 32 | tr -d '=' | tr '+/' '-_' | cut -c1-43)
-    print_info "Generated Stack Auth server secret"
+    AUTHENTIK_SECRET_KEY=$(openssl rand -base64 60 | tr -d '\n')
+    print_info "Generated Authentik secret key"
 else
-    read -p "Stack Auth Server Secret (default: auto-generated): " STACK_SERVER_SECRET
-    if [ -z "$STACK_SERVER_SECRET" ]; then
-        STACK_SERVER_SECRET=$(openssl rand -base64 32 | tr -d '=' | tr '+/' '-_' | cut -c1-43)
-        print_info "Generated Stack Auth server secret"
+    read -p "Authentik Secret Key (default: auto-generated): " AUTHENTIK_SECRET_KEY
+    if [ -z "$AUTHENTIK_SECRET_KEY" ]; then
+        AUTHENTIK_SECRET_KEY=$(openssl rand -base64 60 | tr -d '\n')
+        print_info "Generated Authentik secret key"
     fi
 fi
 
-# Stack Auth database credentials
-STACKAUTH_DB_USER="stackauth"
-STACKAUTH_DB_PASSWORD=$(openssl rand -hex 16)
-STACKAUTH_DB_NAME="stackauth"
+# Authentik database credentials
+AUTHENTIK_DB_USER="authentik"
+AUTHENTIK_DB_PASSWORD=$(openssl rand -hex 16)
+AUTHENTIK_DB_NAME="authentik"
 
-# Stack Auth URLs (will be configured after project is created)
+# Authentik bootstrap credentials (for automated admin setup)
+AUTHENTIK_BOOTSTRAP_PASSWORD=$(openssl rand -hex 16)
+AUTHENTIK_BOOTSTRAP_EMAIL=$INITIAL_ADMIN_EMAIL
+AUTHENTIK_BOOTSTRAP_TOKEN=$(openssl rand -hex 32)
+
+# Authentik URLs (will be configured after project is created)
 if [ "$MODE" = "production" ]; then
-    STACK_API_URL="$HOST_URI/auth"
-    STACK_DASHBOARD_URL="$HOST_URI/auth-dashboard"
+    AUTHENTIK_URL="$HOST_URI/auth"
+    AUTHENTIK_EXTERNAL_URL="$HOST_URI"
 else
-    STACK_API_URL="http://localhost:8102"
-    STACK_DASHBOARD_URL="http://localhost:8101"
+    AUTHENTIK_URL="http://localhost:9000"
+    AUTHENTIK_EXTERNAL_URL="http://localhost:9000"
 fi
 
-print_info "Stack Auth API URL: $STACK_API_URL"
-print_info "Stack Auth Dashboard URL: $STACK_DASHBOARD_URL"
+print_info "Authentik URL: $AUTHENTIK_URL"
+print_info "Authentik Bootstrap Email: $AUTHENTIK_BOOTSTRAP_EMAIL"
 
-# Placeholder keys - will be configured in Stack Auth dashboard after first run
-STACK_PROJECT_ID=""
-STACK_PUBLISHABLE_CLIENT_KEY=""
-STACK_SECRET_SERVER_KEY=""
+# Placeholder keys - will be configured in Authentik dashboard after first run
+AUTHENTIK_CLIENT_ID=""
+AUTHENTIK_CLIENT_SECRET=""
 
 print_info ""
 print_info "After bootstrap completes, you'll need to:"
-print_info "1. Access Stack Auth dashboard at $STACK_DASHBOARD_URL"
-print_info "2. Create a new project"
-print_info "3. Copy the Project ID, Publishable Key, and Secret Key"
-print_info "4. Update the .env files with these values"
+print_info "1. Access Authentik admin interface at $AUTHENTIK_URL"
+print_info "2. Create an OAuth2/OpenID provider named 'trailhead'"
+print_info "3. Create an application using that provider"
+print_info "4. Copy the Client ID and Client Secret"
+print_info "5. Update the .env files with these values"
 echo ""
     
 # Summary
@@ -458,8 +463,7 @@ echo "PostgreSQL User: $POSTGRES_USER"
 echo "PostgreSQL Database: $POSTGRES_DB"
 echo "PostgreSQL Port: $POSTGRES_PORT"
 echo "Admin Email: $INITIAL_ADMIN_EMAIL"
-echo "Stack Auth API URL: $STACK_API_URL"
-echo "Stack Auth Dashboard URL: $STACK_DASHBOARD_URL"
+echo "Authentik URL: $AUTHENTIK_URL"
 echo ""
     
 read -p "Continue with this configuration? [y/N]: " CONFIRM
@@ -494,9 +498,9 @@ PostgreSQL Password: $POSTGRES_PASSWORD
 PostgreSQL Database: $POSTGRES_DB
 PostgreSQL Port: $POSTGRES_PORT
 
-Stack Auth Database User: $STACKAUTH_DB_USER
-Stack Auth Database Password: $STACKAUTH_DB_PASSWORD
-Stack Auth Database Name: $STACKAUTH_DB_NAME
+Authentik Database User: $AUTHENTIK_DB_USER
+Authentik Database Password: $AUTHENTIK_DB_PASSWORD
+Authentik Database Name: $AUTHENTIK_DB_NAME
 
 ========================================
 SECURITY CONFIGURATION
@@ -504,25 +508,25 @@ SECURITY CONFIGURATION
 Secret Key: $SECRET_KEY
 Access Token Expire Minutes: $ACCESS_TOKEN_EXPIRE_MINUTES
 Refresh Token Expire Days: $REFRESH_TOKEN_EXPIRE_DAYS
-Stack Auth Server Secret: $STACK_SERVER_SECRET
+Authentik Secret Key: $AUTHENTIK_SECRET_KEY
 
 ========================================
 ADMIN USER CONFIGURATION
 ========================================
 Admin Email: $INITIAL_ADMIN_EMAIL
+Authentik Bootstrap Password: $AUTHENTIK_BOOTSTRAP_PASSWORD
+Authentik Bootstrap Token: $AUTHENTIK_BOOTSTRAP_TOKEN
 
-NOTE: Create an account with this email address in Stack Auth.
-On first sign-in, you will automatically be granted admin role.
-No password is stored in the database - authentication is handled by Stack Auth.
+NOTE: The bootstrap password is used to log in to Authentik admin panel.
+On first sign-in to the app with the admin email, you will be granted admin role.
+Authentication is handled by Authentik - no passwords are stored in the app database.
 
 ========================================
-STACK AUTH CONFIGURATION
+AUTHENTIK CONFIGURATION
 ========================================
-Stack Auth API URL: $STACK_API_URL
-Stack Auth Dashboard URL: $STACK_DASHBOARD_URL
-Stack Auth Project ID: (Configure in Stack Auth dashboard)
-Stack Auth Publishable Key: (Configure in Stack Auth dashboard)
-Stack Auth Secret Key: (Configure in Stack Auth dashboard)
+Authentik URL: $AUTHENTIK_URL
+Authentik Client ID: (Configure in Authentik dashboard)
+Authentik Client Secret: (Configure in Authentik dashboard)
 
 ========================================
 ACCESS URLS
@@ -535,13 +539,13 @@ Frontend: http://localhost:3000
 Backend API: http://localhost:8000
 API Docs (Swagger): http://localhost:8000/docs
 API Docs (ReDoc): http://localhost:8000/redoc
-Stack Auth Dashboard: $STACK_DASHBOARD_URL
+Authentik Admin: $AUTHENTIK_URL
 EOF
     else
         cat >> "$CREDENTIALS_FILE" << EOF
 Application: $HOST_URI
 API Docs: $HOST_URI/docs
-Stack Auth Dashboard: $STACK_DASHBOARD_URL
+Authentik Admin: $AUTHENTIK_URL
 EOF
     fi
 
@@ -617,11 +621,10 @@ BACKEND_CORS_ORIGINS=$BACKEND_CORS_ORIGINS
 # Initial Admin User Configuration
 INITIAL_ADMIN_EMAIL=$INITIAL_ADMIN_EMAIL
 
-# Stack Auth Configuration
-STACK_PROJECT_ID=$STACK_PROJECT_ID
-STACK_PUBLISHABLE_CLIENT_KEY=$STACK_PUBLISHABLE_CLIENT_KEY
-STACK_SECRET_SERVER_KEY=$STACK_SECRET_SERVER_KEY
-STACK_API_URL=$STACK_API_URL
+# Authentik Configuration
+AUTHENTIK_URL=$AUTHENTIK_URL
+AUTHENTIK_CLIENT_ID=$AUTHENTIK_CLIENT_ID
+AUTHENTIK_CLIENT_SECRET=$AUTHENTIK_CLIENT_SECRET
 FRONTEND_URL=$FRONTEND_URL_VALUE
 EOF
 
@@ -646,10 +649,9 @@ cat > frontend/.env << EOF
 # Backend API URL
 VITE_API_URL=$API_URL
 
-# Stack Auth Configuration
-VITE_STACK_PROJECT_ID=$STACK_PROJECT_ID
-VITE_STACK_PUBLISHABLE_CLIENT_KEY=$STACK_PUBLISHABLE_CLIENT_KEY
-VITE_STACK_API_URL=$STACK_API_URL
+# Authentik Configuration
+VITE_AUTHENTIK_URL=$AUTHENTIK_EXTERNAL_URL
+VITE_AUTHENTIK_CLIENT_ID=$AUTHENTIK_CLIENT_ID
 EOF
 
 print_success "Frontend .env file created"
@@ -679,10 +681,10 @@ POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 POSTGRES_DB=$POSTGRES_DB
 POSTGRES_PORT=$POSTGRES_PORT
 
-# Stack Auth Database Configuration
-STACKAUTH_DB_USER=$STACKAUTH_DB_USER
-STACKAUTH_DB_PASSWORD=$STACKAUTH_DB_PASSWORD
-STACKAUTH_DB_NAME=$STACKAUTH_DB_NAME
+# Authentik Database Configuration
+AUTHENTIK_DB_USER=$AUTHENTIK_DB_USER
+AUTHENTIK_DB_PASSWORD=$AUTHENTIK_DB_PASSWORD
+AUTHENTIK_DB_NAME=$AUTHENTIK_DB_NAME
 
 # Security
 SECRET_KEY=$SECRET_KEY
@@ -695,13 +697,15 @@ BACKEND_CORS_ORIGINS=$BACKEND_CORS_ORIGINS
 # Initial Admin User
 INITIAL_ADMIN_EMAIL=$INITIAL_ADMIN_EMAIL
 
-# Stack Auth Configuration
-STACK_SERVER_SECRET=$STACK_SERVER_SECRET
-STACK_API_URL=$STACK_API_URL
-STACK_DASHBOARD_URL=$STACK_DASHBOARD_URL
-STACK_PROJECT_ID=$STACK_PROJECT_ID
-STACK_PUBLISHABLE_CLIENT_KEY=$STACK_PUBLISHABLE_CLIENT_KEY
-STACK_SECRET_SERVER_KEY=$STACK_SECRET_SERVER_KEY
+# Authentik Configuration
+AUTHENTIK_SECRET_KEY=$AUTHENTIK_SECRET_KEY
+AUTHENTIK_URL=$AUTHENTIK_URL
+AUTHENTIK_EXTERNAL_URL=$AUTHENTIK_EXTERNAL_URL
+AUTHENTIK_BOOTSTRAP_PASSWORD=$AUTHENTIK_BOOTSTRAP_PASSWORD
+AUTHENTIK_BOOTSTRAP_EMAIL=$AUTHENTIK_BOOTSTRAP_EMAIL
+AUTHENTIK_BOOTSTRAP_TOKEN=$AUTHENTIK_BOOTSTRAP_TOKEN
+AUTHENTIK_CLIENT_ID=$AUTHENTIK_CLIENT_ID
+AUTHENTIK_CLIENT_SECRET=$AUTHENTIK_CLIENT_SECRET
 FRONTEND_URL=$FRONTEND_URL_VALUE
 
 # Backend Configuration
@@ -819,24 +823,28 @@ if $DOCKER_COMPOSE ps | grep -q "Up\|running"; then
         echo "   Swagger UI: http://localhost:8000/docs"
         echo "   ReDoc:      http://localhost:8000/redoc"
         echo ""
-        echo "🔐 Stack Auth Dashboard:"
-        echo "   URL: $STACK_DASHBOARD_URL"
+        echo "🔐 Authentik Admin Interface:"
+        echo "   URL: $AUTHENTIK_URL"
+        echo "   Login: $AUTHENTIK_BOOTSTRAP_EMAIL"
+        echo "   Password: $AUTHENTIK_BOOTSTRAP_PASSWORD"
         echo ""
         echo "🌐 Frontend:"
         echo "   To start the frontend dev server, run:"
         echo "   cd frontend && npm install && npm start"
         echo "   Then access at: http://localhost:3000"
         echo ""
-        echo "🔐 Stack Auth Setup:"
+        echo "🔐 Authentik Setup:"
         echo ""
         echo -e "${YELLOW}   ╔══════════════════════════════════════════════════════════════╗${NC}"
         echo -e "${YELLOW}   ║  NEXT STEPS:                                                  ║${NC}"
         echo -e "${YELLOW}   ║                                                               ║${NC}"
-        echo -e "${YELLOW}   ║  1. Open Stack Auth Dashboard: $STACK_DASHBOARD_URL${NC}"
-        echo -e "${YELLOW}   ║  2. Create a new project                                      ║${NC}"
-        echo -e "${YELLOW}   ║  3. Copy Project ID, Publishable Key, and Secret Key         ║${NC}"
-        echo -e "${YELLOW}   ║  4. Update .env files with these values                       ║${NC}"
-        echo -e "${YELLOW}   ║  5. Restart services: $DOCKER_COMPOSE restart                 ║${NC}"
+        echo -e "${YELLOW}   ║  1. Open Authentik Admin: $AUTHENTIK_URL${NC}"
+        echo -e "${YELLOW}   ║  2. Login with email: $AUTHENTIK_BOOTSTRAP_EMAIL${NC}"
+        echo -e "${YELLOW}   ║  3. Create OAuth2/OpenID Provider named 'trailhead'          ║${NC}"
+        echo -e "${YELLOW}   ║  4. Create Application using that provider                   ║${NC}"
+        echo -e "${YELLOW}   ║  5. Copy Client ID and Client Secret                         ║${NC}"
+        echo -e "${YELLOW}   ║  6. Update .env files with these values                       ║${NC}"
+        echo -e "${YELLOW}   ║  7. Restart services: $DOCKER_COMPOSE restart                 ║${NC}"
         echo -e "${YELLOW}   ║                                                               ║${NC}"
         echo -e "${YELLOW}   ║  ADMIN EMAIL: $INITIAL_ADMIN_EMAIL${NC}"
         echo -e "${YELLOW}   ║  Sign up with this email to get admin role                   ║${NC}"
@@ -845,7 +853,7 @@ if $DOCKER_COMPOSE ps | grep -q "Up\|running"; then
         echo ""
         echo "📊 View logs:"
         echo "   Backend:    $DOCKER_COMPOSE logs -f backend"
-        echo "   Stack Auth: $DOCKER_COMPOSE logs -f stackauth"
+        echo "   Authentik:  $DOCKER_COMPOSE logs -f authentik-server"
         echo "   All:        $DOCKER_COMPOSE logs -f"
         echo ""
         echo "🛑 Stop services:"
@@ -859,19 +867,23 @@ if $DOCKER_COMPOSE ps | grep -q "Up\|running"; then
         echo "📚 API Documentation:"
         echo "   $HOST_URI/docs"
         echo ""
-        echo "🔐 Stack Auth Dashboard:"
-        echo "   URL: $STACK_DASHBOARD_URL"
+        echo "🔐 Authentik Admin Interface:"
+        echo "   URL: $AUTHENTIK_URL"
+        echo "   Login: $AUTHENTIK_BOOTSTRAP_EMAIL"
+        echo "   Password: $AUTHENTIK_BOOTSTRAP_PASSWORD"
         echo ""
-        echo "🔐 Stack Auth Setup:"
+        echo "🔐 Authentik Setup:"
         echo ""
         echo -e "${YELLOW}   ╔══════════════════════════════════════════════════════════════╗${NC}"
         echo -e "${YELLOW}   ║  NEXT STEPS:                                                  ║${NC}"
         echo -e "${YELLOW}   ║                                                               ║${NC}"
-        echo -e "${YELLOW}   ║  1. Open Stack Auth Dashboard: $STACK_DASHBOARD_URL${NC}"
-        echo -e "${YELLOW}   ║  2. Create a new project                                      ║${NC}"
-        echo -e "${YELLOW}   ║  3. Copy Project ID, Publishable Key, and Secret Key         ║${NC}"
-        echo -e "${YELLOW}   ║  4. Update .env files with these values                       ║${NC}"
-        echo -e "${YELLOW}   ║  5. Restart services: $DOCKER_COMPOSE restart                 ║${NC}"
+        echo -e "${YELLOW}   ║  1. Open Authentik Admin: $AUTHENTIK_URL${NC}"
+        echo -e "${YELLOW}   ║  2. Login with email: $AUTHENTIK_BOOTSTRAP_EMAIL${NC}"
+        echo -e "${YELLOW}   ║  3. Create OAuth2/OpenID Provider named 'trailhead'          ║${NC}"
+        echo -e "${YELLOW}   ║  4. Create Application using that provider                   ║${NC}"
+        echo -e "${YELLOW}   ║  5. Copy Client ID and Client Secret                         ║${NC}"
+        echo -e "${YELLOW}   ║  6. Update .env files with these values                       ║${NC}"
+        echo -e "${YELLOW}   ║  7. Restart services: $DOCKER_COMPOSE restart                 ║${NC}"
         echo -e "${YELLOW}   ║                                                               ║${NC}"
         echo -e "${YELLOW}   ║  ADMIN EMAIL: $INITIAL_ADMIN_EMAIL${NC}"
         echo -e "${YELLOW}   ║  Sign up with this email to get admin role                   ║${NC}"
