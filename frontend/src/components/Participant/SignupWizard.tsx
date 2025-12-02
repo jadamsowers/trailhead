@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "react-oidc-context";
+import { useAuth } from "../../contexts/AuthContext";
 import { Outing } from "../../types";
 import { OutingIconDisplay } from "../OutingIconDisplay";
 import { signupAPI, userAPI, APIError } from "../../services/api";
@@ -171,7 +171,7 @@ const SignupWizard: React.FC = () => {
       const userData = await userAPI.getCurrentUser();
       console.log("Loaded user data:", userData);
       setContactInfo({
-        email: user?.primaryEmailAddress?.emailAddress || "",
+        email: user?.profile?.email || "",
         phone: userData.phone ?? "",
         emergency_contact_name: userData.emergency_contact_name ?? "",
         emergency_contact_phone: userData.emergency_contact_phone ?? "",
@@ -454,7 +454,7 @@ const SignupWizard: React.FC = () => {
     setSelectedScoutIds([]);
     setEditingSignupId(null);
     setContactInfo({
-      email: user?.primaryEmailAddress?.emailAddress || "",
+      email: user?.profile?.email || "",
       phone: "",
       emergency_contact_name: "",
       emergency_contact_phone: "",

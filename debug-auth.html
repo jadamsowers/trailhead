@@ -90,10 +90,12 @@
             
             try {
                 const token = await window.Clerk.session.getToken();
-                log('Making request to http://localhost:8000/api/family/');
+                // Determine API base dynamically (can be overridden by setting window.__API_BASE__)
+                const apiBase = window.__API_BASE__ || window.location.origin;
+                log('Making request to ' + apiBase + '/api/family/');
                 log('Token (first 50 chars): ' + token.substring(0, 50) + '...');
                 
-                const response = await fetch('http://localhost:8000/api/family/', {
+                const response = await fetch(apiBase + '/api/family/', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,

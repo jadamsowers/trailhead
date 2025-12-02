@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "react-oidc-context";
+import { useAuth } from "../contexts/AuthContext";
 import { getAccessToken } from "../auth/client";
 import { getApiBase } from "../utils/apiBase";
 import {

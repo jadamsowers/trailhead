@@ -42,6 +42,26 @@ class AuthentikClient:
         # Validate configuration on initialization
         self._validate_configuration()
 
+    async def get_openid_config(self) -> Dict[str, Any]:
+        """
+        Fetch and cache the OpenID Connect discovery document for the
+        configured application (trailhead).
+        """
+        if self._openid_config is not None:
+            return self._openid_config
+
+        url = f"{self.authentik_url}/application/o/trailhead/.well-known/openid-configuration"
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(url, timeout=10)
+                resp.raise_for_status()
+                self._openid_config = resp.json()
+        except Exception as e:
+            logger.error(f"Failed to fetch OpenID configuration from {url}: {type(e).__name__} {e}")
+            raise
+
+        return self._openid_config
+
     def _validate_configuration(self) -> None:
         """Validate Authentik configuration at startup."""
         if not self.client_id:
@@ -97,18 +117,36 @@ class AuthentikClient:
             # Check configuration
             self._check_configuration()
 
-            # Get signing key from JWKS
-            signing_key = self.jwks_client.get_signing_key_from_jwt(token)
+            # Try to determine signing algorithm from discovery. If the
+            # provider signs ID tokens with a symmetric algorithm (HS*),
+            # use the client secret as the HMAC key. Otherwise, fetch the
+            # JWKS and verify with the public key (RS*).
+            try:
+                discovery = await self.get_openid_config()
+                algs = discovery.get("id_token_signing_alg_values_supported") or ["RS256"]
+                alg = algs[0]
+            except Exception:
+                alg = "RS256"
 
-            # Verify and decode the token
-            # Authentik uses RS256 algorithm by default
-            payload = jwt.decode(
-                token,
-                signing_key.key,
-                algorithms=["RS256"],
-                audience=self.client_id,
-                options={"verify_exp": True, "verify_iat": True, "leeway": 10}
-            )
+            if alg.startswith("HS") and self.client_secret:
+                # Symmetric HMAC-signed tokens (use client secret)
+                payload = jwt.decode(
+                    token,
+                    self.client_secret,
+                    algorithms=[alg],
+                    audience=self.client_id,
+                    options={"verify_exp": True, "verify_iat": True, "leeway": 10},
+                )
+            else:
+                # Asymmetric signing (JWKS)
+                signing_key = self.jwks_client.get_signing_key_from_jwt(token)
+                payload = jwt.decode(
+                    token,
+                    signing_key.key,
+                    algorithms=["RS256"],
+                    audience=self.client_id,
+                    options={"verify_exp": True, "verify_iat": True, "leeway": 10},
+                )
 
             return {
                 "user_id": payload.get("sub"),
@@ -152,25 +190,64 @@ class AuthentikClient:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     self.userinfo_url,
-                    headers={"Authorization": f"Bearer {token}"}
+                    headers={"Authorization": f"Bearer {token}"},
+                    timeout=10,
                 )
 
-                if response.status_code != 200:
-                    logger.error(f"Failed to get user info from Authentik: {response.status_code}")
-                    raise HTTPException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail="User not found in Authentik"
-                    )
+                if response.status_code == 200:
+                    user_data = response.json()
+                    # Parse display name into first/last name
+                    first_name, last_name = _parse_display_name(user_data.get("name"))
 
-                user_data = response.json()
-                
-                # Parse display name into first/last name
+                    return {
+                        "id": user_data.get("sub"),
+                        "email": user_data.get("email"),
+                        "email_verified": user_data.get("email_verified", False),
+                        "display_name": user_data.get("name"),
+                        "first_name": first_name,
+                        "last_name": last_name,
+                        "full_name": user_data.get("name") or user_data.get("email"),
+                        "preferred_username": user_data.get("preferred_username"),
+                        "groups": user_data.get("groups", []),
+                    }
+
+                # If userinfo returns not found or unauthorized, try token introspection
+                logger.info(f"Userinfo returned {response.status_code}; attempting introspection")
+
+                # Fetch discovery to get introspection endpoint
+                discovery = await self.get_openid_config()
+                introspect_url = discovery.get("introspection_endpoint")
+                if not introspect_url:
+                    logger.error("No introspection endpoint available in discovery")
+                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found in Authentik")
+
+                # Use client credentials via post (client_secret_post) per discovery
+                introspect_data = {"token": token, "token_type_hint": "access_token", "client_id": self.client_id, "client_secret": self.client_secret}
+                introspect_resp = await client.post(introspect_url, data=introspect_data, timeout=10)
+                if introspect_resp.status_code != 200:
+                    logger.error(f"Introspection failed: {introspect_resp.status_code}")
+                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found in Authentik")
+
+                introspect_json = introspect_resp.json()
+                if not introspect_json.get("active"):
+                    logger.error("Token introspection indicates token is not active")
+                    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found in Authentik")
+
+                # Build a user-like structure from introspection claims where possible
+                user_data = {
+                    "sub": introspect_json.get("sub") or introspect_json.get("username"),
+                    "email": introspect_json.get("email"),
+                    "name": introspect_json.get("name") or introspect_json.get("preferred_username"),
+                    "preferred_username": introspect_json.get("preferred_username"),
+                    "groups": introspect_json.get("groups", []),
+                }
+
                 first_name, last_name = _parse_display_name(user_data.get("name"))
 
                 return {
                     "id": user_data.get("sub"),
                     "email": user_data.get("email"),
-                    "email_verified": user_data.get("email_verified", False),
+                    "email_verified": introspect_json.get("email_verified", False),
                     "display_name": user_data.get("name"),
                     "first_name": first_name,
                     "last_name": last_name,

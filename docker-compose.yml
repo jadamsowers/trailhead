@@ -47,6 +47,7 @@ services:
   authentik-server:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12}
     container_name: trailhead-authentik-server
+    hostname: authentik
     restart: ${RESTART_POLICY:-no}
     command: server
     environment:
@@ -72,9 +73,12 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - trailhead-network
+      trailhead-network:
+        aliases:
+          - authentik
+          - authentik.local
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9000/-/health/live/"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:9000/-/health/live/')\""]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -84,6 +88,7 @@ services:
   authentik-worker:
     image: ${AUTHENTIK_IMAGE:-ghcr.io/goauthentik/server}:${AUTHENTIK_TAG:-2024.12}
     container_name: trailhead-authentik-worker
+    hostname: authentik-worker
     restart: ${RESTART_POLICY:-no}
     command: worker
     environment:
@@ -125,13 +130,16 @@ services:
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
       REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
       DEBUG: ${DEBUG:-true}
-      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-http://localhost:3000,http://localhost:8000}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS:-}
       INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-admin@example.com}
       # Authentik Configuration
-      AUTHENTIK_URL: ${AUTHENTIK_URL:-http://authentik-server:9000}
+      # Use the compose network alias so the backend (in-container) reaches
+      # Authentik via the service hostname. Override with env to target a
+      # different host when running outside compose.
+      AUTHENTIK_URL: ${AUTHENTIK_URL:-http://authentik:9000}
       AUTHENTIK_CLIENT_ID: ${AUTHENTIK_CLIENT_ID:-}
       AUTHENTIK_CLIENT_SECRET: ${AUTHENTIK_CLIENT_SECRET:-}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      FRONTEND_URL: ${FRONTEND_URL:-}
     ports:
       # Only expose port in development mode (BACKEND_PORT will be empty in production)
       - "${BACKEND_PORT}:8000"
@@ -160,7 +168,7 @@ services:
       dockerfile: Dockerfile.prod
       args:
         VITE_API_URL: ${VITE_API_URL:-/api}
-        VITE_AUTHENTIK_URL: ${AUTHENTIK_EXTERNAL_URL:-http://localhost:9000}
+        VITE_AUTHENTIK_URL: ${AUTHENTIK_EXTERNAL_URL:-}
         VITE_AUTHENTIK_CLIENT_ID: ${AUTHENTIK_CLIENT_ID:-}
     container_name: trailhead-frontend
     restart: unless-stopped

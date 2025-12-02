@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../contexts/AuthContext";
 import { User } from "../../types";
 import { getApiBase } from "../../utils/apiBase";
+import { getAccessToken } from "../../auth/client";
 
 const UserManagement: React.FC = () => {
-  const { getToken } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,15 +15,15 @@ const UserManagement: React.FC = () => {
       "Content-Type": "application/json",
     };
 
-    // Try to get Stack Auth session token first
+    // Try to get Authentik session token first
     try {
-      const token = await getToken();
+      const token = await getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
         return headers;
       }
     } catch (error) {
-      console.warn("Failed to get Stack Auth token:", error);
+      console.warn("Failed to get Authentik token:", error);
     }
 
     // Fall back to localStorage token for legacy admin accounts
@@ -292,14 +291,14 @@ const UserManagement: React.FC = () => {
                         user.role === "admin"
                           ? "var(--alert-error-bg)"
                           : user.role === "adult"
-                          ? "var(--badge-info-bg)"
-                          : "var(--bg-tertiary)",
+                            ? "var(--badge-info-bg)"
+                            : "var(--bg-tertiary)",
                       color:
                         user.role === "admin"
                           ? "var(--alert-error-text)"
                           : user.role === "adult"
-                          ? "var(--badge-info-text)"
-                          : "var(--text-secondary)",
+                            ? "var(--badge-info-text)"
+                            : "var(--text-secondary)",
                     }}
                   >
                     {user.role}
@@ -434,18 +433,18 @@ const UserManagement: React.FC = () => {
                       user.role === "admin"
                         ? "var(--alert-error-bg)"
                         : user.role === "outing-admin"
-                        ? "var(--badge-warning-bg)"
-                        : user.role === "adult"
-                        ? "var(--badge-info-bg)"
-                        : "var(--bg-tertiary)",
+                          ? "var(--badge-warning-bg)"
+                          : user.role === "adult"
+                            ? "var(--badge-info-bg)"
+                            : "var(--bg-tertiary)",
                     color:
                       user.role === "admin"
                         ? "var(--alert-error-text)"
                         : user.role === "outing-admin"
-                        ? "var(--badge-warning-text)"
-                        : user.role === "adult"
-                        ? "var(--badge-info-text)"
-                        : "var(--text-secondary)",
+                          ? "var(--badge-warning-text)"
+                          : user.role === "adult"
+                            ? "var(--badge-info-text)"
+                            : "var(--text-secondary)",
                   }}
                 >
                   {user.role}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "react-oidc-context";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   Outing,
   SignupFormData,
@@ -76,10 +76,10 @@ const SignupForm: React.FC = () => {
       loadFamilyMembers();
       loadMySignups();
       // Pre-fill contact info from user profile
-      if (user?.primaryEmailAddress?.emailAddress) {
+      if (user?.profile?.email) {
         setFormData((prev) => ({
           ...prev,
-          email: user.primaryEmailAddress?.emailAddress || prev.email,
+          email: user.profile?.email || prev.email,
         }));
       }
     }
@@ -309,7 +309,7 @@ const SignupForm: React.FC = () => {
         setWarnings([]);
         setFormData({
           outing_id: "",
-          email: user?.primaryEmailAddress?.emailAddress || "",
+          email: user?.profile?.email || "",
           phone: "",
           emergency_contact_name: "",
           emergency_contact_phone: "",
@@ -1381,8 +1381,7 @@ const SignupForm: React.FC = () => {
                                                   style={{
                                                     marginTop: "12px",
                                                     paddingTop: "12px",
-                                                    borderTop:
-                                                      "1px solid #ddd",
+                                                    borderTop: "1px solid #ddd",
                                                   }}
                                                 >
                                                   <label
@@ -1422,8 +1421,7 @@ const SignupForm: React.FC = () => {
                                                       }}
                                                     />
                                                     <span>
-                                                      🍳 Volunteer as
-                                                      Grubmaster
+                                                      🍳 Volunteer as Grubmaster
                                                     </span>
                                                   </label>
                                                   {grubmasterRequests[member.id]
@@ -1469,8 +1467,8 @@ const SignupForm: React.FC = () => {
                                                         Cooking Merit Badge
                                                       </option>
                                                       <option value="just_because">
-                                                        Just Because - I Like
-                                                        to Cook!
+                                                        Just Because - I Like to
+                                                        Cook!
                                                       </option>
                                                     </select>
                                                   )}

@@ -8,8 +8,7 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import { AuthProvider, useAuth } from "react-oidc-context";
-import { oidcConfig } from "./auth/client";
+import { useAuth } from "./contexts/AuthContext";
 import BackendHealthCheck from "./components/Shared/BackendHealthCheck";
 import { BackgroundSync } from "./components/BackgroundSync";
 import { ThemeToggleCompact } from "./components/Shared/ThemeToggle";
@@ -247,7 +246,8 @@ const Navigation: React.FC = () => {
   });
 
   const handleSignOut = () => {
-    auth.signoutRedirect();
+    // Use the app's logout helper which clears the session cookie and local cache
+    auth.logout();
   };
 
   return (
@@ -411,129 +411,129 @@ const Navigation: React.FC = () => {
         <div className="flex flex-col">
           {isSignedIn ? (
             <>
-            <Link
-              to="/outings"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 px-6 py-4 text-lg font-medium border-b border-white/10 hover:bg-white/5 transition-colors"
-              style={{
-                ...navTextStyle,
-                backgroundColor: isActive("/outings")
-                  ? "rgba(255,255,255,0.1)"
-                  : "transparent",
-              }}
-              role="menuitem"
-              tabIndex={0}
-            >
-              <span>🏕️</span>
-              <span>Outings</span>
-            </Link>
-            <Link
-              to="/family-setup"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 px-6 py-4 text-lg font-medium border-b border-white/10 hover:bg-white/5 transition-colors"
-              style={{
-                ...navTextStyle,
-                backgroundColor: isActive("/family-setup")
-                  ? "rgba(255,255,255,0.1)"
-                  : "transparent",
-              }}
-              role="menuitem"
-              tabIndex={0}
-            >
-              <span>👨‍👩‍👧‍👦</span>
-              <span>Family</span>
-            </Link>
-            <Link
-              to="/profile"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 px-6 py-4 text-lg font-medium border-b border-white/10 hover:bg-white/5 transition-colors"
-              style={{
-                ...navTextStyle,
-                backgroundColor: isActive("/profile")
-                  ? "rgba(255,255,255,0.1)"
-                  : "transparent",
-              }}
-              role="menuitem"
-              tabIndex={0}
-            >
-              <span>👤</span>
-              <span>Profile</span>
-            </Link>
-            {isAdmin && (
               <Link
-                to="/admin"
+                to="/outings"
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-3 px-6 py-4 text-lg font-medium border-b border-white/10 hover:bg-white/5 transition-colors"
                 style={{
                   ...navTextStyle,
-                  backgroundColor: isActive("/admin")
+                  backgroundColor: isActive("/outings")
                     ? "rgba(255,255,255,0.1)"
                     : "transparent",
                 }}
                 role="menuitem"
                 tabIndex={0}
               >
-                <span>⚙️</span>
-                <span>Admin</span>
+                <span>🏕️</span>
+                <span>Outings</span>
               </Link>
-            )}
-            <div className="px-6 py-4 flex items-center justify-between border-b border-white/10 hover:bg-white/5 transition-colors">
-              <span
+              <Link
+                to="/family-setup"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-6 py-4 text-lg font-medium border-b border-white/10 hover:bg-white/5 transition-colors"
                 style={{
-                  color: "var(--text-on-primary)",
-                  fontSize: "1rem",
-                  fontWeight: 500,
+                  ...navTextStyle,
+                  backgroundColor: isActive("/family-setup")
+                    ? "rgba(255,255,255,0.1)"
+                    : "transparent",
                 }}
+                role="menuitem"
+                tabIndex={0}
               >
-                Theme
-              </span>
-              <ThemeToggleCompact />
-            </div>
-            <div className="px-6 py-4 flex items-center gap-3 hover:bg-white/5 transition-colors">
-              <button
-                onClick={handleSignOut}
-                className="px-4 py-2 rounded-lg font-medium text-sm"
+                <span>👨‍👩‍👧‍👦</span>
+                <span>Family</span>
+              </Link>
+              <Link
+                to="/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 px-6 py-4 text-lg font-medium border-b border-white/10 hover:bg-white/5 transition-colors"
                 style={{
-                  backgroundColor: "rgba(255,255,255,0.1)",
-                  color: "var(--text-on-primary)",
+                  ...navTextStyle,
+                  backgroundColor: isActive("/profile")
+                    ? "rgba(255,255,255,0.1)"
+                    : "transparent",
                 }}
+                role="menuitem"
+                tabIndex={0}
               >
-                Sign Out
-              </button>
-              <span
-                style={{
-                  color: "var(--text-on-primary)",
-                  fontSize: "0.875rem",
-                }}
-              >
-                {auth.user?.profile?.email}
-              </span>
-            </div>
+                <span>👤</span>
+                <span>Profile</span>
+              </Link>
+              {isAdmin && (
+                <Link
+                  to="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-6 py-4 text-lg font-medium border-b border-white/10 hover:bg-white/5 transition-colors"
+                  style={{
+                    ...navTextStyle,
+                    backgroundColor: isActive("/admin")
+                      ? "rgba(255,255,255,0.1)"
+                      : "transparent",
+                  }}
+                  role="menuitem"
+                  tabIndex={0}
+                >
+                  <span>⚙️</span>
+                  <span>Admin</span>
+                </Link>
+              )}
+              <div className="px-6 py-4 flex items-center justify-between border-b border-white/10 hover:bg-white/5 transition-colors">
+                <span
+                  style={{
+                    color: "var(--text-on-primary)",
+                    fontSize: "1rem",
+                    fontWeight: 500,
+                  }}
+                >
+                  Theme
+                </span>
+                <ThemeToggleCompact />
+              </div>
+              <div className="px-6 py-4 flex items-center gap-3 hover:bg-white/5 transition-colors">
+                <button
+                  onClick={handleSignOut}
+                  className="px-4 py-2 rounded-lg font-medium text-sm"
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.1)",
+                    color: "var(--text-on-primary)",
+                  }}
+                >
+                  Sign Out
+                </button>
+                <span
+                  style={{
+                    color: "var(--text-on-primary)",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  {(auth.user as any)?.profile?.email || auth.user?.email}
+                </span>
+              </div>
             </>
           ) : (
             <>
-            <div className="px-6 py-4 flex items-center justify-between border-b border-white/10 hover:bg-white/5 transition-colors">
-              <span
-                style={{
-                  color: "var(--text-on-primary)",
-                  fontSize: "1rem",
-                  fontWeight: 500,
-                }}
+              <div className="px-6 py-4 flex items-center justify-between border-b border-white/10 hover:bg-white/5 transition-colors">
+                <span
+                  style={{
+                    color: "var(--text-on-primary)",
+                    fontSize: "1rem",
+                    fontWeight: 500,
+                  }}
+                >
+                  Theme
+                </span>
+                <ThemeToggleCompact />
+              </div>
+              <Link
+                to="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block px-6 py-4 text-lg font-medium hover:bg-white/5 transition-colors"
+                style={navTextStyle}
+                role="menuitem"
+                tabIndex={0}
               >
-                Theme
-              </span>
-              <ThemeToggleCompact />
-            </div>
-            <Link
-              to="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block px-6 py-4 text-lg font-medium hover:bg-white/5 transition-colors"
-              style={navTextStyle}
-              role="menuitem"
-              tabIndex={0}
-            >
-              Sign In
-            </Link>
+                Sign In
+              </Link>
             </>
           )}
         </div>
@@ -597,7 +597,7 @@ const AppContent: React.FC = () => {
   }, []);
 
   // Handle OIDC loading state
-  if (auth.isLoading) {
+  if (auth.loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -817,21 +817,17 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  return (
-    <AuthProvider {...oidcConfig}>
-      <AppContent />
-    </AuthProvider>
-  );
+  return <AppContent />;
 };
 
 // Helper component to require authentication
 const RequireAuth: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const auth = useAuth();
-  
+
   if (!auth.isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
-  
+
   return <>{children}</>;
 };
 

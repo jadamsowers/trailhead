@@ -1,4 +1,4 @@
-h1:zVhjFnvFnId2DVp6c9gshLmwCrypIsmFDuMo8djpysk=
+h1:ceRyPddeZka/jd6NOdlzmLRMxZ5BzJla3VrOQNtIKhU=
 20251124000001_initial.sql h1:yNcdKslq6H+4pFl6p5HFvNpaOqccXPZVzbjf9ykutL8=
 20251124000002_add_checkins_table.sql h1:oW9pKwu7SNaerWm5B1NtMWy3a8UUNk6GB9h0Efl53DU=
 20251124000003_add_outing_icon.sql h1:OFIamhOlr0wIDdVnw1QNi6djxtzpW9OUDzSmfGNLtUQ=
@@ -22,4 +22,4 @@ h1:zVhjFnvFnId2DVp6c9gshLmwCrypIsmFDuMo8djpysk=
 20251127001500_add_change_log_table.sql h1:8lx3XqoNdTn7xMpdez4Sh7KtlLhwhRUXttj6ymueuBU=
 20251127181500_add_grubmaster_functionality.sql h1:TUh9kmdjA+3G6lEVvN+SPliV7Q+E6th7T+lNFTtATU4=
 20251128000001_add_outing_troops_junction.sql h1:fGyPYegDx8PNKc9J0L2pxNozYaIj7J4vWWF3o0BIBrk=
-20251128000001_add_tenting_functionality.sql h1:mWY3oYwbVJRz6AxWJhBrvoUIEGrkyTPt2MclgQykp3k=
+20251128000002_add_tenting_functionality.sql h1:A/yISOhh4I4vyE4dgosFahX/t1pECv8vTVIKP9Gvutk=

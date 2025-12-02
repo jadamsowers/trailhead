@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -8,17 +8,29 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import User
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
 ) -> User:
     """
     Get the current authenticated user from Authentik OIDC token.
     """
-    token = credentials.credentials
+    # Prefer Authorization header Bearer token, fall back to HttpOnly cookie set by server
+    token = None
+    if credentials and getattr(credentials, "credentials", None):
+        token = credentials.credentials
+    else:
+        token = request.cookies.get("auth_access_token")
+
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
 
     try:
         authentik = get_authentik_client()

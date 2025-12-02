@@ -28,12 +28,13 @@ class Settings(BaseSettings):
     
     # Initial Admin User
     # When a user with this email signs in, they will automatically be granted admin role
-    INITIAL_ADMIN_EMAIL: str = "soadmin@scouthacks.net"
+    INITIAL_ADMIN_EMAIL: str = "trailhead@scouthacks.net"
 
     # Authentik Configuration
-    AUTHENTIK_URL: str = "http://authentik-server:9000"
+    AUTHENTIK_URL: str = "http://localhost:9000"
     AUTHENTIK_CLIENT_ID: str = ""
     AUTHENTIK_CLIENT_SECRET: str = ""
+    AUTHENTIK_EXTERNAL_URL: Optional[str] = "http://localhost:9000"
     
     # Frontend URL
     FRONTEND_URL: str = "http://localhost:3000"

@@ -12,7 +12,8 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
-from app.api.endpoints import outings, signups, registration, family, stackauth, requirements, places, packing_lists, troops, offline, grubmaster, tenting
+from app.api.endpoints import outings, signups, registration, family, requirements, places, packing_lists, troops, offline, grubmaster, tenting
+from app.api.endpoints import auth
 from app.api import checkin
 
 # Configure logging
@@ -198,7 +199,6 @@ async def general_exception_handler(request: Request, exc: Exception):
 # Routers
 app.include_router(outings.router, prefix=f"{settings.API_V1_STR}/outings", tags=["outings"])
 app.include_router(signups.router, prefix=f"{settings.API_V1_STR}/signups", tags=["signups"])
-app.include_router(stackauth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(registration.router, prefix=f"{settings.API_V1_STR}/register", tags=["registration"])
 app.include_router(family.router, prefix=f"{settings.API_V1_STR}/family", tags=["family-management"])
 app.include_router(checkin.router, prefix=f"{settings.API_V1_STR}/outings", tags=["check-in"])
@@ -209,6 +209,7 @@ app.include_router(troops.router, prefix=f"{settings.API_V1_STR}", tags=["troops
 app.include_router(offline.router, prefix=f"{settings.API_V1_STR}/offline", tags=["offline"])
 app.include_router(grubmaster.router, prefix=f"{settings.API_V1_STR}/outings", tags=["grubmaster"])
 app.include_router(tenting.router, prefix=f"{settings.API_V1_STR}/outings", tags=["tenting"])
+app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 
 # Health endpoint
 from app.api.endpoints import health

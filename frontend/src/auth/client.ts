@@ -1,14 +1,37 @@
 import { UserManager, WebStorageStateStore, User as OidcUser } from "oidc-client-ts";
 
-// Authentik OIDC configuration
-const AUTHENTIK_URL = import.meta.env.VITE_AUTHENTIK_URL || "http://localhost:9000";
+// Authentik OIDC configuration - values MUST come from environment (Vite) at build/runtime.
+// Do NOT fall back to a hard-coded localhost value; leave empty to force explicit configuration.
+const AUTHENTIK_URL = import.meta.env.VITE_AUTHENTIK_URL || "";
 const AUTHENTIK_CLIENT_ID = import.meta.env.VITE_AUTHENTIK_CLIENT_ID || "";
+// Prefer explicit issuer from environment to avoid discovery issues
+const AUTHENTIK_ISSUER = import.meta.env.VITE_AUTHENTIK_ISSUER || "";
+// Optional explicit metadata discovery URL to bypass misconfigured issuers
+const AUTHENTIK_METADATA_URL = import.meta.env.VITE_AUTHENTIK_METADATA_URL || "";
 const REDIRECT_URI = `${window.location.origin}/callback`;
 const POST_LOGOUT_REDIRECT_URI = window.location.origin;
 
+// Derive authoritative values and compute an explicit metadata URL to
+// avoid any ambiguity about which origin the client will request.
+const authority = AUTHENTIK_ISSUER || `${AUTHENTIK_URL.replace(/\/$/, '')}/application/o/trailhead/`;
+// If a metadata URL is provided, use it; otherwise compute the well-known URL
+export const metadataUrl = AUTHENTIK_METADATA_URL
+  ? AUTHENTIK_METADATA_URL
+  : authority
+      ? `${authority.replace(/\/$/, '')}/.well-known/openid-configuration`
+      : "";
+
+// Log what we'll use so we can debug requests that end up hitting the
+// frontend dev server (index.html) instead of Authentik.
+console.debug('[OIDC-CONFIG] authority:', authority);
+console.debug('[OIDC-CONFIG] metadataUrl:', metadataUrl);
+
 // OIDC configuration for Authentik
 export const oidcConfig = {
-  authority: `${AUTHENTIK_URL}/application/o/trailhead/`,
+  // Use provided issuer URL when available; fallback to legacy app path
+  authority,
+  // Provide an explicit metadataUrl so discovery is absolute
+  metadataUrl,
   client_id: AUTHENTIK_CLIENT_ID,
   redirect_uri: REDIRECT_URI,
   post_logout_redirect_uri: POST_LOGOUT_REDIRECT_URI,
@@ -36,8 +59,20 @@ export const getUser = (): Promise<OidcUser | null> => {
 };
 
 export const getAccessToken = async (): Promise<string | null> => {
-  const user = await userManager.getUser();
-  return user?.access_token || null;
+  // Compatibility shim: request token from backend when using server-driven auth
+  try {
+    // Use the runtime API base helper if available, otherwise default to same-origin
+    const { getApiBase } = await import("../utils/apiBase");
+    const apiBase = getApiBase() || window.location.origin;
+    const resp = await fetch(`${apiBase}/auth/token`, { credentials: "include" });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return data.access_token || null;
+  } catch (e) {
+    // Fallback to client-side manager if configured
+    const user = await userManager.getUser();
+    return user?.access_token || null;
+  }
 };
 
 export const isAuthenticated = async (): Promise<boolean> => {

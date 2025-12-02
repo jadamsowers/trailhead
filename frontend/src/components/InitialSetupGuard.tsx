@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "react-oidc-context";
+import { useAuth } from "../contexts/AuthContext";
 import { getAccessToken } from "../auth/client";
 import { getApiBase } from "../utils/apiBase";
 
@@ -15,7 +15,7 @@ export const InitialSetupGuard: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const auth = useAuth();
   const user = auth.user;
-  const isLoaded = !auth.isLoading;
+  const isLoaded = !auth.loading;
   const navigate = useNavigate();
   const location = useLocation();
   const [checking, setChecking] = useState(true);

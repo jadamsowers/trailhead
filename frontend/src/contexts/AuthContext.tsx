@@ -5,9 +5,8 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { useAuth as useOidcAuth } from "react-oidc-context";
-import { getAccessToken } from "../auth/client";
 import { oauthAPI, authAPI } from "../services/api";
+import { getApiBase } from "../utils/apiBase";
 import type { UserResponse as AuthUserResponse } from "../client/models/UserResponse";
 import { User } from "../types";
 
@@ -20,6 +19,11 @@ interface AuthContextType {
   isAdmin: boolean;
   isParent: boolean;
   loading: boolean;
+  // Backwards-compat: some components expect `isLoading` and `error` from
+  // the previous OIDC client context. Provide aliases to avoid runtime errors
+  // during migration.
+  isLoading: boolean;
+  error?: Error | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,31 +35,35 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const oidcAuth = useOidcAuth();
-
+  const [error, setError] = useState<Error | null>(null);
   useEffect(() => {
     // Check for existing token or session
     const checkAuth = async () => {
       try {
-        const token = await getAccessToken();
-        if (token) {
-          await verifyToken(token);
+        const resp = await fetch(`${getApiBase()}/auth/me`, {
+          credentials: "include",
+        });
+        if (resp.ok) {
+          const userData = await resp.json();
+          const normalized = normalizeUserResponse(userData);
+          const withProfile = augmentWithLegacyProfile(normalized);
+          setUser(withProfile as any);
+          localStorage.setItem("cached_user", JSON.stringify(withProfile));
+          setError(null);
         } else {
-          // If no token, try to load cached user
           const cachedUser = localStorage.getItem("cached_user");
-          if (cachedUser) {
-            setUser(JSON.parse(cachedUser));
-          }
-          setLoading(false);
+          if (cachedUser) setUser(JSON.parse(cachedUser));
         }
       } catch (error) {
         console.error("Auth check failed:", error);
+        setError(error instanceof Error ? error : new Error(String(error)));
+      } finally {
         setLoading(false);
       }
     };
 
     checkAuth();
-  }, [oidcAuth.user]);
+  }, []);
 
   // Always cache user object when it changes
   useEffect(() => {
@@ -69,25 +77,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [user]);
 
   const verifyToken = async (_token: string) => {
+    // retained for compatibility; server-driven flow should use cookies
     try {
-      // Fetch user from backend using Authentik authenticated endpoint
-      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:8000"}/api/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${_token}`,
-        },
+      const resp = await fetch(`${getApiBase()}/auth/me`, {
+        credentials: "include",
       });
-      
-      if (!response.ok) {
-        throw new Error("Failed to verify token");
-      }
-      
-      const userData = await response.json();
+      if (!resp.ok) throw new Error("Failed to verify session");
+      const userData = await resp.json();
       const normalized = normalizeUserResponse(userData);
-      setUser(normalized);
-      localStorage.setItem("cached_user", JSON.stringify(normalized));
+      const withProfile = augmentWithLegacyProfile(normalized);
+      setUser(withProfile as any);
+      localStorage.setItem("cached_user", JSON.stringify(withProfile));
     } catch (error) {
-      console.error("Token verification via Authentik failed:", error);
-      setLoading(false);
+      console.error("Session verification failed:", error);
+      setError(error instanceof Error ? error : new Error(String(error)));
     } finally {
       setLoading(false);
     }
@@ -102,23 +105,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     const userData = await authAPI.getCurrentUser(response.access_token);
-    setUser(userData);
-    localStorage.setItem("cached_user", JSON.stringify(userData));
+    // authAPI may return the backend user shape; normalize and augment for legacy components
+    const normalized = normalizeUserResponse(userData as any);
+    const withProfile = augmentWithLegacyProfile(normalized);
+    setUser(withProfile as any);
+    localStorage.setItem("cached_user", JSON.stringify(withProfile));
   };
 
   const loginWithOAuth = () => {
-    // Open Authentik sign-in
-    oidcAuth.signinRedirect();
+    // Redirect to backend login endpoint which starts the OIDC flow
+    window.location.href = `${getApiBase()}/auth/login`;
   };
 
   const logout = async () => {
     try {
-      await oidcAuth.signoutRedirect();
+      await fetch(`${getApiBase()}/auth/logout`, { credentials: "include" });
     } catch (error) {
       console.error("Logout error:", error);
+      setError(error instanceof Error ? error : new Error(String(error)));
     }
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
     localStorage.removeItem("cached_user");
     setUser(null);
   };
@@ -134,6 +139,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAdmin: user?.role === "admin",
         isParent: user?.role === "adult",
         loading,
+        isLoading: loading,
+        error,
       }}
     >
       {children}
@@ -176,3 +183,16 @@ const normalizeUserResponse = (u: AuthUserResponse): User => {
   };
 };
 
+// Provide a helper that returns a user object compatible with older
+// components that expect an OIDC-style `user.profile` shape. This keeps the
+// migration incremental: components can keep using `user.profile.name` and
+// `user.profile.email` until we update them to the normalized fields.
+export const augmentWithLegacyProfile = (u: User) => {
+  return {
+    ...u,
+    profile: {
+      name: u.full_name || u.email,
+      email: u.email,
+    },
+  } as User & { profile: { name?: string; email?: string } };
+};

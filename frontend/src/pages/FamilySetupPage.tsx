@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "react-oidc-context";
+import { useAuth } from "../contexts/AuthContext";
 import { FamilyManagement } from "../components/Adult/FamilyManagement";
 import { familyAPI } from "../services/api";
 
@@ -8,7 +8,7 @@ const FamilySetupPage: React.FC = () => {
   const auth = useAuth();
   const user = auth.user;
   const isSignedIn = auth.isAuthenticated;
-  const isLoaded = !auth.isLoading;
+  const isLoaded = !auth.loading;
   const navigate = useNavigate();
   const [hasFamilyMembers, setHasFamilyMembers] = useState(false);
   const [loading, setLoading] = useState(true);

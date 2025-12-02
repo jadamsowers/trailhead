@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "react-oidc-context";
+import { useAuth } from "../contexts/AuthContext";
 import SignupWizard from "../components/Participant/SignupWizard";
 import { familyAPI } from "../services/api";
 
@@ -55,44 +55,44 @@ const OutingsPage: React.FC = () => {
     <div className="w-full">
       {isSignedIn ? (
         <>
-        {hasFamilyMembers ? (
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* SignupWizard manages its own data; remove unused outings prop */}
-            <SignupWizard />
-          </div>
-        ) : (
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[60vh] flex items-center justify-center">
-            <div className="max-w-md w-full glass-card p-10 text-center">
-              <h2
-                className="text-3xl font-bold font-heading mb-4"
-                style={{ color: "var(--text-primary)" }}
-              >
-                Welcome to Outing Signups!
-              </h2>
-              <p
-                className="mb-8 text-lg"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Before you can sign up for outings, you need to add family
-                members to your account.
-              </p>
-              <p className="mb-8" style={{ color: "var(--text-secondary)" }}>
-                Add yourself and any youth or adults who will be participating
-                in outings.
-              </p>
-              <button
-                onClick={() => navigate("/family-setup")}
-                className="px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full"
-                style={{
-                  backgroundColor: "var(--btn-primary-bg)",
-                  color: "var(--btn-primary-text)",
-                }}
-              >
-                Add Family Members
-              </button>
+          {hasFamilyMembers ? (
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              {/* SignupWizard manages its own data; remove unused outings prop */}
+              <SignupWizard />
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[60vh] flex items-center justify-center">
+              <div className="max-w-md w-full glass-card p-10 text-center">
+                <h2
+                  className="text-3xl font-bold font-heading mb-4"
+                  style={{ color: "var(--text-primary)" }}
+                >
+                  Welcome to Outing Signups!
+                </h2>
+                <p
+                  className="mb-8 text-lg"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Before you can sign up for outings, you need to add family
+                  members to your account.
+                </p>
+                <p className="mb-8" style={{ color: "var(--text-secondary)" }}>
+                  Add yourself and any youth or adults who will be participating
+                  in outings.
+                </p>
+                <button
+                  onClick={() => navigate("/family-setup")}
+                  className="px-8 py-4 rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 w-full"
+                  style={{
+                    backgroundColor: "var(--btn-primary-bg)",
+                    color: "var(--btn-primary-text)",
+                  }}
+                >
+                  Add Family Members
+                </button>
+              </div>
+            </div>
+          )}
         </>
       ) : (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[60vh] flex items-center justify-center">
