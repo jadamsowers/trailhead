@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useUser } from "@stackframe/stack";
+import { useAuth } from "../../contexts/AuthContext";
 import { Outing } from "../../types";
 import { OutingIconDisplay } from "../OutingIconDisplay";
 import { signupAPI, userAPI, APIError } from "../../services/api";
@@ -31,7 +31,9 @@ type WizardStep =
 // Styles removed in favor of Tailwind classes
 
 const SignupWizard: React.FC = () => {
-  const { user, isSignedIn } = useUser();
+  const auth = useAuth();
+  const user = auth.user;
+  const isSignedIn = auth.isAuthenticated;
 
   // Helper function to format date, omitting year if it's the current year
   const formatOutingDate = (dateString: string): string => {
@@ -169,18 +171,18 @@ const SignupWizard: React.FC = () => {
       const userData = await userAPI.getCurrentUser();
       console.log("Loaded user data:", userData);
       setContactInfo({
-        email: user?.primaryEmailAddress?.emailAddress || "",
+        email: user?.profile?.email || "",
         phone: userData.phone ?? "",
         emergency_contact_name: userData.emergency_contact_name ?? "",
         emergency_contact_phone: userData.emergency_contact_phone ?? "",
       });
     } catch (err) {
       console.error("Failed to load user contact info:", err);
-      // Fallback to email from Stack Auth
-      if (user?.primaryEmailAddress?.emailAddress) {
+      // Fallback to email from auth
+      if (user?.profile?.email) {
         setContactInfo((prev) => ({
           ...prev,
-          email: user.primaryEmailAddress?.emailAddress || prev.email,
+          email: user.profile?.email || prev.email,
         }));
       }
     }
@@ -452,7 +454,7 @@ const SignupWizard: React.FC = () => {
     setSelectedScoutIds([]);
     setEditingSignupId(null);
     setContactInfo({
-      email: user?.primaryEmailAddress?.emailAddress || "",
+      email: user?.profile?.email || "",
       phone: "",
       emergency_contact_name: "",
       emergency_contact_phone: "",

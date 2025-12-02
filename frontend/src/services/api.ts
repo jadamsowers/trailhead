@@ -60,7 +60,70 @@ import {
 } from "../types";
 
 import { getApiBase } from "../utils/apiBase";
-import { stackClientApp } from "../stack/client";
+import { getAccessToken, signOut } from "../auth/client";
+
+// Ensure same-origin API requests include credentials and standard JSON headers.
+// This wrapper is defensive: it only mutates requests that target the configured
+// API base path on the same origin. External services (e.g. Nominatim) are left
+// untouched.
+(() => {
+  try {
+    const originalFetch = window.fetch.bind(window);
+    window.fetch = async (input: RequestInfo, init?: RequestInit) => {
+      try {
+        const url = typeof input === "string" ? input : input.url;
+        const basePath = (() => {
+          try {
+            return new URL(getApiBase(), window.location.origin).pathname;
+          } catch (e) {
+            return getApiBase();
+          }
+        })();
+
+        const parsed = new URL(url, window.location.origin);
+        const isSameOrigin = parsed.origin === window.location.origin;
+        if (isSameOrigin && parsed.pathname.startsWith(basePath)) {
+          // Merge headers from getAuthHeaders() and any provided headers.
+          const helperHeaders = await (async () => {
+            try {
+              return (await (await import("./api")).getAuthHeaders()) as Record<
+                string,
+                string
+              >;
+            } catch (e) {
+              // If importing self fails (circular), fall back to default JSON header
+              return { "Content-Type": "application/json" };
+            }
+          })();
+
+          const providedHeaders = (init && init.headers) || {};
+          const mergedHeaders = {
+            ...(helperHeaders || {}),
+            ...(providedHeaders as Record<string, string>),
+          };
+
+          const finalInit: RequestInit = {
+            credentials: "include",
+            ...init,
+            headers: mergedHeaders,
+          };
+          return originalFetch(input, finalInit);
+        }
+      } catch (e) {
+        // If anything goes wrong, fall back to original fetch for safety.
+        // Do not block the app on the wrapper.
+        console.debug("api fetch wrapper error", e);
+      }
+      return originalFetch(input, init);
+    };
+  } catch (e) {
+    // If even binding fetch fails, do nothing.
+    // This should be very rare in modern browsers.
+    // Keep the original behavior.
+    // eslint-disable-next-line no-console
+    console.debug("Failed to install fetch wrapper for API credentials", e);
+  }
+})();
 
 // API base is computed from the generated OpenAPI.BASE via `getApiBase()`.
 // We compute it lazily using the helper so that init order (initApiClient())
@@ -203,31 +266,13 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 // Helper function to get auth headers with Stack Auth token
 async function getAuthHeaders(): Promise<HeadersInit> {
-  const headers: HeadersInit = {
+  // With server-driven authentication we rely on cookies. Return the
+  // standard JSON headers; credentials are attached automatically by
+  // the generated client (OpenAPI.WITH_CREDENTIALS) or by the global
+  // fetch wrapper (initClient).
+  return {
     "Content-Type": "application/json",
   };
-
-  try {
-    // Get the access token from Stack Auth
-    const token = await stackClientApp.getAccessToken();
-    
-    if (!token) {
-      console.warn("⚠️ No Stack Auth token found - user may not be signed in yet");
-      throw new Error(
-        "You must be signed in to access this feature. Please sign in and try again."
-      );
-    }
-
-    console.log(
-      "✅ Using Stack Auth access token (first 20 chars):",
-      token.substring(0, 20) + "..."
-    );
-    headers["Authorization"] = `Bearer ${token}`;
-    return headers;
-  } catch (error) {
-    console.error("❌ Authentication error in getAuthHeaders:", error);
-    throw error;
-  }
 }
 
 // Outing API
@@ -474,8 +519,8 @@ export const oauthAPI = {
    * Refresh access token
    */
   async refreshToken(_refreshToken: string): Promise<TokenResponse> {
-    // Obtain a fresh session token from Stack Auth
-    const token = await stackClientApp.getAccessToken();
+    // Obtain a fresh session token from Authentik
+    const token = await getAccessToken();
     if (token) {
       return {
         access_token: token,
@@ -483,25 +528,23 @@ export const oauthAPI = {
         token_type: "bearer",
       };
     }
-    throw new APIError(401, "Unable to refresh token via Stack Auth session");
+    throw new APIError(401, "Unable to refresh token via Authentik session");
   },
 
   /**
    * Logout user
    */
   async logout(_refreshToken: string): Promise<void> {
-    // Sign out via Stack Auth
-    await stackClientApp.signOut();
+    // Sign out via Authentik
+    await signOut();
   },
 
   /**
    * Get current user info
    */
-  async getCurrentUser(token: string): Promise<User> {
+  async getCurrentUser(_token?: string): Promise<User> {
     const response = await fetch(`${getApiBase()}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await getAuthHeaders(),
     });
     return handleResponse<User>(response);
   },
@@ -558,11 +601,9 @@ export const authAPI = {
     return handleResponse<TokenResponse>(response);
   },
 
-  async getCurrentUser(token: string): Promise<User> {
+  async getCurrentUser(_token?: string): Promise<User> {
     const response = await fetch(`${getApiBase()}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await getAuthHeaders(),
     });
     return handleResponse<User>(response);
   },
@@ -578,12 +619,10 @@ export const authAPI = {
     return handleResponse<TokenResponse>(response);
   },
 
-  async logout(token: string): Promise<void> {
+  async logout(_token?: string): Promise<void> {
     const response = await fetch(`${getApiBase()}/auth/logout`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: await getAuthHeaders(),
     });
     if (!response.ok) {
       throw new APIError(response.status, "Failed to logout");

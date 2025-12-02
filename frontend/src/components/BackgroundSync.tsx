@@ -1,4 +1,4 @@
-import { useUser } from "@stackframe/stack";
+import { useAuth } from "../contexts/AuthContext";
 import { useEffect, useRef, useState } from "react";
 import { offlineAPI } from "../services/api";
 import { SyncToast } from "./Shared/SyncToast";
@@ -9,16 +9,18 @@ const OUTINGS_CACHE_KEY = "cached_outings";
 const ROSTER_CACHE_PREFIX = "cached_roster_";
 
 export const BackgroundSync: React.FC = () => {
-  const { isSignedIn, isLoaded } = useUser();
+  const auth = useAuth();
+  const isSignedIn = auth.isAuthenticated;
+  const isLoaded = !auth.loading;
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [backendUser, setBackendUser] = useState<User | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch user from backend to get role
   useEffect(() => {
-    // Wait for Stack Auth to be fully loaded
+    // Wait for auth to be fully loaded
     if (!isLoaded) {
-      console.debug("BackgroundSync: Waiting for Stack Auth to load");
+      console.debug("BackgroundSync: Waiting for auth to load");
       return;
     }
 
@@ -73,11 +75,11 @@ export const BackgroundSync: React.FC = () => {
       try {
         // Fetch all data in a single request
         const data = await offlineAPI.getBulkData();
-        
+
         // Cache user object for offline admin detection
         localStorage.setItem("cached_user", JSON.stringify(data.user));
         console.debug("BackgroundSync: cached_user updated");
-        
+
         // Cache outings
         localStorage.setItem(OUTINGS_CACHE_KEY, JSON.stringify(data.outings));
         console.debug("BackgroundSync: Outings synced");
@@ -90,7 +92,7 @@ export const BackgroundSync: React.FC = () => {
           );
         }
         console.debug("BackgroundSync: Rosters synced");
-        
+
         setToastMsg("Outings and rosters synced");
       } catch (err) {
         setToastMsg("Sync failed");
@@ -110,4 +112,3 @@ export const BackgroundSync: React.FC = () => {
 
   return toastMsg ? <SyncToast message={toastMsg} /> : null;
 };
-

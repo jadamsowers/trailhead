@@ -1,0 +1,178 @@
+import os
+from authentik.core.models import User, Application
+from django.contrib.auth.models import Group
+
+try:
+    from authentik.providers.oauth2.models import OAuth2Provider
+except Exception:
+    OAuth2Provider = None
+
+
+def main():
+    email = os.environ.get("AUTHENTIK_BOOTSTRAP_EMAIL")
+    password = os.environ.get("AUTHENTIK_BOOTSTRAP_PASSWORD")
+    frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    redirect_uris = os.environ.get(
+        "TRAILHEAD_AUTH_REDIRECT_URIS",
+        f"{frontend_url}/callback",
+    )
+
+    if not email:
+        print("AUTHENTIK_BOOTSTRAP_EMAIL not set; aborting")
+        return
+
+    # Ensure admin user exists
+    u, created = User.objects.get_or_create(
+        username=email, defaults={"email": email, "is_active": True}
+    )
+    if created:
+        u.set_password(password)
+        u.save()
+        print("User created.")
+    else:
+        print("User already exists.")
+
+    # Ensure 'authentik Admins' group exists and add user
+    g, group_created = Group.objects.get_or_create(name="authentik Admins")
+    if g not in u.groups.all():
+        u.groups.add(g)
+        print("User added to 'authentik Admins' group.")
+    else:
+        print("User already in 'authentik Admins' group.")
+
+    # Create or get the Application
+    app, app_created = Application.objects.get_or_create(
+        name="trailhead",
+        defaults={
+            "slug": "trailhead",
+            "meta_launch_url": frontend_url,
+            "meta_description": "Trailhead frontend application",
+            "meta_icon": "fa-solid fa-mountain-sun",
+            "meta_publisher": "Trailhead Bootstrap",
+        },
+    )
+    if app_created:
+        print("'trailhead' application created.")
+    else:
+        print("'trailhead' application already exists.")
+
+    if OAuth2Provider is None:
+        print(
+            "OAuth2Provider model not available in this Authentik version; skipping provider creation."
+        )
+        return
+
+    # Create or update OAuth2Provider defensively
+    provider = None
+    try:
+        provider, prov_created = OAuth2Provider.objects.get_or_create(name="trailhead-oauth2")
+        if prov_created:
+            print("'trailhead-oauth2' provider created.")
+        else:
+            print("'trailhead-oauth2' provider already exists.")
+        
+        # Set authorization flow to default if not already set
+        try:
+            from authentik.flows.models import Flow
+            if not provider.authorization_flow:
+                default_flow = Flow.objects.filter(slug="default-provider-authorization-implicit-consent").first()
+                if default_flow:
+                    provider.authorization_flow = default_flow
+                    provider.save()
+                    print(f"Set authorization flow to: {default_flow.slug}")
+                else:
+                    print("Warning: Could not find default authorization flow")
+        except Exception as e:
+            print(f"Warning: Could not set authorization flow: {e}")
+    except Exception as e:
+        print(f"Could not get_or_create provider: {e}")
+        try:
+            provider = OAuth2Provider.objects.create(name="trailhead-oauth2")
+            print("'trailhead-oauth2' provider created with minimal fields.")
+        except Exception as e2:
+            print(f"Failed to create OAuth2Provider: {e2}")
+            provider = None
+
+    if provider is None:
+        print("No provider object available; skipping provider configuration.")
+        return
+
+    # Try to set redirect_uris if supported
+    try:
+        provider.redirect_uris = redirect_uris
+    except Exception:
+        pass
+
+    # Associate provider with application using multiple possible fields/relations
+    associated = False
+    # Associate provider with application
+    try:
+        app.provider = provider
+        app.save()
+        associated = True
+    except Exception as e:
+        print(f"Error setting app.provider: {e}")
+        associated = False
+
+    try:
+        provider.save()
+    except Exception as e:
+        print(f"Warning: saving provider raised: {e}")
+
+    # Attach scope mappings to the provider
+    # Authentik uses ScopeMapping objects linked via property_mappings (M2M relationship)
+    try:
+        from authentik.providers.oauth2.models import ScopeMapping
+        
+        # Get the default scope mappings we need
+        required_scopes = ["openid", "email", "profile"]
+        scope_mappings = []
+        
+        for scope_name in required_scopes:
+            try:
+                # Find the default scope mapping for this scope
+                mapping = ScopeMapping.objects.filter(scope_name=scope_name).first()
+                if mapping:
+                    scope_mappings.append(mapping)
+                    print(f"Found scope mapping: {mapping.name} ({scope_name})")
+                else:
+                    print(f"Warning: Could not find scope mapping for '{scope_name}'")
+            except Exception as e:
+                print(f"Warning: Error finding scope mapping for '{scope_name}': {e}")
+        
+        if scope_mappings:
+            # Attach the scope mappings to the provider
+            try:
+                provider.property_mappings.set(scope_mappings)
+                provider.save()
+                print(f"Successfully attached {len(scope_mappings)} scope mappings to provider")
+                
+                # Verify the mappings were attached
+                attached_count = provider.property_mappings.count()
+                print(f"Provider now has {attached_count} property mappings")
+            except Exception as e:
+                print(f"Warning: Could not attach scope mappings to provider: {e}")
+        else:
+            print("Warning: No scope mappings found. Provider may not work correctly.")
+            print("Please configure scope mappings manually in the Authentik UI.")
+    except ImportError:
+        print("Warning: ScopeMapping model not available in this Authentik version.")
+        print("Please configure scope mappings manually in the Authentik UI.")
+    except Exception as e:
+        print(f"Warning: Error while configuring scope mappings: {e}")
+
+    if associated:
+        print("Provider associated with application.")
+    else:
+        print("Could not associate provider with application; please link manually in UI.")
+
+    # Print client id/secret if available
+    try:
+        print("Provider client_id:", provider.client_id)
+        print("Provider client_secret:", provider.client_secret)
+    except Exception:
+        print("Provider client_id/secret not accessible on this Authentik version.")
+
+
+if __name__ == "__main__":
+    main()

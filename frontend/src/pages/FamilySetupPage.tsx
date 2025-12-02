@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@stackframe/stack";
+import { useAuth } from "../contexts/AuthContext";
 import { FamilyManagement } from "../components/Adult/FamilyManagement";
 import { familyAPI } from "../services/api";
 
 const FamilySetupPage: React.FC = () => {
-  const stackUser = useUser();
-  const user = stackUser;
-  const isSignedIn = !!stackUser;
+  const auth = useAuth();
+  const user = auth.user;
+  const isSignedIn = auth.isAuthenticated;
+  const isLoaded = !auth.loading;
   const navigate = useNavigate();
   const [hasFamilyMembers, setHasFamilyMembers] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Only check family members after Stack Auth is loaded AND user is signed in
+    // Only check family members after auth is loaded AND user is signed in
     if (isLoaded && isSignedIn) {
-      // Add a small delay to ensure Stack Auth session is fully initialized
+      // Add a small delay to ensure auth session is fully initialized
       const timer = setTimeout(() => {
         checkFamilyMembers();
       }, 100);
@@ -64,7 +65,7 @@ const FamilySetupPage: React.FC = () => {
             className="text-3xl font-bold mb-2.5"
             style={{ color: "var(--text-primary)" }}
           >
-            Welcome, {user?.firstName || "Adult"}!
+            Welcome, {user?.profile?.name || user?.profile?.email || "Adult"}!
           </h1>
           <p
             className="text-base mb-0"
