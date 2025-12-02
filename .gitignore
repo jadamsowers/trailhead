@@ -254,3 +254,4 @@ temp/
 # Log files
 *.log
 logs/
+scripts/bootstrap/bootstrap_config.env
