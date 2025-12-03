@@ -75,13 +75,50 @@ def main():
         try:
             from authentik.flows.models import Flow
             if not provider.authorization_flow:
-                default_flow = Flow.objects.filter(slug="default-provider-authorization-implicit-consent").first()
+                # Try multiple common authorization flow slugs
+                flow_slugs = [
+                    "default-provider-authorization-implicit-consent",
+                    "default-provider-authorization-explicit-consent",
+                    "default-authorization-flow",
+                ]
+                default_flow = None
+                for slug in flow_slugs:
+                    default_flow = Flow.objects.filter(slug=slug).first()
+                    if default_flow:
+                        break
+                
+                # If no matching slug, try to find any authorization flow
+                if not default_flow:
+                    default_flow = Flow.objects.filter(designation="authorization").first()
+                
                 if default_flow:
                     provider.authorization_flow = default_flow
                     provider.save()
                     print(f"Set authorization flow to: {default_flow.slug}")
                 else:
-                    print("Warning: Could not find default authorization flow")
+                    print("Warning: Could not find any authorization flow")
+                    # List available flows for debugging
+                    flows = Flow.objects.all()
+                    if flows.exists():
+                        print(f"Available flows: {', '.join([f.slug for f in flows])}")
+                    else:
+                        print("No flows found in database")
+                    
+                    # Create a simple authorization flow
+                    print("Creating default authorization flow...")
+                    try:
+                        from authentik.flows.models import FlowDesignation
+                        default_flow = Flow.objects.create(
+                            name="Default Authorization Flow",
+                            slug="default-provider-authorization-implicit-consent",
+                            designation=FlowDesignation.AUTHORIZATION,
+                            title="Authorize Application"
+                        )
+                        provider.authorization_flow = default_flow
+                        provider.save()
+                        print(f"Created and set authorization flow: {default_flow.slug}")
+                    except Exception as create_err:
+                        print(f"Error creating authorization flow: {create_err}")
         except Exception as e:
             print(f"Warning: Could not set authorization flow: {e}")
     except Exception as e:
@@ -151,12 +188,28 @@ def main():
                 # Find the default scope mapping for this scope
                 mapping = ScopeMapping.objects.filter(scope_name=scope_name).first()
                 if not mapping:
-                    # Create the scope mapping if it does not exist
+                    # Create the scope mapping with proper expressions
+                    scope_config = {
+                        "openid": {
+                            "expression": "return {}",
+                            "description": "OpenID scope"
+                        },
+                        "email": {
+                            "expression": 'return {\n    "email": request.user.email,\n    "email_verified": True\n}',
+                            "description": "Email scope - returns user email address"
+                        },
+                        "profile": {
+                            "expression": 'return {\n    "name": request.user.name,\n    "given_name": request.user.name,\n    "preferred_username": request.user.username,\n    "nickname": request.user.username\n}',
+                            "description": "Profile scope - returns user profile information"
+                        }
+                    }
+                    
+                    config = scope_config.get(scope_name, {})
                     mapping = ScopeMapping.objects.create(
                         scope_name=scope_name,
                         name=scope_name,
-                        description=f"Auto-created mapping for {scope_name}",
-                        # You may need to adjust property_mappings for each scope
+                        description=config.get("description", f"Auto-created mapping for {scope_name}"),
+                        expression=config.get("expression", "return {}")
                     )
                     print(f"Created scope mapping: {mapping.name} ({scope_name})")
                 else:

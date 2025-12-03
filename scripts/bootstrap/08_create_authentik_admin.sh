@@ -24,14 +24,39 @@ fi
 # Docker executable
 DOCKER_CMD="docker"
 
-# Wait for Authentik HTTP to be up (max 60s)
+print_header "=========================================="
+print_header "Starting Authentik Server"
+print_header "=========================================="
+echo ""
+
+print_info "Starting Authentik server container..."
+$COMPOSE_CMD up -d authentik-server
+
+if [ $? -ne 0 ]; then
+    print_error "Failed to start authentik-server. Exiting."
+    exit 1
+fi
+
+# Wait for Authentik HTTP to be up (max 120s)
 print_info "Waiting for Authentik HTTP service..."
-for i in {1..30}; do
-    if curl -sf -o /dev/null -w "%{http_code}" "$AUTHENTIK_URL/-/health/live/" | grep -q "^2\d\d$"; then
+AUTHENTIK_READY=false
+for i in {1..60}; do
+    if curl -sf "$AUTHENTIK_URL" >/dev/null 2>&1; then
+        AUTHENTIK_READY=true
         break
     fi
     sleep 2
 done
+
+if [ "$AUTHENTIK_READY" = true ]; then
+    print_success "Authentik server is ready!"
+else
+    print_error "Authentik failed to become ready. Check logs with:"
+    echo "   $COMPOSE_CMD logs authentik-server"
+    exit 1
+fi
+
+echo ""
 
 print_info "Ensuring 'trailhead' application and OAuth2 provider exist in Authentik..."
 LOG="$SCRIPT_DIR/authentik_bootstrap.log"
