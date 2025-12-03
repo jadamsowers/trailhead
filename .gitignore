@@ -255,3 +255,4 @@ temp/
 *.log
 logs/
 scripts/bootstrap/bootstrap_config.env
+frontend/.env.development

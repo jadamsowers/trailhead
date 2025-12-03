@@ -12,24 +12,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
 fi
 source "$CONFIG_FILE"
 
-# Diagnostic info to help debug exit code 127 issues
-print_info "Bootstrap environment diagnostics:"
-echo "SHELL=$SHELL"
-echo "PATH=$PATH"
-echo "which bash: $(which bash 2>/dev/null || true)"
-echo "which docker: $(which docker 2>/dev/null || true)"
-echo "docker --version: $(docker --version 2>/dev/null || true)"
-echo "which docker-compose: $(which docker-compose 2>/dev/null || true)"
-echo "docker-compose --version: $(docker-compose --version 2>/dev/null || true)"
-echo "docker compose version: $(docker compose version 2>/dev/null || true)"
-
-
-# Ensure Docker is available and select compose command
-if ! command -v docker >/dev/null 2>&1; then
-    print_error "docker command not found. Please install Docker and ensure 'docker' is in PATH. (exit 127)"
-    exit 127
-fi
-
 if docker compose version >/dev/null 2>&1; then
     COMPOSE_CMD="docker compose"
 elif command -v docker-compose >/dev/null 2>&1; then
@@ -41,20 +23,6 @@ fi
 
 # Docker executable
 DOCKER_CMD="docker"
-
-
-
-# Wait for trailhead-authentik-server container to be running (max 60s)
-print_info "Waiting for authentik-server container to be running..."
-for i in {1..30}; do
-    $COMPOSE_CMD ps
-    if $COMPOSE_CMD ps --format '{{.Name}} {{.State}}' | grep -q 'authentik-server running'; then
-        break
-    fi
-
-    sleep 2
-done
-print_info "Confirmed authentik-server container is running."
 
 # Wait for Authentik HTTP to be up (max 60s)
 print_info "Waiting for Authentik HTTP service..."
@@ -126,6 +94,7 @@ else
 fi
 
 # Verify OIDC endpoint is accessible
+sleep 2
 print_info "Verifying OIDC configuration endpoint..."
 OIDC_URL="$AUTHENTIK_URL/application/o/trailhead/.well-known/openid-configuration"
 if curl -sf "$OIDC_URL" -o /dev/null; then

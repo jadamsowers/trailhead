@@ -61,3 +61,43 @@ fi
 
 echo ""
 print_success "Postgres started successfully!"
+echo ""
+
+print_header "=========================================="
+print_header "Starting Authentik Server"
+print_header "=========================================="
+echo ""
+
+print_info "Starting Redis (required by Authentik)..."
+$DOCKER_COMPOSE up -d redis
+
+print_info "Starting Authentik server container..."
+$DOCKER_COMPOSE up -d authentik-server
+
+if [ $? -ne 0 ]; then
+    print_error "Failed to start authentik-server. Exiting."
+    exit 1
+fi
+
+print_info "Waiting for Authentik to be ready..."
+
+# Poll for Authentik readiness (timeout ~120s)
+AUTHENTIK_READY=false
+for i in {1..120}; do
+    if curl -sf "$AUTHENTIK_URL" >/dev/null 2>&1; then
+        AUTHENTIK_READY=true
+        break
+    fi
+    sleep 1
+done
+
+if [ "$AUTHENTIK_READY" = true ]; then
+    print_success "Authentik server is ready!"
+else
+    print_error "Authentik failed to become ready. Check logs with:"
+    echo "   $DOCKER_COMPOSE logs authentik-server"
+    exit 1
+fi
+
+echo ""
+print_success "Authentik started successfully!"

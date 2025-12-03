@@ -97,11 +97,29 @@ def main():
         print("No provider object available; skipping provider configuration.")
         return
 
-    # Try to set redirect_uris if supported
+    # Set redirect URIs using the raw JSONB field
+    # Authentik 2024.x stores redirect_uris as JSONB with url and matching_mode
     try:
-        provider.redirect_uris = redirect_uris
-    except Exception:
-        pass
+        import json
+        from django.db import connection
+        
+        # Parse multiple redirect URIs if provided (newline or comma separated)
+        uri_list = []
+        for uri in redirect_uris.replace('\n', ',').split(','):
+            uri = uri.strip()
+            if uri:
+                uri_list.append({"url": uri, "matching_mode": "strict"})
+        
+        redirect_uris_json = json.dumps(uri_list)
+        
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE authentik_providers_oauth2_oauth2provider SET _redirect_uris = %s::jsonb WHERE provider_ptr_id = %s",
+                [redirect_uris_json, provider.pk]
+            )
+        print(f"Set redirect_uris to: {redirect_uris_json}")
+    except Exception as e:
+        print(f"Warning: Could not set redirect_uris: {e}")
 
     # Associate provider with application using multiple possible fields/relations
     associated = False
@@ -132,13 +150,20 @@ def main():
             try:
                 # Find the default scope mapping for this scope
                 mapping = ScopeMapping.objects.filter(scope_name=scope_name).first()
-                if mapping:
-                    scope_mappings.append(mapping)
-                    print(f"Found scope mapping: {mapping.name} ({scope_name})")
+                if not mapping:
+                    # Create the scope mapping if it does not exist
+                    mapping = ScopeMapping.objects.create(
+                        scope_name=scope_name,
+                        name=scope_name,
+                        description=f"Auto-created mapping for {scope_name}",
+                        # You may need to adjust property_mappings for each scope
+                    )
+                    print(f"Created scope mapping: {mapping.name} ({scope_name})")
                 else:
-                    print(f"Warning: Could not find scope mapping for '{scope_name}'")
+                    print(f"Found scope mapping: {mapping.name} ({scope_name})")
+                scope_mappings.append(mapping)
             except Exception as e:
-                print(f"Warning: Error finding scope mapping for '{scope_name}': {e}")
+                print(f"Warning: Error finding/creating scope mapping for '{scope_name}': {e}")
         
         if scope_mappings:
             # Attach the scope mappings to the provider
