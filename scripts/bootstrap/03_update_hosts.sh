@@ -8,6 +8,17 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib_utils.sh"
 
+# Load configuration
+if [ -f "$SCRIPT_DIR/bootstrap_config.env" ]; then
+    source "$SCRIPT_DIR/bootstrap_config.env"
+fi
+
+# Check for production mode
+if [ "$MODE" = "production" ]; then
+    print_info "Skipping /etc/hosts update for production mode"
+    exit 0
+fi
+
 print_header "=========================================="
 print_header "Updating /etc/hosts for Development"
 print_header "=========================================="
