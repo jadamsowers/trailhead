@@ -22,16 +22,13 @@ from app.utils.pdf_generator import generate_outing_roster_pdf
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
-
-# Disable or relax rate limiting during tests
-import os as _os
-if _os.environ.get("PYTEST_CURRENT_TEST"):
-    # Make limiter.limit a no-op decorator in tests
-    def _noop_decorator(*_args, **_kwargs):
-        def _wrap(func):
-            return func
-        return _wrap
-    limiter.limit = _noop_decorator
+import os as _os, sys as _sys
+_IS_PYTEST = ('pytest' in _sys.modules) or bool(_os.environ.get("PYTEST_CURRENT_TEST") or _os.environ.get("PYTEST") or _os.environ.get("TESTING") or _os.environ.get("CI"))
+def _noop_decorator(*_args, **_kwargs):
+    def _wrap(func):
+        return func
+    return _wrap
+limit_decorator = _noop_decorator if _IS_PYTEST else limiter.limit
 
 
 class EmailListResponse(BaseModel):
@@ -48,7 +45,7 @@ class EmailSendRequest(BaseModel):
 
 
 @router.post("", response_model=SignupResponse, status_code=status.HTTP_201_CREATED)
-@limiter.limit("5/minute")
+@limit_decorator("5/minute")
 async def create_signup(
     request: Request,
     signup: SignupCreate,

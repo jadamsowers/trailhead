@@ -290,6 +290,8 @@ async def update_contact_info(
     Update current user's contact information.
     This serves as the default contact info for signups.
     """
+    if contact_update.full_name is not None:
+        current_user.full_name = contact_update.full_name
     if contact_update.phone is not None:
         current_user.phone = contact_update.phone
     if contact_update.emergency_contact_name is not None:

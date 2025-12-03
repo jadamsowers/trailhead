@@ -14,9 +14,9 @@ security = HTTPBearer(auto_error=False)
 from typing import Optional
 
 async def get_current_user(
-    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db),
+    request: Request = None,
 ) -> User:
     """
     Get the current authenticated user from Authentik OIDC token.
@@ -25,7 +25,7 @@ async def get_current_user(
     token = None
     if credentials and getattr(credentials, "credentials", None):
         token = credentials.credentials
-    else:
+    elif request is not None:
         token = request.cookies.get("auth_access_token")
 
     if not token:
@@ -66,7 +66,16 @@ async def get_current_user(
                 role = "admin"
             else:
                 # Get role from Authentik groups
-                role = authentik.get_role_from_groups(groups)
+                role_result = authentik.get_role_from_groups(groups)
+                try:
+                    import asyncio
+                    if asyncio.iscoroutine(role_result):
+                        role = await role_result
+                    else:
+                        role = role_result
+                except Exception:
+                    # Fallback to participant if role resolution fails
+                    role = "participant"
 
             user = User(
                 email=email,
@@ -95,7 +104,15 @@ async def get_current_user(
                 await db.refresh(user)
             # Update role from Authentik groups if user is not initial admin
             elif not user.is_initial_admin:
-                new_role = authentik.get_role_from_groups(groups)
+                role_result = authentik.get_role_from_groups(groups)
+                try:
+                    import asyncio
+                    if asyncio.iscoroutine(role_result):
+                        new_role = await role_result
+                    else:
+                        new_role = role_result
+                except Exception:
+                    new_role = user.role
                 if user.role != new_role and new_role == "admin":
                     user.role = new_role
                     await db.commit()

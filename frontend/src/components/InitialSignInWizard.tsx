@@ -27,6 +27,7 @@ interface TroopData {
 const InitialSignInWizard: React.FC = () => {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
+    name: "",
     phone: "",
     emergencyContactName: "",
     emergencyContactPhone: "",
@@ -114,6 +115,13 @@ const InitialSignInWizard: React.FC = () => {
           emergencyContactPhone?: string;
         } = {};
 
+        // Validate name
+        if (!form.name.trim()) {
+          setError("Please fill out all required fields.");
+          setLoading(false);
+          return;
+        }
+
         // Validate phone number
         const phoneError = validatePhoneWithMessage(form.phone, "Phone number");
         if (phoneError) {
@@ -152,6 +160,7 @@ const InitialSignInWizard: React.FC = () => {
 
         // Build contact payload
         const contactData = {
+          full_name: form.name,
           phone: form.phone,
           emergency_contact_name: form.emergencyContactName,
           emergency_contact_phone: form.emergencyContactPhone,
@@ -262,6 +271,34 @@ const InitialSignInWizard: React.FC = () => {
             handleNext();
           }}
         >
+          <div>
+            <label
+              className="block text-sm font-medium mb-1"
+              htmlFor="name"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Your Name{" "}
+              <span style={{ color: "var(--alert-error-text)" }}>*</span>
+            </label>
+            <input
+              id="name"
+              name="name"
+              type="text"
+              required
+              placeholder="e.g., Adam Sowers"
+              className="w-full rounded px-3 py-2 focus:outline-none focus:ring"
+              style={{
+                background: "var(--input-bg)",
+                color: "var(--text-primary)",
+                borderWidth: "1px",
+                borderStyle: "solid",
+                borderColor: "var(--border-light)",
+                outlineColor: "var(--btn-primary-bg)",
+              }}
+              value={form.name}
+              onChange={handleChange}
+            />
+          </div>
           <div>
             <label
               className="block text-sm font-medium mb-1"

@@ -33,6 +33,7 @@ class UserResponse(BaseModel):
 
 class UserContactUpdate(BaseModel):
     """Schema for updating user contact information"""
+    full_name: Optional[str] = Field(None, max_length=255, description="User's preferred display name")
     phone: Optional[str] = Field(None, max_length=50, description="User phone number")
     emergency_contact_name: Optional[str] = Field(None, max_length=255, description="Emergency contact name")
     emergency_contact_phone: Optional[str] = Field(None, max_length=50, description="Emergency contact phone")
