@@ -15,7 +15,7 @@ import { ThemeToggleCompact } from "./components/Shared/ThemeToggle";
 import TopoBackground from "./components/Shared/TopoBackground";
 import AdminPage from "./pages/AdminPage";
 import LoginPage from "./pages/LoginPage";
-import AdminSetupPage from "./pages/AdminSetupPage";
+
 import FamilySetupPage from "./pages/FamilySetupPage";
 import OutingsPage from "./pages/OutingsPage";
 import CheckInPage from "./pages/CheckInPage";
@@ -684,7 +684,7 @@ const AppContent: React.FC = () => {
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/callback" element={<OAuthCallbackPage />} />
-              <Route path="/admin-setup" element={<AdminSetupPage />} />
+
               <Route path="/admin" element={<AdminPage />} />
               <Route
                 path="/initial-setup"

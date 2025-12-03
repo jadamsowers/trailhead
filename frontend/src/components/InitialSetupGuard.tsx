@@ -26,7 +26,6 @@ export const InitialSetupGuard: React.FC<{ children: React.ReactNode }> = ({
     "/initial-setup",
     "/login",
     "/callback",
-    "/admin-setup",
     "/",
   ];
 

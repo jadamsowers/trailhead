@@ -69,9 +69,14 @@ import { getAccessToken, signOut } from "../auth/client";
 (() => {
   try {
     const originalFetch = window.fetch.bind(window);
-    window.fetch = async (input: RequestInfo, init?: RequestInit) => {
+    window.fetch = async (input: URL | RequestInfo, init?: RequestInit) => {
       try {
-        const url = typeof input === "string" ? input : input.url;
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+            ? input.href
+            : input.url;
         const basePath = (() => {
           try {
             return new URL(getApiBase(), window.location.origin).pathname;
@@ -265,7 +270,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 // Helper function to get auth headers with Stack Auth token
-async function getAuthHeaders(): Promise<HeadersInit> {
+export async function getAuthHeaders(): Promise<HeadersInit> {
   // With server-driven authentication we rely on cookies. Return the
   // standard JSON headers; credentials are attached automatically by
   // the generated client (OpenAPI.WITH_CREDENTIALS) or by the global
@@ -627,31 +632,6 @@ export const authAPI = {
     if (!response.ok) {
       throw new APIError(response.status, "Failed to logout");
     }
-  },
-
-  async checkSetupStatus(): Promise<{ setup_complete: boolean }> {
-    const response = await fetch(`${getApiBase()}/auth/setup-status`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    return handleResponse<{ setup_complete: boolean }>(response);
-  },
-
-  async setupAdmin(data: {
-    email: string;
-    password: string;
-    full_name: string;
-  }): Promise<{ message: string; user_id: string }> {
-    const response = await fetch(`${getApiBase()}/auth/setup-admin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-    return handleResponse<{ message: string; user_id: string }>(response);
   },
 };
 

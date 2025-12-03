@@ -13,7 +13,7 @@ from app.core.authentik import get_authentik_client
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.auth import UserResponse
+from app.schemas.auth import UserResponse, UserContactUpdate
 import logging
 
 logger = logging.getLogger(__name__)
@@ -82,8 +82,10 @@ async def login(request: Request):
     return response
 
 
+from typing import Optional
+
 @router.get("/callback", name="auth_callback")
-async def callback(code: str | None = None, state: str | None = None, request: Request = None, db: AsyncSession = Depends(get_db)):
+async def callback(code: Optional[str] = None, state: Optional[str] = None, request: Request = None, db: AsyncSession = Depends(get_db)):
     """Handle callback from Authentik, exchange code for tokens, create session cookie, and create/update local user."""
     if code is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing code parameter")
@@ -278,6 +280,67 @@ async def me(current_user: User = Depends(get_current_user)):
     )
 
 
+@router.patch("/me/contact", response_model=UserResponse)
+async def update_contact_info(
+    contact_update: UserContactUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update current user's contact information.
+    This serves as the default contact info for signups.
+    """
+    if contact_update.phone is not None:
+        current_user.phone = contact_update.phone
+    if contact_update.emergency_contact_name is not None:
+        current_user.emergency_contact_name = contact_update.emergency_contact_name
+    if contact_update.emergency_contact_phone is not None:
+        current_user.emergency_contact_phone = contact_update.emergency_contact_phone
+    if contact_update.youth_protection_expiration is not None:
+        current_user.youth_protection_expiration = contact_update.youth_protection_expiration
+
+    await db.commit()
+    await db.refresh(current_user)
+
+    return UserResponse(
+        id=current_user.id,
+        email=current_user.email,
+        full_name=current_user.full_name,
+        role=current_user.role,
+        is_initial_admin=current_user.is_initial_admin,
+        initial_setup_complete=current_user.initial_setup_complete,
+        phone=current_user.phone,
+        emergency_contact_name=current_user.emergency_contact_name,
+        emergency_contact_phone=current_user.emergency_contact_phone,
+        youth_protection_expiration=current_user.youth_protection_expiration,
+    )
+
+
+@router.post("/me/initial-setup/complete", response_model=UserResponse)
+async def mark_initial_setup_complete(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Mark the current user's initial setup as complete.
+    """
+    if not current_user.initial_setup_complete:
+        current_user.initial_setup_complete = True
+        await db.commit()
+        await db.refresh(current_user)
+
+    return UserResponse(
+        id=current_user.id,
+        email=current_user.email,
+        full_name=current_user.full_name,
+        role=current_user.role,
+        is_initial_admin=current_user.is_initial_admin,
+        initial_setup_complete=current_user.initial_setup_complete,
+        phone=current_user.phone,
+        emergency_contact_name=current_user.emergency_contact_name,
+        emergency_contact_phone=current_user.emergency_contact_phone,
+        youth_protection_expiration=current_user.youth_protection_expiration,
+    )
 
 @router.get("/token")
 async def token_endpoint(request: Request):

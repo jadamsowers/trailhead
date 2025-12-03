@@ -417,6 +417,17 @@ const InitialSignInWizard: React.FC = () => {
               htmlFor="yptDate"
               style={{ color: "var(--text-primary)" }}
             >
+              <a
+                href="https://my.scouting.org/home"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+                style={{ color: "var(--link-color)" }}
+              >
+                Find your YPT/SYT training expiration date here.
+              </a>
+              <br />
+              <br />
               <em>
                 You will need a valid youth protection training certificate to
                 attend outings. If you do not have one, please let us know.

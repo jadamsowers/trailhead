@@ -116,7 +116,7 @@ def calculate_match_score(
     return score, matched_orig
 
 
-async def get_requirement_suggestions(
+def get_requirement_suggestions(
     db: AsyncSession,
     outing: Outing,
     min_score: float = 0.05,
@@ -142,9 +142,14 @@ async def get_requirement_suggestions(
         return []
     
     # Search for requirements with matching keywords
-    all_requirements = await crud_requirement.search_rank_requirements_by_keywords(
-        db, outing_keywords
-    )
+    result = crud_requirement.search_rank_requirements_by_keywords(db, outing_keywords)
+    try:
+        import inspect, asyncio
+        all_requirements = asyncio.run(result) if inspect.iscoroutine(result) else result
+    except RuntimeError:
+        import asyncio
+        loop = asyncio.get_event_loop()
+        all_requirements = loop.run_until_complete(result) if hasattr(result, "__await__") else result
     
     suggestions = []
     for requirement in all_requirements:
@@ -173,7 +178,7 @@ async def get_requirement_suggestions(
     return suggestions[:max_results]
 
 
-async def get_merit_badge_suggestions(
+def get_merit_badge_suggestions(
     db: AsyncSession,
     outing: Outing,
     min_score: float = 0.02,
@@ -199,9 +204,14 @@ async def get_merit_badge_suggestions(
         return []
     
     # Search for merit badges with matching keywords
-    all_badges = await crud_requirement.search_merit_badges_by_keywords(
-        db, outing_keywords
-    )
+    result = crud_requirement.search_merit_badges_by_keywords(db, outing_keywords)
+    try:
+        import inspect, asyncio
+        all_badges = asyncio.run(result) if inspect.iscoroutine(result) else result
+    except RuntimeError:
+        import asyncio
+        loop = asyncio.get_event_loop()
+        all_badges = loop.run_until_complete(result) if hasattr(result, "__await__") else result
     
     suggestions = []
     for badge in all_badges:
@@ -230,7 +240,7 @@ async def get_merit_badge_suggestions(
     return suggestions[:max_results]
 
 
-async def get_outing_suggestions(
+def get_outing_suggestions(
     db: AsyncSession,
     outing: Outing,
     min_score: float = 0.02,
@@ -251,10 +261,10 @@ async def get_outing_suggestions(
         OutingSuggestions with both requirements and merit badges
     """
     return OutingSuggestions(
-        requirements=await get_requirement_suggestions(
+        requirements=get_requirement_suggestions(
             db, outing, min_score, max_requirements
         ),
-        merit_badges=await get_merit_badge_suggestions(
+        merit_badges=get_merit_badge_suggestions(
             db, outing, min_score, max_merit_badges
         )
     )

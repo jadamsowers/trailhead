@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage: React.FC = () => {
   const auth = useAuth();
@@ -52,40 +52,7 @@ const LoginPage: React.FC = () => {
         </div>
       </div>
 
-      <div
-        className="max-w-md w-full p-5 rounded text-sm text-center"
-        style={{
-          backgroundColor: "var(--bg-tertiary)",
-          color: "var(--text-secondary)",
-          border: "1px solid var(--border-light)",
-        }}
-      >
-        <p className="mb-2.5">
-          <strong style={{ color: "var(--text-primary)" }}>
-            First time setup?
-          </strong>
-        </p>
-        <p className="mb-4">
-          If you're setting up the system for the first time, you'll need to
-          create an initial admin account.
-        </p>
-        <Link
-          to="/admin-setup"
-          className="inline-block px-5 py-2.5 no-underline rounded text-sm font-bold transition-colors"
-          style={{
-            backgroundColor: "var(--btn-primary-bg)",
-            color: "var(--btn-primary-text)",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = "var(--btn-primary-hover)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = "var(--btn-primary-bg)";
-          }}
-        >
-          Initial Admin Setup
-        </Link>
-      </div>
+
 
       <div
         className="max-w-md w-full p-4 rounded text-xs"
