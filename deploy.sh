@@ -61,6 +61,16 @@ mkdir -p data/authentik/media data/authentik/custom-templates
 chmod 755 nginx
 print_success "Directories created"
 
+# Fix permissions for Authentik media directory
+# We use a temporary container to ensure we have permission to chown/chmod
+print_info "Fixing permissions for Authentik media..."
+if command -v docker &> /dev/null; then
+    docker run --rm -v "$(pwd)/data/authentik/media:/media" alpine sh -c "chown -R 1000:1000 /media && chmod -R 777 /media"
+    print_success "Permissions fixed for Authentik media"
+else
+    print_error "Docker not found, skipping permission fix (will be handled later)"
+fi
+
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
     print_error "Docker is not installed. Installing Docker..."
