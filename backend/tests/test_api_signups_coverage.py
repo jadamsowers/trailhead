@@ -17,12 +17,12 @@ pytestmark = pytest.mark.asyncio
 
 
 class TestRestrictedTroopNotFound:
-    """Test edge case where restricted troop ID exists on outing but troop is deleted"""
+    """Test edge case where restricted troop deletion nullifies outing restriction (FK ON DELETE SET NULL)"""
     
     async def test_create_signup_restricted_troop_deleted(
         self, client: AsyncClient, auth_headers, db_session, test_user
     ):
-        """Test signup fails when outing references a deleted restricted troop"""
+        """Test signup succeeds after restricted troop deletion (FK is nullified by ON DELETE SET NULL)"""
         # Create a troop
         troop = Troop(
             id=uuid.uuid4(),
@@ -46,7 +46,7 @@ class TestRestrictedTroopNotFound:
         await db_session.commit()
         await db_session.refresh(outing)
         
-        # Delete the troop (but outing still has the ID)
+        # Delete the troop (FK constraint ON DELETE SET NULL will nullify restricted_troop_id)
         await db_session.delete(troop)
         await db_session.commit()
         
@@ -77,8 +77,9 @@ class TestRestrictedTroopNotFound:
         
         response = await client.post("/api/signups", json=payload, headers=auth_headers)
         
-        assert response.status_code == 400
-        assert "restricted troop not found" in response.json()["detail"].lower()
+        # With ON DELETE SET NULL, restricted_troop_id becomes null, so no restriction applies
+        assert response.status_code == 201
+        assert response.json()["outing_id"] == str(outing.id)
 
 
 class TestSendEmailEndpoint:

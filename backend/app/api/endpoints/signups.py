@@ -79,10 +79,7 @@ async def create_signup(
             detail="Outing not found"
         )
 
-    # DEBUG: Check restricted_troop_id before validation
-    if db_outing.restricted_troop_id is not None:
-        print(f"DEBUG: restricted_troop_id = {db_outing.restricted_troop_id}")
-        # Enforce troop restriction if outing is locked to a troop (legacy single-troop restriction)
+    # Enforce troop restriction if outing is locked to a troop (legacy single-troop restriction)
     if db_outing.restricted_troop_id is not None:
         from app.models.troop import Troop
         # Strictly validate that the restricted troop ID still exists
