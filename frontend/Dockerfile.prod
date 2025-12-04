@@ -19,6 +19,10 @@ COPY . .
 ARG VITE_API_URL=http://localhost:8000/api
 ENV VITE_API_URL=$VITE_API_URL
 
+# Add build timestamp to prevent cache issues
+ARG BUILD_TIMESTAMP
+ENV BUILD_TIMESTAMP=$BUILD_TIMESTAMP
+
 # Build the application for production
 RUN npm run build
 

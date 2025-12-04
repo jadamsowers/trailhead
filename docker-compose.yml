@@ -50,6 +50,7 @@ services:
     hostname: authentik
     restart: ${RESTART_POLICY:-no}
     command: server
+    user: root
     environment:
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-your-generated-authentik-secret-key-here}
       AUTHENTIK_REDIS__HOST: redis
@@ -78,7 +79,11 @@ services:
           - authentik
           - authentik.local
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:9000/-/health/live/')\""]
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:9000/-/health/live/'')"',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -170,6 +175,7 @@ services:
         VITE_API_URL: ${VITE_API_URL:-/api}
         VITE_AUTHENTIK_URL: ${AUTHENTIK_EXTERNAL_URL:-}
         VITE_AUTHENTIK_CLIENT_ID: ${AUTHENTIK_CLIENT_ID:-}
+        BUILD_TIMESTAMP: ${BUILD_TIMESTAMP:-$(date +%s)}
     container_name: trailhead-frontend
     restart: unless-stopped
     profiles: ["production"]
