@@ -57,6 +57,7 @@ fi
 # Create required directories
 print_info "Creating required directories..."
 mkdir -p nginx/ssl nginx/logs
+mkdir -p data/authentik/media data/authentik/custom-templates
 chmod 755 nginx
 print_success "Directories created"
 
