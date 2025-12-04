@@ -65,13 +65,25 @@ export const getAccessToken = async (): Promise<string | null> => {
     const { getApiBase } = await import("../utils/apiBase");
     const apiBase = getApiBase() || window.location.origin;
     const resp = await fetch(`${apiBase}/auth/token`, { credentials: "include" });
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    return data.access_token || null;
+    
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.access_token) {
+        return data.access_token;
+      }
+    }
   } catch (e) {
-    // Fallback to client-side manager if configured
+    // Ignore network errors and fall through to client-side manager
+    console.debug("Failed to fetch server-side token, falling back to client storage", e);
+  }
+
+  // Fallback to client-side manager if configured or if server fetch failed
+  try {
     const user = await userManager.getUser();
     return user?.access_token || null;
+  } catch (e) {
+    console.error("Failed to get client-side token", e);
+    return null;
   }
 };
 

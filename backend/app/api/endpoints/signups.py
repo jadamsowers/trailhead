@@ -62,20 +62,36 @@ async def create_signup(
     - Adults must have youth protection training for overnight outings
     """
     # Verify outing exists and has available spots
-    db_outing = await crud_outing.get_outing(db, signup.outing_id)
+    # Fetch outing with minimal eager loads to ensure current FK state
+    from app.models.outing import Outing
+    result_outing = await db.execute(
+        select(Outing)
+        .options(
+            selectinload(Outing.allowed_troops),
+            selectinload(Outing.signups).selectinload(Signup.participants)
+        )
+        .where(Outing.id == signup.outing_id)
+    )
+    db_outing = result_outing.scalar_one_or_none()
     if not db_outing:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Outing not found"
         )
 
-    # Enforce troop restriction if outing is locked to a troop (legacy single-troop restriction)
-    if db_outing.restricted_troop_id:
+    # DEBUG: Check restricted_troop_id before validation
+    if db_outing.restricted_troop_id is not None:
+        print(f"DEBUG: restricted_troop_id = {db_outing.restricted_troop_id}")
+        # Enforce troop restriction if outing is locked to a troop (legacy single-troop restriction)
+    if db_outing.restricted_troop_id is not None:
         from app.models.troop import Troop
-        troop_result = await db.execute(select(Troop).where(Troop.id == db_outing.restricted_troop_id))
+        # Strictly validate that the restricted troop ID still exists
+        troop_result = await db.execute(
+            select(Troop).where(Troop.id == db_outing.restricted_troop_id)
+        )
         restricted_troop = troop_result.scalar_one_or_none()
-        if not restricted_troop:
-            raise HTTPException(status_code=400, detail="Restricted troop not found for outing")
+        if restricted_troop is None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Restricted troop not found for outing")
     
     # Check allowed troops (new multi-troop restriction)
     allowed_troop_ids = {troop.id for troop in db_outing.allowed_troops}
@@ -112,11 +128,14 @@ async def create_signup(
             # Prefer relational troop_id match, fallback to troop_number match
             if not (
                 (family_member.troop_id and family_member.troop_id == db_outing.restricted_troop_id) or
-                (family_member.troop_number and family_member.troop_number == restricted_troop.number)
+                (family_member.troop_number and restricted_troop and family_member.troop_number == restricted_troop.number)
             ):
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Family member '{family_member.name}' is not part of restricted troop {restricted_troop.number}."
+                    detail=(
+                        f"Family member '{family_member.name}' is not part of restricted troop "
+                        f"{restricted_troop.number if restricted_troop else 'unknown'}."
+                    )
                 )
         
         # New multi-troop validation: Check if scout's troop is allowed (only for scouts with troop_id)

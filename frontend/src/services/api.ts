@@ -271,13 +271,20 @@ async function handleResponse<T>(response: Response): Promise<T> {
 
 // Helper function to get auth headers with Stack Auth token
 export async function getAuthHeaders(): Promise<HeadersInit> {
-  // With server-driven authentication we rely on cookies. Return the
-  // standard JSON headers; credentials are attached automatically by
-  // the generated client (OpenAPI.WITH_CREDENTIALS) or by the global
-  // fetch wrapper (initClient).
-  return {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
+
+  try {
+    const token = await getAccessToken();
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+  } catch (e) {
+    console.warn("Failed to get access token for headers", e);
+  }
+
+  return headers;
 }
 
 // Outing API
