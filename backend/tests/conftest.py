@@ -601,3 +601,12 @@ async def test_merit_badge(db_session: AsyncSession):
     await db_session.refresh(badge)
     return badge
 
+@pytest.fixture
+async def test_participant(db_session: AsyncSession, test_signup: Signup):
+    """Get a participant from the test signup"""
+    # test_signup creates 2 participants (scout and adult)
+    # We'll fetch one
+    from sqlalchemy import select
+    result = await db_session.execute(select(Participant).where(Participant.signup_id == test_signup.id))
+    participant = result.scalars().first()
+    return participant

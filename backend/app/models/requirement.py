@@ -1,10 +1,11 @@
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey, ARRAY, Boolean
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
 from datetime import datetime
 
 from app.db.base import Base
+from app.db.types import SQLiteCompatibleArray
 
 
 class RankRequirement(Base):
@@ -15,7 +16,7 @@ class RankRequirement(Base):
     rank = Column(String(50), nullable=False, index=True)  # 'Scout', 'Tenderfoot', 'Second Class', 'First Class'
     requirement_number = Column(String(20), nullable=False)  # e.g., '1a', '2b', '3'
     requirement_text = Column(Text, nullable=False)  # Full description of the requirement
-    keywords = Column(ARRAY(Text), nullable=True)  # Array of keywords for matching
+    keywords = Column(SQLiteCompatibleArray, nullable=True)  # Array of keywords for matching
     category = Column(String(100), nullable=True, index=True)  # 'Camping', 'Hiking', 'First Aid', etc.
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
@@ -39,7 +40,7 @@ class MeritBadge(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100), nullable=False, unique=True, index=True)  # Merit badge name
     description = Column(Text, nullable=True)  # Brief description
-    keywords = Column(ARRAY(Text), nullable=True)  # Array of keywords for matching
+    keywords = Column(SQLiteCompatibleArray, nullable=True)  # Array of keywords for matching
     eagle_required = Column(Boolean, nullable=False, default=False)  # True if Eagle-required
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

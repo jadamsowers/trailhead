@@ -92,17 +92,29 @@ async def delete_rank_requirement(db: AsyncSession, requirement_id: UUID) -> boo
     return True
 
 
-async def search_rank_requirements_by_keywords(
-    db: AsyncSession,
-    keywords: List[str]
-) -> List[RankRequirement]:
     """Search rank requirements by keywords (async)"""
-    # Use any_ to check if any keyword in the search list is in the database array
-    from sqlalchemy import or_
-    conditions = [RankRequirement.keywords.any(keyword) for keyword in keywords]
-    stmt = select(RankRequirement).where(or_(*conditions))
+    # Use generic approach compatible with both PostgreSQL ARRAY and SQLite JSON string
+    from sqlalchemy import or_, cast, String
+    
+    # For SQLite compatibility with our custom type, we need to check if the keyword is in the JSON string
+    # or use the ARRAY .any() method if we're on Postgres (which SQLAlchemy handles if the column is ARRAY)
+    # However, since we're using a TypeDecorator that acts as String in SQLite, .any() won't work there.
+    
+    # We'll fetch all and filter in Python for maximum compatibility with the custom type
+    # This is less efficient but safe for the current scale and testing
+    stmt = select(RankRequirement)
     result = await db.execute(stmt)
-    return result.scalars().all()
+    all_reqs = result.scalars().all()
+    
+    filtered_reqs = []
+    for req in all_reqs:
+        if not req.keywords:
+            continue
+        # req.keywords is already a list due to the TypeDecorator
+        if any(k in req.keywords for k in keywords):
+            filtered_reqs.append(req)
+            
+    return filtered_reqs
 
 
 # ============================================================================
@@ -180,12 +192,19 @@ async def search_merit_badges_by_keywords(
     keywords: List[str]
 ) -> List[MeritBadge]:
     """Search merit badges by keywords (async)"""
-    # Use any_ to check if any keyword in the search list is in the database array
-    from sqlalchemy import or_
-    conditions = [MeritBadge.keywords.any(keyword) for keyword in keywords]
-    stmt = select(MeritBadge).where(or_(*conditions))
+    # Use generic approach compatible with both PostgreSQL ARRAY and SQLite JSON string
+    stmt = select(MeritBadge)
     result = await db.execute(stmt)
-    return result.scalars().all()
+    all_badges = result.scalars().all()
+    
+    filtered_badges = []
+    for badge in all_badges:
+        if not badge.keywords:
+            continue
+        if any(k in badge.keywords for k in keywords):
+            filtered_badges.append(badge)
+            
+    return filtered_badges
 
 
 # ============================================================================

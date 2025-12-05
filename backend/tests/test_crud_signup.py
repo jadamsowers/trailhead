@@ -342,6 +342,129 @@ class TestDeleteSignup:
         assert participant is None
 
 
+
+
+@pytest.mark.asyncio
+class TestUpdateSignup:
+    """Test update_signup function"""
+    
+    async def test_update_contact_info(self, db_session, test_outing, test_user, test_family_member):
+        """Test updating signup contact information"""
+        # Create a signup first
+        signup_data = SignupCreate(
+            outing_id=test_outing.id,
+            family_contact=FamilyContact(
+                email="original@test.com",
+                phone="555-0000",
+                emergency_contact_name="Original Emergency",
+                emergency_contact_phone="555-1111",
+            ),
+            family_member_ids=[test_family_member.id],
+        )
+        signup = await crud_signup.create_signup(db_session, signup_data)
+        
+        # Update contact info
+        update_data = SignupUpdate(
+            family_contact=FamilyContact(
+                email="updated@test.com",
+                phone="555-9999",
+                emergency_contact_name="Updated Emergency",
+                emergency_contact_phone="555-8888",
+            ),
+        )
+        
+        result = await crud_signup.update_signup(db_session, signup.id, update_data)
+        
+        assert result is not None
+        assert result.family_contact_email == "updated@test.com"
+        assert result.family_contact_phone == "555-9999"
+    
+    async def test_update_participants(self, db_session, test_outing, test_user, test_family_member):
+        """Test updating signup participants"""
+        # Create additional family member
+        new_member = FamilyMember(
+            id=uuid4(),
+            user_id=test_user.id,
+            name="New Member",
+            date_of_birth=date.today() - timedelta(days=365*15),
+            member_type="scout",
+            gender="male",
+            troop_number="100",
+        )
+        db_session.add(new_member)
+        await db_session.commit()
+        
+        # Create signup with original member
+        signup_data = SignupCreate(
+            outing_id=test_outing.id,
+            family_contact=FamilyContact(
+                email="test@test.com",
+                phone="555-0000",
+                emergency_contact_name="Emergency",
+                emergency_contact_phone="555-1111",
+            ),
+            family_member_ids=[test_family_member.id],
+        )
+        signup = await crud_signup.create_signup(db_session, signup_data)
+        
+        # Update to include new member
+        update_data = SignupUpdate(
+            family_member_ids=[test_family_member.id, new_member.id],
+        )
+        
+        result = await crud_signup.update_signup(db_session, signup.id, update_data)
+        
+        assert result is not None
+        assert len(result.participants) == 2
+    
+    async def test_update_nonexistent_signup(self, db_session):
+        """Test updating non-existent signup returns None"""
+        update_data = SignupUpdate(
+            family_contact=FamilyContact(
+                email="test@test.com",
+                phone="555-0000",
+                emergency_contact_name="Emergency",
+                emergency_contact_phone="555-1111",
+            ),
+        )
+        
+        result = await crud_signup.update_signup(db_session, uuid4(), update_data)
+        
+        assert result is None
+    
+    async def test_update_with_grubmaster_requests(self, db_session, test_outing, test_user, test_family_member):
+        """Test updating signup with grubmaster requests"""
+        # Create signup
+        signup_data = SignupCreate(
+            outing_id=test_outing.id,
+            family_contact=FamilyContact(
+                email="test@test.com",
+                phone="555-0000",
+                emergency_contact_name="Emergency",
+                emergency_contact_phone="555-1111",
+            ),
+            family_member_ids=[test_family_member.id],
+        )
+        signup = await crud_signup.create_signup(db_session, signup_data)
+        
+        # Update with grubmaster request
+        update_data = SignupUpdate(
+            grubmaster_requests=[
+                GrubmasterRequestItem(
+                    family_member_id=test_family_member.id,
+                    grubmaster_interest=True,
+                    grubmaster_reason="rank_requirement",
+                ),
+            ],
+        )
+        
+        result = await crud_signup.update_signup(db_session, signup.id, update_data)
+        
+        assert result is not None
+        assert len(result.participants) == 1
+        assert result.participants[0].grubmaster_interest is True
+
+
 @pytest.mark.asyncio
 class TestSignupProperties:
     """Test Signup model computed properties"""
@@ -365,3 +488,117 @@ class TestSignupProperties:
         
         adults = [p for p in signup.participants if p.participant_type == "adult"]
         assert signup.adult_count == len(adults)
+
+
+@pytest.mark.asyncio
+class TestSignupEdgeCases:
+    """Test edge cases and error handling for signup CRUD"""
+
+    async def test_create_signup_invalid_family_member(self, db_session, test_outing):
+        """Test creating signup with non-existent family member raises ValueError"""
+        signup_data = SignupCreate(
+            outing_id=test_outing.id,
+            family_contact=FamilyContact(
+                email="fail@test.com",
+                phone="555-0000",
+                emergency_contact_name="Emergency",
+                emergency_contact_phone="555-1111",
+            ),
+            family_member_ids=[uuid4()],  # Non-existent ID
+        )
+        
+        with pytest.raises(ValueError) as exc_info:
+            await crud_signup.create_signup(db_session, signup_data)
+        
+        assert "not found" in str(exc_info.value)
+
+    async def test_update_signup_invalid_family_member(self, db_session, test_signup):
+        """Test updating signup with non-existent family member raises ValueError"""
+        update_data = SignupUpdate(
+            family_member_ids=[uuid4()],  # Non-existent ID
+        )
+        
+        with pytest.raises(ValueError) as exc_info:
+            await crud_signup.update_signup(db_session, test_signup.id, update_data)
+        
+        assert "not found" in str(exc_info.value)
+
+    async def test_update_signup_grubmaster_only(self, db_session, test_signup, test_family_member):
+        """Test updating ONLY grubmaster requests without changing participants"""
+        # Reload signup to ensure participants are loaded
+        signup = await crud_signup.get_signup(db_session, test_signup.id)
+        
+        # Initial state: no grubmaster interest
+        assert signup.participants[0].grubmaster_interest is False
+        
+        # Update with grubmaster request but NO family_member_ids change
+        update_data = SignupUpdate(
+            grubmaster_requests=[
+                GrubmasterRequestItem(
+                    family_member_id=test_family_member.id,
+                    grubmaster_interest=True,
+                    grubmaster_reason="Cooking Merit Badge",
+                ),
+            ],
+        )
+        
+        result = await crud_signup.update_signup(db_session, signup.id, update_data)
+        
+        assert result is not None
+        assert len(result.participants) == 1
+        # Should have updated the existing participant
+        participant = result.participants[0]
+        assert participant.family_member_id == test_family_member.id
+        assert participant.grubmaster_interest is True
+        assert participant.grubmaster_reason == "Cooking Merit Badge"
+
+    async def test_create_signup_race_condition(self, db_session, test_outing, test_family_member):
+        """Test race condition handling during signup creation"""
+        from unittest.mock import AsyncMock, patch
+        from sqlalchemy.exc import IntegrityError
+        
+        signup_data = SignupCreate(
+            outing_id=test_outing.id,
+            family_contact=FamilyContact(
+                email="race@test.com",
+                phone="555-0000",
+                emergency_contact_name="Emergency",
+                emergency_contact_phone="555-1111",
+            ),
+            family_member_ids=[test_family_member.id],
+        )
+        
+        # Mock db.commit to raise IntegrityError once
+        # We need to intercept the db session calls
+        
+        mock_db = AsyncMock()
+        
+        # Setup for family member check
+        mock_db.execute.return_value.scalar_one_or_none.side_effect = [
+            test_family_member,  # First check for family member
+            None, # Check if signup exists (first time)
+        ]
+        
+        mock_signup = AsyncMock()
+        mock_signup.id = uuid4()
+        
+        async def execute_side_effect(stmt):
+            str_stmt = str(stmt)
+            if "family_members" in str_stmt:
+                return AsyncMock(scalar_one_or_none=lambda: test_family_member)
+            if "signups" in str_stmt:
+                # If we are in the exception handler (commit failed)
+                # The code will try to find the existing signup
+                return AsyncMock(scalar_one_or_none=lambda: mock_signup, scalar_one=lambda: mock_signup)
+            return AsyncMock()
+
+        mock_db.execute.side_effect = execute_side_effect
+        
+        # Make commit raise exception
+        mock_db.commit.side_effect = IntegrityError("stmt", "params", "orig")
+        
+        # Run the function
+        result = await crud_signup.create_signup(mock_db, signup_data)
+        
+        assert result == mock_signup
+        assert mock_db.rollback.called

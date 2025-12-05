@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from typing import List
+from uuid import UUID
+from typing import List, Optional
 from datetime import date
 
 from app.db.session import get_db
@@ -42,7 +43,7 @@ async def list_family_members(
 
 @router.get("/summary", response_model=List[FamilyMemberSummary])
 async def list_family_members_summary(
-    outing_id: str = None,
+    outing_id: Optional[UUID] = None,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -99,7 +100,7 @@ async def list_family_members_summary(
 
 @router.get("/{member_id}", response_model=FamilyMemberResponse)
 async def get_family_member(
-    member_id: str,
+    member_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -132,7 +133,7 @@ async def create_family_member(
 
 @router.put("/{member_id}", response_model=FamilyMemberResponse)
 async def update_family_member(
-    member_id: str,
+    member_id: UUID,
     member_data: FamilyMemberUpdate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
@@ -152,7 +153,7 @@ async def update_family_member(
 
 @router.delete("/{member_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_family_member(
-    member_id: str,
+    member_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):

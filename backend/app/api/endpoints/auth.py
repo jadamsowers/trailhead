@@ -6,6 +6,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import httpx
+from httpx import AsyncClient
 import uuid
 from uuid import UUID
 from urllib.parse import urlparse, urlunparse
@@ -22,12 +23,17 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+def get_http_client():
+    """Factory for httpx.AsyncClient to allow mocking in tests"""
+    return httpx.AsyncClient()
+
+
 @router.get("/login")
 async def login(request: Request):
     """Start the OIDC authorization code flow by redirecting to Authentik."""
     authentik = get_authentik_client()
     # Fetch discovery document to get authorization endpoint
-    async with httpx.AsyncClient() as client:
+    async with get_http_client() as client:
         try:
             resp = await client.get(authentik.openid_config_url, timeout=10)
             resp.raise_for_status()
@@ -97,7 +103,7 @@ async def callback(code: Optional[str] = None, state: Optional[str] = None, requ
 
     authentik = get_authentik_client()
     # Get token endpoint from discovery
-    async with httpx.AsyncClient() as client:
+    async with get_http_client() as client:
         try:
             resp = await client.get(authentik.openid_config_url, timeout=10)
             resp.raise_for_status()
@@ -120,7 +126,7 @@ async def callback(code: Optional[str] = None, state: Optional[str] = None, requ
         "client_secret": settings.AUTHENTIK_CLIENT_SECRET,
     }
 
-    async with httpx.AsyncClient() as client:
+    async with get_http_client() as client:
         token_resp = await client.post(token_endpoint, data=data, timeout=10)
         if token_resp.status_code != 200:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token exchange failed")

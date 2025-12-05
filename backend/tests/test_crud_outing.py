@@ -347,14 +347,84 @@ class TestOutingProperties:
         
         await db_session.commit()
         # Validate counts and capacity via direct query to avoid ORM lazy-load edge cases
+        # Validate counts and capacity via direct query to avoid ORM lazy-load edge cases
         from sqlalchemy import select, func
         from app.models.signup import Signup
         from app.models.participant import Participant
-        result = await db_session.execute(
-            select(func.count()).select_from(Participant)
-            .join(Signup)
-            .where(Signup.outing_id == outing.id)
-        )
+        
+        # Count participants for this outing
+        stmt = select(func.count(Participant.id)).join(Signup).where(Signup.outing_id == outing.id)
+        result = await db_session.execute(stmt)
         signup_count = result.scalar() or 0
         assert signup_count == 2
         assert signup_count >= outing.max_participants
+
+
+@pytest.mark.asyncio
+class TestOutingEdgeCases:
+    """Test edge cases for outing CRUD"""
+
+    async def test_get_outing_with_details(self, db_session, test_outing):
+        """Test getting outing with all details"""
+        # This function loads many relationships, just verify it returns the outing
+        result = await crud_outing.get_outing_with_details(db_session, test_outing.id)
+        assert result is not None
+        assert result.id == test_outing.id
+
+    async def test_create_outing_with_allowed_troops(self, db_session):
+        """Test creating outing with allowed troops"""
+        from app.models.troop import Troop
+        troop = Troop(number="123", meeting_location="Test City")
+        db_session.add(troop)
+        await db_session.commit()
+        
+        outing_data = OutingCreate(
+            name="Troop Outing",
+            outing_date=date.today(),
+            location="Camp",
+            allowed_troop_ids=[troop.id]
+        )
+        
+        result = await crud_outing.create_outing(db_session, outing_data)
+        assert len(result.allowed_troops) == 1
+        assert result.allowed_troops[0].id == troop.id
+
+    async def test_update_outing_allowed_troops(self, db_session, test_outing):
+        """Test updating allowed troops"""
+        from app.models.troop import Troop
+        troop1 = Troop(number="100", meeting_location="A")
+        troop2 = Troop(number="200", meeting_location="B")
+        db_session.add(troop1)
+        db_session.add(troop2)
+        await db_session.commit()
+        
+        # Add troop1 initially
+        update_data = OutingUpdate(allowed_troop_ids=[troop1.id])
+        await crud_outing.update_outing(db_session, test_outing.id, update_data)
+        
+        # Update to troop2
+        update_data = OutingUpdate(allowed_troop_ids=[troop2.id])
+        result = await crud_outing.update_outing(db_session, test_outing.id, update_data)
+        
+        assert len(result.allowed_troops) == 1
+        assert result.allowed_troops[0].id == troop2.id
+
+    async def test_timezone_handling(self, db_session):
+        """Test timezone aware datetimes are converted to naive UTC"""
+        from datetime import datetime, timezone
+        
+        tz_aware = datetime.now(timezone.utc)
+        
+        outing_data = OutingCreate(
+            name="TZ Outing",
+            outing_date=date.today(),
+            location="Camp",
+            signups_close_at=tz_aware,
+            cancellation_deadline=tz_aware
+        )
+        
+        result = await crud_outing.create_outing(db_session, outing_data)
+        
+        # Should be naive in DB (no tzinfo)
+        assert result.signups_close_at.tzinfo is None
+        assert result.cancellation_deadline.tzinfo is None

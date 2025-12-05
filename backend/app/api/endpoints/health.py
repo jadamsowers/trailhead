@@ -50,7 +50,7 @@ async def health_check():
                     if lines:
                         last_line = lines[-1]
                         file_version = last_line.split()[0]
-                        migrations_up_to_date = (latest_migration and file_version.startswith(str(latest_migration)))
+                        migrations_up_to_date = (latest_migration is not None and file_version.startswith(str(latest_migration)))
                         if not migrations_up_to_date:
                             print(f"Migration mismatch: DB={latest_migration}, File={file_version}")
             else:

@@ -301,3 +301,109 @@ class TestUpdateAllergies:
         )
         
         assert len(result.allergies) == 0
+
+
+@pytest.mark.asyncio
+class TestFamilyEdgeCases:
+    """Test edge cases for family CRUD"""
+
+    async def test_get_family_member_no_user_filter(self, db_session, test_user, test_family_member):
+        """Test getting family member without user_id filter"""
+        # Should find the member regardless of user_id
+        result = await crud_family.get_family_member(db_session, test_family_member.id, user_id=None)
+        
+        assert result is not None
+        assert result.id == test_family_member.id
+
+    async def test_delete_family_member_with_signup(self, db_session, test_user, test_outing):
+        """Test deleting family member removes them from signups"""
+        from app.crud import signup as crud_signup
+        from app.schemas.signup import SignupCreate, FamilyContact
+        
+        # Create member
+        member = await crud_family.create_family_member(
+            db_session, 
+            test_user.id, 
+            FamilyMemberCreate(
+                name="Signup Scout",
+                member_type="scout",
+                date_of_birth=date.today() - timedelta(days=365*12),
+            )
+        )
+        
+        # Create signup
+        signup = await crud_signup.create_signup(
+            db_session,
+            SignupCreate(
+                outing_id=test_outing.id,
+                family_contact=FamilyContact(
+                    email="test@test.com",
+                    phone="555-0000",
+                    emergency_contact_name="Emergency",
+                    emergency_contact_phone="555-1111",
+                ),
+                family_member_ids=[member.id]
+            )
+        )
+        
+        # Delete member
+        success = await crud_family.delete_family_member(db_session, member.id, test_user.id)
+        assert success is True
+        
+        # Verify member deleted
+        deleted_member = await crud_family.get_family_member(db_session, member.id)
+        assert deleted_member is None
+        
+        # Verify signup is also deleted (since it became empty)
+        deleted_signup = await crud_signup.get_signup(db_session, signup.id)
+        assert deleted_signup is None
+
+    async def test_delete_family_member_keeps_signup_if_others_remain(self, db_session, test_user, test_outing):
+        """Test deleting family member keeps signup if other participants remain"""
+        from app.crud import signup as crud_signup
+        from app.schemas.signup import SignupCreate, FamilyContact
+        
+        # Create two members
+        member1 = await crud_family.create_family_member(
+            db_session, 
+            test_user.id, 
+            FamilyMemberCreate(
+                name="Scout 1",
+                member_type="scout",
+                date_of_birth=date.today() - timedelta(days=365*12),
+            )
+        )
+        member2 = await crud_family.create_family_member(
+            db_session, 
+            test_user.id, 
+            FamilyMemberCreate(
+                name="Scout 2",
+                member_type="scout",
+                date_of_birth=date.today() - timedelta(days=365*12),
+            )
+        )
+        
+        # Create signup with both
+        signup = await crud_signup.create_signup(
+            db_session,
+            SignupCreate(
+                outing_id=test_outing.id,
+                family_contact=FamilyContact(
+                    email="test@test.com",
+                    phone="555-0000",
+                    emergency_contact_name="Emergency",
+                    emergency_contact_phone="555-1111",
+                ),
+                family_member_ids=[member1.id, member2.id]
+            )
+        )
+        
+        # Delete member 1
+        success = await crud_family.delete_family_member(db_session, member1.id, test_user.id)
+        assert success is True
+        
+        # Verify signup still exists
+        remaining_signup = await crud_signup.get_signup(db_session, signup.id)
+        assert remaining_signup is not None
+        assert len(remaining_signup.participants) == 1
+        assert remaining_signup.participants[0].family_member_id == member2.id

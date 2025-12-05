@@ -114,3 +114,42 @@ class TestDeleteUser:
     async def test_delete_user_not_found(self, db_session):
         success = await crud_user.delete_user(db_session, uuid4())
         assert success is False
+
+
+@pytest.mark.asyncio
+class TestUserEdgeCases:
+    """Test edge cases for user CRUD"""
+
+    async def test_update_emergency_contact(self, db_session):
+        """Test updating emergency contact info"""
+        u = await crud_user.create_user(
+            db_session, 
+            email="contact@example.com", 
+            password="p", 
+            full_name="Contact User"
+        )
+        
+        updated = await crud_user.update_user(
+            db_session, 
+            u.id, 
+            emergency_contact_name="New Contact",
+            emergency_contact_phone="555-9999"
+        )
+        
+        assert updated.emergency_contact_name == "New Contact"
+        assert updated.emergency_contact_phone == "555-9999"
+
+    async def test_create_user_defaults(self, db_session):
+        """Test creating user with minimal fields (defaults)"""
+        u = await crud_user.create_user(
+            db_session,
+            email="defaults@example.com",
+            password="p",
+            full_name="Defaults User"
+        )
+        
+        assert u.role == "user"
+        assert u.is_active is True
+        assert u.is_initial_admin is False
+        assert u.phone is None
+        assert u.emergency_contact_name is None

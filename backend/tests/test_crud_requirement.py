@@ -773,3 +773,248 @@ class TestOutingMeritBadges:
         """Test removing non-existent outing merit badge"""
         success = await crud_requirement.remove_merit_badge_from_outing(db_session, uuid4())
         assert success is False
+
+
+# ============================================================================
+# Participant Progress Tests
+# ============================================================================
+
+class TestParticipantProgress:
+    async def test_create_participant_progress(self, db_session, test_user):
+        """Test creating participant progress"""
+        # Create family member
+        from app.models.family import FamilyMember
+        member = FamilyMember(
+            id=uuid4(),
+            user_id=test_user.id,
+            name="Progress Scout",
+            date_of_birth=date.today() - timedelta(days=365*14),
+            member_type="scout",
+            gender="male",
+            troop_number="100"
+        )
+        db_session.add(member)
+        
+        # Create requirement
+        req = await crud_requirement.create_rank_requirement(
+            db_session,
+            RankRequirementCreate(
+                rank="Scout",
+                requirement_number="1a",
+                requirement_text="Test",
+                category="Test",
+                keywords=["test"]
+            )
+        )
+        await db_session.commit()
+        
+        # Create progress
+        from app.schemas.requirement import ParticipantProgressCreate
+        progress_data = ParticipantProgressCreate(
+            rank_requirement_id=req.id,
+            completed=True,
+            completed_date=date.today(),
+            notes="Done"
+        )
+        
+        progress = await crud_requirement.create_participant_progress(
+            db_session,
+            member.id,
+            progress_data
+        )
+        
+        assert progress.id is not None
+        assert progress.family_member_id == member.id
+        assert progress.rank_requirement_id == req.id
+        assert progress.completed is True
+
+    async def test_get_participant_progress_list(self, db_session, test_user):
+        """Test getting participant progress list"""
+        # Setup member and requirements
+        from app.models.family import FamilyMember
+        member = FamilyMember(
+            id=uuid4(),
+            user_id=test_user.id,
+            name="List Scout",
+            date_of_birth=date.today() - timedelta(days=365*14),
+            member_type="scout",
+            gender="male",
+            troop_number="100"
+        )
+        db_session.add(member)
+        
+        req1 = await crud_requirement.create_rank_requirement(
+            db_session,
+            RankRequirementCreate(
+                rank="Scout",
+                requirement_number="1a",
+                requirement_text="Test 1",
+                category="Test",
+                keywords=["test"]
+            )
+        )
+        req2 = await crud_requirement.create_rank_requirement(
+            db_session,
+            RankRequirementCreate(
+                rank="Scout",
+                requirement_number="1b",
+                requirement_text="Test 2",
+                category="Test",
+                keywords=["test"]
+            )
+        )
+        await db_session.commit()
+        
+        # Add progress
+        from app.schemas.requirement import ParticipantProgressCreate
+        await crud_requirement.create_participant_progress(
+            db_session,
+            member.id,
+            ParticipantProgressCreate(rank_requirement_id=req1.id, completed=True)
+        )
+        await crud_requirement.create_participant_progress(
+            db_session,
+            member.id,
+            ParticipantProgressCreate(rank_requirement_id=req2.id, completed=False)
+        )
+        
+        progress_list = await crud_requirement.get_participant_progress_list(db_session, member.id)
+        assert len(progress_list) >= 2
+
+    async def test_get_participant_progress(self, db_session, test_user):
+        """Test getting specific participant progress"""
+        # Setup
+        from app.models.family import FamilyMember
+        member = FamilyMember(
+            id=uuid4(),
+            user_id=test_user.id,
+            name="Get Scout",
+            date_of_birth=date.today() - timedelta(days=365*14),
+            member_type="scout",
+            gender="male",
+            troop_number="100"
+        )
+        db_session.add(member)
+        
+        req = await crud_requirement.create_rank_requirement(
+            db_session,
+            RankRequirementCreate(
+                rank="Scout",
+                requirement_number="1a",
+                requirement_text="Test",
+                category="Test",
+                keywords=["test"]
+            )
+        )
+        await db_session.commit()
+        
+        from app.schemas.requirement import ParticipantProgressCreate
+        created = await crud_requirement.create_participant_progress(
+            db_session,
+            member.id,
+            ParticipantProgressCreate(rank_requirement_id=req.id, completed=True)
+        )
+        
+        fetched = await crud_requirement.get_participant_progress(db_session, created.id)
+        assert fetched is not None
+        assert fetched.id == created.id
+        assert fetched.completed is True
+
+    async def test_update_participant_progress(self, db_session, test_user):
+        """Test updating participant progress"""
+        # Setup
+        from app.models.family import FamilyMember
+        member = FamilyMember(
+            id=uuid4(),
+            user_id=test_user.id,
+            name="Update Scout",
+            date_of_birth=date.today() - timedelta(days=365*14),
+            member_type="scout",
+            gender="male",
+            troop_number="100"
+        )
+        db_session.add(member)
+        
+        req = await crud_requirement.create_rank_requirement(
+            db_session,
+            RankRequirementCreate(
+                rank="Scout",
+                requirement_number="1a",
+                requirement_text="Test",
+                category="Test",
+                keywords=["test"]
+            )
+        )
+        await db_session.commit()
+        
+        from app.schemas.requirement import ParticipantProgressCreate, ParticipantProgressUpdate
+        created = await crud_requirement.create_participant_progress(
+            db_session,
+            member.id,
+            ParticipantProgressCreate(rank_requirement_id=req.id, completed=False)
+        )
+        
+        updated = await crud_requirement.update_participant_progress(
+            db_session,
+            created.id,
+            ParticipantProgressUpdate(completed=True, notes="Finished")
+        )
+        
+        assert updated is not None
+        assert updated.completed is True
+        assert updated.notes == "Finished"
+
+    async def test_update_participant_progress_not_found(self, db_session):
+        """Test updating non-existent participant progress"""
+        from app.schemas.requirement import ParticipantProgressUpdate
+        result = await crud_requirement.update_participant_progress(
+            db_session,
+            uuid4(),
+            ParticipantProgressUpdate(completed=True)
+        )
+        assert result is None
+
+    async def test_delete_participant_progress(self, db_session, test_user):
+        """Test deleting participant progress"""
+        # Setup
+        from app.models.family import FamilyMember
+        member = FamilyMember(
+            id=uuid4(),
+            user_id=test_user.id,
+            name="Delete Scout",
+            date_of_birth=date.today() - timedelta(days=365*14),
+            member_type="scout",
+            gender="male",
+            troop_number="100"
+        )
+        db_session.add(member)
+        
+        req = await crud_requirement.create_rank_requirement(
+            db_session,
+            RankRequirementCreate(
+                rank="Scout",
+                requirement_number="1a",
+                requirement_text="Test",
+                category="Test",
+                keywords=["test"]
+            )
+        )
+        await db_session.commit()
+        
+        from app.schemas.requirement import ParticipantProgressCreate
+        created = await crud_requirement.create_participant_progress(
+            db_session,
+            member.id,
+            ParticipantProgressCreate(rank_requirement_id=req.id, completed=True)
+        )
+        
+        success = await crud_requirement.delete_participant_progress(db_session, created.id)
+        assert success is True
+        
+        deleted = await crud_requirement.get_participant_progress(db_session, created.id)
+        assert deleted is None
+
+    async def test_delete_participant_progress_not_found(self, db_session):
+        """Test deleting non-existent participant progress"""
+        success = await crud_requirement.delete_participant_progress(db_session, uuid4())
+        assert success is False
