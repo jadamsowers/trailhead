@@ -357,3 +357,89 @@ async def token_endpoint(request: Request):
     if not access_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     return {"access_token": access_token}
+
+
+from typing import List
+from app.api.deps import get_current_admin_user
+from app.schemas.auth import UserRoleUpdate
+from app.crud import user as user_crud
+
+
+@router.get("/users", response_model=List[UserResponse])
+async def get_users(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get all users. Admin only.
+    """
+    users = await user_crud.get_users(db, skip=skip, limit=limit)
+    return [
+        UserResponse(
+            id=user.id,
+            email=user.email,
+            full_name=user.full_name,
+            role=user.role,
+            is_initial_admin=user.is_initial_admin,
+            phone=user.phone,
+            emergency_contact_name=user.emergency_contact_name,
+            emergency_contact_phone=user.emergency_contact_phone,
+            youth_protection_expiration=user.youth_protection_expiration,
+            initial_setup_complete=user.initial_setup_complete,
+        )
+        for user in users
+    ]
+
+
+@router.patch("/users/{user_id}/role", response_model=UserResponse)
+async def update_user_role(
+    user_id: UUID,
+    role_update: UserRoleUpdate,
+    current_user: User = Depends(get_current_admin_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Update a user's role. Admin only.
+    """
+    # Validate role
+    valid_roles = ["admin", "outing-admin", "participant"]
+    if role_update.role not in valid_roles:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid role. Must be one of: {', '.join(valid_roles)}"
+        )
+    
+    # Get the user to update
+    user = await user_crud.get_user(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    # Prevent changing the initial admin's role
+    if user.is_initial_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot change the role of the initial admin"
+        )
+    
+    # Update the role
+    user.role = role_update.role
+    await db.commit()
+    await db.refresh(user)
+    
+    return UserResponse(
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        role=user.role,
+        is_initial_admin=user.is_initial_admin,
+        phone=user.phone,
+        emergency_contact_name=user.emergency_contact_name,
+        emergency_contact_phone=user.emergency_contact_phone,
+        youth_protection_expiration=user.youth_protection_expiration,
+        initial_setup_complete=user.initial_setup_complete,
+    )

@@ -45,3 +45,8 @@ class TokenResponse(BaseModel):
     access_token: str = Field(..., description="JWT access token")
     token_type: str = Field("bearer", description="Token type")
     user: UserResponse = Field(..., description="User information")
+
+
+class UserRoleUpdate(BaseModel):
+    """Schema for updating user role"""
+    role: str = Field(..., description="New user role (admin, outing-admin, participant)")
