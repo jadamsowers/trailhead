@@ -272,11 +272,11 @@ async def me(current_user: User = Depends(get_current_user)):
         full_name=current_user.full_name,
         role=current_user.role,
         is_initial_admin=current_user.is_initial_admin,
-        initial_setup_complete=current_user.initial_setup_complete,
         phone=current_user.phone,
         emergency_contact_name=current_user.emergency_contact_name,
         emergency_contact_phone=current_user.emergency_contact_phone,
         youth_protection_expiration=current_user.youth_protection_expiration,
+        initial_setup_complete=current_user.initial_setup_complete,
     )
 
 
@@ -300,6 +300,9 @@ async def update_contact_info(
         current_user.emergency_contact_phone = contact_update.emergency_contact_phone
     if contact_update.youth_protection_expiration is not None:
         current_user.youth_protection_expiration = contact_update.youth_protection_expiration
+    
+    # Mark initial setup as complete when contact info is saved
+    current_user.initial_setup_complete = True
 
     await db.commit()
     await db.refresh(current_user)
@@ -310,11 +313,11 @@ async def update_contact_info(
         full_name=current_user.full_name,
         role=current_user.role,
         is_initial_admin=current_user.is_initial_admin,
-        initial_setup_complete=current_user.initial_setup_complete,
         phone=current_user.phone,
         emergency_contact_name=current_user.emergency_contact_name,
         emergency_contact_phone=current_user.emergency_contact_phone,
         youth_protection_expiration=current_user.youth_protection_expiration,
+        initial_setup_complete=current_user.initial_setup_complete,
     )
 
 
@@ -326,22 +329,21 @@ async def mark_initial_setup_complete(
     """
     Mark the current user's initial setup as complete.
     """
-    if not current_user.initial_setup_complete:
-        current_user.initial_setup_complete = True
-        await db.commit()
-        await db.refresh(current_user)
-
+    current_user.initial_setup_complete = True
+    await db.commit()
+    await db.refresh(current_user)
+    
     return UserResponse(
         id=current_user.id,
         email=current_user.email,
         full_name=current_user.full_name,
         role=current_user.role,
         is_initial_admin=current_user.is_initial_admin,
-        initial_setup_complete=current_user.initial_setup_complete,
         phone=current_user.phone,
         emergency_contact_name=current_user.emergency_contact_name,
         emergency_contact_phone=current_user.emergency_contact_phone,
         youth_protection_expiration=current_user.youth_protection_expiration,
+        initial_setup_complete=current_user.initial_setup_complete,
     )
 
 @router.get("/token")

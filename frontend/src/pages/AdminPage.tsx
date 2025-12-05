@@ -28,23 +28,32 @@ const AdminPage: React.FC = () => {
   return (
     <div className="w-full">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1
-            className="font-bold font-heading mb-2"
-            style={{
-              color: "var(--text-primary)",
-              fontSize: "clamp(1.125rem, 5vw, 2.25rem)",
-              lineHeight: "1.2",
-            }}
+        <div className="mb-8 flex justify-between items-end">
+          <div>
+            <h1
+              className="font-bold font-heading mb-2"
+              style={{
+                color: "var(--text-primary)",
+                fontSize: "clamp(1.125rem, 5vw, 2.25rem)",
+                lineHeight: "1.2",
+              }}
+            >
+              Admin Dashboard
+            </h1>
+            <p
+              className="mt-2 text-xs sm:text-sm md:text-base lg:text-lg"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Manage outings, users, and system settings
+            </p>
+          </div>
+          <a
+            href="/admin/roster-import"
+            className="px-4 py-2 rounded-lg font-medium text-white transition-colors flex items-center bg-blue-600 hover:bg-blue-700 shadow-sm"
           >
-            Admin Dashboard
-          </h1>
-          <p
-            className="mt-2 text-xs sm:text-sm md:text-base lg:text-lg"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            Manage outings, users, and system settings
-          </p>
+            <i className="bi bi-cloud-upload mr-2"></i>
+            Import Roster
+          </a>
         </div>
 
         {/* Tab Navigation */}

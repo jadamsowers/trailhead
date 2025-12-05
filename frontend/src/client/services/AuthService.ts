@@ -57,8 +57,6 @@ export class AuthService {
     }
     /**
      * Sync User Role
-     * Sync user role from Stack Auth metadata to local database.
-     * This endpoint fetches the role directly from Stack Auth to ensure security.
      * Rate limit: 10 requests per minute per IP.
      * @returns any Successful Response
      * @throws ApiError

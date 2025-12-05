@@ -1,0 +1,944 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-7.4.3, pluggy-1.6.0 -- /Library/Developer/CommandLineTools/usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/jadam/Development/trailhead/backend
+configfile: pytest.ini
+testpaths: tests
+plugins: Faker-20.1.0, cov-4.1.0, asyncio-0.21.1, mock-3.12.0, anyio-3.7.1
+asyncio: mode=auto
+collecting ... collected 744 items / 1 skipped
+
+tests/test_api_checkin.py::TestGetCheckinStatus::test_get_checkin_status_success PASSED [  0%]
+tests/test_api_checkin.py::TestGetCheckinStatus::test_get_checkin_status_with_checkins PASSED [  0%]
+tests/test_api_checkin.py::TestGetCheckinStatus::test_get_checkin_status_outing_not_found PASSED [  0%]
+tests/test_api_checkin.py::TestGetCheckinStatus::test_get_checkin_status_no_auth PASSED [  0%]
+tests/test_api_checkin.py::TestCheckInParticipants::test_check_in_single_participant PASSED [  0%]
+tests/test_api_checkin.py::TestCheckInParticipants::test_check_in_multiple_participants PASSED [  0%]
+tests/test_api_checkin.py::TestCheckInParticipants::test_check_in_duplicate_prevented PASSED [  0%]
+tests/test_api_checkin.py::TestCheckInParticipants::test_check_in_outing_not_found PASSED [  1%]
+tests/test_api_checkin.py::TestCheckInParticipants::test_check_in_no_auth PASSED [  1%]
+tests/test_api_checkin.py::TestUndoCheckin::test_undo_checkin_success PASSED [  1%]
+tests/test_api_checkin.py::TestUndoCheckin::test_undo_checkin_not_found PASSED [  1%]
+tests/test_api_checkin.py::TestUndoCheckin::test_undo_checkin_no_auth PASSED [  1%]
+tests/test_api_checkin.py::TestResetAllCheckins::test_reset_all_checkins_success PASSED [  1%]
+tests/test_api_checkin.py::TestResetAllCheckins::test_reset_all_checkins_empty PASSED [  1%]
+tests/test_api_checkin.py::TestResetAllCheckins::test_reset_all_checkins_no_auth PASSED [  2%]
+tests/test_api_checkin.py::TestExportCheckinData::test_export_checkin_data_success PASSED [  2%]
+tests/test_api_checkin.py::TestExportCheckinData::test_export_checkin_data_with_checkins PASSED [  2%]
+tests/test_api_checkin.py::TestExportCheckinData::test_export_checkin_data_outing_not_found PASSED [  2%]
+tests/test_api_checkin.py::TestExportCheckinData::test_export_checkin_data_no_auth PASSED [  2%]
+tests/test_api_deps.py::TestGetDB::test_get_db_yields_session PASSED     [  2%]
+tests/test_api_deps.py::TestGetCurrentUser::test_get_current_user_valid_token PASSED [  2%]
+tests/test_api_deps.py::TestGetCurrentUser::test_get_current_user_invalid_token PASSED [  2%]
+tests/test_api_deps.py::TestGetCurrentUser::test_get_current_user_creates_new_user PASSED [  3%]
+tests/test_api_deps.py::TestGetCurrentUser::test_get_current_user_inactive PASSED [  3%]
+tests/test_api_deps.py::TestGetCurrentAdminUser::test_get_current_admin_user_success PASSED [  3%]
+tests/test_api_deps.py::TestGetCurrentAdminUser::test_get_current_admin_user_not_admin PASSED [  3%]
+tests/test_api_deps.py::TestGetCurrentOutingAdminUser::test_get_current_outing_admin_user_admin PASSED [  3%]
+tests/test_api_deps.py::TestGetCurrentOutingAdminUser::test_get_current_outing_admin_user_outing_admin PASSED [  3%]
+tests/test_api_deps.py::TestGetCurrentOutingAdminUser::test_get_current_outing_admin_user_not_admin PASSED [  3%]
+tests/test_api_deps.py::TestGetCurrentOutingAdminUser::test_get_current_outing_admin_user_participant_role PASSED [  4%]
+tests/test_api_family.py::TestListFamilyMembers::test_list_family_members_success PASSED [  4%]
+tests/test_api_family.py::TestListFamilyMembers::test_list_family_members_empty PASSED [  4%]
+tests/test_api_family.py::TestListFamilyMembers::test_list_family_members_no_auth PASSED [  4%]
+tests/test_api_family.py::TestGetFamilyMembersSummary::test_get_summary_success PASSED [  4%]
+tests/test_api_family.py::TestGetFamilyMembersSummary::test_get_summary_with_outing_id PASSED [  4%]
+tests/test_api_family.py::TestGetFamilyMembersSummary::test_get_summary_no_auth PASSED [  4%]
+tests/test_api_family.py::TestGetFamilyMember::test_get_family_member_success PASSED [  4%]
+tests/test_api_family.py::TestGetFamilyMember::test_get_family_member_not_found PASSED [  5%]
+tests/test_api_family.py::TestGetFamilyMember::test_get_other_users_family_member PASSED [  5%]
+tests/test_api_family.py::TestGetFamilyMember::test_get_family_member_no_auth PASSED [  5%]
+tests/test_api_family.py::TestCreateFamilyMember::test_create_family_member_youth PASSED [  5%]
+tests/test_api_family.py::TestCreateFamilyMember::test_create_family_member_adult PASSED [  5%]
+tests/test_api_family.py::TestCreateFamilyMember::test_create_family_member_missing_required_fields PASSED [  5%]
+tests/test_api_family.py::TestCreateFamilyMember::test_create_family_member_no_auth PASSED [  5%]
+tests/test_api_family.py::TestUpdateFamilyMember::test_update_family_member_success PASSED [  6%]
+tests/test_api_family.py::TestUpdateFamilyMember::test_update_family_member_not_found PASSED [  6%]
+tests/test_api_family.py::TestUpdateFamilyMember::test_update_other_users_family_member PASSED [  6%]
+tests/test_api_family.py::TestUpdateFamilyMember::test_update_family_member_no_auth PASSED [  6%]
+tests/test_api_family.py::TestDeleteFamilyMember::test_delete_family_member_success PASSED [  6%]
+tests/test_api_family.py::TestDeleteFamilyMember::test_delete_family_member_not_found PASSED [  6%]
+tests/test_api_family.py::TestDeleteFamilyMember::test_delete_other_users_family_member PASSED [  6%]
+tests/test_api_family.py::TestDeleteFamilyMember::test_delete_family_member_no_auth PASSED [  6%]
+tests/test_api_family_extended.py::TestFamilyMemberSummary::test_summary_without_outing PASSED [  7%]
+tests/test_api_family_extended.py::TestFamilyMemberSummary::test_summary_with_outing PASSED [  7%]
+tests/test_api_family_extended.py::TestFamilyMemberSummary::test_summary_with_invalid_outing PASSED [  7%]
+tests/test_api_family_extended.py::TestFamilyMemberSummary::test_summary_youth_protection_expiration PASSED [  7%]
+tests/test_api_family_extended.py::TestFamilyMemberSummary::test_summary_age_calculation PASSED [  7%]
+tests/test_api_family_extended.py::TestFamilyMemberCRUD::test_get_family_member_not_found PASSED [  7%]
+tests/test_api_family_extended.py::TestFamilyMemberCRUD::test_get_family_member_wrong_user PASSED [  7%]
+tests/test_api_family_extended.py::TestFamilyMemberCRUD::test_create_family_member_with_dietary_preferences PASSED [  8%]
+tests/test_api_family_extended.py::TestFamilyMemberCRUD::test_update_family_member_not_found PASSED [  8%]
+tests/test_api_family_extended.py::TestFamilyMemberCRUD::test_update_family_member_wrong_user PASSED [  8%]
+tests/test_api_family_extended.py::TestFamilyMemberCRUD::test_delete_family_member_not_found PASSED [  8%]
+tests/test_api_family_extended.py::TestFamilyMemberCRUD::test_delete_family_member_wrong_user PASSED [  8%]
+tests/test_api_family_extended.py::TestListFamilyMembers::test_list_family_members_empty PASSED [  8%]
+tests/test_api_family_extended.py::TestListFamilyMembers::test_list_family_members_with_data PASSED [  8%]
+tests/test_api_family_extended.py::TestListFamilyMembers::test_list_only_shows_own_members PASSED [  9%]
+tests/test_api_health.py::test_health_check_success PASSED               [  9%]
+tests/test_api_health.py::test_health_check_db_error PASSED              [  9%]
+tests/test_api_health.py::test_ready_success PASSED                      [  9%]
+tests/test_api_health.py::test_ready_failure PASSED                      [  9%]
+tests/test_api_outings.py::TestGetAvailableOutings::test_get_available_outings_no_auth PASSED [  9%]
+tests/test_api_outings.py::TestGetAvailableOutings::test_get_available_outings_excludes_full PASSED [  9%]
+tests/test_api_outings.py::TestGetAllOutings::test_get_all_outings_with_auth PASSED [  9%]
+tests/test_api_outings.py::TestGetAllOutings::test_get_all_outings_no_auth PASSED [ 10%]
+tests/test_api_outings.py::TestGetAllOutings::test_get_all_outings_pagination PASSED [ 10%]
+tests/test_api_outings.py::TestCreateOuting::test_create_outing_success PASSED [ 10%]
+tests/test_api_outings.py::TestCreateOuting::test_create_outing_no_auth PASSED [ 10%]
+tests/test_api_outings.py::TestCreateOuting::test_create_day_outing PASSED [ 10%]
+tests/test_api_outings.py::TestCreateOuting::test_create_outing_missing_required_fields PASSED [ 10%]
+tests/test_api_outings.py::TestGetOuting::test_get_outing_success PASSED [ 10%]
+tests/test_api_outings.py::TestGetOuting::test_get_outing_not_found PASSED [ 11%]
+tests/test_api_outings.py::TestGetOuting::test_get_outing_no_auth PASSED [ 11%]
+tests/test_api_outings.py::TestUpdateOuting::test_update_outing_success PASSED [ 11%]
+tests/test_api_outings.py::TestUpdateOuting::test_update_outing_not_found PASSED [ 11%]
+tests/test_api_outings.py::TestUpdateOuting::test_update_outing_no_auth PASSED [ 11%]
+tests/test_api_outings.py::TestDeleteOuting::test_delete_outing_success PASSED [ 11%]
+tests/test_api_outings.py::TestDeleteOuting::test_delete_outing_with_signups PASSED [ 11%]
+tests/test_api_outings.py::TestDeleteOuting::test_delete_outing_not_found PASSED [ 11%]
+tests/test_api_outings.py::TestDeleteOuting::test_delete_outing_no_auth PASSED [ 12%]
+tests/test_api_outings.py::TestGetOutingSignups::test_get_outing_signups_success PASSED [ 12%]
+tests/test_api_outings.py::TestGetOutingSignups::test_get_outing_signups_empty PASSED [ 12%]
+tests/test_api_outings.py::TestGetOutingSignups::test_get_outing_signups_not_found PASSED [ 12%]
+tests/test_api_outings.py::TestGetOutingSignups::test_get_outing_signups_no_auth PASSED [ 12%]
+tests/test_api_outings_branches.py::TestOutingSignupsToggle::test_close_signups_success PASSED [ 12%]
+tests/test_api_outings_branches.py::TestOutingSignupsToggle::test_close_signups_not_found PASSED [ 12%]
+tests/test_api_outings_branches.py::TestOutingSignupsToggle::test_open_signups_success_after_close PASSED [ 13%]
+tests/test_api_outings_branches.py::TestOutingSignupsToggle::test_open_signups_not_found PASSED [ 13%]
+tests/test_api_outings_branches.py::TestOutingUpdateEmailDraft::test_update_outing_generates_email_draft PASSED [ 13%]
+tests/test_api_outings_branches.py::TestOutingUpdateEmailDraft::test_update_outing_no_changes_no_email_draft PASSED [ 13%]
+tests/test_api_outings_branches.py::TestOutingHandout::test_outing_handout_success PASSED [ 13%]
+tests/test_api_outings_branches.py::TestOutingHandout::test_outing_handout_not_found PASSED [ 13%]
+tests/test_api_outings_branches.py::TestOutingPaginationEdge::test_get_all_outings_skip_beyond_total PASSED [ 13%]
+tests/test_api_outings_branches.py::TestOutingAvailabilityBoundary::test_outing_full_boundary_exclusion PASSED [ 13%]
+tests/test_api_outings_extended.py::TestCloseOpenSignups::test_close_signups_success PASSED [ 14%]
+tests/test_api_outings_extended.py::TestCloseOpenSignups::test_close_signups_outing_not_found PASSED [ 14%]
+tests/test_api_outings_extended.py::TestCloseOpenSignups::test_open_signups_success PASSED [ 14%]
+tests/test_api_outings_extended.py::TestCloseOpenSignups::test_open_signups_outing_not_found PASSED [ 14%]
+tests/test_api_outings_extended.py::TestGetOutingSignups::test_get_outing_signups_empty PASSED [ 14%]
+tests/test_api_outings_extended.py::TestGetOutingSignups::test_get_outing_signups_with_data PASSED [ 14%]
+tests/test_api_outings_extended.py::TestGetOutingSignups::test_get_outing_signups_outing_not_found PASSED [ 14%]
+tests/test_api_outings_extended.py::TestGetOutingHandout::test_get_handout_success PASSED [ 15%]
+tests/test_api_outings_extended.py::TestGetOutingHandout::test_get_handout_outing_not_found PASSED [ 15%]
+tests/test_api_outings_extended.py::TestDeleteOuting::test_delete_outing_with_signups PASSED [ 15%]
+tests/test_api_outings_extended.py::TestDeleteOuting::test_delete_outing_not_found PASSED [ 15%]
+tests/test_api_outings_extended.py::TestUpdateOuting::test_update_outing_generates_email_draft PASSED [ 15%]
+tests/test_api_outings_extended.py::TestUpdateOuting::test_update_outing_no_changes_no_draft PASSED [ 15%]
+tests/test_api_outings_extended.py::TestGetAvailableOutings::test_get_available_outings_public PASSED [ 15%]
+tests/test_api_outings_extended.py::TestGetAvailableOutings::test_get_available_outings_excludes_full PASSED [ 15%]
+tests/test_api_outings_extended.py::TestGetAllOutings::test_get_all_outings_pagination PASSED [ 16%]
+tests/test_api_outings_extended.py::TestGetAllOutings::test_get_all_outings_includes_full PASSED [ 16%]
+tests/test_api_packing_lists.py::TestListTemplates::test_list_templates_success PASSED [ 16%]
+tests/test_api_packing_lists.py::TestListTemplates::test_list_templates_empty PASSED [ 16%]
+tests/test_api_packing_lists.py::TestListTemplates::test_list_templates_pagination PASSED [ 16%]
+tests/test_api_packing_lists.py::TestGetTemplate::test_get_template_success PASSED [ 16%]
+tests/test_api_packing_lists.py::TestGetTemplate::test_get_template_not_found PASSED [ 16%]
+tests/test_api_packing_lists.py::TestCreateOutingPackingList::test_create_packing_list_from_template PASSED [ 17%]
+tests/test_api_packing_lists.py::TestCreateOutingPackingList::test_create_packing_list_without_template PASSED [ 17%]
+tests/test_api_packing_lists.py::TestCreateOutingPackingList::test_create_packing_list_outing_not_found PASSED [ 17%]
+tests/test_api_packing_lists.py::TestCreateOutingPackingList::test_create_packing_list_template_not_found PASSED [ 17%]
+tests/test_api_packing_lists.py::TestCreateOutingPackingList::test_create_packing_list_no_auth PASSED [ 17%]
+tests/test_api_packing_lists.py::TestGetOutingPackingLists::test_get_outing_packing_lists_success PASSED [ 17%]
+tests/test_api_packing_lists.py::TestGetOutingPackingLists::test_get_outing_packing_lists_empty PASSED [ 17%]
+tests/test_api_packing_lists.py::TestGetOutingPackingLists::test_get_outing_packing_lists_outing_not_found PASSED [ 18%]
+tests/test_api_packing_lists.py::TestGetOutingPackingLists::test_get_outing_packing_lists_no_auth PASSED [ 18%]
+tests/test_api_packing_lists.py::TestDeleteOutingPackingList::test_delete_packing_list_success PASSED [ 18%]
+tests/test_api_packing_lists.py::TestDeleteOutingPackingList::test_delete_packing_list_not_found PASSED [ 18%]
+tests/test_api_packing_lists.py::TestDeleteOutingPackingList::test_delete_packing_list_wrong_outing PASSED [ 18%]
+tests/test_api_packing_lists.py::TestDeleteOutingPackingList::test_delete_packing_list_no_auth PASSED [ 18%]
+tests/test_api_packing_lists.py::TestAddPackingListItem::test_add_item_success PASSED [ 18%]
+tests/test_api_packing_lists.py::TestAddPackingListItem::test_add_item_packing_list_not_found PASSED [ 18%]
+tests/test_api_packing_lists.py::TestAddPackingListItem::test_add_item_no_auth PASSED [ 19%]
+tests/test_api_packing_lists.py::TestUpdatePackingListItem::test_update_item_check_status PASSED [ 19%]
+tests/test_api_packing_lists.py::TestUpdatePackingListItem::test_update_item_quantity PASSED [ 19%]
+tests/test_api_packing_lists.py::TestUpdatePackingListItem::test_update_item_not_found PASSED [ 19%]
+tests/test_api_packing_lists.py::TestUpdatePackingListItem::test_update_item_no_auth PASSED [ 19%]
+tests/test_api_packing_lists.py::TestDeletePackingListItem::test_delete_item_success PASSED [ 19%]
+tests/test_api_packing_lists.py::TestDeletePackingListItem::test_delete_item_not_found PASSED [ 19%]
+tests/test_api_packing_lists.py::TestDeletePackingListItem::test_delete_item_no_auth PASSED [ 20%]
+tests/test_api_places.py::TestListPlaces::test_list_places_success PASSED [ 20%]
+tests/test_api_places.py::TestListPlaces::test_list_places_empty PASSED  [ 20%]
+tests/test_api_places.py::TestListPlaces::test_list_places_no_auth PASSED [ 20%]
+tests/test_api_places.py::TestGetPlace::test_get_place_success PASSED    [ 20%]
+tests/test_api_places.py::TestGetPlace::test_get_place_not_found PASSED  [ 20%]
+tests/test_api_places.py::TestGetPlace::test_get_place_no_auth PASSED    [ 20%]
+tests/test_api_places.py::TestCreatePlace::test_create_place_success PASSED [ 20%]
+tests/test_api_places.py::TestCreatePlace::test_create_place_duplicate_name PASSED [ 21%]
+tests/test_api_places.py::TestCreatePlace::test_create_place_missing_required_fields PASSED [ 21%]
+tests/test_api_places.py::TestCreatePlace::test_create_place_no_auth PASSED [ 21%]
+tests/test_api_places.py::TestUpdatePlace::test_update_place_success PASSED [ 21%]
+tests/test_api_places.py::TestUpdatePlace::test_update_place_partial PASSED [ 21%]
+tests/test_api_places.py::TestUpdatePlace::test_update_place_not_found PASSED [ 21%]
+tests/test_api_places.py::TestUpdatePlace::test_update_place_no_auth PASSED [ 21%]
+tests/test_api_places.py::TestDeletePlace::test_delete_place_success PASSED [ 22%]
+tests/test_api_places.py::TestDeletePlace::test_delete_place_not_found PASSED [ 22%]
+tests/test_api_places.py::TestDeletePlace::test_delete_place_no_auth PASSED [ 22%]
+tests/test_api_places.py::TestSearchPlaces::test_search_places_success PASSED [ 22%]
+tests/test_api_places.py::TestSearchPlaces::test_search_places_case_insensitive PASSED [ 22%]
+tests/test_api_places.py::TestSearchPlaces::test_search_places_no_results PASSED [ 22%]
+tests/test_api_places.py::TestSearchPlaces::test_search_places_no_auth PASSED [ 22%]
+tests/test_api_requirements.py::TestRankRequirementsCRUD::test_list_rank_requirements_empty PASSED [ 22%]
+tests/test_api_requirements.py::TestRankRequirementsCRUD::test_create_rank_requirement_admin PASSED [ 23%]
+tests/test_api_requirements.py::TestRankRequirementsCRUD::test_create_rank_requirement_forbidden_without_admin PASSED [ 23%]
+tests/test_api_requirements.py::TestRankRequirementsCRUD::test_update_rank_requirement PASSED [ 23%]
+tests/test_api_requirements.py::TestRankRequirementsCRUD::test_update_rank_requirement_not_found PASSED [ 23%]
+tests/test_api_requirements.py::TestRankRequirementsCRUD::test_delete_rank_requirement PASSED [ 23%]
+tests/test_api_requirements.py::TestMeritBadgesCRUD::test_list_merit_badges_empty PASSED [ 23%]
+tests/test_api_requirements.py::TestMeritBadgesCRUD::test_create_merit_badge_admin PASSED [ 23%]
+tests/test_api_requirements.py::TestMeritBadgesCRUD::test_create_merit_badge_duplicate_name PASSED [ 24%]
+tests/test_api_requirements.py::TestMeritBadgesCRUD::test_update_merit_badge PASSED [ 24%]
+tests/test_api_requirements.py::TestMeritBadgesCRUD::test_update_merit_badge_not_found PASSED [ 24%]
+tests/test_api_requirements.py::TestMeritBadgesCRUD::test_delete_merit_badge PASSED [ 24%]
+tests/test_api_requirements_extended.py::TestOutingRequirements::test_list_outing_requirements_empty PASSED [ 24%]
+tests/test_api_requirements_extended.py::TestOutingRequirements::test_add_requirement_to_outing PASSED [ 24%]
+tests/test_api_requirements_extended.py::TestOutingRequirements::test_add_requirement_outing_not_found PASSED [ 24%]
+tests/test_api_requirements_extended.py::TestOutingRequirements::test_add_requirement_requirement_not_found PASSED [ 25%]
+tests/test_api_requirements_extended.py::TestOutingRequirements::test_update_outing_requirement PASSED [ 25%]
+tests/test_api_requirements_extended.py::TestOutingRequirements::test_update_outing_requirement_not_found PASSED [ 25%]
+tests/test_api_requirements_extended.py::TestOutingRequirements::test_remove_requirement_from_outing PASSED [ 25%]
+tests/test_api_requirements_extended.py::TestOutingRequirements::test_remove_outing_requirement_not_found PASSED [ 25%]
+tests/test_api_requirements_extended.py::TestOutingMeritBadges::test_list_outing_merit_badges_empty PASSED [ 25%]
+tests/test_api_requirements_extended.py::TestOutingMeritBadges::test_add_merit_badge_to_outing PASSED [ 25%]
+tests/test_api_requirements_extended.py::TestOutingMeritBadges::test_add_merit_badge_outing_not_found PASSED [ 25%]
+tests/test_api_requirements_extended.py::TestOutingMeritBadges::test_add_merit_badge_badge_not_found PASSED [ 26%]
+tests/test_api_requirements_extended.py::TestOutingMeritBadges::test_update_outing_merit_badge PASSED [ 26%]
+tests/test_api_requirements_extended.py::TestOutingMeritBadges::test_update_outing_merit_badge_not_found PASSED [ 26%]
+tests/test_api_requirements_extended.py::TestOutingMeritBadges::test_remove_merit_badge_from_outing PASSED [ 26%]
+tests/test_api_requirements_extended.py::TestOutingMeritBadges::test_remove_outing_merit_badge_not_found PASSED [ 26%]
+tests/test_api_requirements_extended.py::TestParticipantProgress::test_list_participant_progress_empty PASSED [ 26%]
+tests/test_api_requirements_extended.py::TestParticipantProgress::test_record_participant_progress PASSED [ 26%]
+tests/test_api_requirements_extended.py::TestParticipantProgress::test_record_progress_participant_not_found PASSED [ 27%]
+tests/test_api_requirements_extended.py::TestParticipantProgress::test_record_progress_requirement_not_found PASSED [ 27%]
+tests/test_api_requirements_extended.py::TestParticipantProgress::test_update_participant_progress PASSED [ 27%]
+tests/test_api_requirements_extended.py::TestParticipantProgress::test_update_progress_not_found PASSED [ 27%]
+tests/test_api_requirements_extended.py::TestParticipantProgress::test_delete_participant_progress PASSED [ 27%]
+tests/test_api_requirements_extended.py::TestParticipantProgress::test_delete_progress_not_found PASSED [ 27%]
+tests/test_api_signups.py::TestCreateSignup::test_create_signup_success PASSED [ 27%]
+tests/test_api_signups.py::TestCreateSignup::test_create_signup_outing_not_found PASSED [ 27%]
+tests/test_api_signups.py::TestCreateSignup::test_create_signup_not_enough_spots PASSED [ 28%]
+tests/test_api_signups.py::TestCreateSignup::test_create_signup_scouting_america_two_deep_leadership PASSED [ 28%]
+tests/test_api_signups.py::TestCreateSignup::test_create_signup_scouting_america_female_leader_requirement PASSED [ 28%]
+tests/test_api_signups.py::TestCreateSignup::test_create_signup_overnight_youth_protection SKIPPED [ 28%]
+tests/test_api_signups.py::TestGetSignup::test_get_signup_success PASSED [ 28%]
+tests/test_api_signups.py::TestGetSignup::test_get_signup_not_found PASSED [ 28%]
+tests/test_api_signups.py::TestCancelSignup::test_cancel_signup_success PASSED [ 28%]
+tests/test_api_signups.py::TestCancelSignup::test_cancel_signup_not_found PASSED [ 29%]
+tests/test_api_signups.py::TestListSignups::test_list_signups_admin PASSED [ 29%]
+tests/test_api_signups.py::TestListSignups::test_list_signups_filter PASSED [ 29%]
+tests/test_api_signups.py::TestGetMySignups::test_get_my_signups_success PASSED [ 29%]
+tests/test_api_signups.py::TestGetMySignups::test_get_my_signups_empty PASSED [ 29%]
+tests/test_api_signups.py::TestUpdateSignup::test_update_signup_success PASSED [ 29%]
+tests/test_api_signups.py::TestUpdateSignup::test_update_signup_participants PASSED [ 29%]
+tests/test_api_signups.py::TestUpdateSignup::test_update_signup_forbidden PASSED [ 29%]
+tests/test_api_signups.py::TestExportOutingRoster::test_export_pdf_admin PASSED [ 30%]
+tests/test_api_signups.py::TestExportOutingRoster::test_export_pdf_forbidden PASSED [ 30%]
+tests/test_api_signups_admin.py::TestAdminListSignups::test_list_signups_all PASSED [ 30%]
+tests/test_api_signups_admin.py::TestAdminListSignups::test_list_signups_filtered_by_outing PASSED [ 30%]
+tests/test_api_signups_admin.py::TestAdminListSignups::test_list_signups_filtered_by_nonexistent_outing PASSED [ 30%]
+tests/test_api_signups_admin.py::TestAdminListSignups::test_list_signups_pagination PASSED [ 30%]
+tests/test_api_signups_admin.py::TestAdminListSignups::test_list_signups_skip_beyond_total PASSED [ 30%]
+tests/test_api_signups_admin.py::TestAdminListSignups::test_list_signups_no_auth PASSED [ 31%]
+tests/test_api_signups_admin.py::TestMySignupsEdgeCases::test_my_signups_no_family_members PASSED [ 31%]
+tests/test_api_signups_admin.py::TestMySignupsEdgeCases::test_my_signups_family_but_no_signups PASSED [ 31%]
+tests/test_api_signups_admin.py::TestMySignupsEdgeCases::test_my_signups_with_multiple_outings PASSED [ 31%]
+tests/test_api_signups_admin.py::TestExportPDF::test_export_pdf_success PASSED [ 31%]
+tests/test_api_signups_admin.py::TestExportPDF::test_export_pdf_outing_not_found PASSED [ 31%]
+tests/test_api_signups_admin.py::TestExportPDF::test_export_pdf_no_signups PASSED [ 31%]
+tests/test_api_signups_admin.py::TestExportPDF::test_export_pdf_no_auth PASSED [ 31%]
+tests/test_api_signups_admin.py::TestEmailList::test_get_emails_success PASSED [ 32%]
+tests/test_api_signups_admin.py::TestEmailList::test_get_emails_outing_not_found PASSED [ 32%]
+tests/test_api_signups_admin.py::TestEmailList::test_get_emails_no_signups PASSED [ 32%]
+tests/test_api_signups_admin.py::TestEmailList::test_get_emails_no_auth PASSED [ 32%]
+tests/test_api_signups_admin.py::TestGetSignupOwnership::test_get_signup_admin_any_signup PASSED [ 32%]
+tests/test_api_signups_admin.py::TestGetSignupOwnership::test_get_signup_user_own_signup PASSED [ 32%]
+tests/test_api_signups_admin.py::TestGetSignupOwnership::test_get_signup_user_other_signup_forbidden PASSED [ 32%]
+tests/test_api_signups_admin.py::TestDeleteSignupOwnership::test_delete_signup_admin_any_signup PASSED [ 33%]
+tests/test_api_signups_admin.py::TestDeleteSignupOwnership::test_delete_signup_user_own_signup PASSED [ 33%]
+tests/test_api_signups_admin.py::TestDeleteSignupOwnership::test_delete_signup_user_other_signup_forbidden PASSED [ 33%]
+tests/test_api_signups_branches.py::TestUpdateSignupVehicleCapacity::test_update_signup_vehicle_capacity_overflow PASSED [ 33%]
+tests/test_api_signups_branches.py::TestCreateSignupAdditionalBranches::test_create_signup_combined_warnings PASSED [ 33%]
+tests/test_api_signups_branches.py::TestCreateSignupAdditionalBranches::test_create_signup_no_warnings_female_youth PASSED [ 33%]
+tests/test_api_signups_branches.py::TestCreateSignupAdditionalBranches::test_create_signup_missing_family_member PASSED [ 33%]
+tests/test_api_signups_branches.py::TestCreateSignupAdditionalBranches::test_create_signup_vehicle_capacity_borderline_success PASSED [ 34%]
+tests/test_api_signups_branches.py::TestUpdateSignupAdditionalBranches::test_update_signup_vehicle_capacity_success PASSED [ 34%]
+tests/test_api_signups_branches.py::TestUpdateSignupAdditionalBranches::test_update_signup_outing_deleted PASSED [ 34%]
+tests/test_api_signups_branches.py::TestUpdateSignupAdditionalBranches::test_update_signup_fixed_capacity_success PASSED [ 34%]
+tests/test_api_signups_branches.py::TestUpdateSignupAdditionalBranches::test_update_signup_missing_family_member PASSED [ 34%]
+tests/test_api_signups_branches.py::TestAdminEmptySignupAccess::test_admin_get_empty_signup PASSED [ 34%]
+tests/test_api_signups_branches.py::TestAdminEmptySignupAccess::test_admin_delete_empty_signup PASSED [ 34%]
+tests/test_api_signups_branches.py::TestSignupListingPagination::test_list_signups_pagination PASSED [ 34%]
+tests/test_api_signups_branches.py::TestMySignupsEmptyCases::test_my_signups_no_family_members PASSED [ 35%]
+tests/test_api_signups_branches.py::TestMySignupsEmptyCases::test_my_signups_family_members_no_signups PASSED [ 35%]
+tests/test_api_signups_branches.py::TestUpdateSignupYouthProtection::test_update_signup_adult_missing_ypt PASSED [ 35%]
+tests/test_api_signups_branches.py::TestUpdateSignupYouthProtection::test_update_signup_adult_ypt_expired PASSED [ 35%]
+tests/test_api_signups_branches.py::TestEmptySignupEdgeCases::test_get_signup_forbidden_empty_non_admin PASSED [ 35%]
+tests/test_api_signups_branches.py::TestEmptySignupEdgeCases::test_cancel_signup_no_participants PASSED [ 35%]
+tests/test_api_signups_branches.py::TestListSignupsFilter::test_list_signups_filtered PASSED [ 35%]
+tests/test_api_signups_coverage.py::TestRestrictedTroopNotFound::test_create_signup_restricted_troop_deleted PASSED [ 36%]
+tests/test_api_signups_coverage.py::TestSendEmailEndpoint::test_send_email_outing_not_found PASSED [ 36%]
+tests/test_api_signups_coverage.py::TestSendEmailEndpoint::test_get_outing_emails_not_found PASSED [ 36%]
+tests/test_api_signups_coverage.py::TestExportPDFEndpoint::test_export_pdf_outing_not_found PASSED [ 36%]
+tests/test_api_signups_coverage.py::TestUpdateSignupEdgeCases::test_update_signup_not_found PASSED [ 36%]
+tests/test_api_signups_coverage.py::TestUpdateSignupEdgeCases::test_update_signup_empty_participants_non_admin PASSED [ 36%]
+tests/test_api_signups_coverage.py::TestCancelSignupEdgeCases::test_cancel_signup_delete_failure PASSED [ 36%]
+tests/test_api_signups_coverage.py::TestParticipantDataTransformation::test_participant_without_family_member_data PASSED [ 36%]
+tests/test_api_signups_extended.py::TestCreateSignupAdditionalCases::test_create_signup_signups_closed PASSED [ 37%]
+tests/test_api_signups_extended.py::TestCreateSignupAdditionalCases::test_create_signup_family_member_forbidden PASSED [ 37%]
+tests/test_api_signups_extended.py::TestCreateSignupAdditionalCases::test_create_signup_ypt_expired PASSED [ 37%]
+tests/test_api_signups_extended.py::TestCreateSignupAdditionalCases::test_create_signup_vehicle_capacity_overflow PASSED [ 37%]
+tests/test_api_signups_extended.py::TestUpdateSignup::test_update_signup_contact_info PASSED [ 37%]
+tests/test_api_signups_extended.py::TestUpdateSignup::test_update_signup_add_participants_over_capacity PASSED [ 37%]
+tests/test_api_signups_extended.py::TestUpdateSignup::test_update_signup_forbidden_not_owner PASSED [ 37%]
+tests/test_api_signups_extended.py::TestOwnershipAndListing::test_get_my_signups PASSED [ 38%]
+tests/test_api_signups_extended.py::TestOwnershipAndListing::test_list_signups_admin_success PASSED [ 38%]
+tests/test_api_signups_extended.py::TestOwnershipAndListing::test_list_signups_regular_forbidden PASSED [ 38%]
+tests/test_api_signups_extended.py::TestOwnershipAndListing::test_get_signup_forbidden_not_owner PASSED [ 38%]
+tests/test_api_signups_extended.py::TestOwnershipAndListing::test_cancel_signup_forbidden_not_owner PASSED [ 38%]
+tests/test_api_signups_extended.py::TestEmailAndExport::test_get_outing_emails_success PASSED [ 38%]
+tests/test_api_signups_extended.py::TestEmailAndExport::test_send_email_no_recipients PASSED [ 38%]
+tests/test_api_signups_extended.py::TestEmailAndExport::test_send_email_success PASSED [ 38%]
+tests/test_api_signups_extended.py::TestEmailAndExport::test_export_outing_roster_pdf PASSED [ 39%]
+tests/test_api_signups_extended.py::TestTroopRestriction::test_create_signup_troop_restriction_success PASSED [ 39%]
+tests/test_api_signups_extended.py::TestTroopRestriction::test_create_signup_troop_restriction_mismatch PASSED [ 39%]
+tests/test_api_tenting.py::TestTentingCRUD::test_create_tenting_group PASSED [ 39%]
+tests/test_api_tenting.py::TestTentingCRUD::test_get_tenting_groups_by_outing PASSED [ 39%]
+tests/test_api_tenting.py::TestTentingCRUD::test_update_tenting_group PASSED [ 39%]
+tests/test_api_tenting.py::TestTentingCRUD::test_delete_tenting_group PASSED [ 39%]
+tests/test_api_tenting.py::TestTentingAPI::test_get_tenting_summary PASSED [ 40%]
+tests/test_api_tenting.py::TestTentingAPI::test_create_tenting_group_api PASSED [ 40%]
+tests/test_api_tenting.py::TestTentingAPI::test_get_tenting_groups_api PASSED [ 40%]
+tests/test_api_tenting.py::TestTentingAPI::test_delete_tenting_group_api PASSED [ 40%]
+tests/test_api_tenting.py::TestTentingAPI::test_validate_tenting_api PASSED [ 40%]
+tests/test_api_tenting.py::TestTentingAPI::test_auto_assign_tenting_api PASSED [ 40%]
+tests/test_api_tenting.py::TestTentingValidation::test_age_gap_validation PASSED [ 40%]
+tests/test_api_tenting.py::TestTentingValidation::test_gender_validation PASSED [ 40%]
+tests/test_api_tenting.py::TestTentingAutoAssign::test_auto_assign_groups_by_gender PASSED [ 41%]
+tests/test_api_troops.py::TestTroopsAPI::test_list_troops PASSED         [ 41%]
+tests/test_api_troops.py::TestTroopsAPI::test_create_troop_admin PASSED  [ 41%]
+tests/test_api_troops.py::TestTroopsAPI::test_create_troop_non_admin PASSED [ 41%]
+tests/test_api_troops.py::TestTroopsAPI::test_get_troop PASSED           [ 41%]
+tests/test_api_troops.py::TestTroopsAPI::test_update_troop PASSED        [ 41%]
+tests/test_api_troops.py::TestTroopsAPI::test_delete_troop PASSED        [ 41%]
+tests/test_api_troops.py::TestPatrolsAPI::test_list_patrols PASSED       [ 42%]
+tests/test_api_troops.py::TestPatrolsAPI::test_create_patrol_admin PASSED [ 42%]
+tests/test_api_troops.py::TestPatrolsAPI::test_create_patrol_non_admin PASSED [ 42%]
+tests/test_api_troops.py::TestPatrolsAPI::test_update_patrol PASSED      [ 42%]
+tests/test_api_troops.py::TestPatrolsAPI::test_delete_patrol PASSED      [ 42%]
+tests/test_change_log.py::test_change_log_version_increment PASSED       [ 42%]
+tests/test_change_log_pagination.py::test_change_log_cursor_pagination PASSED [ 42%]
+tests/test_change_log_pagination.py::test_change_log_latest_timestamp PASSED [ 43%]
+tests/test_change_log_permissions.py::test_deltas_non_admin_filters PASSED [ 43%]
+tests/test_contracts.py::TestOutingContracts::test_outing_response_structure PASSED [ 43%]
+tests/test_contracts.py::TestOutingContracts::test_outing_create_request_structure PASSED [ 43%]
+tests/test_contracts.py::TestSignupContracts::test_signup_response_structure PASSED [ 43%]
+tests/test_contracts.py::TestSignupContracts::test_signup_response_with_warnings PASSED [ 43%]
+tests/test_contracts.py::TestSignupContracts::test_signup_create_request_structure PASSED [ 43%]
+tests/test_contracts.py::TestParticipantContracts::test_participant_response_structure PASSED [ 43%]
+tests/test_contracts.py::TestErrorContracts::test_validation_error_structure PASSED [ 44%]
+tests/test_contracts.py::TestErrorContracts::test_missing_required_field_error PASSED [ 44%]
+tests/test_contracts.py::TestTypeCompatibility::test_optional_fields_are_nullable PASSED [ 44%]
+tests/test_contracts.py::TestTypeCompatibility::test_list_fields_default_to_empty PASSED [ 44%]
+tests/test_core_config.py::TestSettings::test_default_settings PASSED    [ 44%]
+tests/test_core_config.py::TestSettings::test_database_url_construction PASSED [ 44%]
+tests/test_core_config.py::TestSettings::test_custom_database_url PASSED [ 44%]
+tests/test_core_config.py::TestSettings::test_cors_origins_string_parsing PASSED [ 45%]
+tests/test_core_config.py::TestSettings::test_cors_origins_with_spaces PASSED [ 45%]
+tests/test_core_config.py::TestSettings::test_cors_origins_list_input PASSED [ 45%]
+tests/test_core_config.py::TestSettings::test_cors_origins_empty_string PASSED [ 45%]
+tests/test_core_config.py::TestSettings::test_custom_token_expiration PASSED [ 45%]
+tests/test_core_config.py::TestSettings::test_debug_mode PASSED          [ 45%]
+tests/test_core_config.py::TestSettings::test_custom_api_version PASSED  [ 45%]
+tests/test_core_config.py::TestSettings::test_custom_project_info PASSED [ 45%]
+tests/test_core_security.py::TestPasswordHashing::test_hash_password PASSED [ 46%]
+tests/test_core_security.py::TestPasswordHashing::test_verify_correct_password PASSED [ 46%]
+tests/test_core_security.py::TestPasswordHashing::test_verify_incorrect_password PASSED [ 46%]
+tests/test_core_security.py::TestPasswordHashing::test_different_hashes_for_same_password PASSED [ 46%]
+tests/test_core_security.py::TestAccessToken::test_create_access_token PASSED [ 46%]
+tests/test_core_security.py::TestAccessToken::test_create_access_token_with_custom_expiry PASSED [ 46%]
+tests/test_core_security.py::TestAccessToken::test_decode_valid_access_token PASSED [ 46%]
+tests/test_core_security.py::TestAccessToken::test_decode_invalid_token PASSED [ 47%]
+tests/test_core_security.py::TestAccessToken::test_decode_expired_token PASSED [ 47%]
+tests/test_core_security.py::TestAccessToken::test_access_token_contains_type PASSED [ 47%]
+tests/test_core_security.py::TestRefreshToken::test_create_refresh_token PASSED [ 47%]
+tests/test_core_security.py::TestRefreshToken::test_refresh_token_contains_type PASSED [ 47%]
+tests/test_core_security.py::TestRefreshToken::test_refresh_token_longer_expiry PASSED [ 47%]
+tests/test_core_security.py::TestTokenSecurity::test_token_with_tampered_payload PASSED [ 47%]
+tests/test_core_security.py::TestTokenSecurity::test_token_with_wrong_secret PASSED [ 47%]
+tests/test_core_security.py::TestTokenSecurity::test_token_preserves_custom_claims PASSED [ 48%]
+tests/test_crud_checkin.py::TestCheckInCRUD::test_create_checkins PASSED [ 48%]
+tests/test_crud_checkin.py::TestCheckInCRUD::test_get_checkin_summary PASSED [ 48%]
+tests/test_crud_checkin.py::TestCheckInCRUD::test_delete_checkin PASSED  [ 48%]
+tests/test_crud_checkin.py::TestCheckInCRUD::test_delete_all_checkins PASSED [ 48%]
+tests/test_crud_family.py::TestCreateFamilyMember::test_create_scout_member PASSED [ 48%]
+tests/test_crud_family.py::TestCreateFamilyMember::test_create_adult_member PASSED [ 48%]
+tests/test_crud_family.py::TestCreateFamilyMember::test_create_member_with_dietary_preferences PASSED [ 49%]
+tests/test_crud_family.py::TestCreateFamilyMember::test_create_member_with_allergies PASSED [ 49%]
+tests/test_crud_family.py::TestGetFamilyMembers::test_get_all_family_members PASSED [ 49%]
+tests/test_crud_family.py::TestGetFamilyMembers::test_get_family_members_empty PASSED [ 49%]
+tests/test_crud_family.py::TestGetFamilyMember::test_get_existing_family_member PASSED [ 49%]
+tests/test_crud_family.py::TestGetFamilyMember::test_get_nonexistent_family_member PASSED [ 49%]
+tests/test_crud_family.py::TestGetFamilyMember::test_get_family_member_wrong_user PASSED [ 49%]
+tests/test_crud_family.py::TestUpdateFamilyMember::test_update_family_member PASSED [ 50%]
+tests/test_crud_family.py::TestUpdateFamilyMember::test_update_nonexistent_family_member PASSED [ 50%]
+tests/test_crud_family.py::TestUpdateFamilyMember::test_partial_update PASSED [ 50%]
+tests/test_crud_family.py::TestDeleteFamilyMember::test_delete_family_member_without_signups PASSED [ 50%]
+tests/test_crud_family.py::TestDeleteFamilyMember::test_delete_nonexistent_family_member PASSED [ 50%]
+tests/test_crud_family.py::TestUpdateDietaryPreferences::test_add_dietary_preferences PASSED [ 50%]
+tests/test_crud_family.py::TestUpdateDietaryPreferences::test_remove_dietary_preferences PASSED [ 50%]
+tests/test_crud_family.py::TestUpdateAllergies::test_add_allergies PASSED [ 50%]
+tests/test_crud_family.py::TestUpdateAllergies::test_remove_allergies PASSED [ 51%]
+tests/test_crud_outing.py::TestGetOuting::test_get_existing_outing PASSED [ 51%]
+tests/test_crud_outing.py::TestGetOuting::test_get_nonexistent_outing PASSED [ 51%]
+tests/test_crud_outing.py::TestGetOutings::test_get_all_outings PASSED   [ 51%]
+tests/test_crud_outing.py::TestGetOutings::test_get_outings_with_pagination PASSED [ 51%]
+tests/test_crud_outing.py::TestGetOutings::test_get_outings_ordered_by_date PASSED [ 51%]
+tests/test_crud_outing.py::TestGetAvailableOutings::test_get_available_outings_excludes_full PASSED [ 51%]
+tests/test_crud_outing.py::TestGetAvailableOutings::test_get_available_outings_ordered_by_date PASSED [ 52%]
+tests/test_crud_outing.py::TestCreateOuting::test_create_outing PASSED   [ 52%]
+tests/test_crud_outing.py::TestCreateOuting::test_create_day_outing PASSED [ 52%]
+tests/test_crud_outing.py::TestUpdateOuting::test_update_outing PASSED   [ 52%]
+tests/test_crud_outing.py::TestUpdateOuting::test_update_nonexistent_outing PASSED [ 52%]
+tests/test_crud_outing.py::TestUpdateOuting::test_partial_update PASSED  [ 52%]
+tests/test_crud_outing.py::TestDeleteOuting::test_delete_outing_without_signups PASSED [ 52%]
+tests/test_crud_outing.py::TestDeleteOuting::test_delete_outing_with_signups PASSED [ 52%]
+tests/test_crud_outing.py::TestDeleteOuting::test_delete_nonexistent_outing PASSED [ 53%]
+tests/test_crud_outing.py::TestGetOutingCount::test_get_outing_count PASSED [ 53%]
+tests/test_crud_outing.py::TestGetOutingCount::test_get_outing_count_empty PASSED [ 53%]
+tests/test_crud_outing.py::TestOutingProperties::test_signup_count PASSED [ 53%]
+tests/test_crud_outing.py::TestOutingProperties::test_available_spots PASSED [ 53%]
+tests/test_crud_outing.py::TestOutingProperties::test_is_full PASSED     [ 53%]
+tests/test_crud_packing_list.py::TestTemplateOperations::test_get_templates_empty PASSED [ 53%]
+tests/test_crud_packing_list.py::TestTemplateOperations::test_get_templates_with_data PASSED [ 54%]
+tests/test_crud_packing_list.py::TestTemplateOperations::test_get_template_not_found PASSED [ 54%]
+tests/test_crud_packing_list.py::TestTemplateOperations::test_get_template_with_items PASSED [ 54%]
+tests/test_crud_packing_list.py::TestOutingPackingListOperations::test_create_outing_packing_list_without_template PASSED [ 54%]
+tests/test_crud_packing_list.py::TestOutingPackingListOperations::test_create_outing_packing_list_with_template PASSED [ 54%]
+tests/test_crud_packing_list.py::TestOutingPackingListOperations::test_get_outing_packing_lists_empty PASSED [ 54%]
+tests/test_crud_packing_list.py::TestOutingPackingListOperations::test_get_outing_packing_list_not_found PASSED [ 54%]
+tests/test_crud_packing_list.py::TestOutingPackingListOperations::test_delete_outing_packing_list PASSED [ 54%]
+tests/test_crud_packing_list.py::TestPackingListItemOperations::test_add_custom_item PASSED [ 55%]
+tests/test_crud_packing_list.py::TestPackingListItemOperations::test_get_item_not_found PASSED [ 55%]
+tests/test_crud_packing_list.py::TestPackingListItemOperations::test_update_item PASSED [ 55%]
+tests/test_crud_packing_list.py::TestPackingListItemOperations::test_update_item_not_found PASSED [ 55%]
+tests/test_crud_packing_list.py::TestPackingListItemOperations::test_delete_item PASSED [ 55%]
+tests/test_crud_participant.py::TestCreateAndGetParticipant::test_create_and_get_participant PASSED [ 55%]
+tests/test_crud_participant.py::TestCreateAndGetParticipant::test_get_participant_not_found PASSED [ 55%]
+tests/test_crud_participant.py::TestListingParticipants::test_get_participants_for_signup PASSED [ 56%]
+tests/test_crud_participant.py::TestListingParticipants::test_get_participants_for_outing PASSED [ 56%]
+tests/test_crud_participant.py::TestDeleteParticipant::test_delete_participant_success PASSED [ 56%]
+tests/test_crud_participant.py::TestDeleteParticipant::test_delete_participant_not_found PASSED [ 56%]
+tests/test_crud_participant.py::TestGetByCompositeKeys::test_get_participant_by_signup_and_family_member PASSED [ 56%]
+tests/test_crud_participant.py::TestGetByCompositeKeys::test_get_participant_by_signup_and_family_member_not_found PASSED [ 56%]
+tests/test_crud_place.py::TestGetPlace::test_get_place_success PASSED    [ 56%]
+tests/test_crud_place.py::TestGetPlace::test_get_place_not_found PASSED  [ 56%]
+tests/test_crud_place.py::TestGetPlaces::test_get_places_list PASSED     [ 57%]
+tests/test_crud_place.py::TestGetPlaces::test_get_places_pagination PASSED [ 57%]
+tests/test_crud_place.py::TestGetPlaces::test_get_places_search_by_name PASSED [ 57%]
+tests/test_crud_place.py::TestGetPlaces::test_get_places_search_by_address PASSED [ 57%]
+tests/test_crud_place.py::TestGetPlaces::test_get_places_search_case_insensitive PASSED [ 57%]
+tests/test_crud_place.py::TestCreatePlace::test_create_place_basic PASSED [ 57%]
+tests/test_crud_place.py::TestCreatePlace::test_create_place_with_google_maps_url PASSED [ 57%]
+tests/test_crud_place.py::TestCreatePlace::test_create_place_auto_generates_google_maps_url PASSED [ 58%]
+tests/test_crud_place.py::TestUpdatePlace::test_update_place_name PASSED [ 58%]
+tests/test_crud_place.py::TestUpdatePlace::test_update_place_address PASSED [ 58%]
+tests/test_crud_place.py::TestUpdatePlace::test_update_place_address_regenerates_google_maps_url PASSED [ 58%]
+tests/test_crud_place.py::TestUpdatePlace::test_update_place_with_explicit_google_maps_url PASSED [ 58%]
+tests/test_crud_place.py::TestUpdatePlace::test_update_place_not_found PASSED [ 58%]
+tests/test_crud_place.py::TestDeletePlace::test_delete_place_success PASSED [ 58%]
+tests/test_crud_place.py::TestDeletePlace::test_delete_place_not_found PASSED [ 59%]
+tests/test_crud_place.py::TestSearchPlacesByName::test_search_places_by_name PASSED [ 59%]
+tests/test_crud_place.py::TestSearchPlacesByName::test_search_places_by_name_limit PASSED [ 59%]
+tests/test_crud_place.py::TestSearchPlacesByName::test_search_places_by_name_no_results PASSED [ 59%]
+tests/test_crud_place.py::TestGetOrCreatePlace::test_get_or_create_new_place PASSED [ 59%]
+tests/test_crud_place.py::TestGetOrCreatePlace::test_get_or_create_existing_place PASSED [ 59%]
+tests/test_crud_place.py::TestGetOrCreatePlace::test_get_or_create_different_address PASSED [ 59%]
+tests/test_crud_requirement.py::TestGetRankRequirements::test_get_rank_requirements_all PASSED [ 59%]
+tests/test_crud_requirement.py::TestGetRankRequirements::test_get_rank_requirements_filter_by_rank PASSED [ 60%]
+tests/test_crud_requirement.py::TestGetRankRequirements::test_get_rank_requirements_filter_by_category PASSED [ 60%]
+tests/test_crud_requirement.py::TestGetRankRequirements::test_get_rank_requirements_pagination PASSED [ 60%]
+tests/test_crud_requirement.py::TestGetRankRequirement::test_get_rank_requirement_success PASSED [ 60%]
+tests/test_crud_requirement.py::TestGetRankRequirement::test_get_rank_requirement_not_found PASSED [ 60%]
+tests/test_crud_requirement.py::TestCreateRankRequirement::test_create_rank_requirement PASSED [ 60%]
+tests/test_crud_requirement.py::TestUpdateRankRequirement::test_update_rank_requirement PASSED [ 60%]
+tests/test_crud_requirement.py::TestUpdateRankRequirement::test_update_rank_requirement_not_found PASSED [ 61%]
+tests/test_crud_requirement.py::TestDeleteRankRequirement::test_delete_rank_requirement_success PASSED [ 61%]
+tests/test_crud_requirement.py::TestDeleteRankRequirement::test_delete_rank_requirement_not_found PASSED [ 61%]
+tests/test_crud_requirement.py::TestSearchRankRequirementsByKeywords::test_search_by_keywords_single PASSED [ 61%]
+tests/test_crud_requirement.py::TestSearchRankRequirementsByKeywords::test_search_by_keywords_multiple PASSED [ 61%]
+tests/test_crud_requirement.py::TestGetMeritBadges::test_get_merit_badges_all PASSED [ 61%]
+tests/test_crud_requirement.py::TestGetMeritBadges::test_get_merit_badges_pagination PASSED [ 61%]
+tests/test_crud_requirement.py::TestGetMeritBadge::test_get_merit_badge_by_id PASSED [ 61%]
+tests/test_crud_requirement.py::TestGetMeritBadge::test_get_merit_badge_not_found PASSED [ 62%]
+tests/test_crud_requirement.py::TestGetMeritBadge::test_get_merit_badge_by_name PASSED [ 62%]
+tests/test_crud_requirement.py::TestGetMeritBadge::test_get_merit_badge_by_name_not_found PASSED [ 62%]
+tests/test_crud_requirement.py::TestCreateMeritBadge::test_create_merit_badge PASSED [ 62%]
+tests/test_crud_requirement.py::TestUpdateMeritBadge::test_update_merit_badge PASSED [ 62%]
+tests/test_crud_requirement.py::TestUpdateMeritBadge::test_update_merit_badge_not_found PASSED [ 62%]
+tests/test_crud_requirement.py::TestDeleteMeritBadge::test_delete_merit_badge_success PASSED [ 62%]
+tests/test_crud_requirement.py::TestDeleteMeritBadge::test_delete_merit_badge_not_found PASSED [ 63%]
+tests/test_crud_requirement.py::TestSearchMeritBadgesByKeywords::test_search_merit_badges_by_keywords PASSED [ 63%]
+tests/test_crud_requirement.py::TestOutingRequirements::test_get_outing_requirements PASSED [ 63%]
+tests/test_crud_requirement.py::TestOutingRequirements::test_add_requirement_to_outing PASSED [ 63%]
+tests/test_crud_requirement.py::TestOutingRequirements::test_update_outing_requirement PASSED [ 63%]
+tests/test_crud_requirement.py::TestOutingRequirements::test_update_outing_requirement_not_found PASSED [ 63%]
+tests/test_crud_requirement.py::TestOutingRequirements::test_remove_requirement_from_outing PASSED [ 63%]
+tests/test_crud_requirement.py::TestOutingRequirements::test_remove_requirement_from_outing_not_found PASSED [ 63%]
+tests/test_crud_requirement.py::TestOutingMeritBadges::test_get_outing_merit_badges PASSED [ 64%]
+tests/test_crud_requirement.py::TestOutingMeritBadges::test_add_merit_badge_to_outing PASSED [ 64%]
+tests/test_crud_requirement.py::TestOutingMeritBadges::test_update_outing_merit_badge PASSED [ 64%]
+tests/test_crud_requirement.py::TestOutingMeritBadges::test_update_outing_merit_badge_not_found PASSED [ 64%]
+tests/test_crud_requirement.py::TestOutingMeritBadges::test_remove_merit_badge_from_outing PASSED [ 64%]
+tests/test_crud_requirement.py::TestOutingMeritBadges::test_remove_merit_badge_from_outing_not_found PASSED [ 64%]
+tests/test_crud_troop.py::TestTroopCRUD::test_create_troop PASSED        [ 64%]
+tests/test_crud_troop.py::TestTroopCRUD::test_get_troops PASSED          [ 65%]
+tests/test_crud_troop.py::TestTroopCRUD::test_update_troop PASSED        [ 65%]
+tests/test_crud_troop.py::TestTroopCRUD::test_delete_troop PASSED        [ 65%]
+tests/test_crud_troop.py::TestPatrolCRUD::test_create_patrol PASSED      [ 65%]
+tests/test_crud_troop.py::TestPatrolCRUD::test_get_patrols PASSED        [ 65%]
+tests/test_crud_troop.py::TestPatrolCRUD::test_update_patrol PASSED      [ 65%]
+tests/test_crud_troop.py::TestPatrolCRUD::test_delete_patrol PASSED      [ 65%]
+tests/test_crud_user.py::TestCreateAndRetrieveUser::test_create_user PASSED [ 65%]
+tests/test_crud_user.py::TestCreateAndRetrieveUser::test_get_user_not_found PASSED [ 66%]
+tests/test_crud_user.py::TestCreateAndRetrieveUser::test_get_user_by_email PASSED [ 66%]
+tests/test_crud_user.py::TestCreateAndRetrieveUser::test_get_user_by_email_not_found PASSED [ 66%]
+tests/test_crud_user.py::TestListUsers::test_get_users_filters PASSED    [ 66%]
+tests/test_crud_user.py::TestListUsers::test_get_users_pagination PASSED [ 66%]
+tests/test_crud_user.py::TestUpdateUser::test_update_user_fields PASSED  [ 66%]
+tests/test_crud_user.py::TestUpdateUser::test_update_user_not_found PASSED [ 66%]
+tests/test_crud_user.py::TestUpdateUser::test_update_user_deactivate PASSED [ 67%]
+tests/test_crud_user.py::TestUpdatePassword::test_update_user_password PASSED [ 67%]
+tests/test_crud_user.py::TestUpdatePassword::test_update_user_password_not_found PASSED [ 67%]
+tests/test_crud_user.py::TestDeleteUser::test_delete_user_success PASSED [ 67%]
+tests/test_crud_user.py::TestDeleteUser::test_delete_user_not_found PASSED [ 67%]
+tests/test_eagle_required.py::test_merit_badge_model_has_eagle_required_column PASSED [ 67%]
+tests/test_eagle_required.py::test_eagle_required_count_at_least_five PASSED [ 67%]
+tests/test_initial_setup.py::test_initial_setup_flag_default_false PASSED [ 68%]
+tests/test_initial_setup.py::test_mark_initial_setup_complete_endpoint PASSED [ 68%]
+tests/test_keyword_pruning.py::test_extract_keywords_prunes_domain_tokens PASSED [ 68%]
+tests/test_keyword_pruning.py::test_extract_keywords_min_length_and_stopwords PASSED [ 68%]
+tests/test_models.py::TestOutingModel::test_outing_creation PASSED       [ 68%]
+tests/test_models.py::TestOutingModel::test_outing_signup_count_property PASSED [ 68%]
+tests/test_models.py::TestOutingModel::test_outing_available_spots_property PASSED [ 68%]
+tests/test_models.py::TestOutingModel::test_outing_is_full_property PASSED [ 68%]
+tests/test_models.py::TestOutingModel::test_outing_repr PASSED           [ 69%]
+tests/test_models.py::TestSignupModel::test_signup_creation PASSED       [ 69%]
+tests/test_models.py::TestSignupModel::test_signup_participant_count_property PASSED [ 69%]
+tests/test_models.py::TestSignupModel::test_signup_scout_count_property PASSED [ 69%]
+tests/test_models.py::TestSignupModel::test_signup_adult_count_property PASSED [ 69%]
+tests/test_models.py::TestSignupModel::test_signup_repr PASSED           [ 69%]
+tests/test_models.py::TestParticipantModel::test_participant_creation PASSED [ 69%]
+tests/test_models.py::TestParticipantModel::test_participant_with_dietary_restrictions PASSED [ 70%]
+tests/test_models.py::TestParticipantModel::test_participant_with_allergies PASSED [ 70%]
+tests/test_models.py::TestParticipantModel::test_participant_repr PASSED [ 70%]
+tests/test_models.py::TestUserModel::test_user_creation PASSED           [ 70%]
+tests/test_models.py::TestUserModel::test_user_unique_email PASSED       [ 70%]
+tests/test_models.py::TestUserModel::test_user_repr PASSED               [ 70%]
+tests/test_models.py::TestDietaryRestrictionModel::test_dietary_restriction_creation PASSED [ 70%]
+tests/test_models.py::TestDietaryRestrictionModel::test_dietary_restriction_repr PASSED [ 70%]
+tests/test_models.py::TestAllergyModel::test_allergy_creation PASSED     [ 71%]
+tests/test_models.py::TestAllergyModel::test_allergy_repr PASSED         [ 71%]
+tests/test_models.py::TestModelRelationships::test_outing_signup_relationship PASSED [ 71%]
+tests/test_models.py::TestModelRelationships::test_signup_participant_relationship PASSED [ 71%]
+tests/test_models.py::TestModelRelationships::test_delete_signup_cascades_to_participants PASSED [ 71%]
+tests/test_schemas_auth.py::TestLoginRequest::test_valid_login PASSED    [ 71%]
+tests/test_schemas_auth.py::TestLoginRequest::test_invalid_email_raises_error PASSED [ 71%]
+tests/test_schemas_auth.py::TestLoginRequest::test_password_too_short_raises_error PASSED [ 72%]
+tests/test_schemas_auth.py::TestLoginRequest::test_password_exactly_8_chars PASSED [ 72%]
+tests/test_schemas_auth.py::TestRefreshRequest::test_valid_refresh PASSED [ 72%]
+tests/test_schemas_auth.py::TestRefreshRequest::test_missing_token_raises_error PASSED [ 72%]
+tests/test_schemas_auth.py::TestUserResponse::test_valid_user_response PASSED [ 72%]
+tests/test_schemas_auth.py::TestUserResponse::test_user_with_all_fields PASSED [ 72%]
+tests/test_schemas_auth.py::TestUserResponse::test_user_default_values PASSED [ 72%]
+tests/test_schemas_auth.py::TestUserContactUpdate::test_update_phone_only PASSED [ 72%]
+tests/test_schemas_auth.py::TestUserContactUpdate::test_update_emergency_contact PASSED [ 73%]
+tests/test_schemas_auth.py::TestUserContactUpdate::test_update_youth_protection PASSED [ 73%]
+tests/test_schemas_auth.py::TestUserContactUpdate::test_update_all_fields PASSED [ 73%]
+tests/test_schemas_auth.py::TestUserContactUpdate::test_empty_update PASSED [ 73%]
+tests/test_schemas_auth.py::TestUserContactUpdate::test_phone_too_long_raises_error PASSED [ 73%]
+tests/test_schemas_auth.py::TestUserContactUpdate::test_emergency_contact_name_too_long_raises_error PASSED [ 73%]
+tests/test_schemas_auth.py::TestTokenResponse::test_valid_token_response PASSED [ 73%]
+tests/test_schemas_auth.py::TestTokenResponse::test_token_type_default PASSED [ 74%]
+tests/test_schemas_checkin.py::TestCheckInParticipant::test_valid_participant PASSED [ 74%]
+tests/test_schemas_checkin.py::TestCheckInParticipant::test_participant_with_all_fields PASSED [ 74%]
+tests/test_schemas_checkin.py::TestCheckInParticipant::test_participant_default_values PASSED [ 74%]
+tests/test_schemas_checkin.py::TestCheckInSummary::test_valid_summary PASSED [ 74%]
+tests/test_schemas_checkin.py::TestCheckInSummary::test_summary_with_participants PASSED [ 74%]
+tests/test_schemas_checkin.py::TestCheckInCreate::test_valid_checkin_create PASSED [ 74%]
+tests/test_schemas_checkin.py::TestCheckInCreate::test_multiple_participants PASSED [ 75%]
+tests/test_schemas_checkin.py::TestCheckInCreate::test_empty_participant_ids_raises_error PASSED [ 75%]
+tests/test_schemas_checkin.py::TestCheckInCreate::test_empty_checked_in_by_raises_error PASSED [ 75%]
+tests/test_schemas_checkin.py::TestCheckInCreate::test_checked_in_by_too_long_raises_error PASSED [ 75%]
+tests/test_schemas_checkin.py::TestCheckInBulkCreate::test_valid_bulk_create PASSED [ 75%]
+tests/test_schemas_checkin.py::TestCheckInBulkCreate::test_multiple_participants PASSED [ 75%]
+tests/test_schemas_checkin.py::TestCheckInBulkCreate::test_empty_list_raises_error PASSED [ 75%]
+tests/test_schemas_checkin.py::TestCheckInRecord::test_valid_record PASSED [ 75%]
+tests/test_schemas_checkin.py::TestCheckInResponse::test_valid_response PASSED [ 76%]
+tests/test_schemas_checkin.py::TestCheckInExportRow::test_valid_export_row PASSED [ 76%]
+tests/test_schemas_checkin.py::TestCheckInExportRow::test_export_row_all_fields PASSED [ 76%]
+tests/test_schemas_checkin.py::TestCheckInExportRow::test_export_row_not_checked_in PASSED [ 76%]
+tests/test_schemas_family.py::TestDietaryPreferenceSchemas::test_dietary_preference_base_valid PASSED [ 76%]
+tests/test_schemas_family.py::TestDietaryPreferenceSchemas::test_dietary_preference_empty_raises_error PASSED [ 76%]
+tests/test_schemas_family.py::TestDietaryPreferenceSchemas::test_dietary_preference_too_long_raises_error PASSED [ 76%]
+tests/test_schemas_family.py::TestDietaryPreferenceSchemas::test_dietary_preference_create PASSED [ 77%]
+tests/test_schemas_family.py::TestDietaryPreferenceSchemas::test_dietary_preference_response PASSED [ 77%]
+tests/test_schemas_family.py::TestAllergySchemas::test_allergy_base_valid PASSED [ 77%]
+tests/test_schemas_family.py::TestAllergySchemas::test_allergy_with_severity PASSED [ 77%]
+tests/test_schemas_family.py::TestAllergySchemas::test_allergy_empty_raises_error PASSED [ 77%]
+tests/test_schemas_family.py::TestAllergySchemas::test_allergy_too_long_raises_error PASSED [ 77%]
+tests/test_schemas_family.py::TestAllergySchemas::test_allergy_severity_too_long_raises_error PASSED [ 77%]
+tests/test_schemas_family.py::TestAllergySchemas::test_allergy_create PASSED [ 77%]
+tests/test_schemas_family.py::TestAllergySchemas::test_allergy_response PASSED [ 78%]
+tests/test_schemas_family.py::TestFamilyMemberBase::test_adult_member_valid PASSED [ 78%]
+tests/test_schemas_family.py::TestFamilyMemberBase::test_scout_member_valid PASSED [ 78%]
+tests/test_schemas_family.py::TestFamilyMemberBase::test_invalid_member_type_raises_error PASSED [ 78%]
+tests/test_schemas_family.py::TestFamilyMemberBase::test_empty_name_raises_error PASSED [ 78%]
+tests/test_schemas_family.py::TestFamilyMemberBase::test_name_too_long_raises_error PASSED [ 78%]
+tests/test_schemas_family.py::TestFamilyMemberBase::test_negative_vehicle_capacity_raises_error PASSED [ 78%]
+tests/test_schemas_family.py::TestFamilyMemberBase::test_default_values PASSED [ 79%]
+tests/test_schemas_family.py::TestFamilyMemberCreate::test_create_with_defaults PASSED [ 79%]
+tests/test_schemas_family.py::TestFamilyMemberCreate::test_create_with_dietary_preferences PASSED [ 79%]
+tests/test_schemas_family.py::TestFamilyMemberCreate::test_create_with_allergies PASSED [ 79%]
+tests/test_schemas_family.py::TestFamilyMemberUpdate::test_update_partial PASSED [ 79%]
+tests/test_schemas_family.py::TestFamilyMemberUpdate::test_update_empty PASSED [ 79%]
+tests/test_schemas_family.py::TestFamilyMemberUpdate::test_update_all_fields PASSED [ 79%]
+tests/test_schemas_family.py::TestFamilyMemberUpdate::test_update_dietary_preferences PASSED [ 79%]
+tests/test_schemas_family.py::TestFamilyMemberSummary::test_summary_adult PASSED [ 80%]
+tests/test_schemas_family.py::TestFamilyMemberSummary::test_summary_scout PASSED [ 80%]
+tests/test_schemas_family.py::TestFamilyMemberSummary::test_summary_minimal PASSED [ 80%]
+tests/test_schemas_family.py::TestFamilyMemberListResponse::test_list_response_empty PASSED [ 80%]
+tests/test_schemas_family.py::TestFamilyMemberListResponse::test_list_response_with_members PASSED [ 80%]
+tests/test_schemas_outing.py::TestOutingCreateTimeValidators::test_valid_time_string PASSED [ 80%]
+tests/test_schemas_outing.py::TestOutingCreateTimeValidators::test_none_time PASSED [ 80%]
+tests/test_schemas_outing.py::TestOutingCreateTimeValidators::test_empty_string_converts_to_none PASSED [ 81%]
+tests/test_schemas_outing.py::TestOutingCreateTimeValidators::test_missing_time_fields PASSED [ 81%]
+tests/test_schemas_outing.py::TestOutingCreateTimeValidators::test_invalid_time_string_raises_error PASSED [ 81%]
+tests/test_schemas_outing.py::TestOutingUpdateTimeValidators::test_valid_time_string PASSED [ 81%]
+tests/test_schemas_outing.py::TestOutingUpdateTimeValidators::test_none_time PASSED [ 81%]
+tests/test_schemas_outing.py::TestOutingUpdateTimeValidators::test_empty_string_converts_to_none PASSED [ 81%]
+tests/test_schemas_outing.py::TestOutingUpdateTimeValidators::test_missing_time_fields PASSED [ 81%]
+tests/test_schemas_outing.py::TestOutingUpdateTimeValidators::test_invalid_time_string_raises_error PASSED [ 81%]
+tests/test_schemas_place.py::TestPlaceBase::test_valid_place_basic PASSED [ 82%]
+tests/test_schemas_place.py::TestPlaceBase::test_place_with_google_maps_url PASSED [ 82%]
+tests/test_schemas_place.py::TestPlaceBase::test_missing_name_raises_error PASSED [ 82%]
+tests/test_schemas_place.py::TestPlaceBase::test_missing_address_raises_error PASSED [ 82%]
+tests/test_schemas_place.py::TestPlaceCreate::test_create_place_basic PASSED [ 82%]
+tests/test_schemas_place.py::TestPlaceCreate::test_create_place_with_optional PASSED [ 82%]
+tests/test_schemas_place.py::TestPlaceUpdate::test_update_name_only PASSED [ 82%]
+tests/test_schemas_place.py::TestPlaceUpdate::test_update_address_only PASSED [ 83%]
+tests/test_schemas_place.py::TestPlaceUpdate::test_update_google_maps_url_only PASSED [ 83%]
+tests/test_schemas_place.py::TestPlaceUpdate::test_update_all_fields PASSED [ 83%]
+tests/test_schemas_place.py::TestPlaceUpdate::test_empty_update PASSED   [ 83%]
+tests/test_schemas_place.py::TestPlaceResponse::test_valid_response PASSED [ 83%]
+tests/test_schemas_place.py::TestPlaceResponse::test_response_without_google_maps_url PASSED [ 83%]
+tests/test_schemas_place.py::TestPlaceResponse::test_response_id_is_uuid PASSED [ 83%]
+tests/test_schemas_signup.py::TestDietaryRestriction::test_valid_restriction PASSED [ 84%]
+tests/test_schemas_signup.py::TestDietaryRestriction::test_restriction_with_notes PASSED [ 84%]
+tests/test_schemas_signup.py::TestAllergy::test_valid_allergy_mild PASSED [ 84%]
+tests/test_schemas_signup.py::TestAllergy::test_valid_allergy_moderate PASSED [ 84%]
+tests/test_schemas_signup.py::TestAllergy::test_valid_allergy_severe PASSED [ 84%]
+tests/test_schemas_signup.py::TestAllergy::test_allergy_with_notes PASSED [ 84%]
+tests/test_schemas_signup.py::TestAllergy::test_invalid_severity_raises_error PASSED [ 84%]
+tests/test_schemas_signup.py::TestFamilyContact::test_valid_family_contact PASSED [ 84%]
+tests/test_schemas_signup.py::TestFamilyContact::test_invalid_email_raises_error PASSED [ 85%]
+tests/test_schemas_signup.py::TestFamilyContact::test_empty_phone_raises_error PASSED [ 85%]
+tests/test_schemas_signup.py::TestFamilyContact::test_phone_too_long_raises_error PASSED [ 85%]
+tests/test_schemas_signup.py::TestFamilyContact::test_empty_emergency_contact_name_raises_error PASSED [ 85%]
+tests/test_schemas_signup.py::TestSignupCreate::test_valid_signup_create PASSED [ 85%]
+tests/test_schemas_signup.py::TestSignupCreate::test_multiple_family_members PASSED [ 85%]
+tests/test_schemas_signup.py::TestSignupCreate::test_empty_family_member_ids_raises_error PASSED [ 85%]
+tests/test_schemas_signup.py::TestSignupUpdate::test_update_contact_only PASSED [ 86%]
+tests/test_schemas_signup.py::TestSignupUpdate::test_update_members_only PASSED [ 86%]
+tests/test_schemas_signup.py::TestSignupUpdate::test_update_both PASSED  [ 86%]
+tests/test_schemas_signup.py::TestSignupUpdate::test_update_empty PASSED [ 86%]
+tests/test_schemas_signup.py::TestParticipantResponse::test_valid_participant_response PASSED [ 86%]
+tests/test_schemas_signup.py::TestParticipantResponse::test_adult_participant PASSED [ 86%]
+tests/test_schemas_signup.py::TestParticipantResponse::test_participant_minimal PASSED [ 86%]
+tests/test_schemas_signup.py::TestSignupResponse::test_valid_signup_response PASSED [ 86%]
+tests/test_schemas_signup.py::TestSignupResponse::test_signup_with_warnings PASSED [ 87%]
+tests/test_schemas_signup.py::TestSignupListResponse::test_empty_list PASSED [ 87%]
+tests/test_schemas_signup.py::TestSignupListResponse::test_list_with_signups PASSED [ 87%]
+tests/test_services_change_log.py::TestComputePayloadHash::test_basic_hash PASSED [ 87%]
+tests/test_services_change_log.py::TestComputePayloadHash::test_same_data_same_hash PASSED [ 87%]
+tests/test_services_change_log.py::TestComputePayloadHash::test_different_data_different_hash PASSED [ 87%]
+tests/test_services_change_log.py::TestComputePayloadHash::test_field_order_invariant PASSED [ 87%]
+tests/test_services_change_log.py::TestComputePayloadHash::test_missing_field_handled PASSED [ 88%]
+tests/test_services_change_log.py::TestComputePayloadHash::test_empty_fields_list PASSED [ 88%]
+tests/test_services_change_log.py::TestComputePayloadHash::test_datetime_serialization PASSED [ 88%]
+tests/test_services_change_log.py::TestComputePayloadHash::test_none_value_serialization PASSED [ 88%]
+tests/test_services_change_log.py::TestComputePayloadHash::test_list_value_serialization PASSED [ 88%]
+tests/test_services_change_log.py::TestComputePayloadHash::test_dict_value_serialization PASSED [ 88%]
+tests/test_services_change_log.py::TestComputePayloadHash::test_complex_entity PASSED [ 88%]
+tests/test_services_change_log.py::TestValidOpTypes::test_create_is_valid PASSED [ 88%]
+tests/test_services_change_log.py::TestValidOpTypes::test_update_is_valid PASSED [ 89%]
+tests/test_services_change_log.py::TestValidOpTypes::test_delete_is_valid PASSED [ 89%]
+tests/test_services_change_log.py::TestValidOpTypes::test_exactly_three_types PASSED [ 89%]
+tests/test_services_change_log.py::TestValidOpTypes::test_no_invalid_types PASSED [ 89%]
+tests/test_services_pdf_generator.py::TestPDFGenerator::test_init PASSED [ 89%]
+tests/test_services_pdf_generator.py::TestPDFGenerator::test_generate_qr_code PASSED [ 89%]
+tests/test_services_pdf_generator.py::TestPDFGenerator::test_generate_outing_handout_basic PASSED [ 89%]
+tests/test_services_pdf_generator.py::TestPDFGenerator::test_generate_outing_handout_full PASSED [ 90%]
+tests/test_services_pdf_generator.py::TestPDFGenerator::test_generate_outing_handout_no_dates PASSED [ 90%]
+tests/test_services_pdf_generator.py::TestPDFGenerator::test_generate_outing_handout_different_locations PASSED [ 90%]
+tests/test_signup_troop_restriction.py::test_signup_restricted_to_troop PASSED [ 90%]
+tests/test_suggestions.py::test_extract_keywords_basic PASSED            [ 90%]
+tests/test_suggestions.py::test_extract_keywords_empty PASSED            [ 90%]
+tests/test_suggestions.py::test_extract_keywords_with_description PASSED [ 90%]
+tests/test_suggestions.py::test_calculate_match_score_perfect_match PASSED [ 90%]
+tests/test_suggestions.py::test_calculate_match_score_partial_match PASSED [ 91%]
+tests/test_suggestions.py::test_calculate_match_score_no_match PASSED    [ 91%]
+tests/test_suggestions.py::test_calculate_match_score_empty_keywords PASSED [ 91%]
+tests/test_suggestions.py::test_calculate_match_score_case_sensitivity PASSED [ 91%]
+tests/test_suggestions.py::test_realistic_camping_outing PASSED          [ 91%]
+tests/test_suggestions.py::test_realistic_hiking_outing PASSED           [ 91%]
+tests/test_suggestions.py::test_realistic_cooking_outing PASSED          [ 91%]
+tests/test_utils_outing_email.py::TestFormatValue::test_format_none PASSED [ 92%]
+tests/test_utils_outing_email.py::TestFormatValue::test_format_string PASSED [ 92%]
+tests/test_utils_outing_email.py::TestFormatValue::test_format_integer PASSED [ 92%]
+tests/test_utils_outing_email.py::TestFormatValue::test_format_boolean_true PASSED [ 92%]
+tests/test_utils_outing_email.py::TestFormatValue::test_format_boolean_false PASSED [ 92%]
+tests/test_utils_outing_email.py::TestFormatValue::test_format_datetime PASSED [ 92%]
+tests/test_utils_outing_email.py::TestOutingFieldLabels::test_name_label PASSED [ 92%]
+tests/test_utils_outing_email.py::TestOutingFieldLabels::test_outing_date_label PASSED [ 93%]
+tests/test_utils_outing_email.py::TestOutingFieldLabels::test_location_label PASSED [ 93%]
+tests/test_utils_outing_email.py::TestOutingFieldLabels::test_all_expected_fields_present PASSED [ 93%]
+tests/test_utils_outing_email.py::TestDiffOuting::test_no_changes PASSED [ 93%]
+tests/test_utils_outing_email.py::TestDiffOuting::test_single_field_change PASSED [ 93%]
+tests/test_utils_outing_email.py::TestDiffOuting::test_multiple_field_changes PASSED [ 93%]
+tests/test_utils_outing_email.py::TestDiffOuting::test_date_change PASSED [ 93%]
+tests/test_utils_outing_email.py::TestDiffOuting::test_none_to_value_change PASSED [ 93%]
+tests/test_utils_outing_email.py::TestDiffOuting::test_value_to_none_change PASSED [ 94%]
+tests/test_utils_outing_email.py::TestGenerateOutingUpdateEmail::test_basic_email_generation PASSED [ 94%]
+tests/test_utils_outing_email.py::TestGenerateOutingUpdateEmail::test_email_with_multiple_changes PASSED [ 94%]
+tests/test_utils_outing_email.py::TestGenerateOutingUpdateEmail::test_email_includes_lead_info PASSED [ 94%]
+tests/test_utils_outing_email.py::TestGenerateOutingUpdateEmail::test_email_with_lead_name_only PASSED [ 94%]
+tests/test_utils_outing_email.py::TestGenerateOutingUpdateEmail::test_email_skips_unchanged_formatted_values PASSED [ 94%]
+tests/test_utils_outing_email.py::TestGenerateOutingUpdateEmail::test_email_with_none_values PASSED [ 94%]
+tests/test_utils_outing_email.py::TestGenerateOutingUpdateEmail::test_email_subject_format PASSED [ 95%]
+tests/test_utils_outing_email.py::TestGenerateOutingUpdateEmail::test_email_includes_contact_instructions PASSED [ 95%]
+tests/test_utils_outing_email.py::TestEmailDateTimeFormats::test_date_format PASSED [ 95%]
+tests/test_utils_outing_email.py::TestEmailDateTimeFormats::test_time_format PASSED [ 95%]
+tests/test_utils_outing_email.py::TestEmailDateTimeFormats::test_time_format_am PASSED [ 95%]
+tests/test_utils_pdf_generator.py::TestPDFGenerator::test_generate_pdf_basic PASSED [ 95%]
+tests/test_utils_pdf_generator.py::TestPDFGenerator::test_generate_pdf_no_participants PASSED [ 95%]
+tests/test_utils_pdf_generator.py::TestPDFGenerator::test_generate_pdf_multiple_scouts_vs_single PASSED [ 95%]
+tests/test_utils_pdf_generator.py::TestPDFGenerator::test_generate_pdf_adults_vehicle_capacity_affects_size PASSED [ 96%]
+tests/test_utils_pdf_generator.py::TestPDFGenerator::test_generate_pdf_allergy_dietary_size PASSED [ 96%]
+tests/test_utils_suggestions_extended.py::test_get_requirement_suggestions_empty_keywords PASSED [ 96%]
+tests/test_utils_suggestions_extended.py::test_get_requirement_suggestions_filters_and_sorts PASSED [ 96%]
+tests/test_utils_suggestions_extended.py::test_get_requirement_suggestions_min_score_excludes PASSED [ 96%]
+tests/test_utils_suggestions_extended.py::test_get_merit_badge_suggestions_sorting_and_filter PASSED [ 96%]
+tests/test_utils_suggestions_extended.py::test_get_outing_suggestions_combines PASSED [ 96%]
+tests/test_utils_timezone.py::TestValidateTimezone::test_valid_timezone PASSED [ 97%]
+tests/test_utils_timezone.py::TestValidateTimezone::test_another_valid_timezone PASSED [ 97%]
+tests/test_utils_timezone.py::TestValidateTimezone::test_utc_timezone PASSED [ 97%]
+tests/test_utils_timezone.py::TestValidateTimezone::test_invalid_timezone_returns_default PASSED [ 97%]
+tests/test_utils_timezone.py::TestValidateTimezone::test_none_returns_default PASSED [ 97%]
+tests/test_utils_timezone.py::TestValidateTimezone::test_empty_string_returns_default PASSED [ 97%]
+tests/test_utils_timezone.py::TestUtcNow::test_returns_datetime PASSED   [ 97%]
+tests/test_utils_timezone.py::TestUtcNow::test_returns_naive_datetime PASSED [ 97%]
+tests/test_utils_timezone.py::TestUtcNow::test_returns_current_time PASSED [ 98%]
+tests/test_utils_timezone.py::TestLocalToUtc::test_naive_datetime_conversion PASSED [ 98%]
+tests/test_utils_timezone.py::TestLocalToUtc::test_winter_conversion PASSED [ 98%]
+tests/test_utils_timezone.py::TestLocalToUtc::test_aware_datetime_conversion PASSED [ 98%]
+tests/test_utils_timezone.py::TestLocalToUtc::test_with_invalid_timezone PASSED [ 98%]
+tests/test_utils_timezone.py::TestLocalToUtc::test_with_none_timezone PASSED [ 98%]
+tests/test_utils_timezone.py::TestUtcToLocal::test_basic_conversion PASSED [ 98%]
+tests/test_utils_timezone.py::TestUtcToLocal::test_winter_conversion PASSED [ 99%]
+tests/test_utils_timezone.py::TestUtcToLocal::test_different_timezone PASSED [ 99%]
+tests/test_utils_timezone.py::TestUtcToLocal::test_utc_timezone PASSED   [ 99%]
+tests/test_utils_timezone.py::TestUtcToLocal::test_with_invalid_timezone PASSED [ 99%]
+tests/test_utils_timezone.py::TestUtcToLocal::test_with_none_timezone PASSED [ 99%]
+tests/test_utils_timezone.py::TestRoundTrip::test_roundtrip_conversion PASSED [ 99%]
+tests/test_utils_timezone.py::TestRoundTrip::test_roundtrip_winter PASSED [ 99%]
+tests/test_utils_timezone.py::TestRoundTrip::test_roundtrip_pacific PASSED [100%]
+
+=============================== warnings summary ===============================
+app/core/config.py:6
+  /Users/jadam/Development/trailhead/backend/app/core/config.py:6: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Settings(BaseSettings):
+
+tests/test_api_places.py::TestUpdatePlace::test_update_place_success
+tests/test_api_places.py::TestUpdatePlace::test_update_place_partial
+tests/test_crud_place.py::TestUpdatePlace::test_update_place_name
+tests/test_crud_place.py::TestUpdatePlace::test_update_place_address
+tests/test_crud_place.py::TestUpdatePlace::test_update_place_address_regenerates_google_maps_url
+tests/test_crud_place.py::TestUpdatePlace::test_update_place_with_explicit_google_maps_url
+  /Users/jadam/Development/trailhead/backend/app/crud/place.py:65: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    update_data = place.dict(exclude_unset=True)
+
+tests/test_api_troops.py::TestTroopsAPI::test_update_troop
+tests/test_crud_troop.py::TestTroopCRUD::test_update_troop
+  /Users/jadam/Development/trailhead/backend/app/crud/troop.py:59: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    update_data = troop_in.dict(exclude_unset=True)
+
+tests/test_api_troops.py::TestPatrolsAPI::test_update_patrol
+tests/test_crud_troop.py::TestPatrolCRUD::test_update_patrol
+  /Users/jadam/Development/trailhead/backend/app/crud/troop.py:125: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    update_data = patrol_in.dict(exclude_unset=True)
+
+tests/test_contracts.py::TestOutingContracts::test_outing_response_structure
+  tests/test_contracts.py:23: PytestWarning: The test <Function test_outing_response_structure> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_outing_response_structure(self):
+
+tests/test_contracts.py::TestOutingContracts::test_outing_create_request_structure
+  tests/test_contracts.py:62: PytestWarning: The test <Function test_outing_create_request_structure> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_outing_create_request_structure(self):
+
+tests/test_contracts.py::TestSignupContracts::test_signup_response_structure
+  tests/test_contracts.py:88: PytestWarning: The test <Function test_signup_response_structure> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_signup_response_structure(self):
+
+tests/test_contracts.py::TestSignupContracts::test_signup_response_with_warnings
+  tests/test_contracts.py:134: PytestWarning: The test <Function test_signup_response_with_warnings> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_signup_response_with_warnings(self):
+
+tests/test_contracts.py::TestSignupContracts::test_signup_create_request_structure
+  tests/test_contracts.py:175: PytestWarning: The test <Function test_signup_create_request_structure> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_signup_create_request_structure(self):
+
+tests/test_contracts.py::TestParticipantContracts::test_participant_response_structure
+  tests/test_contracts.py:199: PytestWarning: The test <Function test_participant_response_structure> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_participant_response_structure(self):
+
+tests/test_contracts.py::TestErrorContracts::test_validation_error_structure
+  tests/test_contracts.py:250: PytestWarning: The test <Function test_validation_error_structure> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_validation_error_structure(self):
+
+tests/test_contracts.py::TestErrorContracts::test_missing_required_field_error
+  tests/test_contracts.py:274: PytestWarning: The test <Function test_missing_required_field_error> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_missing_required_field_error(self):
+
+tests/test_contracts.py::TestTypeCompatibility::test_optional_fields_are_nullable
+  tests/test_contracts.py:292: PytestWarning: The test <Function test_optional_fields_are_nullable> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_optional_fields_are_nullable(self):
+
+tests/test_contracts.py::TestTypeCompatibility::test_list_fields_default_to_empty
+  tests/test_contracts.py:318: PytestWarning: The test <Function test_list_fields_default_to_empty> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_list_fields_default_to_empty(self):
+
+tests/test_utils_pdf_generator.py::TestPDFGenerator::test_generate_pdf_basic
+  tests/test_utils_pdf_generator.py:44: PytestWarning: The test <Function test_generate_pdf_basic> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_generate_pdf_basic(self):
+
+tests/test_utils_pdf_generator.py::TestPDFGenerator::test_generate_pdf_no_participants
+  tests/test_utils_pdf_generator.py:56: PytestWarning: The test <Function test_generate_pdf_no_participants> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_generate_pdf_no_participants(self):
+
+tests/test_utils_pdf_generator.py::TestPDFGenerator::test_generate_pdf_multiple_scouts_vs_single
+  tests/test_utils_pdf_generator.py:64: PytestWarning: The test <Function test_generate_pdf_multiple_scouts_vs_single> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_generate_pdf_multiple_scouts_vs_single(self):
+
+tests/test_utils_pdf_generator.py::TestPDFGenerator::test_generate_pdf_adults_vehicle_capacity_affects_size
+  tests/test_utils_pdf_generator.py:77: PytestWarning: The test <Function test_generate_pdf_adults_vehicle_capacity_affects_size> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_generate_pdf_adults_vehicle_capacity_affects_size(self):
+
+tests/test_utils_pdf_generator.py::TestPDFGenerator::test_generate_pdf_allergy_dietary_size
+  tests/test_utils_pdf_generator.py:90: PytestWarning: The test <Function test_generate_pdf_allergy_dietary_size> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_generate_pdf_allergy_dietary_size(self):
+
+tests/test_utils_suggestions_extended.py::test_get_requirement_suggestions_empty_keywords
+  tests/test_utils_suggestions_extended.py:33: PytestWarning: The test <Function test_get_requirement_suggestions_empty_keywords> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_get_requirement_suggestions_empty_keywords(monkeypatch):
+
+tests/test_utils_suggestions_extended.py::test_get_requirement_suggestions_filters_and_sorts
+  tests/test_utils_suggestions_extended.py:40: PytestWarning: The test <Function test_get_requirement_suggestions_filters_and_sorts> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_get_requirement_suggestions_filters_and_sorts(monkeypatch):
+
+tests/test_utils_suggestions_extended.py::test_get_requirement_suggestions_min_score_excludes
+  tests/test_utils_suggestions_extended.py:65: PytestWarning: The test <Function test_get_requirement_suggestions_min_score_excludes> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_get_requirement_suggestions_min_score_excludes(monkeypatch):
+
+tests/test_utils_suggestions_extended.py::test_get_merit_badge_suggestions_sorting_and_filter
+  tests/test_utils_suggestions_extended.py:76: PytestWarning: The test <Function test_get_merit_badge_suggestions_sorting_and_filter> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_get_merit_badge_suggestions_sorting_and_filter(monkeypatch):
+
+tests/test_utils_suggestions_extended.py::test_get_outing_suggestions_combines
+  tests/test_utils_suggestions_extended.py:93: PytestWarning: The test <Function test_get_outing_suggestions_combines> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_get_outing_suggestions_combines(monkeypatch):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform darwin, python 3.9.6-final-0 -----------
+Name                                 Stmts   Miss  Cover   Missing
+------------------------------------------------------------------
+app/__init__.py                          1      0   100%
+app/api/__init__.py                      0      0   100%
+app/api/checkin.py                      57     25    56%   39-54, 70-78, 106-112, 129, 148-187
+app/api/deps.py                         89     22    75%   45-46, 49, 66, 75-78, 92-98, 102-104, 113-115, 117-119
+app/api/endpoints/__init__.py            0      0   100%
+app/api/endpoints/auth.py              179    145    19%   27-82, 90-251, 257-260, 269, 293-307, 332-334, 354-357
+app/api/endpoints/family.py             60     28    53%   60-97, 111-116, 130, 145-150, 164-169
+app/api/endpoints/grubmaster.py        258    219    15%   37-59, 83-160, 183-193, 208-220, 232-246, 257-271, 283-298, 319-353, 365-373, 388-513, 531-630
+app/api/endpoints/health.py             65      4    94%   45, 55, 59-60
+app/api/endpoints/offline.py            65     43    34%   35-100, 121-166
+app/api/endpoints/outings.py           108     55    49%   27-28, 31-33, 47-51, 54-56, 74, 86-87, 96, 112-130, 147-152, 165-176, 190-201, 215-229, 234-265, 281-290
+app/api/endpoints/packing_lists.py      71     36    49%   38, 55-60, 78-96, 112-119, 136-142, 161-168, 186-201, 218-232
+app/api/endpoints/places.py             50     19    62%   34-39, 50, 57-67, 82, 88-93, 104, 110-111
+app/api/endpoints/registration.py       18      1    94%   41
+app/api/endpoints/requirements.py      207    106    49%   62-67, 78, 94, 99-104, 115, 120-121, 150-155, 166, 171-176, 188, 193-198, 209, 214-215, 244, 250-272, 284, 289-294, 305, 310-311, 340, 346-368, 380, 385-390, 401, 406-407, 436, 443-466, 478, 483-488, 499, 504-505, 538-597, 617-625
+app/api/endpoints/signups.py           297    194    35%   75-91, 97-159, 168-186, 199-245, 248-265, 272-289, 335-346, 353-384, 401-404, 409-416, 422-446, 453-484, 500-516, 523-565, 577-597, 600-630, 634-651, 677-696, 703-718, 725-742, 772-790, 797-818, 833-858, 863-886, 907-914, 918-920, 942-949, 954-963
+app/api/endpoints/stackauth.py          74     74     0%   4-214
+app/api/endpoints/tenting.py           237    175    26%   78-143, 158-165, 169-225, 248-262, 274-280, 283, 299-310, 322-336, 348-361, 373-388, 408-441, 460-513, 516-577, 583-586
+app/api/endpoints/troops.py             71     26    63%   33, 45, 55-57, 68, 70-72, 82, 84-85, 99-102, 115-117, 128, 130-132, 142, 144-145
+app/core/__init__.py                     0      0   100%
+app/core/authentik.py                  126     97    23%   19-24, 36-43, 50-63, 67-71, 75-76, 84, 89, 94, 99-101, 116-174, 189-262, 278-284, 295-298
+app/core/config.py                      42      0   100%
+app/core/security.py                    31      0   100%
+app/crud/__init__.py                    11      0   100%
+app/crud/checkin.py                     69      3    96%   25, 100, 115
+app/crud/eating_group.py                95     75    21%   21-37, 42-59, 67-88, 97-106, 111-117, 129-146, 154-164, 173-184, 195-224, 232-253, 261-278
+app/crud/family.py                      84      8    90%   167-176
+app/crud/outing.py                      91     15    84%   57, 110, 114, 122-126, 154, 161-166
+app/crud/packing_list.py                79      8    90%   55-60, 138, 192
+app/crud/participant.py                 39      0   100%
+app/crud/place.py                       66      0   100%
+app/crud/requirement.py                222     29    87%   223, 316, 386, 394-400, 413-417, 427-439, 448-454
+app/crud/signup.py                      93     44    53%   50, 63, 69-70, 123-196, 203
+app/crud/tenting_group.py               86     37    57%   84, 98, 114-130, 138-148, 158-184, 221-240
+app/crud/troop.py                       85      5    94%   58, 76, 106, 124, 139
+app/crud/user.py                        63      2    97%   96, 98
+app/db/__init__.py                       0      0   100%
+app/db/base.py                           2      0   100%
+app/db/init_db.py                       47     47     0%   11-80
+app/db/session.py                       21      5    76%   12, 21, 54-56
+app/main.py                             77      9    88%   128, 173-184, 225, 249-250
+app/models/__init__.py                  15      0   100%
+app/models/change_log.py                15      0   100%
+app/models/checkin.py                   21      1    95%   37
+app/models/eating_group.py              38      5    87%   26, 31, 36, 41, 59
+app/models/family.py                    48      1    98%   49
+app/models/outing.py                   119     15    87%   108, 116, 124-126, 132-137, 144-146, 167
+app/models/packing_list.py              52      4    92%   25, 44, 62, 81
+app/models/participant.py               55      1    98%   45
+app/models/place.py                     24      1    96%   39
+app/models/refresh_token.py             17      1    94%   25
+app/models/requirement.py               83     19    77%   29-32, 51-53, 71-74, 92-95, 117-120
+app/models/signup.py                    27      0   100%
+app/models/tenting_group.py             31      3    90%   26, 31, 48
+app/models/troop.py                     38      4    89%   12-13, 37, 56
+app/models/user.py                      27      0   100%
+app/schemas/__init__.py                  6      0   100%
+app/schemas/auth.py                     31      0   100%
+app/schemas/change_log.py               18      0   100%
+app/schemas/checkin.py                  54      0   100%
+app/schemas/eating_group.py             81      0   100%
+app/schemas/family.py                   83      1    99%   67
+app/schemas/outing.py                  144      6    96%   53, 61, 79, 91, 98-101
+app/schemas/packing_list.py             57      0   100%
+app/schemas/place.py                    19      0   100%
+app/schemas/requirement.py             105      0   100%
+app/schemas/signup.py                   63      0   100%
+app/schemas/tenting_group.py            68      0   100%
+app/schemas/troop.py                    46      0   100%
+app/services/change_log.py              41      7    83%   36, 71-76, 83
+app/services/pdf_generator.py          219     24    89%   111-115, 117-122, 132-134, 185, 212-218, 246-247, 347, 413
+app/utils/outing_email.py               35      0   100%
+app/utils/pdf_generator.py              90      1    99%   216
+app/utils/suggestions.py               104     12    88%   84, 149-152, 157, 204, 211-214, 219
+app/utils/timezone.py                   35      3    91%   33, 56, 74
+------------------------------------------------------------------
+TOTAL                                 5245   1665    68%
+Coverage HTML written to dir htmlcov
+
+=========== 743 passed, 2 skipped, 31 warnings in 333.85s (0:05:33) ============

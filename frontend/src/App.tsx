@@ -20,6 +20,7 @@ import FamilySetupPage from "./pages/FamilySetupPage";
 import OutingsPage from "./pages/OutingsPage";
 import CheckInPage from "./pages/CheckInPage";
 import ProfilePage from "./pages/ProfilePage";
+import { RosterImportPage } from "./pages/admin/RosterImportPage";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import InitialSignInWizard from "./components/InitialSignInWizard";
 import { InitialSetupGuard } from "./components/InitialSetupGuard";
@@ -686,6 +687,16 @@ const AppContent: React.FC = () => {
               <Route path="/callback" element={<OAuthCallbackPage />} />
 
               <Route path="/admin" element={<AdminPage />} />
+              <Route
+                path="/admin/roster-import"
+                element={
+                  <RequireAuth>
+                    <InitialSetupGuard>
+                      <RosterImportPage />
+                    </InitialSetupGuard>
+                  </RequireAuth>
+                }
+              />
               <Route
                 path="/initial-setup"
                 element={

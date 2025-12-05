@@ -18,16 +18,13 @@ class User(Base):
     role = Column(String(50), nullable=False, default="admin", index=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_initial_admin = Column(Boolean, default=False, nullable=False)
-    initial_setup_complete = Column(Boolean, default=False, nullable=False)
     
     # Contact information (stored as defaults for signups)
     phone = Column(String(50), nullable=True)
     emergency_contact_name = Column(String(255), nullable=True)
     emergency_contact_phone = Column(String(50), nullable=True)
     youth_protection_expiration = Column(Date, nullable=True)
-    # Preferred IANA time zone for this user (used to render local times)
-    # Stored as a string like "America/New_York"; default to Eastern time
-    timezone = Column(String(100), nullable=False, default="America/New_York")
+    initial_setup_complete = Column(Boolean, default=False, nullable=False)
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

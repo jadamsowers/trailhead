@@ -12,9 +12,7 @@ export class RegistrationService {
      * Register Parent
      * Register a new adult account.
      *
-     * Note: This endpoint is deprecated. User registration should be handled
-     * through Stack Auth's sign-up flow. Users are automatically created in the
-     * local database when they first authenticate via Stack Auth.
+     * Note: This endpoint is deprecated. 
      * @param requestBody
      * @returns RegistrationResponse Successful Response
      * @throws ApiError

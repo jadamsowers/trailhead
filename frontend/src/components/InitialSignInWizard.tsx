@@ -185,18 +185,7 @@ const InitialSignInWizard: React.FC = () => {
           throw new Error("Failed to save contact information");
         }
 
-        // Mark initial setup complete immediately after saving contact info
-        const completeResponse = await fetch(
-          `${getApiBase()}/auth/me/initial-setup/complete`,
-          {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        if (!completeResponse.ok) {
-          console.warn("Failed to mark initial setup complete");
-        }
-
+        // Navigate based on admin status
         if (isAdmin) {
           setStep(2);
         } else {

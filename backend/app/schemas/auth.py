@@ -22,11 +22,11 @@ class UserResponse(BaseModel):
     full_name: str
     role: str = "user"
     is_initial_admin: bool = False
-    initial_setup_complete: bool = False
     phone: Optional[str] = None
     emergency_contact_name: Optional[str] = None
     emergency_contact_phone: Optional[str] = None
     youth_protection_expiration: Optional[date] = None
+    initial_setup_complete: bool = False
 
     model_config = ConfigDict(from_attributes=True)
 

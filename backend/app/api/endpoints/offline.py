@@ -33,16 +33,15 @@ async def get_bulk_offline_data(
     """
     # 1. Get user data for offline admin detection
     user_data = UserResponse(
-        id=str(current_user.id),
+        id=current_user.id,
         email=current_user.email,
         full_name=current_user.full_name,
         role=current_user.role,
+        is_initial_admin=current_user.is_initial_admin,
         phone=current_user.phone,
         emergency_contact_name=current_user.emergency_contact_name,
         emergency_contact_phone=current_user.emergency_contact_phone,
-        youth_protection_expiration=current_user.youth_protection_expiration,
-        timezone=current_user.timezone,
-        initial_setup_complete=current_user.initial_setup_complete
+        youth_protection_expiration=current_user.youth_protection_expiration
     )
     
     # 2. Get all outings

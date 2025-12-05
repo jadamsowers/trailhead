@@ -12,7 +12,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
-from app.api.endpoints import outings, signups, registration, family, requirements, places, packing_lists, troops, offline, grubmaster, tenting
+from app.api.endpoints import outings, signups, registration, family, requirements, places, packing_lists, troops, offline, grubmaster, tenting, roster
 from app.api.endpoints import auth
 from app.api import checkin
 
@@ -112,7 +112,6 @@ async def add_security_headers(request: Request, call_next):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     
     # Content Security Policy
-    # Allow self and Stack Auth domains for authentication
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; "
@@ -212,6 +211,7 @@ app.include_router(offline.router, prefix=f"{settings.API_V1_STR}/offline", tags
 app.include_router(grubmaster.router, prefix=f"{settings.API_V1_STR}/outings", tags=["grubmaster"])
 app.include_router(tenting.router, prefix=f"{settings.API_V1_STR}/outings", tags=["tenting"])
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
+app.include_router(roster.router, prefix=f"{settings.API_V1_STR}/roster", tags=["roster"])
 
 # Health endpoint
 from app.api.endpoints import health

@@ -65,7 +65,7 @@ const FamilySetupPage: React.FC = () => {
             className="text-3xl font-bold mb-2.5"
             style={{ color: "var(--text-primary)" }}
           >
-            Welcome, {user?.profile?.name || user?.profile?.email || "Adult"}!
+            Welcome, {user?.profile?.name || "Adult"}!
           </h1>
           <p
             className="text-base mb-0"

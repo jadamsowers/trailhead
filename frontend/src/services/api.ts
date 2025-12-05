@@ -269,7 +269,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
   }
 }
 
-// Helper function to get auth headers with Stack Auth token
+// Helper function to get auth headers with Authentik token
 export async function getAuthHeaders(): Promise<HeadersInit> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -508,7 +508,7 @@ export const oauthAPI = {
    * Initiate OAuth flow
    */
   initiateLogin(_redirectUri: string, _state?: string): void {
-    // Use Stack Auth's sign-in flow - redirect to handler
+    // redirect to handler
     window.location.href = "/handler/sign-in";
   },
 
@@ -520,10 +520,9 @@ export const oauthAPI = {
     _redirectUri: string
   ): Promise<TokenResponse> {
     // Legacy OAuth code exchange is no longer supported.
-    // Authentication is handled by Stack Auth on the client.
     throw new APIError(
       501,
-      "OAuth code exchange not supported; use Stack Auth login."
+      "OAuth code exchange not supported; use Authentik login."
     );
   },
 
@@ -780,7 +779,7 @@ export const familyAPI = {
   },
 };
 
-// User API (Stack Auth-based)
+// User API
 export const userAPI = {
   /**
    * Get current user information including contact details
@@ -1977,4 +1976,39 @@ export const tentingAPI = {
     );
   },
 };
+
+// Roster API
+export const rosterAPI = {
+  async importRoster(file: File): Promise<{ message: string; stats: any }> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const headers = await getAuthHeaders();
+    // Remove Content-Type to let browser set it with boundary
+    delete (headers as any)["Content-Type"];
+
+    const response = await fetch(`${getApiBase()}/roster/import`, {
+      method: "POST",
+      headers: headers,
+      body: formData,
+    });
+    
+    return handleResponse<{ message: string; stats: any }>(response);
+  },
+};
+
+// Unified API export
+export const api = {
+  ...nominatimAPI,
+  ...outingAPI,
+  ...signupAPI,
+  ...pdfAPI,
+  ...oauthAPI,
+  ...registrationAPI,
+  ...authAPI,
+  ...familyAPI,
+  ...userAPI,
+  ...rosterAPI,
+};
+
 
