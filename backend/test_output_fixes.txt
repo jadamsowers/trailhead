@@ -1,0 +1,346 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-7.4.3, pluggy-1.6.0 -- /usr/local/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/jadam/Development/trailhead/backend
+configfile: pytest.ini
+plugins: Faker-20.1.0, cov-4.1.0, asyncio-0.21.1, mock-3.12.0, anyio-3.7.1
+asyncio: mode=auto
+collecting ... collected 126 items
+
+tests/test_crud_family.py::TestCreateFamilyMember::test_create_scout_member PASSED [  0%]
+tests/test_crud_family.py::TestCreateFamilyMember::test_create_adult_member PASSED [  1%]
+tests/test_crud_family.py::TestCreateFamilyMember::test_create_member_with_dietary_preferences PASSED [  2%]
+tests/test_crud_family.py::TestCreateFamilyMember::test_create_member_with_allergies PASSED [  3%]
+tests/test_crud_family.py::TestGetFamilyMembers::test_get_all_family_members PASSED [  3%]
+tests/test_crud_family.py::TestGetFamilyMembers::test_get_family_members_empty PASSED [  4%]
+tests/test_crud_family.py::TestGetFamilyMember::test_get_existing_family_member PASSED [  5%]
+tests/test_crud_family.py::TestGetFamilyMember::test_get_nonexistent_family_member PASSED [  6%]
+tests/test_crud_family.py::TestGetFamilyMember::test_get_family_member_wrong_user PASSED [  7%]
+tests/test_crud_family.py::TestUpdateFamilyMember::test_update_family_member PASSED [  7%]
+tests/test_crud_family.py::TestUpdateFamilyMember::test_update_nonexistent_family_member PASSED [  8%]
+tests/test_crud_family.py::TestUpdateFamilyMember::test_partial_update PASSED [  9%]
+tests/test_crud_family.py::TestDeleteFamilyMember::test_delete_family_member_without_signups PASSED [ 10%]
+tests/test_crud_family.py::TestDeleteFamilyMember::test_delete_nonexistent_family_member PASSED [ 11%]
+tests/test_crud_family.py::TestUpdateDietaryPreferences::test_add_dietary_preferences PASSED [ 11%]
+tests/test_crud_family.py::TestUpdateDietaryPreferences::test_remove_dietary_preferences PASSED [ 12%]
+tests/test_crud_family.py::TestUpdateAllergies::test_add_allergies PASSED [ 13%]
+tests/test_crud_family.py::TestUpdateAllergies::test_remove_allergies PASSED [ 14%]
+tests/test_crud_family.py::TestFamilyEdgeCases::test_get_family_member_no_user_filter PASSED [ 15%]
+tests/test_crud_family.py::TestFamilyEdgeCases::test_delete_family_member_with_signup PASSED [ 15%]
+tests/test_crud_family.py::TestFamilyEdgeCases::test_delete_family_member_keeps_signup_if_others_remain FAILED [ 16%]
+tests/test_crud_outing.py::TestGetOuting::test_get_existing_outing PASSED [ 17%]
+tests/test_crud_outing.py::TestGetOuting::test_get_nonexistent_outing PASSED [ 18%]
+tests/test_crud_outing.py::TestGetOutings::test_get_all_outings PASSED   [ 19%]
+tests/test_crud_outing.py::TestGetOutings::test_get_outings_with_pagination PASSED [ 19%]
+tests/test_crud_outing.py::TestGetOutings::test_get_outings_ordered_by_date PASSED [ 20%]
+tests/test_crud_outing.py::TestGetAvailableOutings::test_get_available_outings_excludes_full PASSED [ 21%]
+tests/test_crud_outing.py::TestGetAvailableOutings::test_get_available_outings_ordered_by_date PASSED [ 22%]
+tests/test_crud_outing.py::TestCreateOuting::test_create_outing PASSED   [ 23%]
+tests/test_crud_outing.py::TestCreateOuting::test_create_day_outing PASSED [ 23%]
+tests/test_crud_outing.py::TestUpdateOuting::test_update_outing PASSED   [ 24%]
+tests/test_crud_outing.py::TestUpdateOuting::test_update_nonexistent_outing PASSED [ 25%]
+tests/test_crud_outing.py::TestUpdateOuting::test_partial_update PASSED  [ 26%]
+tests/test_crud_outing.py::TestDeleteOuting::test_delete_outing_without_signups PASSED [ 26%]
+tests/test_crud_outing.py::TestDeleteOuting::test_delete_outing_with_signups PASSED [ 27%]
+tests/test_crud_outing.py::TestDeleteOuting::test_delete_nonexistent_outing PASSED [ 28%]
+tests/test_crud_outing.py::TestGetOutingCount::test_get_outing_count PASSED [ 29%]
+tests/test_crud_outing.py::TestGetOutingCount::test_get_outing_count_empty PASSED [ 30%]
+tests/test_crud_outing.py::TestOutingProperties::test_signup_count PASSED [ 30%]
+tests/test_crud_outing.py::TestOutingProperties::test_available_spots PASSED [ 31%]
+tests/test_crud_outing.py::TestOutingProperties::test_is_full PASSED     [ 32%]
+tests/test_crud_outing.py::TestOutingEdgeCases::test_get_outing_with_details PASSED [ 33%]
+tests/test_crud_outing.py::TestOutingEdgeCases::test_create_outing_with_allowed_troops FAILED [ 34%]
+tests/test_crud_outing.py::TestOutingEdgeCases::test_update_outing_allowed_troops PASSED [ 34%]
+tests/test_crud_outing.py::TestOutingEdgeCases::test_timezone_handling PASSED [ 35%]
+tests/test_crud_requirement.py::TestGetRankRequirements::test_get_rank_requirements_all PASSED [ 36%]
+tests/test_crud_requirement.py::TestGetRankRequirements::test_get_rank_requirements_filter_by_rank PASSED [ 37%]
+tests/test_crud_requirement.py::TestGetRankRequirements::test_get_rank_requirements_filter_by_category PASSED [ 38%]
+tests/test_crud_requirement.py::TestGetRankRequirements::test_get_rank_requirements_pagination PASSED [ 38%]
+tests/test_crud_requirement.py::TestGetRankRequirement::test_get_rank_requirement_success PASSED [ 39%]
+tests/test_crud_requirement.py::TestGetRankRequirement::test_get_rank_requirement_not_found PASSED [ 40%]
+tests/test_crud_requirement.py::TestCreateRankRequirement::test_create_rank_requirement PASSED [ 41%]
+tests/test_crud_requirement.py::TestUpdateRankRequirement::test_update_rank_requirement PASSED [ 42%]
+tests/test_crud_requirement.py::TestUpdateRankRequirement::test_update_rank_requirement_not_found PASSED [ 42%]
+tests/test_crud_requirement.py::TestDeleteRankRequirement::test_delete_rank_requirement_success PASSED [ 43%]
+tests/test_crud_requirement.py::TestDeleteRankRequirement::test_delete_rank_requirement_not_found PASSED [ 44%]
+tests/test_crud_requirement.py::TestSearchRankRequirementsByKeywords::test_search_by_keywords_single PASSED [ 45%]
+tests/test_crud_requirement.py::TestSearchRankRequirementsByKeywords::test_search_by_keywords_multiple PASSED [ 46%]
+tests/test_crud_requirement.py::TestGetMeritBadges::test_get_merit_badges_all PASSED [ 46%]
+tests/test_crud_requirement.py::TestGetMeritBadges::test_get_merit_badges_pagination PASSED [ 47%]
+tests/test_crud_requirement.py::TestGetMeritBadge::test_get_merit_badge_by_id PASSED [ 48%]
+tests/test_crud_requirement.py::TestGetMeritBadge::test_get_merit_badge_not_found PASSED [ 49%]
+tests/test_crud_requirement.py::TestGetMeritBadge::test_get_merit_badge_by_name PASSED [ 50%]
+tests/test_crud_requirement.py::TestGetMeritBadge::test_get_merit_badge_by_name_not_found PASSED [ 50%]
+tests/test_crud_requirement.py::TestCreateMeritBadge::test_create_merit_badge PASSED [ 51%]
+tests/test_crud_requirement.py::TestUpdateMeritBadge::test_update_merit_badge PASSED [ 52%]
+tests/test_crud_requirement.py::TestUpdateMeritBadge::test_update_merit_badge_not_found PASSED [ 53%]
+tests/test_crud_requirement.py::TestDeleteMeritBadge::test_delete_merit_badge_success PASSED [ 53%]
+tests/test_crud_requirement.py::TestDeleteMeritBadge::test_delete_merit_badge_not_found PASSED [ 54%]
+tests/test_crud_requirement.py::TestSearchMeritBadgesByKeywords::test_search_merit_badges_by_keywords PASSED [ 55%]
+tests/test_crud_requirement.py::TestOutingRequirements::test_get_outing_requirements PASSED [ 56%]
+tests/test_crud_requirement.py::TestOutingRequirements::test_add_requirement_to_outing PASSED [ 57%]
+tests/test_crud_requirement.py::TestOutingRequirements::test_update_outing_requirement PASSED [ 57%]
+tests/test_crud_requirement.py::TestOutingRequirements::test_update_outing_requirement_not_found PASSED [ 58%]
+tests/test_crud_requirement.py::TestOutingRequirements::test_remove_requirement_from_outing PASSED [ 59%]
+tests/test_crud_requirement.py::TestOutingRequirements::test_remove_requirement_from_outing_not_found PASSED [ 60%]
+tests/test_crud_requirement.py::TestOutingMeritBadges::test_get_outing_merit_badges PASSED [ 61%]
+tests/test_crud_requirement.py::TestOutingMeritBadges::test_add_merit_badge_to_outing PASSED [ 61%]
+tests/test_crud_requirement.py::TestOutingMeritBadges::test_update_outing_merit_badge PASSED [ 62%]
+tests/test_crud_requirement.py::TestOutingMeritBadges::test_update_outing_merit_badge_not_found PASSED [ 63%]
+tests/test_crud_requirement.py::TestOutingMeritBadges::test_remove_merit_badge_from_outing PASSED [ 64%]
+tests/test_crud_requirement.py::TestOutingMeritBadges::test_remove_merit_badge_from_outing_not_found PASSED [ 65%]
+tests/test_crud_requirement.py::TestParticipantProgress::test_create_participant_progress PASSED [ 65%]
+tests/test_crud_requirement.py::TestParticipantProgress::test_get_participant_progress_list PASSED [ 66%]
+tests/test_crud_requirement.py::TestParticipantProgress::test_get_participant_progress PASSED [ 67%]
+tests/test_crud_requirement.py::TestParticipantProgress::test_update_participant_progress PASSED [ 68%]
+tests/test_crud_requirement.py::TestParticipantProgress::test_update_participant_progress_not_found PASSED [ 69%]
+tests/test_crud_requirement.py::TestParticipantProgress::test_delete_participant_progress PASSED [ 69%]
+tests/test_crud_requirement.py::TestParticipantProgress::test_delete_participant_progress_not_found PASSED [ 70%]
+tests/test_crud_signup.py::TestGetSignup::test_get_existing_signup PASSED [ 71%]
+tests/test_crud_signup.py::TestGetSignup::test_get_nonexistent_signup PASSED [ 72%]
+tests/test_crud_signup.py::TestGetOutingSignups::test_get_outing_signups PASSED [ 73%]
+tests/test_crud_signup.py::TestGetOutingSignups::test_get_outing_signups_empty PASSED [ 73%]
+tests/test_crud_signup.py::TestGetOutingSignups::test_get_outing_signups_ordered_by_date PASSED [ 74%]
+tests/test_crud_signup.py::TestCreateSignup::test_create_signup_with_participants PASSED [ 75%]
+tests/test_crud_signup.py::TestCreateSignup::test_create_signup_with_dietary_restrictions PASSED [ 76%]
+tests/test_crud_signup.py::TestCreateSignup::test_create_signup_with_multiple_families PASSED [ 76%]
+tests/test_crud_signup.py::TestDeleteSignup::test_delete_existing_signup PASSED [ 77%]
+tests/test_crud_signup.py::TestDeleteSignup::test_delete_nonexistent_signup PASSED [ 78%]
+tests/test_crud_signup.py::TestDeleteSignup::test_delete_signup_cascades_to_participants PASSED [ 79%]
+tests/test_crud_signup.py::TestUpdateSignup::test_update_contact_info PASSED [ 80%]
+tests/test_crud_signup.py::TestUpdateSignup::test_update_participants PASSED [ 80%]
+tests/test_crud_signup.py::TestUpdateSignup::test_update_nonexistent_signup PASSED [ 81%]
+tests/test_crud_signup.py::TestUpdateSignup::test_update_with_grubmaster_requests PASSED [ 82%]
+tests/test_crud_signup.py::TestSignupProperties::test_participant_count PASSED [ 83%]
+tests/test_crud_signup.py::TestSignupProperties::test_scout_count PASSED [ 84%]
+tests/test_crud_signup.py::TestSignupProperties::test_adult_count PASSED [ 84%]
+tests/test_crud_signup.py::TestSignupEdgeCases::test_create_signup_invalid_family_member PASSED [ 85%]
+tests/test_crud_signup.py::TestSignupEdgeCases::test_update_signup_invalid_family_member PASSED [ 86%]
+tests/test_crud_signup.py::TestSignupEdgeCases::test_update_signup_grubmaster_only PASSED [ 87%]
+tests/test_crud_signup.py::TestSignupEdgeCases::test_create_signup_race_condition FAILED [ 88%]
+tests/test_utils_suggestions_extended.py::test_get_requirement_suggestions_empty_keywords PASSED [ 88%]
+tests/test_utils_suggestions_extended.py::test_get_requirement_suggestions_filters_and_sorts PASSED [ 89%]
+tests/test_utils_suggestions_extended.py::test_get_requirement_suggestions_min_score_excludes PASSED [ 90%]
+tests/test_utils_suggestions_extended.py::test_get_merit_badge_suggestions_sorting_and_filter PASSED [ 91%]
+tests/test_utils_suggestions_extended.py::test_get_outing_suggestions_combines PASSED [ 92%]
+tests/test_api_auth.py::TestAuth::test_login_redirect PASSED             [ 92%]
+tests/test_api_auth.py::TestAuth::test_callback_success PASSED           [ 93%]
+tests/test_api_auth.py::TestAuth::test_logout PASSED                     [ 94%]
+tests/test_api_auth.py::TestAuth::test_me_endpoint PASSED                [ 95%]
+tests/test_api_auth.py::TestAuth::test_update_contact_info PASSED        [ 96%]
+tests/test_api_auth.py::TestAuth::test_mark_initial_setup_complete PASSED [ 96%]
+tests/test_api_auth.py::TestAuth::test_get_users_admin PASSED            [ 97%]
+tests/test_api_auth.py::TestAuth::test_get_users_forbidden PASSED        [ 98%]
+tests/test_api_auth.py::TestAuth::test_update_user_role FAILED           [ 99%]
+tests/test_api_auth.py::TestAuth::test_update_user_role_forbidden PASSED [100%]
+
+=================================== FAILURES ===================================
+_ TestFamilyEdgeCases.test_delete_family_member_keeps_signup_if_others_remain __
+tests/test_crud_family.py:408: in test_delete_family_member_keeps_signup_if_others_remain
+    assert len(remaining_signup.participants) == 1
+E   assert 2 == 1
+E    +  where 2 = len([<Participant(id=2b015189-4fa3-4ccd-a704-6a306acc740d, signup_id=36f7bf28-bc9d-4567-b5f0-128572fcc721, family_member_id=09e82bd0-a73c-4e63-af17-bdf595151f59)>, <Participant(id=b22421fe-3c2b-4b6f-bad5-357ba852eda3, signup_id=36f7bf28-bc9d-4567-b5f0-128572fcc721, family_member_id=2245c47a-2d4b-4cdf-bdd1-a9c1bd376980)>])
+E    +    where [<Participant(id=2b015189-4fa3-4ccd-a704-6a306acc740d, signup_id=36f7bf28-bc9d-4567-b5f0-128572fcc721, family_member_id=09e82bd0-a73c-4e63-af17-bdf595151f59)>, <Participant(id=b22421fe-3c2b-4b6f-bad5-357ba852eda3, signup_id=36f7bf28-bc9d-4567-b5f0-128572fcc721, family_member_id=2245c47a-2d4b-4cdf-bdd1-a9c1bd376980)>] = <Signup(id=36f7bf28-bc9d-4567-b5f0-128572fcc721, outing_id=c61cfb4f-40f4-445f-a877-9aced8752f18, contact=Emergency)>.participants
+__________ TestOutingEdgeCases.test_create_outing_with_allowed_troops __________
+tests/test_crud_outing.py:389: in test_create_outing_with_allowed_troops
+    result = await crud_outing.create_outing(db_session, outing_data)
+app/crud/outing.py:126: in create_outing
+    db_outing.allowed_troops.append(troop)
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/orm/attributes.py:566: in __get__
+    return self.impl.get(state, dict_)  # type: ignore[no-any-return]
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/orm/attributes.py:1086: in get
+    value = self._fire_loader_callables(state, key, passive)
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/orm/attributes.py:1121: in _fire_loader_callables
+    return self.callable_(state, passive)
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/orm/strategies.py:967: in _load_for_state
+    return self._emit_lazyload(
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/orm/strategies.py:1130: in _emit_lazyload
+    result = session.execute(
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/orm/session.py:2362: in execute
+    return self._execute_internal(
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/orm/session.py:2247: in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/orm/context.py:293: in orm_execute_statement
+    result = conn.execute(
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py:1418: in execute
+    return meth(
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/sql/elements.py:515: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py:1640: in _execute_clauseelement
+    ret = self._execute_context(
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py:2358: in _handle_dbapi_exception
+    raise exc_info[1].with_traceback(exc_info[2])
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/engine/default.py:941: in do_execute
+    cursor.execute(statement, parameters)
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/dialects/sqlite/aiosqlite.py:147: in execute
+    self._adapt_connection._handle_exception(error)
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/dialects/sqlite/aiosqlite.py:298: in _handle_exception
+    raise error
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/dialects/sqlite/aiosqlite.py:124: in execute
+    _cursor = self.await_(self._connection.cursor())
+../../../Library/Python/3.9/lib/python/site-packages/sqlalchemy/util/_concurrency_py3k.py:123: in await_only
+    raise exc.MissingGreenlet(
+E   sqlalchemy.exc.MissingGreenlet: greenlet_spawn has not been called; can't call await_only() here. Was IO attempted in an unexpected place? (Background on this error at: https://sqlalche.me/e/20/xd2s)
+____________ TestSignupEdgeCases.test_create_signup_race_condition _____________
+tests/test_crud_signup.py:604: in test_create_signup_race_condition
+    result = await crud_signup.create_signup(mock_db, signup_data)
+app/crud/signup.py:99: in create_signup
+    await db.commit()
+/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py:2154: in _execute_mock_call
+    raise effect
+E   sqlalchemy.exc.IntegrityError: (builtins.str) orig
+E   [SQL: stmt]
+E   [parameters: 'params']
+E   (Background on this error at: https://sqlalche.me/e/20/gkpj)
+________________________ TestAuth.test_update_user_role ________________________
+tests/test_api_auth.py:209: in test_update_user_role
+    headers=admin_headers,
+E   NameError: name 'admin_headers' is not defined
+=============================== warnings summary ===============================
+app/core/config.py:6
+  /Users/jadam/Development/trailhead/backend/app/core/config.py:6: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class Settings(BaseSettings):
+
+tests/test_crud_family.py::TestFamilyEdgeCases::test_delete_family_member_with_signup
+  sys:1: SAWarning: DELETE statement on table 'participants' expected to delete 1 row(s); 0 were matched.  Please set confirm_deleted_rows=False within the mapper configuration to prevent this warning.
+
+tests/test_crud_signup.py::TestSignupEdgeCases::test_create_signup_race_condition
+  /Users/jadam/Development/trailhead/backend/app/crud/signup.py:79: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    db.add(db_signup)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_crud_signup.py::TestSignupEdgeCases::test_create_signup_race_condition
+  /Users/jadam/Development/trailhead/backend/app/services/change_log.py:53: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    db.add(entry)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_crud_signup.py::TestSignupEdgeCases::test_create_signup_race_condition
+  /Users/jadam/Development/trailhead/backend/app/crud/signup.py:94: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+    db.add(db_participant)
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/test_utils_suggestions_extended.py::test_get_requirement_suggestions_empty_keywords
+  tests/test_utils_suggestions_extended.py:33: PytestWarning: The test <Function test_get_requirement_suggestions_empty_keywords> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_get_requirement_suggestions_empty_keywords(monkeypatch):
+
+tests/test_utils_suggestions_extended.py::test_get_requirement_suggestions_filters_and_sorts
+  tests/test_utils_suggestions_extended.py:40: PytestWarning: The test <Function test_get_requirement_suggestions_filters_and_sorts> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_get_requirement_suggestions_filters_and_sorts(monkeypatch):
+
+tests/test_utils_suggestions_extended.py::test_get_requirement_suggestions_min_score_excludes
+  tests/test_utils_suggestions_extended.py:65: PytestWarning: The test <Function test_get_requirement_suggestions_min_score_excludes> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_get_requirement_suggestions_min_score_excludes(monkeypatch):
+
+tests/test_utils_suggestions_extended.py::test_get_merit_badge_suggestions_sorting_and_filter
+  tests/test_utils_suggestions_extended.py:76: PytestWarning: The test <Function test_get_merit_badge_suggestions_sorting_and_filter> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_get_merit_badge_suggestions_sorting_and_filter(monkeypatch):
+
+tests/test_utils_suggestions_extended.py::test_get_outing_suggestions_combines
+  tests/test_utils_suggestions_extended.py:93: PytestWarning: The test <Function test_get_outing_suggestions_combines> is marked with '@pytest.mark.asyncio' but it is not an async function. Please remove asyncio marker. If the test is not marked explicitly, check for global markers applied via 'pytestmark'.
+    def test_get_outing_suggestions_combines(monkeypatch):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform darwin, python 3.9.6-final-0 -----------
+Name                                 Stmts   Miss  Cover   Missing
+------------------------------------------------------------------
+app/__init__.py                          1      0   100%
+app/api/__init__.py                      0      0   100%
+app/api/checkin.py                      57     31    46%   38-54, 69-85, 104-112, 127-129, 147-187
+app/api/deps.py                         89     73    18%   25-136, 158-163
+app/api/endpoints/__init__.py            0      0   100%
+app/api/endpoints/auth.py              205     92    55%   28, 41-43, 52-64, 66, 98, 102, 111-113, 117, 132, 139, 149-150, 155-167, 174-176, 180-182, 186-192, 195-196, 204-258, 309, 315-317, 341-343, 363-366, 414-441
+app/api/endpoints/family.py             61     35    43%   37-38, 58-98, 111-117, 130-131, 145-151, 164-170
+app/api/endpoints/grubmaster.py        258    219    15%   37-59, 83-160, 183-193, 208-220, 232-246, 257-271, 283-298, 319-353, 365-373, 388-513, 531-630
+app/api/endpoints/health.py             65     53    18%   15-73, 79-92
+app/api/endpoints/offline.py            65     43    34%   35-99, 120-165
+app/api/endpoints/organizations.py      45     24    47%   27-28, 38-46, 56-59, 70-73, 83-86, 96-99
+app/api/endpoints/outings.py           108     77    29%   24-33, 46-56, 68-74, 85-96, 111-130, 146-152, 164-176, 189-201, 214-265, 276-290
+app/api/endpoints/packing_lists.py      71     44    38%   37-38, 54-60, 77-96, 111-119, 135-142, 160-168, 185-201, 217-232
+app/api/endpoints/places.py             50     29    42%   23, 33-39, 49-67, 81-93, 103-111, 125
+app/api/endpoints/registration.py       18      1    94%   41
+app/api/endpoints/requirements.py      207    143    31%   49, 61-67, 77-82, 93-104, 114-121, 139, 149-155, 165-176, 187-198, 208-215, 232, 243-272, 283-294, 304-311, 328, 339-368, 379-390, 400-407, 424, 435-466, 477-488, 498-505, 538-597, 617-625
+app/api/endpoints/roster.py             28     15    46%   23-34, 48-56
+app/api/endpoints/signups.py           297    242    19%   66-289, 316-384, 397-484, 499-651, 676-742, 768-818, 832-886, 906-920, 941-963
+app/api/endpoints/tenting.py           237    202    15%   33-34, 39-64, 78-143, 157-225, 247-262, 273-283, 298-310, 322-336, 347-361, 373-388, 408-441, 459-588
+app/api/endpoints/troops.py             71     44    38%   32-33, 42-45, 54-57, 67-72, 81-85, 98-102, 111-117, 127-132, 141-145
+app/core/__init__.py                     0      0   100%
+app/core/authentik.py                  126     97    23%   19-24, 36-43, 50-63, 67-71, 75-76, 84, 89, 94, 99-101, 116-174, 189-262, 278-284, 295-298
+app/core/config.py                      42      0   100%
+app/core/security.py                    31     18    42%   15, 27-35, 40-44, 49-53
+app/crud/__init__.py                    11      0   100%
+app/crud/checkin.py                     69     51    26%   22-72, 92-132, 140-154, 161-162, 171-175
+app/crud/eating_group.py                95     75    21%   21-37, 42-59, 67-88, 97-106, 111-117, 129-146, 154-164, 173-184, 195-224, 232-253, 261-278
+app/crud/family.py                      84      0   100%
+app/crud/organization.py                57     44    23%   13-16, 26-38, 46-65, 74-95, 100-114, 119-138
+app/crud/outing.py                      91      2    98%   34, 154
+app/crud/packing_list.py                79     60    24%   24-30, 35-40, 45-50, 55-60, 71-102, 107-115, 120-128, 133-142, 152-160, 169-182, 187-196, 201-204
+app/crud/participant.py                 39     25    36%   14-26, 31-44, 49-65, 74-98, 103-110, 119-134
+app/crud/place.py                       66     52    21%   13-14, 24-35, 41-56, 61-80, 85-92, 97-105, 111-120
+app/crud/requirement.py                233      8    97%   116, 207, 237-246, 330-339
+app/crud/signup.py                      93      4    96%   69-70, 148-149
+app/crud/tenting_group.py               86     67    22%   21-30, 35-45, 53-73, 82-91, 96-102, 114-130, 138-148, 158-184, 192-213, 221-240
+app/crud/troop.py                       85     67    21%   15-20, 24-32, 36-53, 57-71, 75-81, 87-88, 92-100, 105-119, 123-134, 138-144
+app/crud/user.py                        63     45    29%   12-13, 18-19, 33, 35, 39, 54-71, 85-104, 113-120, 125-131
+app/db/__init__.py                       0      0   100%
+app/db/base.py                           2      0   100%
+app/db/init_db.py                       44     44     0%   9-75
+app/db/session.py                       21     10    52%   12, 21, 50-58
+app/db/types.py                         25      7    72%   14, 20, 22, 27, 29, 32-33
+app/main.py                             79     11    86%   127, 155-156, 172-183, 226, 250-251
+app/models/__init__.py                  18      0   100%
+app/models/change_log.py                15      0   100%
+app/models/checkin.py                   21      1    95%   37
+app/models/eating_group.py              38      5    87%   26, 31, 36, 41, 59
+app/models/family.py                    49      3    94%   50, 65, 81
+app/models/organization.py              18      1    94%   26
+app/models/outing.py                   119     37    69%   77, 87-92, 99, 108, 115-117, 122-127, 132-137, 142-147, 152, 157, 164-168
+app/models/packing_list.py              52      4    92%   25, 44, 62, 81
+app/models/participant.py               55     13    76%   36, 40-45, 53, 57, 61, 65, 69, 73
+app/models/place.py                     24      4    83%   39, 44-46
+app/models/refresh_token.py             17      1    94%   25
+app/models/requirement.py               84     19    77%   30-33, 52-54, 72-75, 93-96, 118-121
+app/models/roster.py                    25      1    96%   45
+app/models/signup.py                    27      0   100%
+app/models/tenting_group.py             31      3    90%   26, 31, 48
+app/models/troop.py                     40      4    90%   12-13, 39, 58
+app/models/user.py                      28      1    96%   41
+app/schemas/__init__.py                  6      0   100%
+app/schemas/auth.py                     33      0   100%
+app/schemas/change_log.py               18      0   100%
+app/schemas/checkin.py                  54      0   100%
+app/schemas/eating_group.py             81      0   100%
+app/schemas/family.py                   83      2    98%   60, 67
+app/schemas/organization.py             22      0   100%
+app/schemas/outing.py                  145     14    90%   52-54, 60-62, 68-70, 79, 91, 146-148
+app/schemas/packing_list.py             57      0   100%
+app/schemas/place.py                    19      0   100%
+app/schemas/requirement.py             105      0   100%
+app/schemas/signup.py                   63      0   100%
+app/schemas/tenting_group.py            68      0   100%
+app/schemas/troop.py                    46      0   100%
+app/services/change_log.py              41     15    63%   36, 68-89
+app/services/roster.py                  46     34    26%   14-20, 28-92
+app/utils/outing_email.py               35     27    23%   10-14, 55-77, 82-86
+app/utils/pdf_generator.py              90     80    11%   27-293
+app/utils/suggestions.py               104     15    86%   29, 56, 78, 84, 149-152, 157, 204, 211-214, 219
+app/utils/timezone.py                   35     25    29%   30-38, 43, 53-63, 71-78
+------------------------------------------------------------------
+TOTAL                                 5266   2363    55%
+Coverage HTML written to dir htmlcov
+
+=========================== short test summary info ============================
+FAILED tests/test_crud_family.py::TestFamilyEdgeCases::test_delete_family_member_keeps_signup_if_others_remain
+FAILED tests/test_crud_outing.py::TestOutingEdgeCases::test_create_outing_with_allowed_troops
+FAILED tests/test_crud_signup.py::TestSignupEdgeCases::test_create_signup_race_condition
+FAILED tests/test_api_auth.py::TestAuth::test_update_user_role - NameError: n...
+================= 4 failed, 122 passed, 10 warnings in 25.98s ==================

@@ -137,6 +137,7 @@ class OutingUpdate(BaseModel):
     pickup_place_id: Optional[UUID] = Field(None, description="Reference to saved place for pickup")
     dropoff_address: Optional[str] = Field(None, description="Full address for drop-off location")
     dropoff_place_id: Optional[UUID] = Field(None, description="Reference to saved place for drop-off")
+    allowed_troop_ids: Optional[List[UUID]] = Field(None, description="List of troop IDs allowed to sign up")
 
     @field_validator('drop_off_time', 'pickup_time', mode='before')
     @classmethod

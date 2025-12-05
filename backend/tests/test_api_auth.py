@@ -191,7 +191,7 @@ class TestAuth:
         
         assert response.status_code == 403
 
-    async def test_update_user_role(self, client: AsyncClient, admin_headers, db_session):
+    async def test_update_user_role(self, client: AsyncClient, auth_headers, db_session):
         """Test updating user role as admin"""
         # Create a target user
         target_user = User(

@@ -92,6 +92,10 @@ async def delete_rank_requirement(db: AsyncSession, requirement_id: UUID) -> boo
     return True
 
 
+async def search_rank_requirements_by_keywords(
+    db: AsyncSession,
+    keywords: List[str]
+) -> List[RankRequirement]:
     """Search rank requirements by keywords (async)"""
     # Use generic approach compatible with both PostgreSQL ARRAY and SQLite JSON string
     from sqlalchemy import or_, cast, String

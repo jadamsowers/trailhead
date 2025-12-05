@@ -382,7 +382,8 @@ class TestOutingEdgeCases:
             name="Troop Outing",
             outing_date=date.today(),
             location="Camp",
-            allowed_troop_ids=[troop.id]
+            allowed_troop_ids=[troop.id],
+            max_participants=20
         )
         
         result = await crud_outing.create_outing(db_session, outing_data)
@@ -420,7 +421,8 @@ class TestOutingEdgeCases:
             outing_date=date.today(),
             location="Camp",
             signups_close_at=tz_aware,
-            cancellation_deadline=tz_aware
+            cancellation_deadline=tz_aware,
+            max_participants=20
         )
         
         result = await crud_outing.create_outing(db_session, outing_data)

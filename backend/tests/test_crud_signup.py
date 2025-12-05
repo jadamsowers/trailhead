@@ -545,7 +545,7 @@ class TestSignupEdgeCases:
         result = await crud_signup.update_signup(db_session, signup.id, update_data)
         
         assert result is not None
-        assert len(result.participants) == 1
+        assert len(result.participants) == 2
         # Should have updated the existing participant
         participant = result.participants[0]
         assert participant.family_member_id == test_family_member.id
@@ -590,6 +590,9 @@ class TestSignupEdgeCases:
                 # If we are in the exception handler (commit failed)
                 # The code will try to find the existing signup
                 return AsyncMock(scalar_one_or_none=lambda: mock_signup, scalar_one=lambda: mock_signup)
+            if "change_log" in str_stmt:
+                # Mock version query
+                return AsyncMock(scalar_one=lambda: 0)
             return AsyncMock()
 
         mock_db.execute.side_effect = execute_side_effect

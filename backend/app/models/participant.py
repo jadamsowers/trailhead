@@ -23,7 +23,7 @@ class Participant(Base):
 
     # Relationships
     signup = relationship("Signup", back_populates="participants")
-    family_member = relationship("FamilyMember", backref="participant_signups")
+    family_member = relationship("FamilyMember", back_populates="participant_signups")
     eating_group_membership = relationship("EatingGroupMember", back_populates="participant", uselist=False, cascade="all, delete-orphan")
     tenting_group_membership = relationship("TentingGroupMember", back_populates="participant", uselist=False, cascade="all, delete-orphan")
 

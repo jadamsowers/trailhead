@@ -44,6 +44,7 @@ class FamilyMember(Base):
     patrol = relationship("Patrol", back_populates="family_members")
     dietary_preferences = relationship("FamilyMemberDietaryPreference", back_populates="family_member", cascade="all, delete-orphan")
     allergies = relationship("FamilyMemberAllergy", back_populates="family_member", cascade="all, delete-orphan")
+    participant_signups = relationship("Participant", back_populates="family_member", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<FamilyMember(id={self.id}, name={self.name}, type={self.member_type})>"
