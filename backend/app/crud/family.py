@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from uuid import UUID
@@ -157,6 +157,16 @@ async def delete_family_member(db: AsyncSession, member_id: UUID, user_id: UUID)
         select(Participant.signup_id).where(Participant.family_member_id == member.id)
     )
     signup_ids = participant_signups_result.scalars().all()
+
+    # Explicitly delete participants first to ensure cascade works in tests
+    if signup_ids:
+        # Fetch participants to delete them via ORM to keep session in sync
+        participants_result = await db.execute(
+            select(Participant).where(Participant.family_member_id == member.id)
+        )
+        participants = participants_result.scalars().all()
+        for participant in participants:
+            await db.execute(delete(Participant).where(Participant.id == participant.id))
 
     await record_change(db, entity_type="family_member", entity_id=member.id, op_type="delete")
     await db.delete(member)

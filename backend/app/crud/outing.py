@@ -113,25 +113,29 @@ async def create_outing(db: AsyncSession, outing: OutingCreate) -> Outing:
     if outing_data.get('cancellation_deadline') and outing_data['cancellation_deadline'].tzinfo is not None:
         outing_data['cancellation_deadline'] = outing_data['cancellation_deadline'].astimezone(timezone.utc).replace(tzinfo=None)
         
-    db_outing = Outing(**outing_data)
-    db.add(db_outing)
-    await db.flush()  # Obtain ID
+    data = outing_data # outing_data is already a dict, no need for model_dump again
     
-    # Add allowed troops if specified
+    # Fetch allowed troops if specified
+    troops = []
     if allowed_troop_ids:
         for troop_id in allowed_troop_ids:
             troop_result = await db.execute(select(Troop).where(Troop.id == troop_id))
             troop = troop_result.scalar_one_or_none()
             if troop:
-                db_outing.allowed_troops.append(troop)
+                troops.append(troop)
+
+    db_outing = Outing(**data, allowed_troops=troops)
+    db.add(db_outing)
+    await db.flush()
     
     # Record change before commit so version aligns with entity state
     payload_hash = compute_payload_hash(db_outing, ["name", "outing_date", "location", "updated_at"])  # lightweight fields
     await record_change(db, entity_type="outing", entity_id=db_outing.id, op_type="create", payload_hash=payload_hash)
     await db.commit()
     await db.refresh(db_outing)
-    await db.refresh(db_outing, ['signups', 'outing_place', 'pickup_place', 'dropoff_place', 'allowed_troops'])
-    return db_outing
+    await db.commit()
+    # Re-fetch with all relationships loaded to ensure consistency and avoid MissingGreenlet
+    return await get_outing(db, db_outing.id)
 
 
 async def update_outing(db: AsyncSession, outing_id: UUID, outing: OutingUpdate) -> Optional[Outing]:

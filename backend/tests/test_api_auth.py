@@ -206,7 +206,7 @@ class TestAuth:
         
         response = await client.patch(
             f"/api/auth/users/{target_user.id}/role",
-            headers=admin_headers,
+            headers=auth_headers,
             json={"role": "outing-admin"}
         )
         

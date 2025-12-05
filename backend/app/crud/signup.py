@@ -96,8 +96,21 @@ async def create_signup(db: AsyncSession, signup: SignupCreate) -> Signup:
     await db.flush()
     payload_hash = compute_payload_hash(db_signup, ["outing_id", "family_contact_email", "family_contact_name"]) 
     await record_change(db, entity_type="signup", entity_id=db_signup.id, op_type="update", payload_hash=payload_hash)
-    await db.commit()
-    await db.refresh(db_signup)
+    try:
+        await db.commit()
+        await db.refresh(db_signup)
+    except Exception:
+        await db.rollback()
+        # Check if signup exists (race condition)
+        query = select(Signup).where(
+            Signup.outing_id == signup.outing_id,
+            Signup.family_contact_email == signup.family_contact.email
+        )
+        result = await db.execute(query)
+        existing_signup = result.scalar_one_or_none()
+        if existing_signup:
+            return existing_signup
+        raise
 
     # Load relationships
     result = await db.execute(
