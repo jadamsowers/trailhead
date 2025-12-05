@@ -39,10 +39,11 @@ async def create_troop(db: AsyncSession, troop_in: TroopCreate) -> Troop:
         meeting_location=troop_in.meeting_location,
         meeting_day=troop_in.meeting_day,
         notes=troop_in.notes,
+        organization_id=troop_in.organization_id,
     )
     db.add(troop)
     await db.flush()
-    payload_hash = compute_payload_hash(troop, ["number", "charter_org", "meeting_day"]) 
+    payload_hash = compute_payload_hash(troop, ["number", "charter_org", "meeting_day", "organization_id"]) 
     await record_change(db, entity_type="troop", entity_id=troop.id, op_type="create", payload_hash=payload_hash)
     await db.commit()
     # Re-query with patrols eagerly loaded to avoid lazy-loading in response serialization

@@ -14,9 +14,11 @@ from app.models.packing_list import (
     OutingPackingListItem,
 )
 from app.models.troop import Troop, Patrol
+from app.models.organization import Organization
 from app.models.change_log import ChangeLog
 from app.models.eating_group import EatingGroup, EatingGroupMember
 from app.models.tenting_group import TentingGroup, TentingGroupMember
+from app.models.roster import RosterMember
 from app.models.roster import RosterMember
 
 __all__ = [
@@ -40,6 +42,7 @@ __all__ = [
     "OutingPackingListItem",
     "Troop",
     "Patrol",
+    "Organization",
     "ChangeLog",
     "EatingGroup",
     "EatingGroupMember",

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, DateTime, Date
+from sqlalchemy import Column, String, Boolean, DateTime, Date, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import uuid
@@ -26,10 +26,14 @@ class User(Base):
     youth_protection_expiration = Column(Date, nullable=True)
     initial_setup_complete = Column(Boolean, default=False, nullable=False)
     
+    # Organization membership
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="SET NULL"), nullable=True, index=True)
+    
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
+    organization = relationship("Organization", back_populates="users")
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     family_members = relationship("FamilyMember", back_populates="user", cascade="all, delete-orphan")
 

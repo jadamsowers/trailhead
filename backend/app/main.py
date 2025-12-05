@@ -12,7 +12,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
 from app.core.config import settings
-from app.api.endpoints import outings, signups, registration, family, requirements, places, packing_lists, troops, offline, grubmaster, tenting, roster
+from app.api.endpoints import outings, signups, registration, family, requirements, places, packing_lists, troops, offline, grubmaster, tenting, roster, organizations
 from app.api.endpoints import auth
 from app.api import checkin
 
@@ -198,6 +198,7 @@ async def general_exception_handler(request: Request, exc: Exception):
 # Include routers
 
 # Routers
+app.include_router(organizations.router, prefix=f"{settings.API_V1_STR}", tags=["organizations"])
 app.include_router(outings.router, prefix=f"{settings.API_V1_STR}/outings", tags=["outings"])
 app.include_router(signups.router, prefix=f"{settings.API_V1_STR}/signups", tags=["signups"])
 app.include_router(registration.router, prefix=f"{settings.API_V1_STR}/register", tags=["registration"])

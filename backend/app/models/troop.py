@@ -24,10 +24,12 @@ class Troop(Base):
     meeting_day = Column(String(20), nullable=True)  # e.g., 'Tuesday'
     notes = Column(Text, nullable=True)
     treasurer_email = Column(String(255), nullable=True)  # Email for receipt submission
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
+    organization = relationship("Organization", back_populates="troops")
     patrols = relationship("Patrol", back_populates="troop", cascade="all, delete-orphan")
     family_members = relationship("FamilyMember", back_populates="troop")
     restricted_outings = relationship("Outing", back_populates="restricted_troop")

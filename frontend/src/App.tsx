@@ -23,6 +23,7 @@ import ProfilePage from "./pages/ProfilePage";
 import { RosterImportPage } from "./pages/admin/RosterImportPage";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import InitialSignInWizard from "./components/InitialSignInWizard";
+import InstanceSetupWizard from "./components/InstanceSetupWizard";
 import { InitialSetupGuard } from "./components/InitialSetupGuard";
 import { userAPI } from "./services/api";
 import type { User } from "./types";
@@ -694,6 +695,14 @@ const AppContent: React.FC = () => {
                     <InitialSetupGuard>
                       <RosterImportPage />
                     </InitialSetupGuard>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/instance-setup"
+                element={
+                  <RequireAuth>
+                    <InstanceSetupWizard />
                   </RequireAuth>
                 }
               />

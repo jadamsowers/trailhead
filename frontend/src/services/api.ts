@@ -1181,6 +1181,7 @@ export interface TroopCreate {
   meeting_day?: string | null;
   notes?: string | null;
   treasurer_email?: string | null;
+  organization_id?: string | null;
 }
 export interface TroopUpdate {
   charter_org?: string | null;
@@ -1978,6 +1979,23 @@ export const tentingAPI = {
 };
 
 // Roster API
+export interface RosterMemberLookup {
+  bsa_member_id: string;
+  full_name: string | null;
+  first_name: string | null;
+  middle_name: string | null;
+  last_name: string | null;
+  suffix: string | null;
+  email: string | null;
+  mobile_phone: string | null;
+  city: string | null;
+  state: string | null;
+  zip_code: string | null;
+  position: string | null;
+  ypt_date: string | null;
+  ypt_expiration: string | null;
+}
+
 export const rosterAPI = {
   async importRoster(file: File): Promise<{ message: string; stats: any }> {
     const formData = new FormData();
@@ -1992,8 +2010,104 @@ export const rosterAPI = {
       headers: headers,
       body: formData,
     });
-    
+
     return handleResponse<{ message: string; stats: any }>(response);
+  },
+
+  async lookupMember(bsaMemberId: string): Promise<RosterMemberLookup> {
+    const headers = await getAuthHeaders();
+    const response = await fetch(
+      `${getApiBase()}/roster/lookup/${encodeURIComponent(bsaMemberId)}`,
+      {
+        method: "GET",
+        headers: headers,
+      }
+    );
+
+    return handleResponse<RosterMemberLookup>(response);
+  },
+};
+
+// Organizations API
+export interface OrganizationCreate {
+  name: string;
+  description?: string | null;
+}
+
+export interface OrganizationUpdate {
+  name?: string | null;
+  description?: string | null;
+  is_setup_complete?: boolean | null;
+}
+
+export interface OrganizationResponse {
+  id: string;
+  name: string;
+  description?: string | null;
+  is_setup_complete: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const organizationAPI = {
+  async getAll(): Promise<{
+    organizations: OrganizationResponse[];
+    total: number;
+  }> {
+    const response = await fetch(`${getApiBase()}/organizations`, {
+      headers: await getAuthHeaders(),
+    });
+    return handleResponse<{
+      organizations: OrganizationResponse[];
+      total: number;
+    }>(response);
+  },
+
+  async getById(id: string): Promise<OrganizationResponse> {
+    const response = await fetch(`${getApiBase()}/organizations/${id}`, {
+      headers: await getAuthHeaders(),
+    });
+    return handleResponse<OrganizationResponse>(response);
+  },
+
+  async create(data: OrganizationCreate): Promise<OrganizationResponse> {
+    const response = await fetch(`${getApiBase()}/organizations`, {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<OrganizationResponse>(response);
+  },
+
+  async update(
+    id: string,
+    data: OrganizationUpdate
+  ): Promise<OrganizationResponse> {
+    const response = await fetch(`${getApiBase()}/organizations/${id}`, {
+      method: "PUT",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<OrganizationResponse>(response);
+  },
+
+  async completeSetup(id: string): Promise<OrganizationResponse> {
+    const response = await fetch(
+      `${getApiBase()}/organizations/${id}/complete-setup`,
+      {
+        method: "POST",
+        headers: await getAuthHeaders(),
+      }
+    );
+    return handleResponse<OrganizationResponse>(response);
+  },
+
+  async delete(id: string): Promise<void> {
+    const response = await fetch(`${getApiBase()}/organizations/${id}`, {
+      method: "DELETE",
+      headers: await getAuthHeaders(),
+    });
+    await handleResponse<void>(response);
   },
 };
 
@@ -2009,6 +2123,5 @@ export const api = {
   ...familyAPI,
   ...userAPI,
   ...rosterAPI,
+  ...organizationAPI,
 };
-
-

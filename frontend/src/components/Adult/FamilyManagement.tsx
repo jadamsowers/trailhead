@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { familyAPI, troopAPI, patrolAPI } from "../../services/api";
+import * as api from "../../services/api";
 import { FamilyMember, FamilyMemberCreate } from "../../types";
 import { useFamilyMembers, invalidateFamilyData } from "../../hooks/useSWR";
 import { calculateAge, validateMemberForm } from "../../utils/ageInference";
@@ -628,6 +629,8 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dobError, setDobError] = useState<string | null>(null);
+  const [lookingUp, setLookingUp] = useState(false);
+  const [lookupSuccess, setLookupSuccess] = useState(false);
 
   // Update DOB related state and inferred member type
   const handleDobChange = (isoDate: string) => {
@@ -639,7 +642,9 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({
       member_type: formData.member_type as any,
     });
     // Show only DOB related error (age) inline; YPT errors appear on submit
-    const dobRelatedError = result.errors.find((e) => e.toLowerCase().includes("scout"));
+    const dobRelatedError = result.errors.find((e) =>
+      e.toLowerCase().includes("scout")
+    );
     setDobError(dobRelatedError || null);
     if (result.inferredType && result.inferredType !== formData.member_type) {
       setFormData((prev) => ({ ...prev, member_type: result.inferredType! }));
@@ -658,8 +663,14 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({
       youth_protection_expiration: formData.youth_protection_expiration || null,
       member_type: formData.member_type as any,
     });
-    if (validation.inferredType && validation.inferredType !== formData.member_type) {
-      setFormData((prev) => ({ ...prev, member_type: validation.inferredType! }));
+    if (
+      validation.inferredType &&
+      validation.inferredType !== formData.member_type
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        member_type: validation.inferredType!,
+      }));
     }
     // Collect blocking errors (age or YPT)
     const blockingErrors = validation.errors;
@@ -729,6 +740,63 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({
     });
   };
 
+  const handleBsaLookup = async (bsaMemberId: string) => {
+    if (!bsaMemberId.trim()) return;
+
+    setLookingUp(true);
+    setError(null);
+    setLookupSuccess(false);
+
+    try {
+      const rosterMember = await api.rosterAPI.lookupMember(bsaMemberId.trim());
+
+      // Pre-fill name
+      const name =
+        rosterMember.full_name ||
+        [
+          rosterMember.first_name,
+          rosterMember.middle_name,
+          rosterMember.last_name,
+          rosterMember.suffix,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+      // Determine if adult based on position or YPT
+      const isAdult =
+        rosterMember.position?.toLowerCase().includes("adult") ||
+        rosterMember.position?.toLowerCase().includes("leader") ||
+        rosterMember.ypt_expiration !== null;
+
+      const updates: Partial<typeof formData> = {
+        name: name || formData.name,
+      };
+
+      // Pre-fill adult-specific fields if applicable
+      if (isAdult && rosterMember.ypt_expiration) {
+        updates.has_youth_protection = true;
+        updates.youth_protection_expiration = rosterMember.ypt_expiration;
+        updates.member_type = "adult";
+      }
+
+      setFormData({ ...formData, ...updates });
+      setLookupSuccess(true);
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setLookupSuccess(false), 3000);
+    } catch (err: any) {
+      if (err.status === 404) {
+        setError(
+          "BSA Member ID not found in roster. Please import your roster first or enter information manually."
+        );
+      } else {
+        setError(err.message || "Failed to lookup BSA member");
+      }
+    } finally {
+      setLookingUp(false);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center p-5 z-[1000]"
@@ -762,6 +830,73 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            {/* BSA Member ID Lookup */}
+            {!member && (
+              <div
+                className="p-4 rounded-lg border"
+                style={{
+                  backgroundColor: "var(--card-bg-alpha)",
+                  borderColor: "var(--border-light)",
+                }}
+              >
+                <label
+                  htmlFor="bsa-lookup"
+                  className="block mb-2 font-semibold text-primary text-[15px]"
+                >
+                  BSA Member ID Lookup (Optional)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    id="bsa-lookup"
+                    type="text"
+                    placeholder="Enter BSA Member ID"
+                    className="flex-1 py-2 px-3 border border-[var(--input-border)] rounded-md text-[14px] bg-[var(--input-bg)] text-[var(--input-text)]"
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const input = e.currentTarget;
+                        handleBsaLookup(input.value);
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      const input = document.getElementById(
+                        "bsa-lookup"
+                      ) as HTMLInputElement;
+                      if (input) handleBsaLookup(input.value);
+                    }}
+                    disabled={lookingUp}
+                    className="px-4 py-2 rounded-md font-medium transition-colors border"
+                    style={{
+                      backgroundColor: "var(--btn-primary-bg)",
+                      color: "var(--btn-primary-text)",
+                      borderColor: "var(--btn-primary-border)",
+                    }}
+                  >
+                    {lookingUp ? "Looking up..." : "🔍 Lookup"}
+                  </button>
+                </div>
+                <p className="text-[12px] text-secondary mt-2">
+                  If this person is in your imported roster, we can auto-fill
+                  their basic information. You can still edit and add dietary
+                  preferences, allergies, and assign patrols.
+                </p>
+                {lookupSuccess && (
+                  <div
+                    className="mt-2 p-2 rounded text-sm"
+                    style={{
+                      backgroundColor: "var(--card-success-bg)",
+                      color: "var(--color-success)",
+                    }}
+                  >
+                    ✓ Member information loaded from roster
+                  </div>
+                )}
+              </div>
+            )}
+
             <div>
               <label
                 htmlFor="member-name"

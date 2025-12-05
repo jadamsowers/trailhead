@@ -29,18 +29,23 @@ class RosterService:
         csv_file = io.StringIO(content_str)
         
         # Skip lines until we find the header
+        # my.scouting.org format has metadata rows, then header row starts with "..memberid"
         header = None
         reader = csv.reader(csv_file)
         for row in reader:
-            if row and row[0] == "memberid":
-                header = row
-                break
+            if row and len(row) > 0:
+                # Check if this looks like the header row (starts with memberid, possibly with dots)
+                first_col = row[0].strip().lower()
+                if first_col.endswith("memberid") or first_col == "memberid":
+                    # Clean up the header - remove leading dots/spaces
+                    header = [col.strip().lstrip('.') for col in row]
+                    break
         
         if not header:
-            raise ValueError("Could not find header row in CSV file")
+            raise ValueError("Could not find header row in CSV file. Expected row starting with 'memberid'.")
         
-        # Map header columns to indices
-        col_map = {name: index for index, name in enumerate(header)}
+        # Map header columns to indices (normalize to lowercase for case-insensitive lookup)
+        col_map = {name.lower(): index for index, name in enumerate(header)}
         
         stats = {"processed": 0, "added": 0, "updated": 0}
         

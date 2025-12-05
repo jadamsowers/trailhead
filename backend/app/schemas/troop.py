@@ -14,7 +14,7 @@ class TroopBase(BaseModel):
 
 
 class TroopCreate(TroopBase):
-    pass
+    organization_id: Optional[UUID] = Field(None, description="Organization ID this troop belongs to")
 
 
 class TroopUpdate(BaseModel):
