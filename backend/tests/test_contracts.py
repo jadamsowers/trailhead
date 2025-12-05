@@ -14,7 +14,7 @@ from app.schemas.signup import SignupResponse, SignupCreate
 from pydantic import ValidationError
 
 
-pytestmark = pytest.mark.asyncio
+
 
 
 class TestOutingContracts:

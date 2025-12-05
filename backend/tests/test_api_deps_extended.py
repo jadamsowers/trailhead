@@ -127,6 +127,8 @@ class TestGetCurrentUserExtended:
             
             # Actually, let's mock the db session object itself to control behavior precisely
             mock_db = AsyncMock()
+            # db.add is synchronous, so it should be a MagicMock, not AsyncMock
+            mock_db.add = MagicMock()
             # First query returns None
             mock_db.execute.side_effect = [
                 MagicMock(scalar_one_or_none=lambda: None), # First check

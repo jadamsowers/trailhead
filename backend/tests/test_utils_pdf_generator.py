@@ -3,7 +3,7 @@ import pytest
 from datetime import datetime, timedelta
 from app.utils.pdf_generator import generate_outing_roster_pdf
 
-pytestmark = pytest.mark.asyncio
+
 
 
 def _base_outing():

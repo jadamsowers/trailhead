@@ -4,7 +4,7 @@ from uuid import uuid4
 from app.utils import suggestions as sugg
 from app.models.outing import Outing
 
-pytestmark = pytest.mark.asyncio
+
 
 class DummyReq:
     def __init__(self, id, rank, num, text, keywords):

@@ -6,7 +6,7 @@ from io import BytesIO
 from app.services.roster import RosterService
 
 
-pytestmark = pytest.mark.asyncio
+
 
 
 class TestParseDateFunction:
@@ -43,6 +43,8 @@ class TestParseDateFunction:
         assert result is None
 
 
+
+@pytest.mark.asyncio
 class TestImportRoster:
     """Test the import_roster method"""
     

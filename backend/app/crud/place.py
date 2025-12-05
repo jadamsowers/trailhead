@@ -62,7 +62,7 @@ async def update_place(db: AsyncSession, place_id: UUID, place: PlaceUpdate) -> 
     if not db_place:
         return None
     
-    update_data = place.dict(exclude_unset=True)
+    update_data = place.model_dump(exclude_unset=True)
     
     # If address is being updated and google_maps_url is not explicitly provided,
     # regenerate the URL

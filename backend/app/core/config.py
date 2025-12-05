@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from pydantic import field_validator, model_validator
+from pydantic import field_validator, model_validator, ConfigDict
 from typing import Optional, Union, Any
 
 
@@ -64,10 +64,11 @@ class Settings(BaseSettings):
                 f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
             )
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-        extra = "allow"
+    model_config = ConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="allow"
+    )
 
 
 settings = Settings()

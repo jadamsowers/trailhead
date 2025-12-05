@@ -57,7 +57,7 @@ async def update_troop(db: AsyncSession, troop_id: UUID, troop_in: TroopUpdate) 
     troop = await get_troop(db, troop_id)
     if not troop:
         return None
-    update_data = troop_in.dict(exclude_unset=True)
+    update_data = troop_in.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(troop, field, value)
     await db.flush()
@@ -123,7 +123,7 @@ async def update_patrol(db: AsyncSession, patrol_id: UUID, patrol_in: PatrolUpda
     patrol = await get_patrol(db, patrol_id)
     if not patrol:
         return None
-    update_data = patrol_in.dict(exclude_unset=True)
+    update_data = patrol_in.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(patrol, field, value)
     await db.flush()

@@ -167,6 +167,12 @@ async def delete_family_member(db: AsyncSession, member_id: UUID, user_id: UUID)
         participants = participants_result.scalars().all()
         for participant in participants:
             await db.execute(delete(Participant).where(Participant.id == participant.id))
+        
+        # Force expiration of signups to ensure fresh data in session
+        for signup_id in set(signup_ids):
+            signup = await db.get(Signup, signup_id)
+            if signup:
+                db.expire(signup, ['participants'])
 
     await record_change(db, entity_type="family_member", entity_id=member.id, op_type="delete")
     await db.delete(member)
