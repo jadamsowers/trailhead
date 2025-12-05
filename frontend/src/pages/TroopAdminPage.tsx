@@ -247,12 +247,33 @@ export const TroopAdminPage: React.FC = () => {
           {selectedTroop && !showTroopForm && (
             <div>
               <div className="mb-6">
-                <h3
-                  className="text-base font-semibold mb-4"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  Troop {selectedTroop.number}
-                </h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3
+                    className="text-base font-semibold"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    Troop {selectedTroop.number}
+                  </h3>
+                  <a
+                    href="/admin/roster-import"
+                    className="px-4 py-2 rounded-lg font-medium transition-all flex items-center"
+                    style={{
+                      backgroundColor: "var(--btn-primary-bg)",
+                      color: "var(--btn-primary-text)",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor =
+                        "var(--btn-primary-hover)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor =
+                        "var(--btn-primary-bg)")
+                    }
+                  >
+                    <i className="bi bi-cloud-upload mr-2"></i>
+                    Import Roster
+                  </a>
+                </div>
                 <div
                   className="p-6 rounded-lg space-y-3"
                   style={{
@@ -290,7 +311,10 @@ export const TroopAdminPage: React.FC = () => {
                     </strong>{" "}
                     <span style={{ color: "var(--text-secondary)" }}>
                       {selectedTroop.treasurer_email ? (
-                        <a href={`mailto:${selectedTroop.treasurer_email}`} style={{ color: "var(--color-primary)" }}>
+                        <a
+                          href={`mailto:${selectedTroop.treasurer_email}`}
+                          style={{ color: "var(--color-primary)" }}
+                        >
                           {selectedTroop.treasurer_email}
                         </a>
                       ) : (
