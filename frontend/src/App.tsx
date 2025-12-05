@@ -25,6 +25,7 @@ import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import InitialSignInWizard from "./components/InitialSignInWizard";
 import InstanceSetupWizard from "./components/InstanceSetupWizard";
 import { InstanceSetupGuard } from "./components/InstanceSetupGuard";
+import { InitialSetupGuard } from "./components/InitialSetupGuard";
 import { userAPI } from "./services/api";
 import type { User } from "./types";
 
