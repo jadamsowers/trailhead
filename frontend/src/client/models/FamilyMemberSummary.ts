@@ -6,17 +6,16 @@
  * Simplified schema for family member selection during signup
  */
 export type FamilyMemberSummary = {
-    id: string;
-    name: string;
-    member_type: string;
-    troop_number?: (string | null);
-    troop_id?: (string | null);
-    age?: (number | null);
-    vehicle_capacity?: (number | null);
-    has_youth_protection?: (boolean | null);
-    youth_protection_expired?: (boolean | null);
-    signup_allowed?: (boolean | null);
-    signup_block_reason?: (string | null);
-    signup_rectify_instructions?: (string | null);
+  id: string;
+  name: string;
+  member_type: string;
+  troop_number?: string | null;
+  troop_id?: string | null;
+  age?: number | null;
+  vehicle_capacity?: number | null;
+  has_youth_protection?: boolean | null;
+  youth_protection_expired?: boolean | null;
+  signup_allowed?: boolean | null;
+  signup_block_reason?: string | null;
+  signup_rectify_instructions?: string | null;
 };
-

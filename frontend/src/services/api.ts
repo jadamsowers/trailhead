@@ -698,7 +698,10 @@ export const familyAPI = {
    * Get simplified list of family members for signup selection
    * @param outingId - Optional outing ID to check youth protection expiration against outing end date
    */
-  async getSummary(outingId?: string): Promise<FamilyMemberSummary[]> {
+  async getSummary(
+    outingId?: string,
+    bypassCache?: boolean
+  ): Promise<FamilyMemberSummary[]> {
     let url = `${getApiBase()}/family/summary`;
     if (outingId) {
       url += `?outing_id=${encodeURIComponent(outingId)}`;
@@ -711,14 +714,18 @@ export const familyAPI = {
       });
       const data = await handleResponse<FamilyMemberSummary[]>(response);
 
-      // Cache the data when online (keyed by outing if provided)
-      try {
-        localStorage.setItem(
-          familySummaryCacheKey(outingId),
-          JSON.stringify(data)
-        );
-      } catch (e) {
-        console.warn("Failed to cache family summary:", e);
+      // Cache the data when online (keyed by outing if provided) unless bypassed
+      if (!bypassCache) {
+        try {
+          localStorage.setItem(
+            familySummaryCacheKey(outingId),
+            JSON.stringify(data)
+          );
+        } catch (e) {
+          console.warn("Failed to cache family summary:", e);
+        }
+      } else {
+        console.log("Bypass cache: not storing family summary");
       }
 
       return data;
@@ -729,25 +736,29 @@ export const familyAPI = {
         (error instanceof Error && error.message.includes("Failed to fetch")) ||
         (error instanceof Error && error.message.includes("Authentication"))
       ) {
-        const cacheKey = familySummaryCacheKey(outingId);
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) {
-          console.log("📱 Serving cached family summary (offline mode)", {
-            cacheKey,
-          });
-          return JSON.parse(cached);
-        }
-
-        // Back-compat: if an old single-key cache exists, surface it for debugging
-        if (outingId) {
-          const legacy = localStorage.getItem(FAMILY_SUMMARY_STORAGE_KEY);
-          if (legacy) {
-            console.warn(
-              "⚠️ Found legacy family summary cache under single key; using for offline fallback",
-              { legacyKey: FAMILY_SUMMARY_STORAGE_KEY }
-            );
-            return JSON.parse(legacy);
+        if (!bypassCache) {
+          const cacheKey = familySummaryCacheKey(outingId);
+          const cached = localStorage.getItem(cacheKey);
+          if (cached) {
+            console.log("📱 Serving cached family summary (offline mode)", {
+              cacheKey,
+            });
+            return JSON.parse(cached);
           }
+
+          // Back-compat: if an old single-key cache exists, surface it for debugging
+          if (outingId) {
+            const legacy = localStorage.getItem(FAMILY_SUMMARY_STORAGE_KEY);
+            if (legacy) {
+              console.warn(
+                "⚠️ Found legacy family summary cache under single key; using for offline fallback",
+                { legacyKey: FAMILY_SUMMARY_STORAGE_KEY }
+              );
+              return JSON.parse(legacy);
+            }
+          }
+        } else {
+          console.log("Bypass cache: not attempting cached fallback");
         }
       }
       throw error;

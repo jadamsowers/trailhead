@@ -135,6 +135,12 @@ const SignupWizard: React.FC = () => {
     }
   }, [isSignedIn, user]);
 
+  // Helper to infer age: prefer explicit `age` field, fallback to DOB inference
+  const inferAge = (m: { age?: number | null; date_of_birth?: string | null }) => {
+    if (m.age !== undefined && m.age !== null) return m.age;
+    return calculateAge(m.date_of_birth || undefined);
+  };
+
   // Log data loading status for diagnostics
   useEffect(() => {
     if (outingsLoading) {
@@ -165,6 +171,9 @@ const SignupWizard: React.FC = () => {
       console.log("✅ Family members loaded:", { count: familyMembers.length });
     }
   }, [familyMembers, familyLoading, familyError]);
+  
+  // Development-only debug panel state
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
   const loadUserContactInfo = async () => {
     try {
@@ -908,9 +917,7 @@ const SignupWizard: React.FC = () => {
                                   );
                                   if (!fm) return false;
                                   // Re-infer type from DOB to ensure consistency
-                                  const age = calculateAge(
-                                    fm.date_of_birth || undefined
-                                  );
+                                  const age = inferAge(fm);
                                   return age !== null && age >= 18;
                                 }
                               );
@@ -920,9 +927,7 @@ const SignupWizard: React.FC = () => {
                                     (f) => f.id === id
                                   );
                                   if (!fm) return false;
-                                  const age = calculateAge(
-                                    fm.date_of_birth || undefined
-                                  );
+                                  const age = inferAge(fm);
                                   return age !== null && age < 18;
                                 }
                               );
@@ -992,6 +997,22 @@ const SignupWizard: React.FC = () => {
         <div className="mb-8">
           {currentStep === "select-trip" && (
             <div>
+              {import.meta.env.DEV && (
+                <div style={{ padding: 12, background: '#fff7e6', borderBottom: '1px solid #ffd54f' }}>
+                  <button
+                    onClick={() => setShowDebugPanel((s) => !s)}
+                    style={{ padding: '6px 10px', marginRight: 10, cursor: 'pointer' }}
+                  >
+                    {showDebugPanel ? 'Hide' : 'Show'} Family Debug
+                  </button>
+                  <span style={{ color: '#6d4c41' }}>Debug: displays raw family summary fetched for the selected outing.</span>
+                  {showDebugPanel && (
+                    <pre style={{ maxHeight: 300, overflow: 'auto', marginTop: 10, background: '#fff', padding: 10, borderRadius: 4 }}>
+                      {JSON.stringify({ familyMembers, familyLoading, familyError }, null, 2)}
+                    </pre>
+                  )}
+                </div>
+              )}
               <h2
                 className="text-3xl font-bold font-heading mb-6 text-center"
                 style={{ color: "var(--text-primary)" }}
@@ -1768,8 +1789,8 @@ ${
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
                   {familyMembers
                     .filter((m) => {
-                      // Re-infer adult classification by DOB for consistency
-                      const age = calculateAge(m.date_of_birth || undefined);
+                      // Re-infer adult classification by age field or DOB for consistency
+                      const age = inferAge(m);
                       return age !== null && age >= 18;
                     })
                     .map((member) => {
@@ -1992,7 +2013,7 @@ ${
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4">
                     {familyMembers
                       .filter((m) => {
-                        const age = calculateAge(m.date_of_birth || undefined);
+                        const age = inferAge(m);
                         return age !== null && age < 18;
                       })
                       .map((member) => {

@@ -137,7 +137,8 @@ export function useFamilySummary(outingId?: string) {
     const { data, error, isLoading, mutate: revalidate } = useSWR<FamilyMemberSummary[]>(
         CACHE_KEYS.familySummary(outingId),
         async () => {
-            return await familyAPI.getSummary(outingId);
+            // Bypass localStorage cache to ensure fresh network response during debugging
+            return await familyAPI.getSummary(outingId, true);
         },
         {
             ...swrConfig,

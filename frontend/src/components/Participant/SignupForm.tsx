@@ -46,6 +46,8 @@ const SignupForm: React.FC = () => {
   }>({});
   // Legacy participant editing state replaced by family member selection flow
   const [showFamilySelection, setShowFamilySelection] = useState<boolean>(true);
+  // Development-only debug panel state
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
   const [formData, setFormData] = useState<SignupFormData>({
     outing_id: "",
@@ -84,6 +86,23 @@ const SignupForm: React.FC = () => {
       }
     }
   }, [isAuthenticated, isParent, user]);
+
+  // Dev-only render logging to help trace why UI may show empty state
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log("[SignupForm] render state:", {
+        outing_id: formData.outing_id,
+        loadingFamilyMembers,
+        showFamilySelection,
+        familyMembersCount: familyMembers.length,
+      });
+    }
+  }, [
+    formData.outing_id,
+    loadingFamilyMembers,
+    showFamilySelection,
+    familyMembers.length,
+  ]);
 
   const loadOutings = async () => {
     try {
@@ -127,7 +146,7 @@ const SignupForm: React.FC = () => {
       // the current formData.outing_id. This avoids reading stale state
       // immediately after calling setFormData in handleOutingToggle.
       const outingId = outingIdArg ?? formData.outing_id ?? undefined;
-      const data = await familyAPI.getSummary(outingId);
+      const data = await familyAPI.getSummary(outingId, true); // bypass cache for debugging
       console.log("✅ Family members loaded:", data.length);
       setFamilyMembers(data);
 
@@ -382,6 +401,49 @@ const SignupForm: React.FC = () => {
 
   return (
     <div style={{ padding: "20px", maxWidth: "800px", margin: "0 auto" }}>
+      {import.meta.env.DEV && (
+        <div
+          style={{
+            padding: 8,
+            background: "#fff7e6",
+            border: "1px solid #ffd54f",
+            borderRadius: 6,
+            marginBottom: 12,
+          }}
+        >
+          <button
+            onClick={() => setShowDebugPanel((s) => !s)}
+            style={{ padding: "6px 10px", marginRight: 10, cursor: "pointer" }}
+          >
+            {showDebugPanel ? "Hide" : "Show"} Family Debug
+          </button>
+          <span style={{ color: "#6d4c41" }}>
+            Debug: shows family summary received by this form.
+          </span>
+          {showDebugPanel && (
+            <pre
+              style={{
+                maxHeight: 260,
+                overflow: "auto",
+                marginTop: 8,
+                background: "#fff",
+                padding: 10,
+                borderRadius: 4,
+              }}
+            >
+              {JSON.stringify(
+                {
+                  outing_id: formData.outing_id,
+                  loadingFamilyMembers,
+                  familyMembers,
+                },
+                null,
+                2
+              )}
+            </pre>
+          )}
+        </div>
+      )}
       <h1>Outing Signups</h1>
 
       {success && (
