@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
@@ -83,6 +83,14 @@ class OutingRequirementBase(BaseModel):
     rank_requirement_id: UUID = Field(..., description="ID of the rank requirement")
     notes: Optional[str] = Field(None, description="Notes about fulfilling this requirement on the outing")
 
+    @field_validator('notes', mode='before')
+    @classmethod
+    def validate_notes(cls, v):
+        """Convert empty strings to None"""
+        if v == "":
+            return None
+        return v
+
 
 class OutingRequirementCreate(OutingRequirementBase):
     """Schema for adding a requirement to an outing"""
@@ -110,10 +118,20 @@ class OutingRequirementResponse(BaseModel):
 # Outing Merit Badge Schemas
 # ============================================================================
 
+from typing import Optional, List, Union
+
 class OutingMeritBadgeBase(BaseModel):
     """Base schema for outing merit badges"""
-    merit_badge_id: UUID = Field(..., description="ID of the merit badge")
+    merit_badge_id: Union[UUID, str] = Field(..., description="ID or Name of the merit badge")
     notes: Optional[str] = Field(None, description="Notes about which requirements can be worked on")
+
+    @field_validator('notes', mode='before')
+    @classmethod
+    def validate_notes(cls, v):
+        """Convert empty strings to None"""
+        if v == "":
+            return None
+        return v
 
 
 class OutingMeritBadgeCreate(OutingMeritBadgeBase):
@@ -148,6 +166,14 @@ class ParticipantProgressBase(BaseModel):
     outing_id: Optional[UUID] = Field(None, description="ID of the outing where this was completed")
     completed: bool = Field(False, description="Whether the requirement is completed")
     notes: Optional[str] = Field(None, description="Notes about completion")
+
+    @field_validator('notes', mode='before')
+    @classmethod
+    def validate_notes(cls, v):
+        """Convert empty strings to None"""
+        if v == "":
+            return None
+        return v
 
 
 class ParticipantProgressCreate(ParticipantProgressBase):

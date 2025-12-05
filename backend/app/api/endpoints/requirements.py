@@ -350,11 +350,28 @@ async def add_merit_badge_to_outing(
         )
 
     # Verify merit badge exists
-    mb = await crud_requirement.get_merit_badge(db, badge.merit_badge_id)
+    mb = None
+    
+    # Check if merit_badge_id is a UUID or a name
+    if isinstance(badge.merit_badge_id, UUID):
+        mb = await crud_requirement.get_merit_badge(db, badge.merit_badge_id)
+    else:
+        # Try to parse as UUID first
+        try:
+            uuid_obj = UUID(str(badge.merit_badge_id))
+            badge.merit_badge_id = uuid_obj
+            mb = await crud_requirement.get_merit_badge(db, uuid_obj)
+        except ValueError:
+            # It's a name
+            mb = await crud_requirement.get_merit_badge_by_name(db, str(badge.merit_badge_id))
+            if mb:
+                # Update the ID in the object to the actual UUID so CRUD works
+                badge.merit_badge_id = mb.id
+
     if not mb:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Merit badge not found"
+            detail=f"Merit badge '{badge.merit_badge_id}' not found"
         )
 
     existing = await crud_requirement.get_outing_merit_badge(

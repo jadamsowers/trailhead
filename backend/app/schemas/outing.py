@@ -69,6 +69,14 @@ class OutingBase(BaseModel):
             return None
         return v
 
+    @field_validator('signups_close_at', 'cancellation_deadline', mode='before')
+    @classmethod
+    def validate_datetime_fields(cls, v):
+        """Convert empty strings to None for datetime fields"""
+        if v == "":
+            return None
+        return v
+
     @field_validator('end_date')
     @classmethod
     def validate_end_date(cls, v, info):
