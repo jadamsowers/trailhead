@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import httpx
 import uuid
+from uuid import UUID
 from urllib.parse import urlparse, urlunparse
 
 from app.core.authentik import get_authentik_client
