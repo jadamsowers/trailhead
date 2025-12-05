@@ -1,5 +1,4 @@
 import { OpenAPI } from "../client";
-import { getAccessToken } from "../auth/client";
 
 /**
  * Initialize the generated API client with configuration
@@ -23,7 +22,10 @@ export const initApiClient = () => {
   // This wrapper only modifies requests to the configured API base or to paths starting with '/api'.
   try {
     const _originalFetch = (window as any).fetch.bind(window);
-    (window as any).fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    (window as any).fetch = async (
+      input: RequestInfo | URL,
+      init?: RequestInit
+    ) => {
       try {
         const url = typeof input === "string" ? input : (input as Request).url;
         const apiRoot = OpenAPI.BASE || "";

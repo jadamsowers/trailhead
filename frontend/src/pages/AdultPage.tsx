@@ -41,7 +41,7 @@ export const AdultPage: React.FC = () => {
               color: "var(--text-primary)",
             }}
           >
-            Welcome, {user?.profile?.name || "Adult"}!
+            Welcome, {user?.full_name || "Adult"}!
           </h1>
           <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>
             Manage your family and sign up for outings

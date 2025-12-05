@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import SimplexNoise from "simplex-noise";
+import { createNoise2D } from "simplex-noise";
 import { contours } from "d3-contour";
 import * as d3 from "d3";
 
@@ -61,7 +61,7 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
     svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
 
     // Create simplex noise instance
-    const simplex = new SimplexNoise("topo-seed");
+    const noise2D = createNoise2D();
 
     // Build dense elevation grid
     const resolution = 6; // Much finer, more organic contours
@@ -78,9 +78,9 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
 
         // Multi-octave simplex terrain
         const elevation =
-          1.2 * simplex.noise2D(nx * 1.2, ny * 1.2) +
-          0.6 * simplex.noise2D(nx * 2.4, ny * 2.4) +
-          0.3 * simplex.noise2D(nx * 4.8, ny * 4.8);
+          1.2 * noise2D(nx * 1.2, ny * 1.2) +
+          0.6 * noise2D(nx * 2.4, ny * 2.4) +
+          0.3 * noise2D(nx * 4.8, ny * 4.8);
 
         values[index++] = elevation;
       }
@@ -119,9 +119,9 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
     };
 
     // Project contour polygons → SVG paths
-    contourList.forEach((contour) => {
-      contour.coordinates.forEach((ring) => {
-        const rawPts = ring[0].map(([gx, gy]) => ({
+    contourList.forEach((contour: any) => {
+      contour.coordinates.forEach((ring: any) => {
+        const rawPts = ring[0].map(([gx, gy]: [number, number]) => ({
           x: gx * resolution,
           y: gy * resolution,
         }));
@@ -131,8 +131,8 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
         const pathGen = d3
           .line<{ x: number; y: number }>()
           .curve(d3.curveCatmullRom.alpha(0.5))
-          .x((p) => p.x)
-          .y((p) => p.y);
+          .x((p: { x: number; y: number }) => p.x)
+          .y((p: { x: number; y: number }) => p.y);
 
         const d = pathGen(smoothed);
 

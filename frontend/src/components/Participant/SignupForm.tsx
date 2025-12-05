@@ -76,10 +76,10 @@ const SignupForm: React.FC = () => {
       loadFamilyMembers();
       loadMySignups();
       // Pre-fill contact info from user profile
-      if (user?.profile?.email) {
+      if (user?.email) {
         setFormData((prev) => ({
           ...prev,
-          email: user.profile?.email || prev.email,
+          email: user.email || prev.email,
         }));
       }
     }
@@ -309,7 +309,7 @@ const SignupForm: React.FC = () => {
         setWarnings([]);
         setFormData({
           outing_id: "",
-          email: user?.profile?.email || "",
+          email: user?.email || "",
           phone: "",
           emergency_contact_name: "",
           emergency_contact_phone: "",

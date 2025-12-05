@@ -171,7 +171,7 @@ const SignupWizard: React.FC = () => {
       const userData = await userAPI.getCurrentUser();
       console.log("Loaded user data:", userData);
       setContactInfo({
-        email: user?.profile?.email || "",
+        email: user?.email || "",
         phone: userData.phone ?? "",
         emergency_contact_name: userData.emergency_contact_name ?? "",
         emergency_contact_phone: userData.emergency_contact_phone ?? "",
@@ -179,10 +179,10 @@ const SignupWizard: React.FC = () => {
     } catch (err) {
       console.error("Failed to load user contact info:", err);
       // Fallback to email from auth
-      if (user?.profile?.email) {
+      if (user?.email) {
         setContactInfo((prev) => ({
           ...prev,
-          email: user.profile?.email || prev.email,
+          email: user.email || prev.email,
         }));
       }
     }
@@ -454,7 +454,7 @@ const SignupWizard: React.FC = () => {
     setSelectedScoutIds([]);
     setEditingSignupId(null);
     setContactInfo({
-      email: user?.profile?.email || "",
+      email: user?.email || "",
       phone: "",
       emergency_contact_name: "",
       emergency_contact_phone: "",

@@ -861,7 +861,7 @@ const FamilyMemberForm: React.FC<FamilyMemberFormProps> = ({
                   />
                   <button
                     type="button"
-                    onClick={(e) => {
+                    onClick={() => {
                       const input = document.getElementById(
                         "bsa-lookup"
                       ) as HTMLInputElement;

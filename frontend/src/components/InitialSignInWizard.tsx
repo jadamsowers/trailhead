@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
 import { getAccessToken } from "../auth/client";
 import { getApiBase } from "../utils/apiBase";
 import {
@@ -50,8 +49,6 @@ const InitialSignInWizard: React.FC = () => {
     emergencyContactPhone?: string;
   }>({});
   const navigate = useNavigate();
-  const auth = useAuth();
-  const user = auth.user;
 
   // Check if user is admin - will be verified server-side
   const isAdmin = false; // Default to false, admin status is determined server-side

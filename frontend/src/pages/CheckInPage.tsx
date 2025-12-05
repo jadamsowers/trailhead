@@ -84,7 +84,7 @@ const CheckInPage: React.FC = () => {
     try {
       await checkInAPI.checkInParticipants(outingId, {
         participant_ids: participantIds,
-        checked_in_by: user?.profile?.name || user?.profile?.email || "Unknown",
+        checked_in_by: user?.full_name || user?.email || "Unknown",
       });
       await loadCheckInData();
     } catch (err) {

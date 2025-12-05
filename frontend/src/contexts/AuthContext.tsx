@@ -5,7 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { oauthAPI, authAPI } from "../services/api";
+import { authAPI } from "../services/api";
 import { getApiBase } from "../utils/apiBase";
 import type { UserResponse as AuthUserResponse } from "../client/models/UserResponse";
 import { User } from "../types";
@@ -75,26 +75,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.debug("Cached user removed");
     }
   }, [user]);
-
-  const verifyToken = async (_token: string) => {
-    // retained for compatibility; server-driven flow should use cookies
-    try {
-      const resp = await fetch(`${getApiBase()}/auth/me`, {
-        credentials: "include",
-      });
-      if (!resp.ok) throw new Error("Failed to verify session");
-      const userData = await resp.json();
-      const normalized = normalizeUserResponse(userData);
-      const withProfile = augmentWithLegacyProfile(normalized);
-      setUser(withProfile as any);
-      localStorage.setItem("cached_user", JSON.stringify(withProfile));
-    } catch (error) {
-      console.error("Session verification failed:", error);
-      setError(error instanceof Error ? error : new Error(String(error)));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const login = async (email: string, password: string) => {
     // Legacy login for admin accounts

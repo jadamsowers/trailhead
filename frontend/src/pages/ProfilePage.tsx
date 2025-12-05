@@ -199,7 +199,7 @@ const ProfilePage: React.FC = () => {
               Name
             </label>
             <div className="text-base" style={{ color: "var(--text-primary)" }}>
-              {user?.full_name || authUser?.profile?.name || "Not set"}
+              {user?.full_name || authUser?.full_name || "Not set"}
             </div>
           </div>
           <div>
@@ -210,7 +210,7 @@ const ProfilePage: React.FC = () => {
               Email
             </label>
             <div className="text-base" style={{ color: "var(--text-primary)" }}>
-              {user?.email || authUser?.profile?.email || "Not set"}
+              {user?.email || authUser?.email || "Not set"}
             </div>
           </div>
           <div>
