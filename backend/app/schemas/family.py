@@ -121,5 +121,11 @@ class FamilyMemberSummary(BaseModel):
     vehicle_capacity: Optional[int] = None  # Vehicle passenger capacity (for adults)
     has_youth_protection: Optional[bool] = None  # Youth protection training status (for adults)
     youth_protection_expired: Optional[bool] = None  # Whether youth protection has expired (for adults)
+    # Whether this family member can be selected for signup for the queried outing
+    signup_allowed: bool = True
+    # If not allowed, a short human-friendly reason why they cannot sign up
+    signup_block_reason: Optional[str] = None
+    # Optional brief instructions for how to rectify the issue (e.g. renew training)
+    signup_rectify_instructions: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

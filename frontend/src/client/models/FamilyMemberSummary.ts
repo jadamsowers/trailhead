@@ -15,5 +15,8 @@ export type FamilyMemberSummary = {
     vehicle_capacity?: (number | null);
     has_youth_protection?: (boolean | null);
     youth_protection_expired?: (boolean | null);
+    signup_allowed?: (boolean | null);
+    signup_block_reason?: (string | null);
+    signup_rectify_instructions?: (string | null);
 };
 

@@ -78,12 +78,30 @@ async def list_family_members_summary(
                 (today.month, today.day) < (member.date_of_birth.month, member.date_of_birth.day)
             )
         
-        # Check if youth protection is expired (for adults)
+        # Check if youth protection is expired or missing (for adults)
         # Compare against outing end date if provided, otherwise today
         youth_protection_expired = None
-        if member.member_type == 'adult' and member.has_youth_protection and member.youth_protection_expiration:
-            youth_protection_expired = member.youth_protection_expiration < comparison_date
-        
+        signup_allowed = True
+        signup_block_reason = None
+        signup_rectify_instructions = None
+
+        if member.member_type == 'adult':
+            if not member.has_youth_protection:
+                signup_allowed = False
+                signup_block_reason = "No SAFE Youth Protection training on file."
+                signup_rectify_instructions = (
+                    "Complete SAFE Youth Protection training at my.scouting.org and update this family member's record "
+                    "with the training status and expiration date."
+                )
+            elif member.youth_protection_expiration:
+                youth_protection_expired = member.youth_protection_expiration < comparison_date
+                if youth_protection_expired:
+                    signup_allowed = False
+                    signup_block_reason = f"SAFE Youth Protection expired on {member.youth_protection_expiration}."
+                    signup_rectify_instructions = (
+                        "Renew SAFE Youth Protection training at my.scouting.org and update the expiration date in this family member's record."
+                    )
+
         summaries.append(FamilyMemberSummary(
             id=member.id,
             name=member.name,
@@ -92,7 +110,10 @@ async def list_family_members_summary(
             age=age,
             vehicle_capacity=member.vehicle_capacity if member.member_type == 'adult' else None,
             has_youth_protection=member.has_youth_protection if member.member_type == 'adult' else None,
-            youth_protection_expired=youth_protection_expired
+            youth_protection_expired=youth_protection_expired,
+            signup_allowed=signup_allowed,
+            signup_block_reason=signup_block_reason,
+            signup_rectify_instructions=signup_rectify_instructions,
         ))
     
     return summaries

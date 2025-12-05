@@ -645,6 +645,11 @@ export const authAPI = {
 const FAMILY_STORAGE_KEY = "family_members_cache";
 const FAMILY_SUMMARY_STORAGE_KEY = "family_summary_cache";
 
+const familySummaryCacheKey = (outingId?: string) =>
+  outingId
+    ? `${FAMILY_SUMMARY_STORAGE_KEY}:outing:${outingId}`
+    : FAMILY_SUMMARY_STORAGE_KEY;
+
 export const familyAPI = {
   /**
    * Get all family members for the current user
@@ -706,9 +711,12 @@ export const familyAPI = {
       });
       const data = await handleResponse<FamilyMemberSummary[]>(response);
 
-      // Cache the data when online
+      // Cache the data when online (keyed by outing if provided)
       try {
-        localStorage.setItem(FAMILY_SUMMARY_STORAGE_KEY, JSON.stringify(data));
+        localStorage.setItem(
+          familySummaryCacheKey(outingId),
+          JSON.stringify(data)
+        );
       } catch (e) {
         console.warn("Failed to cache family summary:", e);
       }
@@ -721,10 +729,25 @@ export const familyAPI = {
         (error instanceof Error && error.message.includes("Failed to fetch")) ||
         (error instanceof Error && error.message.includes("Authentication"))
       ) {
-        const cached = localStorage.getItem(FAMILY_SUMMARY_STORAGE_KEY);
+        const cacheKey = familySummaryCacheKey(outingId);
+        const cached = localStorage.getItem(cacheKey);
         if (cached) {
-          console.log("📱 Serving cached family summary (offline mode)");
+          console.log("📱 Serving cached family summary (offline mode)", {
+            cacheKey,
+          });
           return JSON.parse(cached);
+        }
+
+        // Back-compat: if an old single-key cache exists, surface it for debugging
+        if (outingId) {
+          const legacy = localStorage.getItem(FAMILY_SUMMARY_STORAGE_KEY);
+          if (legacy) {
+            console.warn(
+              "⚠️ Found legacy family summary cache under single key; using for offline fallback",
+              { legacyKey: FAMILY_SUMMARY_STORAGE_KEY }
+            );
+            return JSON.parse(legacy);
+          }
         }
       }
       throw error;

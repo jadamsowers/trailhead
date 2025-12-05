@@ -119,11 +119,15 @@ const SignupForm: React.FC = () => {
     }
   };
 
-  const loadFamilyMembers = async () => {
+  const loadFamilyMembers = async (outingIdArg?: string) => {
     try {
       setLoadingFamilyMembers(true);
       console.log("🔄 Loading family members...");
-      const data = await familyAPI.getSummary();
+      // If an outing is passed explicitly, use it; otherwise fall back to
+      // the current formData.outing_id. This avoids reading stale state
+      // immediately after calling setFormData in handleOutingToggle.
+      const outingId = outingIdArg ?? formData.outing_id ?? undefined;
+      const data = await familyAPI.getSummary(outingId);
       console.log("✅ Family members loaded:", data.length);
       setFamilyMembers(data);
 
@@ -152,6 +156,9 @@ const SignupForm: React.FC = () => {
       // Expand and set outing
       setExpandedOutingId(outingId);
       setFormData({ ...formData, outing_id: outingId });
+      // Re-fetch family members with outing context so eligibility is accurate.
+      // Pass the outingId directly to avoid reading outdated formData in the call.
+      loadFamilyMembers(outingId);
       // Reset form state when switching outings
       setShowFamilySelection(true);
       setSelectedFamilyMemberIds([]);
@@ -1117,10 +1124,13 @@ const SignupForm: React.FC = () => {
                                             selectedFamilyMemberIds.includes(
                                               member.id
                                             );
-                                          const isExpired =
-                                            member.youth_protection_expired ===
-                                            true;
-                                          const canSelect = !isExpired;
+                                          // Use backend-provided signup_allowed flag when present.
+                                          // Default to allowed if the field is undefined.
+                                          const signupAllowed =
+                                            member.signup_allowed === undefined
+                                              ? true
+                                              : member.signup_allowed;
+                                          const canSelect = !!signupAllowed;
                                           return (
                                             <div
                                               key={member.id}
@@ -1134,7 +1144,7 @@ const SignupForm: React.FC = () => {
                                                 padding: "15px",
                                                 border: isSelected
                                                   ? "2px solid #4caf50"
-                                                  : isExpired
+                                                  : !signupAllowed
                                                   ? "2px solid #c62828"
                                                   : "1px solid #ddd",
                                                 borderRadius: "8px",
@@ -1143,12 +1153,14 @@ const SignupForm: React.FC = () => {
                                                   : "not-allowed",
                                                 backgroundColor: isSelected
                                                   ? "#e8f5e9"
-                                                  : isExpired
-                                                  ? "#ffebee"
+                                                  : !signupAllowed
+                                                  ? "#fff8f8"
                                                   : "white",
                                                 transition: "all 0.2s",
                                                 position: "relative",
-                                                opacity: isExpired ? 0.7 : 1,
+                                                opacity: signupAllowed
+                                                  ? 1
+                                                  : 0.7,
                                               }}
                                             >
                                               {isSelected && (
@@ -1235,26 +1247,41 @@ const SignupForm: React.FC = () => {
                                                 )}
                                               {member.has_youth_protection !==
                                                 undefined && (
-                                                <p
-                                                  style={{
-                                                    margin: "4px 0",
-                                                    fontSize: "12px",
-                                                    color:
-                                                      member.youth_protection_expired
+                                                <div style={{ marginTop: 6 }}>
+                                                  <p
+                                                    style={{
+                                                      margin: "4px 0",
+                                                      fontSize: "12px",
+                                                      color: !signupAllowed
                                                         ? "#c62828"
                                                         : "#2e7d32",
-                                                    fontWeight:
-                                                      member.youth_protection_expired
+                                                      fontWeight: !signupAllowed
                                                         ? "bold"
                                                         : "normal",
-                                                  }}
-                                                >
-                                                  {member.youth_protection_expired
-                                                    ? "⚠️ Youth Protection EXPIRED - Cannot Sign Up"
-                                                    : member.has_youth_protection
-                                                    ? "✓ Youth Protection Trained"
-                                                    : ""}
-                                                </p>
+                                                    }}
+                                                  >
+                                                    {!signupAllowed
+                                                      ? member.signup_block_reason ||
+                                                        "⚠️ Not eligible to sign up"
+                                                      : member.has_youth_protection
+                                                      ? "✓ Youth Protection Trained"
+                                                      : ""}
+                                                  </p>
+                                                  {!signupAllowed &&
+                                                    member.signup_rectify_instructions && (
+                                                      <p
+                                                        style={{
+                                                          margin: "4px 0",
+                                                          fontSize: "12px",
+                                                          color: "#666",
+                                                        }}
+                                                      >
+                                                        {
+                                                          member.signup_rectify_instructions
+                                                        }
+                                                      </p>
+                                                    )}
+                                                </div>
                                               )}
                                             </div>
                                           );

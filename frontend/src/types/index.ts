@@ -322,6 +322,10 @@ export interface FamilyMemberSummary {
   youth_protection_expired?: boolean;
   // Adding DOB so client can re-infer member type consistently across components
   date_of_birth?: string;
+  // New fields returned by the backend to indicate signup eligibility
+  signup_allowed?: boolean;
+  signup_block_reason?: string;
+  signup_rectify_instructions?: string;
 }
 
 export interface FamilyMemberListResponse {

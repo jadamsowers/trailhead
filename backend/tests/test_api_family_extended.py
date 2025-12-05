@@ -96,6 +96,81 @@ class TestFamilyMemberSummary:
         expired_member = next((m for m in data if m["name"] == "Expired Adult"), None)
         assert expired_member is not None
         assert expired_member["youth_protection_expired"] is True
+        # New fields: expired adult should not be allowed to sign up
+        assert expired_member.get("signup_allowed") is False
+        assert isinstance(expired_member.get("signup_block_reason"), str) and expired_member.get("signup_block_reason")
+        assert isinstance(expired_member.get("signup_rectify_instructions"), str) and expired_member.get("signup_rectify_instructions")
+
+    async def test_summary_missing_youth_protection(
+        self, client: AsyncClient, auth_headers, db_session, test_user
+    ):
+        """Test that adults with no youth protection are marked as not allowed and receive instructions"""
+        from app.models.family import FamilyMember
+
+        # Create adult without YPT
+        missing_adult = FamilyMember(
+            id=uuid4(),
+            user_id=test_user.id,
+            name="Missing Adult",
+            date_of_birth=date.today() - timedelta(days=365*35),
+            member_type="adult",
+            gender="female",
+            has_youth_protection=False,
+            youth_protection_expiration=None,
+        )
+        db_session.add(missing_adult)
+        await db_session.commit()
+
+        response = await client.get(
+            "/api/family/summary",
+            headers=auth_headers
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        missing_member = next((m for m in data if m["name"] == "Missing Adult"), None)
+        assert missing_member is not None
+        assert missing_member.get("signup_allowed") is False
+        assert isinstance(missing_member.get("signup_block_reason"), str) and missing_member.get("signup_block_reason")
+        assert isinstance(missing_member.get("signup_rectify_instructions"), str) and missing_member.get("signup_rectify_instructions")
+
+    async def test_summary_ypt_expires_before_outing_end(
+        self, client: AsyncClient, auth_headers, db_session, test_user, test_outing
+    ):
+        """Adult whose YPT is valid now but will expire before outing end should be blocked for that outing"""
+        from app.models.family import FamilyMember
+
+        # Create adult with YPT that expires after today but before the outing end_date
+        expiration_date = date.today() + timedelta(days=31)  # outing end is +32
+        near_expiring_adult = FamilyMember(
+            id=uuid4(),
+            user_id=test_user.id,
+            name="Near Expiring Adult",
+            date_of_birth=date.today() - timedelta(days=365*45),
+            member_type="adult",
+            gender="female",
+            has_youth_protection=True,
+            youth_protection_expiration=expiration_date,
+        )
+        db_session.add(near_expiring_adult)
+        await db_session.commit()
+
+        response = await client.get(
+            f"/api/family/summary?outing_id={test_outing.id}",
+            headers=auth_headers
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+
+        member = next((m for m in data if m["name"] == "Near Expiring Adult"), None)
+        assert member is not None
+        # YPT is currently valid (compared to today), but expired relative to outing end
+        assert member.get("youth_protection_expired") is True
+        assert member.get("signup_allowed") is False
+        assert isinstance(member.get("signup_block_reason"), str) and member.get("signup_block_reason")
+        assert isinstance(member.get("signup_rectify_instructions"), str) and member.get("signup_rectify_instructions")
     
     async def test_summary_age_calculation(
         self, client: AsyncClient, auth_headers, db_session, test_user
