@@ -24,7 +24,7 @@ import { RosterImportPage } from "./pages/admin/RosterImportPage";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import InitialSignInWizard from "./components/InitialSignInWizard";
 import InstanceSetupWizard from "./components/InstanceSetupWizard";
-import { InitialSetupGuard } from "./components/InitialSetupGuard";
+import { InstanceSetupGuard } from "./components/InstanceSetupGuard";
 import { userAPI } from "./services/api";
 import type { User } from "./types";
 
@@ -692,9 +692,9 @@ const AppContent: React.FC = () => {
                 path="/admin/roster-import"
                 element={
                   <RequireAuth>
-                    <InitialSetupGuard>
+                    <InstanceSetupGuard>
                       <RosterImportPage />
-                    </InitialSetupGuard>
+                    </InstanceSetupGuard>
                   </RequireAuth>
                 }
               />
@@ -702,7 +702,9 @@ const AppContent: React.FC = () => {
                 path="/instance-setup"
                 element={
                   <RequireAuth>
-                    <InstanceSetupWizard />
+                    <InstanceSetupGuard>
+                      <InstanceSetupWizard />
+                    </InstanceSetupGuard>
                   </RequireAuth>
                 }
               />

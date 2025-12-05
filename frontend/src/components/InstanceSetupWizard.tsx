@@ -8,6 +8,7 @@ interface TroopSetupData {
   meeting_location: string;
   meeting_day: string;
   notes: string;
+  treasurer_email: string;
   patrols: PatrolSetupData[];
 }
 
@@ -50,6 +51,7 @@ const InstanceSetupWizard: React.FC = () => {
       meeting_location: "",
       meeting_day: "",
       notes: "",
+      treasurer_email: "",
       patrols: [],
     },
   ]);
@@ -117,6 +119,7 @@ const InstanceSetupWizard: React.FC = () => {
         meeting_location: "",
         meeting_day: "",
         notes: "",
+        treasurer_email: "",
         patrols: [],
       },
     ]);
@@ -174,7 +177,7 @@ const InstanceSetupWizard: React.FC = () => {
           meeting_location: troop.meeting_location.trim() || null,
           meeting_day: troop.meeting_day.trim() || null,
           notes: troop.notes.trim() || null,
-          treasurer_email: null,
+          treasurer_email: troop.treasurer_email.trim() || null,
         } as any); // TODO: Update TroopCreate type to include organization_id
 
         created.push({ id: troopResponse.id, number: troopResponse.number });
@@ -541,6 +544,30 @@ const InstanceSetupWizard: React.FC = () => {
                 </div>
 
                 <div>
+                                  <div>
+                                    <label
+                                      className="block text-sm font-medium mb-1"
+                                      style={{ color: "var(--text-primary)" }}
+                                    >
+                                      Troop Treasurer Email
+                                    </label>
+                                    <input
+                                      type="email"
+                                      className="w-full rounded px-3 py-2"
+                                      style={{
+                                        background: "var(--input-bg)",
+                                        color: "var(--text-primary)",
+                                        borderWidth: "1px",
+                                        borderStyle: "solid",
+                                        borderColor: "var(--border-light)",
+                                      }}
+                                      value={troop.treasurer_email}
+                                      onChange={(e) =>
+                                        handleTroopChange(troopIdx, "treasurer_email", e.target.value)
+                                      }
+                                      placeholder="e.g., treasurer@troop123.org"
+                                    />
+                                  </div>
                   <label
                     className="block text-sm font-medium mb-1"
                     style={{ color: "var(--text-primary)" }}
