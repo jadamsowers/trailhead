@@ -46,6 +46,19 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({
     error ||
     (swrError ? swrError.message || "Failed to load family members" : null);
 
+  // Helper to sort family members by last name (case-insensitive).
+  // Falls back to full name comparison when last names are equal or missing.
+  const sortByLastName = (a: FamilyMember, b: FamilyMember) => {
+    const last = (name?: string) =>
+      (name || "").trim().split(/\s+/).filter(Boolean).slice(-1)[0] || "";
+    const la = last(a.name).toLowerCase();
+    const lb = last(b.name).toLowerCase();
+    if (la === lb) {
+      return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+    }
+    return la.localeCompare(lb, undefined, { sensitivity: "base" });
+  };
+
   const handleAddMember = () => {
     setShowAddForm(true);
     setEditingMember(null);
@@ -154,6 +167,7 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
                   {members
                     .filter((m) => m.member_type === "adult")
+                    .sort(sortByLastName)
                     .map((member) => (
                       <FamilyMemberCard
                         key={member.id}
@@ -179,6 +193,7 @@ export const FamilyManagement: React.FC<FamilyManagementProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
                   {members
                     .filter((m) => m.member_type === "scout")
+                    .sort(sortByLastName)
                     .map((member) => (
                       <FamilyMemberCard
                         key={member.id}

@@ -19,7 +19,25 @@ const RosterListPage: React.FC = () => {
     setError(null);
     try {
       const res = await rosterAPI.list(q || undefined, 200, 0);
-      setMembers(res.members || []);
+      // Sort roster members by last name (case-insensitive) for admin view
+      const sortByLastName = (a: RosterMemberLookup, b: RosterMemberLookup) => {
+        const last = (name?: string) =>
+          (name || "").trim().split(/\s+/).filter(Boolean).slice(-1)[0] || "";
+        const la = last(a.full_name).toLowerCase();
+        const lb = last(b.full_name).toLowerCase();
+        if (la === lb) {
+          return (a.full_name || "").localeCompare(
+            b.full_name || "",
+            undefined,
+            {
+              sensitivity: "base",
+            }
+          );
+        }
+        return la.localeCompare(lb, undefined, { sensitivity: "base" });
+      };
+
+      setMembers((res.members || []).slice().sort(sortByLastName));
       setTotal(res.total || 0);
     } catch (err: any) {
       setError(err?.message || "Failed to load roster");
@@ -120,10 +138,10 @@ const RosterListPage: React.FC = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ color: "var(--text-primary)" }}>
-                  <th className="text-left p-2">BSA ID</th>
+                  <th className="text-right p-2">BSA ID</th>
                   <th className="text-left p-2">Name</th>
                   <th className="text-left p-2">Email</th>
-                  <th className="text-left p-2">Phone</th>
+                  <th className="text-left p-2 min-w-[160px]">Phone</th>
                   <th className="text-left p-2">Position</th>
                   <th className="text-left p-2">YPT Expiration</th>
                 </tr>
@@ -135,10 +153,37 @@ const RosterListPage: React.FC = () => {
                     className="border-t"
                     style={{ color: "var(--text-secondary)" }}
                   >
-                    <td className="p-2">{m.bsa_member_id}</td>
+                    <td className="p-2 font-mono text-right">
+                      {m.bsa_member_id}
+                    </td>
                     <td className="p-2">{m.full_name}</td>
-                    <td className="p-2">{m.email}</td>
-                    <td className="p-2">{m.mobile_phone}</td>
+                    <td className="p-2">
+                      {m.email ? (
+                        <a
+                          href={`mailto:${m.email}`}
+                          className="text-[var(--color-primary)] hover:underline"
+                        >
+                          {m.email}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td className="p-2 font-mono min-w-[160px]">
+                      {m.mobile_phone ? (
+                        <a
+                          href={`tel:${(m.mobile_phone || "").replace(
+                            /[^0-9+]/g,
+                            ""
+                          )}`}
+                          className="hover:underline"
+                        >
+                          {m.mobile_phone}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td className="p-2">{m.position}</td>
                     <td className="p-2">{m.ypt_expiration || "—"}</td>
                   </tr>
