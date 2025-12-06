@@ -129,7 +129,7 @@ const TopographicBackground: React.FC<TopographicBackgroundProps> = ({
         const smoothed = chaikin(rawPts, 2);
 
         const pathGen = d3
-          .line<{ x: number; y: number }>()
+          .line()
           .curve(d3.curveCatmullRom.alpha(0.5))
           .x((p: { x: number; y: number }) => p.x)
           .y((p: { x: number; y: number }) => p.y);

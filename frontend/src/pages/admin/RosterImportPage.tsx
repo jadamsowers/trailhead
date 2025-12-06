@@ -60,7 +60,11 @@ export const RosterImportPage: React.FC = () => {
         </div>
 
         <div className="p-8">
-          <RosterImportForm troopId={troopId} onSuccess={(s) => setSuccess(s)} onCancel={() => navigate('/admin')} />
+          <RosterImportForm
+            troopId={troopId}
+            onSuccess={(s) => setSuccess(s)}
+            onCancel={() => navigate("/admin")}
+          />
 
           {success && (
             <div

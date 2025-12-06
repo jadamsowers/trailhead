@@ -276,6 +276,24 @@ export const TroopAdminPage: React.FC = () => {
                     <i className="bi bi-cloud-upload mr-2"></i>
                     Import Roster
                   </a>
+                  <a
+                    href={`/admin/roster?troop_id=${selectedTroop.id}`}
+                    className="ml-3 px-4 py-2 rounded-lg font-medium transition-all flex items-center"
+                    style={{
+                      backgroundColor: "var(--btn-secondary-bg, #f3f4f6)",
+                      color: "var(--text-primary)",
+                      border: "1px solid var(--border-light)",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = "var(--bg-secondary)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "var(--btn-secondary-bg, #f3f4f6)")
+                    }
+                  >
+                    <i className="bi bi-people mr-2"></i>
+                    View Roster
+                  </a>
                 </div>
                 <div
                   className="p-6 rounded-lg space-y-3"
@@ -683,7 +701,9 @@ const TroopForm: React.FC<TroopFormProps> = ({
               color: "var(--btn-primary-text)",
             }}
             type="button"
-            onClick={() => navigate(`/admin/roster-import?troop_id=${troop.id}`)}
+            onClick={() =>
+              navigate(`/admin/roster-import?troop_id=${troop.id}`)
+            }
           >
             <i className="bi bi-cloud-upload mr-2"></i>
             Import Roster

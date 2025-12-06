@@ -7,7 +7,11 @@ interface Props {
   onCancel?: () => void;
 }
 
-export const RosterImportForm: React.FC<Props> = ({ troopId, onSuccess, onCancel }) => {
+export const RosterImportForm: React.FC<Props> = ({
+  troopId,
+  onSuccess,
+  onCancel,
+}) => {
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,18 +55,34 @@ export const RosterImportForm: React.FC<Props> = ({ troopId, onSuccess, onCancel
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
         <div className="flex flex-col items-center justify-center pointer-events-none">
-          <i className="bi bi-cloud-upload text-4xl mb-4" style={{ color: "var(--text-muted)" }}></i>
-          <p className="text-lg font-medium" style={{ color: "var(--text-primary)" }}>
+          <i
+            className="bi bi-cloud-upload text-4xl mb-4"
+            style={{ color: "var(--text-muted)" }}
+          ></i>
+          <p
+            className="text-lg font-medium"
+            style={{ color: "var(--text-primary)" }}
+          >
             {file ? file.name : "Click to upload or drag and drop"}
           </p>
-          <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+          <p
+            className="text-sm mt-1"
+            style={{ color: "var(--text-secondary)" }}
+          >
             CSV files only
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="mt-6 p-4 rounded-lg flex items-start" style={{ backgroundColor: "var(--alert-error-bg)", border: "1px solid var(--alert-error-border)", color: "var(--alert-error-text)" }}>
+        <div
+          className="mt-6 p-4 rounded-lg flex items-start"
+          style={{
+            backgroundColor: "var(--alert-error-bg)",
+            border: "1px solid var(--alert-error-border)",
+            color: "var(--alert-error-text)",
+          }}
+        >
           <i className="bi bi-exclamation-circle mr-3 mt-0.5 flex-shrink-0"></i>
           <div>
             <h3 className="font-medium">Import Failed</h3>
@@ -72,7 +92,14 @@ export const RosterImportForm: React.FC<Props> = ({ troopId, onSuccess, onCancel
       )}
 
       {success && (
-        <div className="mt-6 p-4 rounded-lg flex items-start" style={{ backgroundColor: "var(--alert-success-bg)", border: "1px solid var(--alert-success-border)", color: "var(--alert-success-text)" }}>
+        <div
+          className="mt-6 p-4 rounded-lg flex items-start"
+          style={{
+            backgroundColor: "var(--alert-success-bg)",
+            border: "1px solid var(--alert-success-border)",
+            color: "var(--alert-success-text)",
+          }}
+        >
           <i className="bi bi-check-circle mr-3 mt-0.5 flex-shrink-0"></i>
           <div>
             <h3 className="font-medium">Import Successful</h3>
@@ -89,7 +116,10 @@ export const RosterImportForm: React.FC<Props> = ({ troopId, onSuccess, onCancel
           <button
             type="button"
             className="px-6 py-2 rounded-lg font-medium transition-all"
-            style={{ backgroundColor: "var(--btn-secondary-bg)", color: "var(--btn-secondary-text)" }}
+            style={{
+              backgroundColor: "var(--btn-secondary-bg)",
+              color: "var(--btn-secondary-text)",
+            }}
             onClick={onCancel}
           >
             Cancel
@@ -100,15 +130,27 @@ export const RosterImportForm: React.FC<Props> = ({ troopId, onSuccess, onCancel
           disabled={!file || uploading}
           className="px-6 py-2 rounded-lg font-medium transition-all flex items-center"
           style={{
-            backgroundColor: !file || uploading ? "var(--btn-disabled-bg)" : "var(--btn-primary-bg)",
-            color: !file || uploading ? "var(--btn-disabled-text)" : "var(--btn-primary-text)",
+            backgroundColor:
+              !file || uploading
+                ? "var(--btn-disabled-bg)"
+                : "var(--btn-primary-bg)",
+            color:
+              !file || uploading
+                ? "var(--btn-disabled-text)"
+                : "var(--btn-primary-text)",
             cursor: !file || uploading ? "not-allowed" : "pointer",
             opacity: !file || uploading ? 0.6 : 1,
           }}
         >
           {uploading ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-t-transparent mr-2" style={{ borderColor: "var(--btn-primary-text)", borderTopColor: "transparent" }}></div>
+              <div
+                className="animate-spin rounded-full h-4 w-4 border-2 border-t-transparent mr-2"
+                style={{
+                  borderColor: "var(--btn-primary-text)",
+                  borderTopColor: "transparent",
+                }}
+              ></div>
               Importing...
             </>
           ) : (

@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from typing import Any, Optional
+from sqlalchemy import select, func, or_
+from typing import Any, Optional, List
 
 from app.api import deps
 from app.services.roster import RosterService
@@ -9,6 +9,66 @@ from app.models.user import User
 from app.models.roster import RosterMember
 
 router = APIRouter()
+
+
+@router.get("/", status_code=200)
+async def list_roster_members(
+    *,
+    db: AsyncSession = Depends(deps.get_db),
+    q: Optional[str] = Query(None, description="Search query for name or email"),
+    limit: int = Query(100, ge=1, le=1000),
+    offset: int = Query(0, ge=0),
+    current_user: User = Depends(deps.get_current_admin_user),
+) -> Any:
+    """
+    List roster members. Admins only. Supports optional `q` search and pagination.
+    """
+    stmt = select(RosterMember)
+    count_stmt = select(func.count()).select_from(RosterMember)
+
+    if q:
+        like_q = f"%{q}%"
+        stmt = stmt.where(
+            or_(
+                RosterMember.full_name.ilike(like_q),
+                RosterMember.email.ilike(like_q),
+            )
+        )
+        count_stmt = count_stmt.where(
+            or_(
+                RosterMember.full_name.ilike(like_q),
+                RosterMember.email.ilike(like_q),
+            )
+        )
+
+    # Apply pagination
+    stmt = stmt.limit(limit).offset(offset)
+
+    result = await db.execute(stmt)
+    members = result.scalars().all()
+
+    total = await db.execute(count_stmt)
+    total_count = total.scalar_one()
+
+    def _member_to_dict(m: RosterMember):
+        return {
+            "bsa_member_id": m.bsa_member_id,
+            "full_name": m.full_name,
+            "first_name": m.first_name,
+            "middle_name": m.middle_name,
+            "last_name": m.last_name,
+            "suffix": m.suffix,
+            "email": m.email,
+            "mobile_phone": m.mobile_phone,
+            "city": m.city,
+            "state": m.state,
+            "zip_code": m.zip_code,
+            "position": m.position,
+            "ypt_date": m.ypt_date.isoformat() if m.ypt_date else None,
+            "ypt_expiration": m.ypt_expiration.isoformat() if m.ypt_expiration else None,
+        }
+
+    return {"members": [_member_to_dict(m) for m in members], "total": int(total_count)}
 
 @router.post("/import", status_code=200)
 async def import_roster(

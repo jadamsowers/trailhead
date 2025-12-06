@@ -21,6 +21,7 @@ import OutingsPage from "./pages/OutingsPage";
 import CheckInPage from "./pages/CheckInPage";
 import ProfilePage from "./pages/ProfilePage";
 import { RosterImportPage } from "./pages/admin/RosterImportPage";
+import RosterListPage from "./pages/admin/RosterListPage";
 import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import InitialSignInWizard from "./components/InitialSignInWizard";
 import InstanceSetupWizard from "./components/InstanceSetupWizard";
@@ -697,6 +698,18 @@ const AppContent: React.FC = () => {
                     <InstanceSetupGuard>
                       <ErrorBoundary>
                         <RosterImportPage />
+                      </ErrorBoundary>
+                    </InstanceSetupGuard>
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/admin/roster"
+                element={
+                  <RequireAuth>
+                    <InstanceSetupGuard>
+                      <ErrorBoundary>
+                        <RosterListPage />
                       </ErrorBoundary>
                     </InstanceSetupGuard>
                   </RequireAuth>

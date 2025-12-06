@@ -2061,6 +2061,21 @@ export const rosterAPI = {
 
     return handleResponse<RosterMemberLookup>(response);
   },
+  
+  async list(q?: string, limit: number = 100, offset: number = 0): Promise<{ members: RosterMemberLookup[]; total: number }> {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    params.set("limit", String(limit));
+    params.set("offset", String(offset));
+
+    const url = `${getApiBase()}/roster?${params.toString()}`;
+    const response = await fetch(url, {
+      method: "GET",
+      headers: await getAuthHeaders(),
+    });
+
+    return handleResponse<{ members: RosterMemberLookup[]; total: number }>(response);
+  },
 };
 
 // Organizations API
