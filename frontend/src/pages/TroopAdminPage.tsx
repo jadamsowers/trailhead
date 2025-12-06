@@ -285,10 +285,12 @@ export const TroopAdminPage: React.FC = () => {
                       border: "1px solid var(--border-light)",
                     }}
                     onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = "var(--bg-secondary)")
+                      (e.currentTarget.style.backgroundColor =
+                        "var(--bg-secondary)")
                     }
                     onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = "var(--btn-secondary-bg, #f3f4f6)")
+                      (e.currentTarget.style.backgroundColor =
+                        "var(--btn-secondary-bg, #f3f4f6)")
                     }
                   >
                     <i className="bi bi-people mr-2"></i>

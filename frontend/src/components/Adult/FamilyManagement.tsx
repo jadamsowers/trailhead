@@ -221,6 +221,60 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({
 
   const age = calculateAge(member.date_of_birth || undefined);
 
+  // Determine Youth Protection Training (YPT) status:
+  // - red: not trained OR expired
+  // - yellow: expiring within 30 days
+  // - green: valid for 30+ days
+  const ypInfo = (() => {
+    const now = new Date();
+    const result: {
+      status: "red" | "yellow" | "green";
+      label: string;
+      daysLeft?: number | null;
+      expirationLabel: string;
+    } = {
+      status: "red",
+      label: "Youth Protection: Not Trained",
+      daysLeft: null,
+      expirationLabel: "N/A",
+    };
+
+    if (!member.has_youth_protection) {
+      result.status = "red";
+      result.label = "⚠️ Youth Protection: Not Trained";
+      result.expirationLabel = "N/A";
+      return result;
+    }
+
+    if (member.youth_protection_expiration) {
+      const exp = new Date(member.youth_protection_expiration);
+      const ms = exp.getTime() - now.getTime();
+      const daysLeft = Math.ceil(ms / (1000 * 60 * 60 * 24));
+      result.daysLeft = daysLeft;
+      result.expirationLabel = exp.toLocaleDateString();
+
+      if (exp < now) {
+        result.status = "red";
+        result.label = "⚠️ Youth Protection: Expired";
+      } else if (daysLeft < 30) {
+        result.status = "yellow";
+        result.label = `⚠️ Youth Protection: Expiring in ${daysLeft} day${
+          daysLeft === 1 ? "" : "s"
+        }`;
+      } else {
+        result.status = "green";
+        result.label = "✓ Youth Protection: Valid";
+      }
+      return result;
+    }
+
+    // Has training but no expiration provided -> treat as valid
+    result.status = "green";
+    result.label = "✓ Youth Protection: Valid";
+    result.expirationLabel = "N/A";
+    return result;
+  })();
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -387,16 +441,16 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({
               className="flex flex-col gap-1 px-4 py-3 rounded-lg mt-2 border"
               style={{
                 backgroundColor:
-                  !member.has_youth_protection ||
-                  (member.youth_protection_expiration &&
-                    new Date(member.youth_protection_expiration) < new Date())
+                  ypInfo.status === "red"
                     ? "var(--card-error-bg)"
+                    : ypInfo.status === "yellow"
+                    ? "var(--alert-warning-bg)"
                     : "var(--card-success-bg)",
                 borderColor:
-                  !member.has_youth_protection ||
-                  (member.youth_protection_expiration &&
-                    new Date(member.youth_protection_expiration) < new Date())
+                  ypInfo.status === "red"
                     ? "var(--border-error)"
+                    : ypInfo.status === "yellow"
+                    ? "var(--alert-warning-border)"
                     : "var(--border-success)",
               }}
             >
@@ -404,37 +458,32 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({
                 className="flex items-center gap-2 font-bold text-sm"
                 style={{
                   color:
-                    !member.has_youth_protection ||
-                    (member.youth_protection_expiration &&
-                      new Date(member.youth_protection_expiration) < new Date())
+                    ypInfo.status === "red"
                       ? "var(--color-error)"
+                      : ypInfo.status === "yellow"
+                      ? "var(--alert-warning-text)"
                       : "var(--color-success)",
                 }}
               >
-                {!member.has_youth_protection
-                  ? "⚠️ Youth Protection: Not Trained"
-                  : member.youth_protection_expiration &&
-                    new Date(member.youth_protection_expiration) < new Date()
-                  ? "⚠️ Youth Protection: Expired"
-                  : "✓ Youth Protection: Valid"}
+                {ypInfo.label}
               </div>
               <div
                 className="text-xs font-medium"
                 style={{
                   color:
-                    !member.has_youth_protection ||
-                    (member.youth_protection_expiration &&
-                      new Date(member.youth_protection_expiration) < new Date())
+                    ypInfo.status === "red"
                       ? "var(--color-error)"
+                      : ypInfo.status === "yellow"
+                      ? "var(--alert-warning-text)"
                       : "var(--color-success)",
                 }}
               >
-                Expiration:{" "}
-                {member.youth_protection_expiration
-                  ? new Date(
-                      member.youth_protection_expiration
-                    ).toLocaleDateString()
-                  : "N/A"}
+                Expiration: {ypInfo.expirationLabel}
+                {ypInfo.status === "yellow" && ypInfo.daysLeft != null
+                  ? ` — ${ypInfo.daysLeft} day${
+                      ypInfo.daysLeft === 1 ? "" : "s"
+                    } left`
+                  : ""}
               </div>
             </div>
             {member.vehicle_capacity > 0 && (
@@ -454,62 +503,16 @@ const FamilyMemberCard: React.FC<FamilyMemberCardProps> = ({
         )}
 
         {member.dietary_preferences.length > 0 && (
-          <div className="mt-3">
-            <div
-              className="font-semibold mb-2 text-xs uppercase tracking-wider"
+          <div className="flex items-center gap-2 mt-1">
+            <span
+              className="font-semibold min-w-[80px]"
               style={{ color: "var(--text-primary)" }}
             >
-              Dietary Preferences
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {member.dietary_preferences.map((p, idx) => (
-                <span
-                  key={idx}
-                  className="px-3 py-1 rounded-full text-xs font-semibold shadow-sm border"
-                  style={{
-                    backgroundColor: "var(--badge-secondary-bg)",
-                    color: "var(--badge-secondary-text)",
-                    borderColor: "var(--badge-secondary-border)",
-                  }}
-                >
-                  {p.preference}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {member.allergies.length > 0 && (
-          <div className="mt-3">
-            <div
-              className="font-semibold mb-2 text-xs uppercase tracking-wider flex items-center gap-1"
-              style={{ color: "var(--color-error)" }}
-            >
-              <span>⚠️ Allergies</span>
-            </div>
-            <div className="flex flex-col gap-2">
-              {member.allergies.map((a, idx) => (
-                <span
-                  key={idx}
-                  className="px-3 py-2 rounded-lg text-xs font-bold border shadow-sm flex justify-between items-center"
-                  style={{
-                    backgroundColor: "var(--card-error-bg)",
-                    color: "var(--color-error)",
-                    borderColor: "var(--border-error)",
-                  }}
-                >
-                  <span>{a.allergy}</span>
-                  {a.severity && (
-                    <span
-                      className="text-[10px] uppercase px-1.5 py-0.5 rounded ml-2"
-                      style={{ backgroundColor: "var(--card-bg-alpha)" }}
-                    >
-                      {a.severity}
-                    </span>
-                  )}
-                </span>
-              ))}
-            </div>
+              Dietary:
+            </span>
+            <span className="font-medium">
+              {member.dietary_preferences.map((p) => p.preference).join(", ")}
+            </span>
           </div>
         )}
       </div>

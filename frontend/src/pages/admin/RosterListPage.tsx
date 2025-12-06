@@ -41,8 +41,12 @@ const RosterListPage: React.FC = () => {
         style={{
           color: "var(--text-secondary)",
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text-primary)")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-secondary)")}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.color = "var(--text-primary)")
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.color = "var(--text-secondary)")
+        }
       >
         <i className="bi bi-arrow-left mr-2"></i>
         Back to Admin Dashboard
@@ -55,12 +59,23 @@ const RosterListPage: React.FC = () => {
           border: "1px solid var(--border-light)",
         }}
       >
-        <div className="p-6" style={{ borderBottom: "1px solid var(--border-light)", backgroundColor: "var(--bg-secondary)" }}>
-          <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
+        <div
+          className="p-6"
+          style={{
+            borderBottom: "1px solid var(--border-light)",
+            backgroundColor: "var(--bg-secondary)",
+          }}
+        >
+          <h1
+            className="text-2xl font-bold"
+            style={{ color: "var(--text-primary)" }}
+          >
             Roster Members
           </h1>
           <p className="mt-2" style={{ color: "var(--text-secondary)" }}>
-            {troopId ? `Showing roster for troop ${troopId}` : "Showing all roster members"}
+            {troopId
+              ? `Showing roster for troop ${troopId}`
+              : "Showing all roster members"}
           </p>
         </div>
 
@@ -71,19 +86,32 @@ const RosterListPage: React.FC = () => {
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search name or email"
               className="px-3 py-2 rounded-lg w-full"
-              style={{ backgroundColor: "var(--bg-input)", border: "1px solid var(--border-light)" }}
+              style={{
+                backgroundColor: "var(--bg-input)",
+                border: "1px solid var(--border-light)",
+              }}
             />
             <button
               onClick={() => fetchMembers()}
               className="px-4 py-2 rounded-lg"
-              style={{ backgroundColor: "var(--btn-primary-bg)", color: "var(--btn-primary-text)" }}
+              style={{
+                backgroundColor: "var(--btn-primary-bg)",
+                color: "var(--btn-primary-text)",
+              }}
             >
               {loading ? "Loading..." : "Search"}
             </button>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 rounded-lg text-sm" style={{ backgroundColor: "var(--alert-error-bg)", border: "1px solid var(--alert-error-border)", color: "var(--alert-error-text)" }}>
+            <div
+              className="mb-4 p-3 rounded-lg text-sm"
+              style={{
+                backgroundColor: "var(--alert-error-bg)",
+                border: "1px solid var(--alert-error-border)",
+                color: "var(--alert-error-text)",
+              }}
+            >
               {error}
             </div>
           )}
@@ -102,7 +130,11 @@ const RosterListPage: React.FC = () => {
               </thead>
               <tbody>
                 {members.map((m) => (
-                  <tr key={m.bsa_member_id} className="border-t" style={{ color: "var(--text-secondary)" }}>
+                  <tr
+                    key={m.bsa_member_id}
+                    className="border-t"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
                     <td className="p-2">{m.bsa_member_id}</td>
                     <td className="p-2">{m.full_name}</td>
                     <td className="p-2">{m.email}</td>
@@ -115,7 +147,10 @@ const RosterListPage: React.FC = () => {
             </table>
           </div>
 
-          <div className="mt-4 text-sm" style={{ color: "var(--text-secondary)" }}>
+          <div
+            className="mt-4 text-sm"
+            style={{ color: "var(--text-secondary)" }}
+          >
             Showing {members.length} of {total} members
           </div>
         </div>

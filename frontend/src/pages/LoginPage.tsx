@@ -32,7 +32,7 @@ const LoginPage: React.FC = () => {
           className="font-heading mb-2.5"
           style={{ color: "var(--color-primary)" }}
         >
-          Welcome Back
+          Welcome to Trailhead!
         </h1>
         <p className="mb-8 text-sm" style={{ color: "var(--text-secondary)" }}>
           Sign in to set up your family and sign up for outings
@@ -50,22 +50,6 @@ const LoginPage: React.FC = () => {
             Sign In with Authentik
           </button>
         </div>
-      </div>
-
-
-
-      <div
-        className="max-w-md w-full p-4 rounded text-xs"
-        style={{
-          backgroundColor: "var(--alert-info-bg)",
-          color: "var(--alert-info-text)",
-          border: "1px solid var(--alert-info-border)",
-        }}
-      >
-        <strong>ℹ️ About Authentik:</strong>
-        <br />
-        Authentik provides secure, open-source authentication with built-in user
-        management. Your credentials are never stored in this application.
       </div>
     </div>
   );
