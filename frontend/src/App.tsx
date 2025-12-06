@@ -26,6 +26,7 @@ import InitialSignInWizard from "./components/InitialSignInWizard";
 import InstanceSetupWizard from "./components/InstanceSetupWizard";
 import { InstanceSetupGuard } from "./components/InstanceSetupGuard";
 import { InitialSetupGuard } from "./components/InitialSetupGuard";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { userAPI } from "./services/api";
 import type { User } from "./types";
 
@@ -694,7 +695,9 @@ const AppContent: React.FC = () => {
                 element={
                   <RequireAuth>
                     <InstanceSetupGuard>
-                      <RosterImportPage />
+                      <ErrorBoundary>
+                        <RosterImportPage />
+                      </ErrorBoundary>
                     </InstanceSetupGuard>
                   </RequireAuth>
                 }

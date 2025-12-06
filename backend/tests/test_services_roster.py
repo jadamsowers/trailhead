@@ -171,3 +171,30 @@ memberid,firstname,middlename,lastname,suffix,primaryemail,primaryphone,city,sta
         result = await RosterService.import_roster(db_session, csv_content)
         
         assert result["processed"] == 1
+
+    async def test_import_scoutbook_single_and_multiple_files(self, db_session):
+        """Test importing Scoutbook-style CSVs (single file and multiple files together)
+
+        Uses the sample Scoutbook CSV files present in the repository root: 
+        `troop_114_B__scouts.csv` and `troop_114_B__adults.csv`.
+        """
+        from pathlib import Path
+
+        repo_root = Path(__file__).resolve().parents[2]
+        scouts_csv = repo_root / "troop_114_B__scouts.csv"
+        adults_csv = repo_root / "troop_114_B__adults.csv"
+
+        assert scouts_csv.exists(), "scouts CSV test file is missing"
+        assert adults_csv.exists(), "adults CSV test file is missing"
+
+        scouts_bytes = scouts_csv.read_bytes()
+        adults_bytes = adults_csv.read_bytes()
+
+        # Import single Scoutbook file (youth)
+        result_single = await RosterService.import_roster(db_session, scouts_bytes)
+        assert result_single["processed"] > 0
+
+        # Import both files together (youth + adults)
+        result_combined = await RosterService.import_roster(db_session, [scouts_bytes, adults_bytes])
+        # Combined should process at least as many rows as single
+        assert result_combined["processed"] >= result_single["processed"]

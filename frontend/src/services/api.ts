@@ -2031,7 +2031,7 @@ export interface RosterMemberLookup {
 }
 
 export const rosterAPI = {
-  async importRoster(file: File): Promise<{ message: string; stats: any }> {
+  async importRoster(file: File, troopId?: string): Promise<{ message: string; stats: any }> {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -2039,7 +2039,8 @@ export const rosterAPI = {
     // Remove Content-Type to let browser set it with boundary
     delete (headers as any)["Content-Type"];
 
-    const response = await fetch(`${getApiBase()}/roster/import`, {
+    const url = `${getApiBase()}/roster/import${troopId ? `?troop_id=${encodeURIComponent(troopId)}` : ""}`;
+    const response = await fetch(url, {
       method: "POST",
       headers: headers,
       body: formData,

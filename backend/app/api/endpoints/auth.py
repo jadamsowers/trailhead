@@ -15,6 +15,7 @@ from app.core.authentik import get_authentik_client
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import User
+from app.models.organization import Organization
 from app.schemas.auth import UserResponse, UserContactUpdate
 import logging
 
@@ -241,8 +242,22 @@ async def callback(code: Optional[str] = None, state: Optional[str] = None, requ
                 await db.commit()
                 await db.refresh(user)
 
-    # Create response that sets auth_access_token cookie
-    response = RedirectResponse(url=settings.FRONTEND_URL)
+    # Determine frontend redirect. If this is the initial admin user and
+    # there are no organizations in the database yet, redirect the user to
+    # the instance setup wizard so they can perform the site-wide setup.
+    redirect_url = settings.FRONTEND_URL
+    try:
+        # Check whether any organization exists for this instance
+        org_result = await db.execute(select(Organization).limit(1))
+        org = org_result.scalar_one_or_none()
+        if user.is_initial_admin and org is None:
+            # Ensure a trailing slash isn't duplicated
+            redirect_url = settings.FRONTEND_URL.rstrip("/") + "/instance-setup"
+    except Exception:
+        # On any error when checking organizations, fall back to default
+        redirect_url = settings.FRONTEND_URL
+
+    response = RedirectResponse(url=redirect_url)
     # Set access token as HttpOnly cookie for backend session use
     response.set_cookie(
         "auth_access_token",

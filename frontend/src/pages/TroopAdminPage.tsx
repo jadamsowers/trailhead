@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   troopAPI,
   patrolAPI,
@@ -130,17 +131,19 @@ export const TroopAdminPage: React.FC = () => {
             >
               Troops
             </h3>
-            <button
-              type="button"
-              className="px-4 py-2 rounded-lg font-medium transition-all hover:shadow-lg"
-              style={{
-                backgroundColor: "var(--btn-primary-bg)",
-                color: "var(--btn-primary-text)",
-              }}
-              onClick={handleAddTroop}
-            >
-              Add Troop
-            </button>
+            <div>
+              <button
+                type="button"
+                className="px-4 py-2 rounded-lg font-medium transition-all hover:shadow-lg"
+                style={{
+                  backgroundColor: "var(--btn-primary-bg)",
+                  color: "var(--btn-primary-text)",
+                }}
+                onClick={handleAddTroop}
+              >
+                Add Troop
+              </button>
+            </div>
           </div>
           {loading ? (
             <div
@@ -255,7 +258,7 @@ export const TroopAdminPage: React.FC = () => {
                     Troop {selectedTroop.number}
                   </h3>
                   <a
-                    href="/admin/roster-import"
+                    href={`/admin/roster-import?troop_id=${selectedTroop.id}`}
                     className="px-4 py-2 rounded-lg font-medium transition-all flex items-center"
                     style={{
                       backgroundColor: "var(--btn-primary-bg)",
@@ -467,6 +470,7 @@ const TroopForm: React.FC<TroopFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  const navigate = useNavigate();
   const [number, setNumber] = useState(troop?.number || "");
   const [form, setForm] = useState<Omit<TroopCreate, "number">>({
     charter_org: troop?.charter_org || "",
@@ -671,6 +675,20 @@ const TroopForm: React.FC<TroopFormProps> = ({
         >
           Cancel
         </button>
+        {troop && (
+          <button
+            className="px-6 py-2 rounded-lg font-medium transition-all flex items-center"
+            style={{
+              backgroundColor: "var(--btn-primary-bg)",
+              color: "var(--btn-primary-text)",
+            }}
+            type="button"
+            onClick={() => navigate(`/admin/roster-import?troop_id=${troop.id}`)}
+          >
+            <i className="bi bi-cloud-upload mr-2"></i>
+            Import Roster
+          </button>
+        )}
       </div>
     </form>
   );

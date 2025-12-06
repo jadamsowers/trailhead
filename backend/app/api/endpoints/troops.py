@@ -6,6 +6,7 @@ from uuid import UUID
 from app.api.deps import get_db, get_current_user
 from app.models.user import User
 from app.crud import troop as crud_troop
+from sqlalchemy.exc import IntegrityError
 from app.schemas.troop import (
     TroopCreate,
     TroopUpdate,
@@ -41,7 +42,12 @@ async def create_troop(
 ):
     if current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Only admins can create troops")
-    troop = await crud_troop.create_troop(db, troop_in)
+    try:
+        troop = await crud_troop.create_troop(db, troop_in)
+    except IntegrityError as e:
+        # Unique constraint on troop.number — return 409 Conflict with message
+        # Log details are handled by global error handlers; surface a clear client error here
+        raise HTTPException(status_code=409, detail="Troop with that number already exists")
     return troop
 
 

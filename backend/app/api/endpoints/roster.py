@@ -14,23 +14,31 @@ router = APIRouter()
 async def import_roster(
     *,
     db: AsyncSession = Depends(deps.get_db),
-    file: UploadFile = File(...),
+    file: list[UploadFile] = File(...),
+    troop_id: Optional[str] = None,
     current_user: User = Depends(deps.get_current_admin_user),
 ) -> Any:
     """
     Import roster from CSV file.
     """
-    if not file.filename.endswith(".csv"):
-        raise HTTPException(status_code=400, detail="File must be a CSV")
-    
-    contents = await file.read()
+    # Accept multiple CSV files (Scoutbook separates youth/adult exports)
+    if not file:
+        raise HTTPException(status_code=400, detail="No files provided")
+
+    # Validate file extensions and read contents
+    contents_list = []
+    for f in file:
+        if not f.filename or not f.filename.lower().endswith(".csv"):
+            raise HTTPException(status_code=400, detail="All uploaded files must be CSVs")
+        contents_list.append(await f.read())
+
     try:
-        stats = await RosterService.import_roster(db, contents)
+        # troop_id is accepted for UI scoping but roster import is global (staging table)
+        stats = await RosterService.import_roster(db, contents_list)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred during import: {str(e)}")
-        
     return {"message": "Roster imported successfully", "stats": stats}
 
 
